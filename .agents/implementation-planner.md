@@ -24,6 +24,7 @@ author: malka
 model: sonnet
 color: cyan
 tools:
+  - Skill
   - Read
   - Write
   - Edit

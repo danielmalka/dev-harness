@@ -17,6 +17,8 @@ Os modelos ficam em `templates/pt-br/` e `templates/en/` no kit, em versões esp
 | `EPOCHAL.md` | Histórico bruto das memórias anteriores | Só o Coordenador | No primeiro `consolidate-memory` | Nunca fecha; só recebe lotes |
 | `RISKS.md` | Incidentes graves e prevenção | Só o Coordenador | Na inicialização do projeto | Nunca fecha; incidentes resolvidos permanecem |
 
+O PRD passa pelo `document-validator` antes de chegar ao dono: o Coordenador roda criação → validação até `approved` ou duas rodadas, e o relatório fica em `<documento>.review.md` ao lado do PRD.
+
 ## Regras que valem para todos
 
 - Fato, hipótese e decisão ficam marcados como tal.

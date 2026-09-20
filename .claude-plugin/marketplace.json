@@ -5,13 +5,13 @@
     "url": "https://github.com/danielmalka"
   },
   "metadata": {
-    "description": "Portable AI-assisted development kit for Claude Code: coordinator, 17 specialist agents, 19 skills, 17 work commands."
+    "description": "Portable AI-assisted development kit for Claude Code: coordinator, 18 specialist agents, 20 skills, 17 work commands."
   },
   "plugins": [
     {
       "name": "dev-harness",
       "description": "Coordinator plus specialist agents, skills and work commands with owner-authorized delivery.",
-      "version": "0.2.1",
+      "version": "0.3.0",
       "author": { "name": "malka" },
       "homepage": "https://github.com/danielmalka/dev-harness",
       "repository": "https://github.com/danielmalka/dev-harness",
@@ -21,7 +21,7 @@
         "source": "git-subdir",
         "url": "https://github.com/danielmalka/dev-harness.git",
         "path": "dist/claude-code/dev-harness",
-        "ref": "v0.2.1"
+        "ref": "v0.3.0"
       }
     }
   ]

@@ -24,6 +24,7 @@ author: malka
 model: haiku
 color: blue
 tools:
+  - Skill
   - Read
   - Write
   - Edit

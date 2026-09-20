@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | rascunho (pedido do dono em 20/09/2026; não priorizado ainda) |
+| Status | implementado no kit em 20/09/2026; avaliação comportamental pendente |
 | Dono | Daniel Lemos |
 | Criado / atualizado | 2026-09-20 / 2026-09-20 |
 | Stories | a derivar |
@@ -26,10 +26,10 @@ O `discover` entrega um PRD direto ao dono. Lendo um PRD gerado no danlemos, o d
 ## 4. Escopo
 
 **Entra**
-- RF-01 Novo papel `document-reviewer` (ou `prd-validator` na v1): somente leitura, adversarial, responde ao Coordenador com veredito `approved` ou `changes required` e a lista numerada de problemas (P1, P2...) com categoria e sugestão concreta.
+- RF-01 Novo papel `document-validator`: somente leitura, adversarial, responde ao Coordenador com veredito `approved` ou `changes required` e a lista numerada de problemas (P1, P2...) com categoria e sugestão concreta.
 - RF-02 Categorias de problema, herdadas do prompt de referência abaixo: lacunas (o que o discovery discutiu e não virou requisito), ambiguidades, conflitos, excessos (scope creep), critérios fracos (aceite subjetivo ou não verificável), organização (duplicidade, IDs inconsistentes, domínio errado).
 - RF-03 Ciclo no Coordenador: `discover` produz PRD → validador → se `changes required`, `product-discovery` corrige só os pontos listados → validador de novo. Limite de duas rodadas de correção, como o resto do kit; depois, entrega parcial ao dono com os pontos abertos.
-- RF-04 Relatório persistente por documento (`.harness/prd/PRD-<id>.review.md` ou seção no artefato da tarefa) com IDs estáveis e estado `pending` / `applied` / `rejected`, para que o ciclo não perca o que já foi discutido.
+- RF-04 Relatório persistente ao lado do documento (`<documento>.review.md`, por exemplo `.harness/prd/PRD-001.review.md`) com IDs estáveis e estado `pending` / `applied` / `rejected`, para que o ciclo não perca o que já foi discutido.
 - RF-05 Skill `document-review` com a rubrica, o formato do relatório e o controle de falso positivo (um PRD sem problemas deve sair aprovado sem achados inventados).
 - RF-06 Premissa geral, registrada no plano: todo documento que vira contrato (PRD, story, plano, ADR) passa por um revisor adversarial somente leitura antes de chegar ao dono. PRD é o primeiro; story e plano vêm depois.
 
@@ -53,8 +53,8 @@ O `discover` entrega um PRD direto ao dono. Lendo um PRD gerado no danlemos, o d
 ## 7. Riscos e decisões pendentes
 
 - Risco: validador gerar achados cosméticos e travar o ciclo · mitigação: severidade, só `changes required` quando há lacuna, conflito ou critério não verificável; cosmético não reprova.
-- Decisão pendente: nome do papel (`prd-validator` só ou `document-reviewer` genérico já na v1) · responde: dono.
-- Decisão pendente: onde vive o relatório persistente · responde: dono.
+- Decisão fechada em 20/09/2026: o papel se chama `document-validator`, genérico desde a v1; PRD é o primeiro alvo.
+- Decisão fechada em 20/09/2026: o relatório persistente fica ao lado do documento, como `<documento>.review.md` (para `.harness/prd/PRD-001.md`, é `.harness/prd/PRD-001.review.md`).
 
 ## 8. Referência: prompt fornecido pelo dono em 20/09/2026
 

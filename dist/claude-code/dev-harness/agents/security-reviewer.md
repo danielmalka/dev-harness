@@ -24,6 +24,7 @@ author: malka
 model: opus
 color: red
 tools:
+  - Skill
   - Read
   - Grep
   - Glob

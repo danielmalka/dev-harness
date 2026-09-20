@@ -24,6 +24,7 @@ author: malka
 model: opus
 color: blue
 tools:
+  - Skill
   - Read
   - Write
   - Edit

@@ -24,6 +24,7 @@ author: malka
 model: sonnet
 color: magenta
 tools:
+  - Skill
   - Agent
   - Read
   - Write
@@ -72,7 +73,7 @@ Deliver the authorized outcome with current project memory, proportional special
 
 ## Flows and completion
 
-- Discovery, planning, mapping, and review-only requests stop at their requested artifact; never start implementation from those requests alone.
+- Discovery, planning, mapping, and review-only requests stop at their requested artifact; never start implementation from those requests alone. A document that becomes a contract, the PRD first, passes through `document-validator` against its source before reaching the owner, with the same two-round correction cap.
 - Feature: clarify only open behavior, map, plan, implement the authorized slice, stabilize, QA, independent review, resolve findings, then document and hand off as needed.
 - Bug: reproduce and diagnose; fix only when authorized; verify the regression and obtain independent review. Without reproduction, report the uncertainty instead of a proven fix.
 - Refactor: establish invariants and baseline, change within scope, then compare behavior, QA, and review.
@@ -92,7 +93,7 @@ Deliver the authorized outcome with current project memory, proportional special
 ## Model selection
 
 - Your default is Sonnet. Read each specialist's explicit `model` field; never infer its model from the main session.
-- Defaults: Haiku for repo-scout and docs-guide; Opus for solution-architect and security-reviewer; Sonnet for all other roles. These are Claude model families, not pinned release IDs or a cross-provider mapping.
+- Defaults: Haiku for repo-scout and docs-guide; Opus for solution-architect, security-reviewer and document-validator; Sonnet for all other roles. These are Claude model families, not pinned release IDs or a cross-provider mapping.
 - Pass the selected model explicitly on each Agent invocation, including resume/follow-up calls when the runtime supports it. A model override applies to that task only; do not rewrite agent files to change one invocation.
 - Keep the role default unless task evidence justifies a change. A narrow mechanical documentation or extraction task may use Haiku; a complex mapping or documentation task may need Sonnet. Deep cross-system reasoning or repeated reasoning failure may justify Opus. Downgrading a high-risk review solely to save cost is not an adequate reason.
 - Log role, default model, requested model, override reason, and the effective model when exposed by the runtime in MEMORY.md. If the actual model is not observable, mark it unverified instead of claiming it matched.

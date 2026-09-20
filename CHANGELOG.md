@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 — 2026-09-20
+
+- Todos os agentes ganham a ferramenta `Skill` na lista `tools`: sem ela, um especialista com ferramentas restritas não consegue carregar a skill do kit que o próprio prompt exige (defeito encontrado na prova do `document-validator`; confirmado empiricamente com `--agent` em modo headless).
+- Validador adversarial de documentos (PRD-002): papel `document-validator` (somente leitura, Opus), skill `document-review` com as seis categorias, a regra de severidade e o relatório persistente em `<documento>.review.md`, e o ciclo criação → validação no `/dev-harness:discover` com limite de duas rodadas antes de o PRD chegar ao dono. Casos de avaliação e fixture de PRD em `evals/`.
+
 ## 0.2.1 — 2026-09-20
 
 - `dh build` compila com `-buildvcs=false`: binários idênticos entre a máquina do mantenedor e a CI (a 0.2.0 embutia revisão e estado sujo do git, e a CI reprovou a reprodutibilidade).

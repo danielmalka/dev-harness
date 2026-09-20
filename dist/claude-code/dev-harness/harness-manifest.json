@@ -1,9 +1,9 @@
 {
   "name": "dev-harness",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "license": "MIT",
   "generated": true,
-  "generated_at": "2026-09-20T19:18:43Z",
+  "generated_at": "2026-09-20T20:15:32Z",
   "source": "dh build",
   "runtime": {
     "primary": "claude-code",
@@ -21,6 +21,7 @@
       "debugger",
       "devops-engineer",
       "docs-guide",
+      "document-validator",
       "frontend-builder",
       "harness-maintainer",
       "implementation-planner",
@@ -59,6 +60,7 @@
       "data-migrations",
       "delivery-readiness",
       "doc-template-html",
+      "document-review",
       "harness-authoring",
       "harness-evaluation",
       "implementation-planning",
@@ -102,31 +104,31 @@
       "os": "linux",
       "arch": "amd64",
       "path": "bin/linux_amd64/dh",
-      "sha256": "6f92c11ed2c38178ef6b3b93e3eae4436eac2be15ddb9fe8a1cd5abc520fed24"
+      "sha256": "47ae8560a3c3359c60a2c3f929365202aec5145cbc23719d5cd3722b099353b3"
     },
     {
       "os": "linux",
       "arch": "arm64",
       "path": "bin/linux_arm64/dh",
-      "sha256": "aa3b66ce5427a2dcb5b933a47ee3c4d6148632e5c23362ab03c68aa612ceaf16"
+      "sha256": "0c703d54cf15c25190bcf255744bee231e06ab6fb51f0fe65f7140b0dc501faa"
     },
     {
       "os": "darwin",
       "arch": "amd64",
       "path": "bin/darwin_amd64/dh",
-      "sha256": "4678322eab50642fbc3821ad080b5a844949369853f80b077fab1bcbffbb2d3d"
+      "sha256": "99fd27d64e4a5255c4bd8501d75a10e60370c427216ff4dbb7474047c70079e3"
     },
     {
       "os": "darwin",
       "arch": "arm64",
       "path": "bin/darwin_arm64/dh",
-      "sha256": "78974621052c0a88f079cb7b1429e19b84d3d2706902111eb377d0a2e286d1b7"
+      "sha256": "2f5e1ff8daa23b3ca0c8c5c8d557b03ad652fdb8f1244e36fc2192301f00f060"
     },
     {
       "os": "windows",
       "arch": "amd64",
       "path": "bin/windows_amd64/dh.exe",
-      "sha256": "e6a06ba3b2230115019543794af73ed261195a21955cb745a6d5cb650b079443"
+      "sha256": "aa6f48cb118cd7850d85f43a9001328c2f56a00e1697ffaef598066a65862e7f"
     }
   ]
 }

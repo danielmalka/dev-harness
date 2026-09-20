@@ -24,6 +24,7 @@ author: malka
 model: sonnet
 color: green
 tools:
+  - Skill
   - Read
   - Write
   - Edit
