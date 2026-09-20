@@ -1,0 +1,22 @@
+id: typescript-web
+name: TypeScript web
+summary: TypeScript applications with a rendered user interface, verified in a browser when one is available.
+extends: base
+stack:
+  - typescript
+  - node
+commands:
+  test: null
+  lint: null
+  build: null
+  run: null
+conventions:
+  - Read package.json scripts and use those names. Do not assume npm over pnpm or yarn.
+  - UI slices include loading, error and empty states that the brief actually requires.
+  - Typecheck is a quality gate, not acceptance. Interaction evidence needs a browser or an explicit not-run.
+  - New public API calls follow the contract already agreed with the backend. Do not invent response shapes.
+  - Assets required to render the change live in the consumer repo or in this kit, never on the author's machine.
+limits:
+  - Do not run npm install, pnpm install or yarn without authorization recorded for the slice.
+  - Do not mark a UI slice verified when the browser was unavailable.
+  - Do not restyle unrelated pages or swap the design system in a behavior slice.

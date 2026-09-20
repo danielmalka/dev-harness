@@ -1,0 +1,22 @@
+id: go-api
+name: Go API
+summary: Go modules that expose an HTTP, RPC or webhook API, with tests next to the packages they cover.
+extends: base
+stack:
+  - go
+  - module
+commands:
+  test: go test ./...
+  lint: null
+  build: go build ./...
+  run: go run .
+conventions:
+  - Follow the layout and names already present in the module. Do not introduce a new internal/ tree for a one-file change.
+  - Public HTTP or RPC changes go through the api-designer contract before implementation.
+  - Table-driven tests in the same package as the code under test, unless the repo already uses an external test package.
+  - go.mod and go.sum stay in the write set of any slice that adds or updates a module dependency.
+  - Database work uses the data-engineer role and the data-migrations skill; no production DSN in fixtures.
+limits:
+  - Do not run go get or change the Go version without authorization recorded for the slice.
+  - Do not assume golangci-lint, mage or docker compose are present; probe and record unknown.
+  - Do not apply migrations against a non-disposable database.

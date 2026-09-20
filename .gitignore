@@ -1,2 +1,5 @@
 .codegraph
-docs/**
+docs/plano-produto-*.png
+__pycache__/
+*.py[cod]
+.pytest_cache/

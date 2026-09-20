@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harness · Dev Harness (não publicar)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    /* Harness Doc Shell
+   Ink paper on cool charcoal. Neon is a signal, not a wash.
+   One standalone HTML file, CSS inlined. Not a marketing page. */
+
+    :root {
+      --void: #131418;
+      --void-deep: #0C0D10;
+      --void-elevated: #1A1C22;
+      --void-soft: #23262E;
+      --text: #F1EFE8;
+      --muted: #9A978E;
+      --border: rgba(241, 239, 232, 0.10);
+      --primary: #3DFF9A;
+      --primary-hover: #6AFFB4;
+      --primary-soft: rgba(61, 255, 154, 0.10);
+      --accent: #E2D2A8;
+      --accent-hover: #F0E4C4;
+      --accent-soft: rgba(226, 210, 168, 0.10);
+      --gold: #E2D2A8;
+      --ok: #3DFF9A;
+      --ok-bg: rgba(61, 255, 154, 0.08);
+      --no: #E08A8A;
+      --no-bg: rgba(224, 138, 138, 0.08);
+      --warn: #E2C48A;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --radius-lg: 22px;
+      --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-display: "Outfit", var(--font);
+      --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --transition: 180ms var(--ease);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      font-size: 15.5px;
+      line-height: 1.62;
+      color: var(--text);
+      background: var(--void-deep);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 56% 40% at 92% -10%, rgba(61, 255, 154, 0.06), transparent 55%),
+        radial-gradient(ellipse 44% 34% at 0% 100%, rgba(226, 210, 168, 0.04), transparent 50%),
+        var(--void-deep);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.04;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 40;
+      height: 2px;
+      width: 100%;
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      pointer-events: none;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 50;
+      background: var(--primary);
+      color: var(--void-deep);
+      padding: 0.7rem 1rem;
+      font-weight: 700;
+    }
+
+    .skip-link:focus {
+      left: 1rem;
+      top: 1rem;
+    }
+
+    .page {
+      position: relative;
+      z-index: 2;
+      width: min(92%, 1320px);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 3.25rem;
+      align-items: start;
+      padding: 2.25rem 0 5rem;
+      min-width: 0;
+    }
+
+    .side {
+      position: sticky;
+      top: 1.5rem;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .side__brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.12rem;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.2rem;
+    }
+
+    .side__brand span {
+      color: var(--primary);
+    }
+
+    .mark {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .side__sub {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin: 0 0 0.85rem 2rem;
+    }
+
+    .side__type {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: var(--void-elevated);
+      border-radius: 999px;
+      padding: 0.28rem 0.7rem;
+      margin: 0 0 1.25rem;
+    }
+
+    .side__type::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .side nav {
+      display: grid;
+      gap: 0.12rem;
+    }
+
+    .side nav a {
+      display: flex;
+      align-items: baseline;
+      gap: 0.55rem;
+      padding: 0.42rem 0.65rem;
+      border-left: 2px solid transparent;
+      border-radius: 0 8px 8px 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+      text-decoration: none;
+      transition: color var(--transition), background var(--transition), border-color var(--transition);
+    }
+
+    .side nav a:hover {
+      color: var(--text);
+      background: var(--void-elevated);
+    }
+
+    .side nav a.active {
+      color: var(--text);
+      border-left-color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .side nav a b {
+      font-family: var(--font-mono);
+      font-weight: 400;
+      font-size: 0.68rem;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .wrap {
+      min-width: 0;
+      overflow-wrap: break-word;
+    }
+
+    .wrap>p,
+    .wrap>.lead {
+      max-width: 74ch;
+    }
+
+    .hero {
+      display: grid;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      width: fit-content;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 0.28rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--void-elevated);
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: var(--font-display);
+      color: var(--text);
+      letter-spacing: -0.03em;
+      text-wrap: balance;
+    }
+
+    h1 {
+      font-size: clamp(1.85rem, 3.4vw, 2.45rem);
+      margin: 0;
+      font-weight: 800;
+      line-height: 1.12;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 2.75rem 0 0.95rem;
+      padding-bottom: 0.55rem;
+      border-bottom: 1px solid var(--border);
+      scroll-margin-top: 1.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+
+    h2 .n {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 1.02rem;
+      font-weight: 700;
+      margin: 1.15rem 0 0.4rem;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      margin: 0 0 0.85rem;
+      color: var(--muted);
+    }
+
+    p.lead {
+      color: var(--text);
+      font-size: 1.05rem;
+      line-height: 1.55;
+      max-width: 62ch;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: var(--void-elevated);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.28rem 0.7rem;
+    }
+
+    .chip b {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .banner {
+      background: var(--accent-soft);
+      border: 1px dashed rgba(226, 210, 168, 0.38);
+      color: var(--gold);
+      padding: 0.9rem 1.1rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.92rem;
+      margin: 0 0 1.5rem;
+    }
+
+    .banner.warn {
+      background: var(--no-bg);
+      border-color: rgba(248, 113, 113, 0.4);
+      color: var(--no);
+    }
+
+    .strip {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 0.7rem;
+      margin: 0 0 1.5rem;
+    }
+
+    .strip a {
+      display: grid;
+      gap: 0.2rem;
+      padding: 0.85rem 0.95rem;
+      background: var(--void-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--muted);
+      text-decoration: none;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .strip a:hover {
+      border-color: rgba(61, 255, 154, 0.28);
+      transform: translateY(-1px);
+      color: var(--muted);
+    }
+
+    .strip a strong {
+      color: var(--text);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+    }
+
+    .strip a span {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+
+    .card {
+      background: var(--void-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.05rem 1.2rem;
+      margin: 0.8rem 0;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .card:hover {
+      border-color: rgba(61, 255, 154, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .card h3::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .in {
+      border-color: rgba(52, 211, 153, 0.32);
+      background: var(--ok-bg);
+    }
+
+    .in h3 {
+      color: var(--ok);
+    }
+
+    .in h3::before {
+      background: var(--ok);
+    }
+
+    .out {
+      border-color: rgba(248, 113, 113, 0.32);
+      background: var(--no-bg);
+    }
+
+    .out h3 {
+      color: var(--no);
+    }
+
+    .out h3::before {
+      background: var(--no);
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.22rem 0.6rem;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      border: 1px solid rgba(61, 255, 154, 0.28);
+      color: var(--primary);
+      margin: 0 0 0.65rem;
+    }
+
+    .price {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      background: var(--primary-soft);
+      border: 1px solid rgba(61, 255, 154, 0.22);
+      color: var(--primary);
+      padding: 0.08rem 0.42rem;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+    }
+
+    .grid-asym {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 0.8rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 0.7rem 0 1.2rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--void-elevated);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 0;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.68rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      color: var(--muted);
+    }
+
+    th {
+      background: var(--void-soft);
+      color: var(--text);
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr {
+      transition: background var(--transition);
+    }
+
+    tbody tr:hover {
+      background: rgba(241, 239, 232, 0.04);
+    }
+
+    tbody tr:hover td {
+      color: var(--text);
+    }
+
+    ul,
+    ol {
+      margin: 0.25rem 0 0.85rem;
+      padding-left: 1.2rem;
+      color: var(--muted);
+    }
+
+    li {
+      margin: 0.28rem 0;
+    }
+
+    .steps {
+      list-style: none;
+      margin: 0.5rem 0 1.15rem;
+      padding: 0;
+      counter-reset: step;
+    }
+
+    .steps>li {
+      position: relative;
+      margin: 0;
+      padding: 0 0 1.15rem 2.35rem;
+      border-left: 1px solid var(--border);
+      margin-left: 0.75rem;
+    }
+
+    .steps>li:last-child {
+      border-left-color: transparent;
+      padding-bottom: 0;
+    }
+
+    .steps>li::before {
+      counter-increment: step;
+      content: counter(step, decimal-leading-zero);
+      position: absolute;
+      left: -0.9rem;
+      top: 0.05rem;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 8px;
+      background: var(--void-soft);
+      border: 1px solid var(--border);
+      color: var(--primary);
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      display: grid;
+      place-items: center;
+    }
+
+    .callout {
+      padding: 0.95rem 1.1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      background: var(--void-elevated);
+      margin: 0.85rem 0;
+    }
+
+    .callout.gold {
+      border-left-color: var(--gold);
+      background: var(--accent-soft);
+    }
+
+    .callout.stop {
+      border-left-color: var(--no);
+      background: var(--no-bg);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    a:hover {
+      color: var(--accent-hover);
+    }
+
+    strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    em {
+      color: var(--text);
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.84em;
+      background: var(--void-soft);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.08rem 0.34rem;
+      border-radius: 6px;
+    }
+
+    ::selection {
+      background: rgba(61, 255, 154, 0.35);
+      color: var(--void-deep);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    footer.doc-foot {
+      margin-top: 2.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    @media (max-width: 1000px) {
+      .page {
+        width: auto;
+        max-width: 100%;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
+        padding: 1.25rem 1.1rem 4rem;
+      }
+
+      .side {
+        position: static;
+      }
+
+      .side nav {
+        display: flex;
+        gap: 0.35rem;
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        padding-bottom: 0.35rem;
+        scrollbar-width: thin;
+      }
+
+      .side nav a {
+        border-left: 0;
+        border-bottom: 2px solid transparent;
+        border-radius: 8px;
+        white-space: nowrap;
+        background: var(--void-elevated);
+      }
+
+      .side nav a.active {
+        border-bottom-color: var(--primary);
+        border-left-color: transparent;
+      }
+
+      .strip,
+      .grid-2,
+      .grid-asym {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .card,
+      .strip a,
+      .side nav a,
+      tbody tr {
+        transition: none;
+      }
+
+      .card:hover,
+      .strip a:hover {
+        transform: none;
+      }
+    }
+
+    @media print {
+
+      body::before,
+      body::after,
+      .progress,
+      .side,
+      .skip-link {
+        display: none !important;
+      }
+
+      .page {
+        display: block;
+        width: auto;
+        padding: 0;
+      }
+
+      .card,
+      .table-wrap,
+      .banner {
+        break-inside: avoid;
+      }
+
+      a {
+        color: inherit;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <a class="skip-link" href="#conteudo">Ir ao conteúdo</a>
+  <div class="page">
+    <aside class="side">
+      <div class="side__brand">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="mark-grad" x1="4" y1="2" x2="28" y2="30">
+              <stop offset="0" stop-color="#3DFF9A" />
+              <stop offset="1" stop-color="#E2D2A8" />
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill="url(#mark-grad)" />
+        </svg>
+        Harness<span>.</span>
+      </div>
+      <div class="side__sub">Doc interno</div>
+      <div class="side__type">plano</div>
+      <nav>
+        <a href="#contexto"><b>01</b>Contexto e por que agora</a>
+        <a href="#resultado"><b>02</b>Resultado esperado</a>
+        <a href="#fora"><b>03</b>Fora de escopo</a>
+        <a href="#abordagem"><b>04</b>Abordagem</a>
+        <a href="#etapas"><b>05</b>Etapas</a>
+        <a href="#riscos"><b>06</b>Riscos</a>
+        <a href="#aceite"><b>07</b>Critérios de aceite</a>
+        <a href="#acoes"><b>08</b>Próximas ações</a>
+      </nav>
+    </aside>
+    <div class="wrap" id="conteudo">
+      <div class="banner">Documento interno. Não publicar. Plano v0.5. Fase 1 empacotada. Prova de runtime Claude pendente.</div>
+      <header class="hero">
+        <div class="eyebrow">Plano de produto · kit portátil</div>
+        <h1>Dev Harness<br>Clone. Configure. Desenvolva. Evolua.</h1>
+        <p class="lead">Um repositório que leva os agentes, procedimentos, comandos e tutoriais do seu ciclo de
+          desenvolvimento para outra máquina.</p>
+        <div class="chips">
+          <span class="chip">data <b>2026-09-20</b></span>
+          <span class="chip">status <b>fase 1 empacotada · runtime Claude pendente</b></span>
+          <span class="chip">dono <b>Daniel Lemos</b></span>
+          <span class="chip">path <b>docs/plano-produto.html</b></span>
+        </div>
+      </header>
+
+      <h2 id="contexto"><span class="n">01</span>Contexto e por que agora</h2>
+      <p>O <strong>dev-harness</strong> é um kit portátil de desenvolvimento assistido por IA. O usuário deve conseguir
+        obter o repositório em uma máquina nova, seguir a documentação e trabalhar em seus projetos com o mesmo catálogo
+        de agentes, skills, comandos e critérios de qualidade.</p>
+      <p>A portabilidade faz parte da primeira versão utilizável. O computador de origem pode servir para selecionar
+        referências; o conteúdo necessário ao produto precisa estar dentro do repositório. Não haverá dependência
+        operacional de outros produtos, pastas pessoais, skills instaladas globalmente ou memórias privadas.</p>
+      <div class="callout gold"><strong>Regra de produto:</strong> se um recurso necessário não vier no clone nem
+        estiver declarado no guia de pré-requisitos, a entrega está incompleta. Ter funcionado no computador de origem
+        não comprova portabilidade.</div>
+      <p><strong>Direção confirmada pelo dono:</strong> fontes em <code>.agents/</code>, <code>.commands/</code> e
+        <code>.skills/</code>; agentes personalizados para todo o ciclo; tutoriais para usar, aprimorar e progredir;
+        Claude Code como primeiro runtime; conteúdo reaproveitável por outras IAs.
+      </p>
+      <p><strong>Inspeção desta revisão:</strong> fontes canônicas com 18 agentes, 17 comandos e 19 skills; templates de
+        memória e de trabalho; perfis <code>base</code>, <code>go-api</code> e <code>typescript-web</code>; adaptador
+        Claude e guia genérico; empacotador determinístico; validador e doctor mecânicos; fixture
+        <code>evals/fixtures/slice-01</code>; tutorial 00 e início rápido; licença MIT. Não houve sessão Claude Code em
+        máquina limpa. Evals comportamentais continuam vazios. A regra <code>docs/**</code> no ignore foi substituída
+        pela exclusão só das capturas de conferência.</p>
+
+      <h2 id="resultado"><span class="n">02</span>Resultado esperado</h2>
+      <p class="lead">Levar o kit para uma máquina com os pré-requisitos documentados e conduzir uma tarefa da ideia à
+        entrega verificada, sem recuperar nada da máquina de origem.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Experiência</th>
+              <th>Entrega do produto</th>
+              <th>Prova esperada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Começar em outra máquina</td>
+              <td>Pacote autocontido, guia de instalação e diagnóstico</td>
+              <td>Primeira tarefa em ambiente limpo, sem mounts ou pastas do autor</td>
+            </tr>
+            <tr>
+              <td>Escolher o que fazer</td>
+              <td>Mapa de comandos e roteamento por necessidade</td>
+              <td>Usuário identifica o próximo comando pelo tutorial</td>
+            </tr>
+            <tr>
+              <td>Desenvolver uma feature</td>
+              <td>Descoberta, plano, arquitetura, implementação, QA e revisão</td>
+              <td>Critério ligado à mudança e à evidência funcional</td>
+            </tr>
+            <tr>
+              <td>Corrigir e manter</td>
+              <td>Debug, refactor, segurança e diagnóstico de qualidade</td>
+              <td>Causa sustentada e regressão pertinente verificada</td>
+            </tr>
+            <tr>
+              <td>Entregar e retomar</td>
+              <td>Documentação, preparação de release e handoff</td>
+              <td>Outra sessão continua com artefatos presentes no projeto</td>
+            </tr>
+            <tr>
+              <td>Aprimorar o harness</td>
+              <td>Guia de autoria, avaliações e versionamento</td>
+              <td>Um agente ou skill evolui sem quebrar os cenários anteriores</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Portabilidade com dependências explícitas</h3>
+      <p>Autocontido significa que os <strong>ativos do harness</strong> viajam juntos. O kit não inclui o executável do
+        Claude Code, assinatura de modelo, credenciais, compiladores de cada projeto ou acesso offline a um modelo
+        hospedado. Esses pré-requisitos serão listados, diagnosticados e instalados separadamente pelo usuário.</p>
+      <p>Meta de suporte da v1: Linux, macOS e Windows com WSL2. Windows nativo fica como trilha de compatibilidade a
+        validar. Não se anuncia suporte a uma plataforma antes de executar os cenários nela. Documentação e catálogo
+        devem abrir offline; execução com provedores remotos continua dependendo de conectividade e autenticação.</p>
+      <p><strong>Métricas:</strong> sucesso do primeiro uso sem instrução verbal; tempo de setup e primeira tarefa;
+        intervenções corretivas; retomadas; defeitos escapados; regressões dos prompts; custo quando o runtime o
+        informar. Sem promessa numérica de produtividade antes dos pilotos.</p>
+
+      <h2 id="fora"><span class="n">03</span>Fora de escopo</h2>
+      <p><strong>Decisão do dono:</strong> Context Kit é outro produto e deve ser desconsiderado neste projeto. Não
+        compõe os requisitos, a arquitetura, os fluxos, as integrações ou os critérios de aceite do Dev Harness.</p>
+      <p>A primeira versão não cria uma IDE, serviço hospedado, gerenciador de assinaturas, substituto de CI ou
+        plataforma de agentes. Não exige outro produto ou MCP para o fluxo principal. Não executa instalação, publicação
+        ou
+        deploy sem autorização correspondente. Conexões pessoais, memórias, tokens e integrações privadas não fazem
+        parte do pacote.</p>
+      <p>Suporte automático a todos os runtimes e stacks não é condição da v1. A v1 entrega o ciclo completo no Claude
+        Code e um guia de uso manual por outras IAs; adaptações nativas adicionais exigem validação própria. O kit não
+        promete que colocar arquivos em diretórios arbitrários fará qualquer IA descobri-los.</p>
+
+      <h2 id="abordagem"><span class="n">04</span>Abordagem</h2>
+      <div class="grid-2">
+        <div class="card in">
+          <h3>Entra na v1</h3>
+          <ul>
+            <li>18 papéis personalizados cobrindo o ciclo inteiro, com instruções completas.</li>
+            <li>17 comandos de trabalho, skills locais, templates e exemplos.</li>
+            <li>Pacote Claude Code pronto para carregar, acompanhado das fontes.</li>
+            <li>Tutoriais de instalação, operação, autoria, evolução e recuperação.</li>
+            <li>Diagnóstico, avaliações, atualização reversível e teste em máquina limpa.</li>
+          </ul>
+        </div>
+        <div class="card out">
+          <h3>Fica de fora da v1</h3>
+          <ul>
+            <li>Dependências ocultas do computador do autor.</li>
+            <li>Marketplaces remotos obrigatórios e download de prompts em execução.</li>
+            <li>Uma segunda plataforma de orquestração.</li>
+            <li>Hooks automáticos e serviços externos obrigatórios.</li>
+            <li>Especialistas por toda linguagem antes de existir demanda real.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="strip"><a href="#estrutura"><span>Estrutura</span><strong>Kit portátil</strong>Fontes e pacote</a><a
+          href="#agentes"><span>Catálogo</span><strong>18 papéis</strong>Ciclo completo</a><a
+          href="#comandos"><span>Operação</span><strong>17 comandos</strong>Fluxos de trabalho</a><a
+          href="#tutoriais"><span>Progressão</span><strong>8 trilhas</strong>Usar e evoluir</a></div>
+      <h3 id="estrutura">4.1 · Fontes, distribuição e estado de trabalho</h3>
+      <div class="table-wrap">
+        <pre><code>dev-harness/
+  .agents/                    18 definições autorais completas
+  .commands/                  entradas de trabalho e roteamento
+  .skills/                    procedimentos com SKILL.md e referências
+  templates/                  task, plano, evidência, revisão, handoff, perfil
+    MEMORY.md                 execução vigente e histórico breve
+    EPOCHAL.md                histórico bruto sob demanda
+    RISKS.md                  incidentes graves e prevenção
+  profiles/                   base, go-api, typescript-web, exemplos
+  adapters/
+    claude-code/              mapeamento de metadados e capacidades
+    generic/                  guia de uso manual por outra IA
+  dist/
+    claude-code/dev-harness/  pacote gerado e incluído na distribuição
+      .claude-plugin/plugin.json
+      agents/                 agentes no formato nativo
+      commands/               comandos no formato nativo
+      skills/                 skills e seus recursos locais
+      templates/              templates usados pelo pacote
+      profiles/               perfis usados pelo pacote
+  scripts/                    validar, empacotar e diagnosticar
+  evals/                      fixtures, casos, rubricas e resultados de referência
+  docs/
+    plano-produto.html
+    inicio-rapido.html
+    tutoriais/
+    catalogo.html
+    compatibilidade.html
+    troubleshooting.html
+    autoria-e-evolucao.html
+  harness-manifest.json       versão, inventário e dependências
+  THIRD_PARTY_NOTICES.md      proveniência e licenças quando aplicável
+  CHANGELOG.md
+  README.md
+  LICENSE                     decisão de licença antes da redistribuição</code></pre>
+      </div>
+      <p>As três pastas com ponto são as fontes canônicas. O adaptador documenta a cópia para o layout do runtime; o
+        empacotador gera <code>dist/claude-code/dev-harness</code>. Ainda faltam nesta árvore, de propósito: tutoriais
+        01–07, <code>catalogo.html</code>, <code>compatibilidade.html</code>, <code>troubleshooting.html</code>,
+        <code>autoria-e-evolucao.html</code>, CI, e casos em <code>evals/cases</code>. README, LICENSE, CHANGELOG,
+        manifesto, início rápido e tutorial 00 já existem.</p>
+      <p>O Claude Code usa diretórios de componentes como <code>agents/</code>, <code>commands/</code> e
+        <code>skills/</code> no plugin. Por isso, as pastas canônicas não serão apresentadas como diretórios
+        automaticamente reconhecidos pelo Claude. O carregamento local com <code>--plugin-dir</code> será o caminho
+        inicial documentado. <a href="https://code.claude.com/docs/en/plugins-reference">Referência oficial de
+          plugins</a>.
+      </p>
+      <p>O empacotamento é uma cópia determinística mais manifesto: fontes viram o layout nativo, referências são
+        validadas, a saída é montada em diretório temporário e só então substitui <code>dist/claude-code/dev-harness</code>.
+        Sem framework universal. CI que compare fontes e pacote ainda não existe. Edição manual em <code>dist/</code>
+        não é o fluxo de manutenção. O pacote inclui scripts de doctor/validate, templates e perfis na própria raiz, sem
+        symlinks externos.</p>
+      <p>Scripts de manutenção usam bash e Python 3 da biblioteca padrão, já exigidos pelo stamp HTML. Não há
+        dependência de Node para empacotar ou diagnosticar. Python 3 é requisito declarado de manutenção e da fixture;
+        não é requisito para ler os tutoriais. A versão mínima do Claude Code permanece <code>unverified</code> até a
+        Fase 4.</p>
+      <p><strong>No projeto de trabalho:</strong> <code>.harness/project.yaml</code> guarda perfil compartilhável,
+        comandos e convenções; <code>.harness/tasks/&lt;id&gt;/</code> guarda os artefatos detalhados de cada tarefa.
+        <code>.harness/MEMORY.md</code>, <code>.harness/EPOCHAL.md</code> e <code>.harness/RISKS.md</code> ficam lado a
+        lado, escritos exclusivamente pelo Coordenador. Os modelos distribuídos ficam em <code>templates/</code>; o
+        histórico pertence a cada projeto consumidor e não ao pacote do harness. Setup inicializa apenas arquivos
+        ausentes, preservando registros existentes. Preferências locais ficam em arquivo separado e ignorado. Nenhum
+        segredo entra nesses artefatos. A política de versionar evidências é do projeto.
+      </p>
+
+      <h3 id="instalacao">4.2 · Jornada de instalação e primeiro uso</h3>
+      <ol class="steps">
+        <li><strong>Obter uma versão:</strong> clonar o repositório ou extrair um pacote da release. Documentar o
+          endereço real quando houver origem definida; não depender de um caminho pessoal.</li>
+        <li><strong>Conferir pré-requisitos:</strong> sistema suportado, runtime de IA instalado e autenticado, acesso
+          ao modelo, ferramentas exigidas pelo projeto. Git é uma forma de obter o kit; o uso cotidiano admite
+          distribuição por arquivo e snapshots.</li>
+        <li><strong>Carregar o pacote no projeto alvo:</strong> iniciar o Claude Code na pasta do projeto e passar o
+          diretório local do plugin. O tutorial deve mostrar como obter o caminho no próprio computador.</li>
+        <li><strong>Executar o diagnóstico:</strong> listar agentes, comandos, referências resolvidas e capacidades
+          ausentes. Não instalar automaticamente ferramentas faltantes. Oferecer também checklist manual, independente
+          do script.</li>
+        <li><strong>Configurar o projeto:</strong> o comando <code>setup</code> propõe o perfil, reconhece instruções
+          existentes e grava apenas o que estiver autorizado. Não sobrescreve instruções ou configurações preexistentes.
+        </li>
+        <li><strong>Fazer o exercício guiado:</strong> uma fixture pequena percorre plano, implementação, teste, revisão
+          e handoff com resultado esperado conhecido. Depois, repetir em um projeto real.</li>
+      </ol>
+      <p>Exemplo de invocação a documentar e testar na implementação, executado dentro do projeto alvo:</p>
+      <div class="table-wrap">
+        <pre><code>claude --plugin-dir "/caminho/do/clone/dist/claude-code/dev-harness" --agent dev-harness:coordinator
+/dev-harness:doctor
+/dev-harness:setup
+/dev-harness:plan "Adicionar uma validação no exercício guiado"</code></pre>
+      </div>
+      <p>O caminho acima é um marcador didático a substituir no computador de destino. Os 17 arquivos em
+        <code>.commands/</code> existem; o prefixo <code>/dev-harness:</code> depende do Claude Code descobrir o plugin.
+        Essa descoberta ainda não foi executada numa sessão real. O guia <code>docs/inicio-rapido.html</code> e o
+        tutorial 00 mostram carga, diagnóstico e desativação. Arquivos de trabalho do consumidor permanecem intactos ao
+        desativar o plugin.
+      </p>
+
+      <h3 id="agentes">4.3 · Catálogo de agentes para o ciclo inteiro</h3>
+      <p>Os 18 papéis fazem parte da v1, entregues gradualmente nas fases abaixo. Catálogo completo não significa
+        executar todos em cada tarefa. Cada arquivo terá missão, gatilhos positivos e negativos, entradas mínimas,
+        procedimento, ferramentas permitidas, limites, formato de saída, passagem de contexto, condição de parada e
+        exemplos avaliáveis.</p>
+      <p><strong>Contrato comum:</strong> ler instruções do projeto; citar evidências; distinguir fato, hipótese e
+        decisão; usar caminhos relativos nos artefatos transportáveis; registrar limitações; respeitar escopo de
+        escrita; não inventar testes executados. Credenciais, ferramentas MCP e modelos do outro produto não serão
+        copiados.
+        Cada papel declara um modelo explícito no frontmatter; herdar o modelo da sessão não é o padrão. O Coordenador
+        pode escolher outro modelo para uma chamada, com justificativa, sem reescrever a definição do agente.</p>
+      <p>O Coordenador é uma definição aplicada à sessão principal. Os especialistas devolvem resultados para ela; o
+        desenho não depende de delegação recursiva. O adaptador mapeará permissões e metadados para o runtime suportado.
+        Texto dizendo “somente leitura” não impede escrita por shell; acessos precisam ser limitados e conferidos. <a
+          href="https://code.claude.com/docs/en/sub-agents">Documentação de subagentes</a>.</p>
+
+      <h3>Modelos por responsabilidade</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Modelo padrão</th>
+              <th>Papéis</th>
+              <th>Critério</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Haiku</td>
+              <td>repo-scout, docs-guide</td>
+              <td>Exploração delimitada e documentação; elevar a Sonnet quando a complexidade justificar</td>
+            </tr>
+            <tr>
+              <td>Sonnet</td>
+              <td>coordinator, product-discovery, implementation-planner, api-designer, backend-builder,
+                frontend-builder, data-engineer, debugger, refactorer, qa-verifier, code-reviewer, devops-engineer,
+                release-manager, harness-maintainer</td>
+              <td>Coordenação, implementação, verificação e entrega do trabalho cotidiano</td>
+            </tr>
+            <tr>
+              <td>Opus</td>
+              <td>solution-architect, security-reviewer</td>
+              <td>Decisões arquiteturais e análise de segurança; profundidade proporcional ao escopo</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>São famílias explícitas do Claude Code, não IDs de versão fixos nem equivalências com outros provedores. Por
+        despacho, o Coordenador registra padrão, modelo solicitado, justificativa da alteração e modelo efetivo quando
+        observável; se não for observável, registra não verificado. Troca por chamada não altera o arquivo nem reinicia
+        o limite de duas rodadas de correção. Respeitar orçamento, disponibilidade e escolhas anteriores do dono.</p>
+      <p>O runtime documenta seleção de modelo por invocação com precedência sobre o frontmatter; configurações forçadas
+        ou restrições de disponibilidade podem interferir. O Coordenador deve informar divergências e não assumir custo
+        ou modelo efetivo sem evidência. <a href="https://code.claude.com/docs/en/sub-agents#choose-a-model">Referência
+          oficial de seleção de modelos</a>. Compatibilidade comportamental ainda precisa de avaliação real.</p>
+
+      <div class="card">
+        <h3>01 · Coordenador de desenvolvimento · coordinator</h3>
+        <p><strong>Missão e gatilho:</strong> conduzir demandas com múltiplas etapas e preservar objetivo, autorização e
+          estado. Em tarefa trivial, resolver diretamente sem montar time.</p>
+        <p><strong>Entradas e método:</strong> pedido, instruções, perfil e <code>MEMORY.md</code>; classificar fluxo,
+          escolher papéis, delimitar arquivos e integrar resultados. Consultar a memória no início de cada execução, na
+          retomada e antes de delegar; atualizar após marcos relevantes. Consultar <code>EPOCHAL.md</code> apenas por
+          necessidade histórica ou pedido explícito. Consultar <code>RISKS.md</code> antes de mudança em comportamento
+          consolidado, regra crítica ou área de alto risco. Manter no máximo dois especialistas em paralelo quando
+          independentes e uma escrita ativa por conjunto de arquivos.</p>
+        <p><strong>Entrega e limite:</strong> sequência de trabalho, despachos completos, estado e próximo passo. É o
+          único escritor de <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>; especialistas
+          reportam resultados e incidentes. Possui a ferramenta <code>Agent</code> e atua na sessão principal; invocação
+          acidental como especialista retorna ao principal. Conclusão de implementação exige critérios obrigatórios
+          passando e revisão independente sem bloqueador pendente no estado atual. Falha ou check obrigatório não
+          executado mantém status parcial/bloqueado. Aprovação de plano não autoriza publicação; autorização explícita
+          já dada deve ser preservada. Duas rodadas de correção sem solução exigem replanejamento.</p>
+        <p><strong>Referência e avaliação:</strong> agent-organizer + context-manager. Caso de prova: retomar tarefa
+          interrompida sem perder uma restrição nem repetir alteração concluída.</p>
+      </div>
+
+      <div class="card">
+        <h3>02 · Analista de produto · product-discovery</h3>
+        <p><strong>Missão e gatilho:</strong> transformar ideia ou dor ambígua em comportamento desejado. Não reabre
+          descoberta quando o escopo já está claro.</p>
+        <p><strong>Entradas e método:</strong> objetivo, usuário afetado e restrições; descrever situação atual,
+          resultado, exemplos, alternativas e limites; perguntar apenas sobre decisões que alteram escopo.</p>
+        <p><strong>Entrega e limite:</strong> brief, hipóteses e aceite “quando X, então Y”; separar requisito de
+          sugestão. Escreve somente artefatos de descoberta.</p>
+        <p><strong>Origem e avaliação:</strong> papel autoral do kit. Prova: pedido vago produz critérios testáveis e
+          identifica uma decisão ainda pendente.</p>
+      </div>
+
+      <div class="card">
+        <h3>03 · Explorador de repositório · repo-scout</h3>
+        <p><strong>Missão e gatilho:</strong> mapear a área afetada antes de planejar ou diagnosticar. Não faz auditoria
+          integral para responder sobre um único arquivo conhecido.</p>
+        <p><strong>Entradas e método:</strong> pergunta e diretório alvo; ler instruções, localizar entradas e
+          dependências, rastrear fluxo e descobrir checks. Usar índice quando disponível e busca local quando não
+          houver.</p>
+        <p><strong>Entrega e limite:</strong> mapa com arquivos, símbolos, fluxo, comandos confirmados e desconhecidos.
+          Somente leitura de produto; nunca exige CodeGraph ou um MCP externo.</p>
+        <p><strong>Origem e avaliação:</strong> papel autoral. Prova: localizar o caminho de uma fixture sem índice e
+          citar fonte verificável.</p>
+      </div>
+
+      <div class="card">
+        <h3>04 · Planejador técnico · implementation-planner</h3>
+        <p><strong>Missão e gatilho:</strong> decompor trabalho amplo em fatias verificáveis. Evitar plano extenso para
+          edição pequena e delimitada.</p>
+        <p><strong>Entradas e método:</strong> brief, mapa, restrições e decisões arquiteturais; ordenar dependências,
+          definir critérios, arquivos candidatos, estratégia de teste e riscos.</p>
+        <p><strong>Entrega e limite:</strong> plano executável por outro agente, com entradas, saídas, dependências e
+          condição de conclusão por fatia. Não implementa nem amplia escopo sem decisão.</p>
+        <p><strong>Origem e avaliação:</strong> papel autoral apoiado na organização de agentes. Prova: outro agente
+          consegue iniciar a primeira fatia com o contexto entregue.</p>
+      </div>
+
+      <div class="card">
+        <h3>05 · Arquiteto de solução · solution-architect</h3>
+        <p><strong>Missão e gatilho:</strong> decidir fronteiras, integração e compromissos relevantes. Não redesenha
+          arquitetura em correção pontual sem necessidade demonstrada.</p>
+        <p><strong>Entradas e método:</strong> requisitos e mapa; comparar opções proporcionais, rastrear impacto em
+          dados, operação e segurança; registrar decisão e motivos.</p>
+        <p><strong>Entrega e limite:</strong> desenho, contratos entre componentes e ADR quando houver decisão durável.
+          Não confunde preferência de tecnologia com requisito.</p>
+        <p><strong>Referência e avaliação:</strong> architect-reviewer. Prova: decisão explica custo, alternativa
+          descartada e efeito na validação.</p>
+      </div>
+
+      <div class="card">
+        <h3>06 · Designer de API · api-designer</h3>
+        <p><strong>Missão e gatilho:</strong> definir ou alterar interfaces públicas entre componentes. Não entra em
+          mudanças sem impacto em contrato.</p>
+        <p><strong>Entradas e método:</strong> consumidores, convenções e critérios; modelar operações, erros,
+          autorização, idempotência e compatibilidade somente quando aplicáveis.</p>
+        <p><strong>Entrega e limite:</strong> contrato, exemplos e cenários de integração; registra mudanças
+          incompatíveis. Pode escrever especificação, sem implementar servidor nesta função.</p>
+        <p><strong>Referência e avaliação:</strong> api-designer. Prova: consumidor e backend interpretam o mesmo
+          exemplo de sucesso e falha.</p>
+      </div>
+
+      <div class="card">
+        <h3>07 · Implementador backend · backend-builder</h3>
+        <p><strong>Missão e gatilho:</strong> construir regras de negócio, serviços e integrações em escopo autorizado.
+          Encaminhar decisões abertas antes de inventar comportamento.</p>
+        <p><strong>Entradas e método:</strong> plano, contrato e perfil de stack; implementar uma fatia, seguir padrões
+          locais, adicionar testes de comportamento pertinentes e executar checks.</p>
+        <p><strong>Entrega e limite:</strong> código, testes, lista de arquivos e evidências com limitações. Escreve
+          apenas no escopo atribuído; não publica nem aprova a própria entrega.</p>
+        <p><strong>Referência e avaliação:</strong> backend-developer. Prova: feature de fixture atende caso normal e
+          erro relevante, sem alteração periférica.</p>
+      </div>
+
+      <div class="card">
+        <h3>08 · Implementador frontend · frontend-builder</h3>
+        <p><strong>Missão e gatilho:</strong> entregar interfaces funcionais com estados e interação definidos. Não
+          escolhe redesign visual amplo sem demanda.</p>
+        <p><strong>Entradas e método:</strong> comportamento, referência visual, contrato da API e padrões locais;
+          implementar fluxo, estados de carregamento/erro/vazio pertinentes, responsividade e acessibilidade.</p>
+        <p><strong>Entrega e limite:</strong> componentes, testes adequados e evidência em navegador quando disponível.
+          Se não houver navegador, declarar verificação visual pendente; typecheck não substitui interação.</p>
+        <p><strong>Referência e avaliação:</strong> frontend-developer. Prova: fluxo exercitado por teclado e em duas
+          larguras; recursos visuais necessários incluídos no pacote ou projeto.</p>
+      </div>
+
+      <div class="card">
+        <h3>09 · Engenheiro de dados · data-engineer</h3>
+        <p><strong>Missão e gatilho:</strong> modelar persistência, migrations e consultas afetadas pela demanda. Não se
+          conecta a banco remoto por inferência.</p>
+        <p><strong>Entradas e método:</strong> schema e padrões de acesso; avaliar integridade, transações, índices,
+          compatibilidade de migração e recuperação. Usar dados sintéticos.</p>
+        <p><strong>Entrega e limite:</strong> schema/migration/query autorizados, plano de aplicação e teste em banco
+          descartável. Não aplica alteração destrutiva em dados reais automaticamente.</p>
+        <p><strong>Referência e avaliação:</strong> postgres-pro, com perfil por banco. Prova: migração e estratégia de
+          retorno preservam dados da fixture; restrição de retorno impossível fica explícita.</p>
+      </div>
+
+      <div class="card">
+        <h3>10 · Investigador de bugs · debugger</h3>
+        <p><strong>Missão e gatilho:</strong> explicar falha com evidência e corrigir quando autorizado. Não trata
+          hipótese plausível como causa confirmada.</p>
+        <p><strong>Entradas e método:</strong> sintoma, reprodução, logs sanitizados e ambiente; reproduzir, isolar
+          variável, testar hipóteses e aplicar a menor correção sustentada.</p>
+        <p><strong>Entrega e limite:</strong> causa, reprodução antes/depois e proteção de regressão adequada. Se não
+          reproduzir, entregar evidências e lacuna, sem alegar solução comprovada.</p>
+        <p><strong>Referência e avaliação:</strong> debugger. Prova: fixture falha antes e passa depois; cenário sem
+          reprodução mantém status inconclusivo.</p>
+      </div>
+
+      <div class="card">
+        <h3>11 · Especialista em refatoração · refactorer</h3>
+        <p><strong>Missão e gatilho:</strong> melhorar estrutura preservando comportamento contratado. Funcionalidade
+          nova precisa de escopo separado.</p>
+        <p><strong>Entradas e método:</strong> alvo, motivação e baseline; identificar invariantes, estabelecer checks
+          de caracterização quando necessários, aplicar passos pequenos e comparar resultados.</p>
+        <p><strong>Entrega e limite:</strong> mudança estrutural, evidência de preservação e riscos restantes. Não
+          altera contratos externos sob o nome de limpeza.</p>
+        <p><strong>Referência e avaliação:</strong> refactoring-specialist. Prova: mesmos exemplos de entrada/saída
+          antes e depois, com redução concreta do problema identificado.</p>
+      </div>
+
+      <div class="card">
+        <h3>12 · Engenheiro de QA · qa-verifier</h3>
+        <p><strong>Missão e gatilho:</strong> transformar critérios em testes e verificar comportamento entregue.
+          Ajustar profundidade ao risco.</p>
+        <p><strong>Entradas e método:</strong> aceite, ambiente, alteração estabilizada e instruções; escolher checks
+          relevantes, escrever testes no escopo combinado, executar e registrar resultados reproduzíveis.</p>
+        <p><strong>Entrega e limite:</strong> matriz passou/falhou/não executado com comando, resultado e vínculo ao
+          critério. Pode escrever testes; não corrige código de produção. Escrita de testes é sequencial à do
+          implementador.</p>
+        <p><strong>Referência e avaliação:</strong> qa-engineer. Prova: um defeito inserido intencionalmente é
+          detectado; teste indisponível não vira sucesso.</p>
+      </div>
+
+      <div class="card">
+        <h3>13 · Revisor de código · code-reviewer</h3>
+        <p><strong>Missão e gatilho:</strong> revisar correção, regressões e manutenção de uma alteração delimitada. Não
+          gera achados cosméticos como bloqueadores.</p>
+        <p><strong>Entradas e método:</strong> escopo, comparação estável e evidências; rastrear caminhos afetados,
+          verificar contratos e formular achados sustentados.</p>
+        <p><strong>Entrega e limite:</strong> severidade, localização, cenário, impacto e recomendação; declarar quando
+          não encontrou problema. Somente leitura; correções voltam ao responsável.</p>
+        <p><strong>Referência e avaliação:</strong> code-reviewer, com permissões reduzidas frente ao perfil consultado.
+          Prova: aponta bug real de fixture e evita acusação em cenário controle.</p>
+      </div>
+
+      <div class="card">
+        <h3>14 · Revisor de segurança · security-reviewer</h3>
+        <p><strong>Missão e gatilho:</strong> revisar superfície de risco de autenticação, dados sensíveis, entradas e
+          execução. Não exige auditoria integral para toda edição.</p>
+        <p><strong>Entradas e método:</strong> fronteiras de confiança, diff e contratos; traçar entrada até operação
+          sensível, conferir autorização e exposição, sustentar impacto com cenário seguro.</p>
+        <p><strong>Entrega e limite:</strong> riscos priorizados, evidência e mitigação verificável. Somente leitura;
+          não explora sistemas externos nem imprime segredos.</p>
+        <p><strong>Referência e avaliação:</strong> security-auditor. Prova: distingue falha de autorização de um alerta
+          sem caminho explorável na fixture.</p>
+      </div>
+
+      <div class="card">
+        <h3>15 · Documentador e curador de contexto · docs-guide</h3>
+        <p><strong>Missão e gatilho:</strong> entregar instruções utilizáveis e estado de retomada. Não cria
+          documentação redundante para mudança que não a necessita.</p>
+        <p><strong>Entradas e método:</strong> comportamento verificado, decisões e pendências; atualizar tutorial,
+          exemplos e handoff; conferir caminhos e comandos contra fontes.</p>
+        <p><strong>Entrega e limite:</strong> documentação e próximo passo concretos, distinguindo planejado de
+          implementado. Entrega ao Coordenador as informações para atualizar memória e incidentes; não edita
+          <code>MEMORY.md</code>, <code>EPOCHAL.md</code> ou <code>RISKS.md</code>. Não grava memória pessoal nem
+          depende de vault externo.
+        </p>
+        <p><strong>Referência e avaliação:</strong> context-manager para continuidade; autoria de tutorial é extensão
+          própria. Prova: leitor em outra sessão conclui o exercício seguindo apenas o documento.</p>
+      </div>
+
+      <div class="card">
+        <h3>16 · Engenheiro de automação e operação · devops-engineer</h3>
+        <p><strong>Missão e gatilho:</strong> preparar ambiente reproduzível, CI, empacotamento e diagnóstico
+          operacional. Não pressupõe um provedor específico.</p>
+        <p><strong>Entradas e método:</strong> perfil, comandos validados e restrições; automatizar build/teste,
+          declarar dependências e segredos necessários, prever diagnóstico e recuperação.</p>
+        <p><strong>Entrega e limite:</strong> configuração autorizada, runbook e evidência em ambiente descartável. Não
+          instala software, provisiona infraestrutura ou acessa servidor por conta própria.</p>
+        <p><strong>Referência e avaliação:</strong> devops-engineer. Prova: pipeline da fixture executa sem paths do
+          autor e falha claramente quando falta requisito.</p>
+      </div>
+
+      <div class="card">
+        <h3>17 · Responsável pela entrega · release-manager</h3>
+        <p><strong>Missão e gatilho:</strong> preparar uma entrega revisável depois de QA e revisão. Não publica por ter
+          recebido pedido de preparação.</p>
+        <p><strong>Entradas e método:</strong> evidências, achados resolvidos e mudanças; verificar prontidão, versão,
+          compatibilidade, notas, rollout e rollback aplicáveis.</p>
+        <p><strong>Entrega e limite:</strong> pacote de entrega, riscos residuais e decisão necessária. Commit, push,
+          release e deploy seguem autorização explícita e política do projeto.</p>
+        <p><strong>Referência e avaliação:</strong> deployment-engineer, adaptado à preparação. Prova: fluxo chega a
+          “pronto para decisão” sem efeito remoto automático.</p>
+      </div>
+
+      <div class="card">
+        <h3>18 · Mantenedor do harness · harness-maintainer</h3>
+        <p><strong>Missão e gatilho:</strong> aprimorar agentes, skills, comandos e tutoriais a partir de falhas
+          repetidas e evidências. Não altera regras porque uma resposta isolada pareceu melhor.</p>
+        <p><strong>Entradas e método:</strong> caso concreto, versão e baseline; reproduzir, localizar o ativo
+          responsável, propor alteração mínima, executar casos positivos/negativos e comparar.</p>
+        <p><strong>Entrega e limite:</strong> melhoria do kit, avaliação antes/depois, impacto de compatibilidade e
+          proposta de versão. Modificação ocorre no checkout do harness, separada do projeto consumidor.</p>
+        <p><strong>Origem e avaliação:</strong> papel autoral. Prova: corrige o gatilho de um agente sem degradar outro
+          fluxo e sem editar o pacote gerado manualmente.</p>
+      </div>
+
+      <h3 id="skills">4.4 · Skills que viajam com o kit</h3>
+      <p>Skill é o procedimento reutilizável; agente é o responsável com contexto e limite próprios; command é a entrada
+        do usuário. Cada skill terá <code>SKILL.md</code>, gatilhos e contraindicações, passo a passo, referências
+        locais, formato de saída e exemplos. Scripts só entram quando houver redução mecânica ou verificação concreta.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Grupo e IDs previstos</th>
+              <th>Conteúdo local obrigatório</th>
+              <th>Papéis principais</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>project-onboarding, repository-mapping</td>
+              <td>Diagnóstico, perfil, leitura de regras e busca sem índice</td>
+              <td>Coordenador, Scout</td>
+            </tr>
+            <tr>
+              <td>requirements-discovery, implementation-planning</td>
+              <td>Brief, aceite, decomposição e limites de escopo</td>
+              <td>Produto, Planejador</td>
+            </tr>
+            <tr>
+              <td>architecture-decisions, api-contracts</td>
+              <td>Alternativas, ADR, exemplos e compatibilidade</td>
+              <td>Arquiteto, API</td>
+            </tr>
+            <tr>
+              <td>incremental-implementation, regression-testing</td>
+              <td>Fatias, checks pertinentes e teste de comportamento</td>
+              <td>Implementadores, QA</td>
+            </tr>
+            <tr>
+              <td>systematic-debugging, safe-refactoring</td>
+              <td>Hipóteses, reprodução, invariantes e comparação</td>
+              <td>Debugger, Refactorer</td>
+            </tr>
+            <tr>
+              <td>code-review, security-review</td>
+              <td>Rubricas, severidade, evidência e falsos positivos</td>
+              <td>Revisores</td>
+            </tr>
+            <tr>
+              <td>ui-verification, data-migrations</td>
+              <td>Interações, acessibilidade, integridade e migração</td>
+              <td>Frontend, Dados, QA</td>
+            </tr>
+            <tr>
+              <td>delivery-readiness, context-handoff</td>
+              <td>Release, recuperação, pendências, retomada e procedimento de consolidação MEMORY → EPOCHAL</td>
+              <td>Entrega e Docs reportam; Coordenador escreve os registros de memória</td>
+            </tr>
+            <tr>
+              <td>harness-authoring, harness-evaluation</td>
+              <td>Autoria, diagnóstico de prompts e avaliação comparável</td>
+              <td>Mantenedor, QA</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Perfis iniciais Go/API e TypeScript/Web incluem convenções e exemplos próprios, carregados por necessidade.
+        O perfil <code>php</code> entrou em 20/09/2026 com o primeiro consumidor PHP; Python, Electron e IA entram depois conforme uso. Skills visuais ou técnicas do computador atual só
+        podem ser incorporadas com conteúdo completo, referências resolvidas e licença verificada; citar seu nome não as
+        torna disponíveis.</p>
+      <p>No adaptador Claude, comandos e skills não terão nomes colidentes. Comandos são entradas finas que apontam para
+        procedimentos incluídos no plugin; skills de suporte podem ficar fora do menu de comandos. O carregamento de
+        skills é uma capacidade documentada do runtime, mas cada vínculo deste kit será testado. <a
+          href="https://code.claude.com/docs/en/skills">Referência oficial de skills</a>.</p>
+
+      <h3 id="comandos">4.5 · Comandos de trabalho</h3>
+      <p>Prefixo no Claude Code: <code>/dev-harness:</code>, derivado do nome do plugin. Arquivo canônico:
+        <code>.commands/&lt;nome&gt;.md</code>. Os 17 arquivos existem. Todos recebem contexto suficiente, reportam
+        pré-requisitos ausentes e indicam a próxima ação. Cada entrada contém somente roteamento, parâmetros e contrato;
+        o método fica na skill correspondente. A descoberta desses nomes pelo runtime ainda não foi exercida numa sessão
+        Claude.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Comando</th>
+              <th>Responsáveis e skills</th>
+              <th>Saída esperada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>doctor</td>
+              <td>Coordenador · project-onboarding</td>
+              <td>Diagnóstico de runtime, pacote, referências e ferramentas, sem instalar</td>
+            </tr>
+            <tr>
+              <td>setup</td>
+              <td>Coordenador + Scout · project-onboarding</td>
+              <td>Perfil do projeto proposto e aplicado no escopo autorizado</td>
+            </tr>
+            <tr>
+              <td>understand</td>
+              <td>Scout · repository-mapping</td>
+              <td>Mapa do trecho relevante com fontes</td>
+            </tr>
+            <tr>
+              <td>discover</td>
+              <td>Produto · requirements-discovery</td>
+              <td>Problema, comportamento, escopo e aceite</td>
+            </tr>
+            <tr>
+              <td>plan</td>
+              <td>Planejador + arquitetura/API quando necessário · implementation-planning</td>
+              <td>Plano por fatias e decisões necessárias</td>
+            </tr>
+            <tr>
+              <td>build</td>
+              <td>Implementador adequado + QA + revisor · incremental-implementation</td>
+              <td>Alteração autorizada, checks, revisão e evidências</td>
+            </tr>
+            <tr>
+              <td>fix</td>
+              <td>Debugger + QA · systematic-debugging</td>
+              <td>Diagnóstico, correção quando autorizada e regressão</td>
+            </tr>
+            <tr>
+              <td>refactor</td>
+              <td>Refactorer + QA + revisor · safe-refactoring</td>
+              <td>Melhoria estrutural com comportamento preservado</td>
+            </tr>
+            <tr>
+              <td>review</td>
+              <td>Revisor · code-review</td>
+              <td>Achados acionáveis; não aplica correções</td>
+            </tr>
+            <tr>
+              <td>secure</td>
+              <td>Segurança · security-review</td>
+              <td>Análise delimitada de riscos e mitigação</td>
+            </tr>
+            <tr>
+              <td>verify</td>
+              <td>QA · regression-testing / ui-verification</td>
+              <td>Matriz de aceite e evidências funcionais</td>
+            </tr>
+            <tr>
+              <td>document</td>
+              <td>Docs · context-handoff / delivery-readiness</td>
+              <td>Documentação necessária ao uso e operação</td>
+            </tr>
+            <tr>
+              <td>release</td>
+              <td>Entrega + DevOps · delivery-readiness</td>
+              <td>Prontidão, notas e plano de publicação; sem publicar automaticamente</td>
+            </tr>
+            <tr>
+              <td>handoff</td>
+              <td>Coordenador + Docs · context-handoff</td>
+              <td>Estado transportável e próximo passo</td>
+            </tr>
+            <tr>
+              <td>resume</td>
+              <td>Coordenador + Scout · context-handoff</td>
+              <td>Reconciliação do handoff com arquivos atuais e continuação autorizada</td>
+            </tr>
+            <tr>
+              <td>consolidate-memory</td>
+              <td>Coordenador · context-handoff</td>
+              <td>Arquiva cópia bruta de MEMORY.md em EPOCHAL.md, verifica a preservação e mantém na memória o estado
+                vigente e histórico breve; não modifica RISKS.md</td>
+            </tr>
+            <tr>
+              <td>improve</td>
+              <td>Mantenedor · harness-authoring / harness-evaluation</td>
+              <td>Diagnóstico e proposta avaliada de melhoria do kit; aplicação requer escopo claro</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="fluxos">4.6 · Fluxos e passagem de trabalho</h3>
+      <ol class="steps">
+        <li><strong>Feature:</strong> discover → understand → plan → decisão de escopo → build → verify + review →
+          document → release → handoff.</li>
+        <li><strong>Bug:</strong> fix inicia reprodução e diagnóstico; correção autorizada → verify → review
+          proporcional → handoff. Sem reprodução, registrar o limite.</li>
+        <li><strong>Refactor:</strong> understand → invariantes e plano → refactor → verify → review. Critério central:
+          comportamento preservado.</li>
+        <li><strong>Retomada:</strong> resume → conferir arquivos e evidências → escolher próximo passo. Handoff
+          orienta, mas não substitui o estado atual.</li>
+        <li><strong>Evolução do kit:</strong> improve → caso reproduzível → avaliação baseline → alteração autorizada →
+          reavaliação → versão → atualização controlada nos consumidores.</li>
+      </ol>
+      <p>O despacho de especialista contém objetivo, papel, artefatos, arquivos permitidos, restrições, critérios,
+        formato de resposta e orçamento. A resposta contém conclusão, evidências, arquivos alterados, checks, limitações
+        e próximo passo. Revisão e QA avaliam um estado estabilizado, incluindo dependências, contratos, configuração e
+        testes. Escrita de testes pelo QA termina antes da revisão; apenas atividades de leitura sobre o estado estável
+        podem ocorrer juntas. Alterações após avaliação invalidam a evidência afetada e exigem nova verificação/revisão.
+        Duas tentativas de correção sem solução exigem replanejamento com evidência, não um ciclo infinito.</p>
+      <p>Fluxos simples podem concentrar tarefa, evidência e handoff em um registro. Os procedimentos e templates
+        necessários ao ciclo de desenvolvimento pertencem ao próprio Dev Harness e acompanham o pacote. As instruções
+        locais do projeto consumidor continuam sendo respeitadas, sem integração específica com outro produto.</p>
+
+      <h3 id="memoria">Memória operacional, histórico e prevenção de incidentes</h3>
+      <p><strong>Decisão do dono em 20/09/2026:</strong> usar arquivos Markdown com escrita centralizada no Coordenador.
+        SQLite não integra esta solução. Os três arquivos pertencem ao projeto consumidor e ficam no mesmo diretório
+        <code>.harness/</code>.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Arquivo</th>
+              <th>Conteúdo</th>
+              <th>Política de leitura</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>MEMORY.md</td>
+              <td>Execução vigente, escopo, decisões, bloqueios, responsáveis, evidências, próximo passo e histórico
+                breve</td>
+              <td>Coordenador consulta sempre durante as execuções, especialmente no início, retomada e antes dos
+                despachos. Especialistas recebem o recorte necessário</td>
+            </tr>
+            <tr>
+              <td>EPOCHAL.md</td>
+              <td>Cópias brutas anteriores da memória, em lotes com ID, data/hora e fuso; comentários separados e
+                datados</td>
+              <td>Somente por necessidade concreta ou solicitação explícita; buscar por tarefa, lote, data ou assunto e
+                ler trechos relevantes</td>
+            </tr>
+            <tr>
+              <td>RISKS.md</td>
+              <td>Histórico resumido de todos os incidentes graves conhecidos, inclusive abertos, e prevenção de
+                recorrência</td>
+              <td>Antes de planejar ou implementar mudanças em comportamento consolidado, regra crítica ou área de alto
+                risco; também para registrar ou atualizar um incidente grave</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Regra de escrita:</strong> subagentes não editam nenhum dos três arquivos, mesmo que sejam responsáveis
+        por documentação ou QA. Reportam ao Coordenador fatos, evidências, pendências e incidentes. Uma única sessão de
+        Coordenador assume a escrita por projeto; duas sessões não podem consolidar ou atualizar esses registros em
+        paralelo. A regra organizacional não equivale a um bloqueio técnico de arquivo.</p>
+      <p><strong>MEMORY.md:</strong> manter apenas o contexto operacional necessário e eventos recentes. Decisões e
+        pendências vigentes continuam presentes após consolidação. Os detalhes extensos da tarefa podem ser
+        referenciados, sem duplicar relatórios completos. Um incidente grave ainda aberto permanece visível como
+        bloqueio ou pendência nesta memória, além do registro preventivo.</p>
+      <p><strong>EPOCHAL.md:</strong> a consolidação acrescenta uma cópia integral da memória anterior ao enxugamento,
+        preservando o texto e as datas existentes. Não transforma o histórico bruto em resumo. Comentários e
+        retificações posteriores ficam fora do bloco original, identificados e datados. A data da consolidação não
+        substitui a data dos eventos; horários antigos desconhecidos não são inventados. Arquivo histórico não redefine
+        instruções vigentes.</p>
+      <p><strong>RISKS.md:</strong> cada incidente contém ID, data do incidente, datas de registro/atualização,
+        gravidade, impacto, arquivos ou módulos afetados, regra de negócio crítica, descrição, causa conhecida ou
+        hipótese, estado, resolução ou mitigação e orientação concreta para evitar recorrência. Incluir referências e
+        testes de regressão pertinentes. Usar caminhos relativos e considerar renomeações. Datas desconhecidas são
+        explicitadas. Não inventar incidentes nem transformar o arquivo em lista de riscos hipotéticos.</p>
+      <p>A triagem de risco usa o pedido, o mapa da área e a criticidade do comportamento para decidir a consulta. Ao
+        encontrar incidente relevante, o Coordenador leva sua prevenção ao plano, aos critérios e ao especialista.
+        Mudanças rotineiras fora desses gatilhos não carregam RISKS.md. Consolidação não remove incidentes resolvidos
+        nem transfere este registro para EPOCHAL.md.</p>
+      <h3>Contrato do novo comando: /dev-harness:consolidate-memory</h3>
+      <ol class="steps">
+        <li><strong>Preparar:</strong> executar na sessão principal, sob responsabilidade do Coordenador, com os
+          registros sem outro escritor. Ler MEMORY.md e identificar o estado que precisa permanecer. Memória sem
+          conteúdo operacional não gera lote vazio.</li>
+        <li><strong>Arquivar:</strong> atribuir ID estável ao lote e data/hora com fuso; acrescentar ao final de
+          EPOCHAL.md uma cópia integral de MEMORY.md com delimitação clara. Comentários opcionais ficam separados. Não
+          carregar todo o histórico para anexar um lote.</li>
+        <li><strong>Conferir:</strong> reler o lote gravado e comparar integralmente com a memória original; confirmar
+          que a origem não mudou durante a operação. Em falha, divergência ou arquivo de destino inválido, preservar
+          MEMORY.md e reportar a situação.</li>
+        <li><strong>Enxugar:</strong> somente após confirmar o arquivo bruto, manter execução, decisões vigentes,
+          bloqueios, evidências necessárias, próximo passo e histórico breve. Registrar o ID e a data da consolidação.
+          Eventos encerrados ficam acessíveis no arquivo histórico.</li>
+        <li><strong>Retomar com segurança:</strong> se a operação parar após arquivar, conferir o mesmo lote antes de
+          continuar. Não duplicar lote confirmado nem remover informação que não tenha sido preservada. A operação entre
+          dois arquivos não será tratada como atomicamente garantida.</li>
+        <li><strong>Entregar:</strong> informar lote criado, o que permaneceu ativo e eventuais pendências. RISKS.md
+          permanece intacto. O comando é explícito; o Coordenador pode sugerir consolidação quando a memória perder
+          concisão, sem executar limpeza silenciosa.</li>
+      </ol>
+      <p><strong>Estado desta entrega:</strong> templates em <code>templates/MEMORY.md</code>,
+        <code>templates/EPOCHAL.md</code> e <code>templates/RISKS.md</code>. Procedimento no prompt do Coordenador e
+        comando <code>/dev-harness:consolidate-memory</code> em <code>.commands/consolidate-memory.md</code>. Avaliação
+        comportamental do comando ainda não rodou. Não foi consolidada nenhuma memória real de consumidor.
+      </p>
+
+      <h3 id="tutoriais">4.7 · Tutoriais e progressão de uso</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Trilha</th>
+              <th>O que ensina</th>
+              <th>Exercício e condição de conclusão</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>00 · Primeira máquina</td>
+              <td>Pré-requisitos, obter pacote, autenticar runtime, carregar, diagnosticar e desativar</td>
+              <td>Claude encontra os comandos e agentes sem configuração pessoal do autor</td>
+            </tr>
+            <tr>
+              <td>01 · Primeira entrega</td>
+              <td>Escolher fluxo e percorrer uma feature pequena com critérios e teste</td>
+              <td>Fixture concluída com evidências e revisão separada</td>
+            </tr>
+            <tr>
+              <td>02 · Corrigir e retomar</td>
+              <td>Reproduzir bug, usar MEMORY.md, consolidar com segurança, consultar histórico sob demanda e aplicar
+                prevenção de RISKS.md</td>
+              <td>Nova sessão termina o trabalho sem perder restrições ou repetir incidente conhecido; arquivo bruto
+                permanece fiel</td>
+            </tr>
+            <tr>
+              <td>03 · Projeto real</td>
+              <td>Definir stack, comandos, limites, convenções e uso de especialistas</td>
+              <td>Perfil reutilizável sem caminho privado ou segredo</td>
+            </tr>
+            <tr>
+              <td>04 · Criar e personalizar</td>
+              <td>Escrever agente, skill ou comando; vincular referências; definir teste negativo</td>
+              <td>Novo ativo reconhecido e avaliado, sem duplicar regra existente</td>
+            </tr>
+            <tr>
+              <td>05 · Aprimorar e progredir</td>
+              <td>Coletar falha, comparar versões, avaliar custo e qualidade, reduzir catálogo inútil</td>
+              <td>Melhoria demonstrada em caso real e sem regressão nos casos de referência</td>
+            </tr>
+            <tr>
+              <td>06 · Atualizar e recuperar</td>
+              <td>Fixar versão, revisar mudanças, preservar customização, testar e voltar versão</td>
+              <td>Atualização e retorno sem perda de perfil ou artefatos</td>
+            </tr>
+            <tr>
+              <td>07 · Outra IA</td>
+              <td>Carregar instruções manualmente, simular papéis e identificar capacidades sem equivalência</td>
+              <td>Uma tarefa concluída com limitações declaradas; sem anunciar integração nativa inexistente</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Todo tutorial inclui: resultado esperado, pré-requisitos, passos copiáveis, exemplo de saída, falhas comuns e
+        próxima trilha. Exemplos usam fixtures versionadas, dados sintéticos e caminhos do próprio clone. Os guias HTML
+         terão CSS/JS locais ou inline, navegação relativa e tipografia de fallback; conteúdo, navegação e tabelas devem
+         funcionar sem rede. Duas exceções aceitas pelo dono: diagramas em Mermaid renderizados pelo CDN do Mermaid e
+         fontes web do Google Fonts; sem rede, o texto continua legível e os diagramas ficam em branco.</p>
+
+      <h3 id="evolucao">4.8 · Atualização, personalização e proveniência</h3>
+      <p><strong>Camadas:</strong> conteúdo base do kit; perfil compartilhado do projeto; preferências locais.
+        Instruções vigentes do runtime e do projeto são respeitadas. Personalizações não alteram silenciosamente o
+        pacote distribuído. Uma alteração geral começa nas fontes do harness; ajuste específico fica no perfil
+        consumidor.</p>
+      <p><strong>Versões:</strong> manifesto registra versão do kit, inventário, recursos e compatibilidade testada.
+        Atualização é explícita, com revisão do changelog e teste de descoberta/fixture. Manter versões lado a lado
+        permite retornar à anterior sem apagar perfis. Mudança de formato exige migração documentada e backup dos
+        arquivos afetados.</p>
+      <p><strong>Proveniência:</strong> registrar por ativo se é autoral, adaptado ou copiado, com origem e licença
+        quando aplicável. Descrições do outro produto são referência de papéis; exportação integral futura só por
+        mecanismo
+        autorizado e com revisão de direitos e dependências. Não copiar dados pessoais, permissões excessivas ou modelos
+        específicos do ambiente de origem.</p>
+
+      <h2 id="etapas"><span class="n">05</span>Etapas</h2>
+      <p>O marco v1 reúne todas as fases 1 a 4. A primeira fatia prova a arquitetura; ela não substitui o compromisso
+        com o catálogo completo. Prazo e esforço ficam para a decomposição após revisão do plano.</p>
+      <p><strong>Estado em 20/09/2026:</strong> Fase 0 fechada, licença MIT. Fase 1 com fontes, adaptador, pacote,
+        manifesto, doctor, tutorial 00 e fixture no disco; falta a sessão Claude em máquina limpa. Fases 2 e 3 já têm os
+        18 papéis e os 17 comandos escritos; faltam fixtures de fluxo e as trilhas 01–07. Fase 4 não começou.</p>
+      <ol class="steps">
+        <li><strong>Fase 0 · Fechar a especificação do kit.</strong> Consolidar estrutura, contrato dos ativos, escopo
+          dos 18 papéis, comandos, dependências e política de licença. <em>Saída:</em> especificação revisável,
+          inventário e casos de aceite. Nenhuma instalação do computador do autor pode ser dependência implícita.</li>
+        <li><strong>Fase 1 · Provar distribuição e uso em máquina limpa.</strong> Criar fontes, adaptador mínimo, pacote
+          pronto, manifesto, diagnóstico, tutorial inicial e fixture. Entregar Coordenador, Scout, Planejador, Backend,
+          QA e Revisor com plan/build/review/verify/setup/doctor/consolidate-memory; validar os três registros e a
+          consolidação antes de depender deles na execução. <em>Saída:</em> clone ou arquivo em ambiente limpo executa
+          uma fatia inteira; runtime e versões registrados; empacotamento reproduzível.</li>
+        <li><strong>Fase 2 · Completar o ciclo de desenvolvimento.</strong> Adicionar Produto, Arquiteto, API, Frontend,
+          Dados, Debugger, Refactorer e Segurança; comandos e skills correspondentes. <em>Saída:</em> fluxos de feature,
+          bug, refactor, UI, dados e revisão de segurança exercitados em fixtures.</li>
+        <li><strong>Fase 3 · Completar operação e evolução.</strong> Adicionar Docs, DevOps, Entrega e Mantenedor;
+          concluir os 17 comandos e as trilhas de tutorial; implementar atualização, personalização e retorno de versão.
+          <em>Saída:</em> 18 papéis completos, documentação offline, handoff/resume e uma melhoria do próprio kit
+          avaliados.
+        </li>
+        <li><strong>Fase 4 · Qualificar e liberar a v1.</strong> Executar a matriz de ambientes, cenário com diretório
+          de usuário limpo, pacote copiado para outro caminho, duas sessões independentes e tarefas reais em dois
+          projetos. <em>Saída:</em> critérios obrigatórios passando, licença decidida, limitações declaradas e pacote
+          pronto para decisão de publicação.</li>
+        <li><strong>Fase 5 · Expandir com evidência.</strong> Adaptador nativo para a próxima IA escolhida, novos perfis
+          de stack e automações opcionais. <em>Saída:</em> mesmas fixtures no novo runtime e matriz de capacidades
+          atualizada. Nenhum anúncio de paridade sem teste.</li>
+      </ol>
+      <p><strong>Dependências entre entregas:</strong> o contrato de conteúdo precede empacotamento; a prova do pacote
+        precede a expansão do catálogo; cada papel entra com caso de avaliação; qualificação multiplataforma precede
+        anúncio de suporte. Tutoriais acompanham cada fase e são usados como roteiro dos testes.</p>
+
+      <h2 id="riscos"><span class="n">06</span>Riscos</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Risco</th>
+              <th>Tratamento</th>
+              <th>Verificação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Dependência invisível da máquina de origem</td>
+              <td>Empacotar referências, declarar ferramentas e eliminar paths privados</td>
+              <td>Ambiente sem outro produto, sem skills globais e sem arquivos do autor</td>
+            </tr>
+            <tr>
+              <td>Pastas canônicas confundidas com formato nativo</td>
+              <td>Adaptador explícito e pacote pronto</td>
+              <td>Sessão real descobre e invoca os componentes</td>
+            </tr>
+            <tr>
+              <td>Fonte e pacote gerado divergem</td>
+              <td>Empacotamento determinístico e comparação na CI</td>
+              <td>Reconstrução reproduz o conteúdo distribuído</td>
+            </tr>
+            <tr>
+              <td>18 papéis sobrecarregam a sessão</td>
+              <td>Catálogo roteado por gatilho, sem carregar todos os prompts; perfis de stack sob demanda</td>
+              <td>Medir contexto e seleção correta em tarefas simples e complexas</td>
+            </tr>
+            <tr>
+              <td>Permissão sugerida confundida com isolamento</td>
+              <td>Restringir ferramentas e validar capacidades do adaptador</td>
+              <td>Cenários negativos de escrita e de ação fora do escopo</td>
+            </tr>
+            <tr>
+              <td>Atualização apaga personalização</td>
+              <td>Separar base e perfil; versões lado a lado</td>
+              <td>Comparar arquivos do consumidor antes/depois de atualizar e voltar</td>
+            </tr>
+            <tr>
+              <td>Licença ou proveniência insuficiente</td>
+              <td>Conteúdo autoral; revisão de cada dependência incorporada</td>
+              <td>Inventário rastreável antes de redistribuir</td>
+            </tr>
+            <tr>
+              <td>Dependência de provedor confundida com autonomia do pacote</td>
+              <td>Separar ativos offline de autenticação e execução do modelo</td>
+              <td>Guias abrem sem rede, com diagramas e fontes web como únicas dependências remotas; diagnóstico explica falta de acesso ao modelo</td>
+            </tr>
+            <tr>
+              <td>Avaliação com modelo varia entre execuções</td>
+              <td>Fixar cenários e registrar versões, resultados e limitações</td>
+              <td>Repetir casos críticos e não extrapolar garantias da amostra</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="aceite"><span class="n">07</span>Critérios de aceite</h2>
+      <p><strong>Critérios do produto.</strong> AC-16 tem evidência estática desta entrega (rebuild + validador). AC-04
+        tem evidência parcial (links relativos e templates conferidos pelo validador). Os demais, inclusive descoberta
+        real no Claude (AC-03) e máquina limpa (AC-01), não foram executados. Status da versão do kit: 0.1.0 empacotada,
+        qualificação de runtime pendente.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Quando / então</th>
+              <th>Evidência exigida</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AC-01</td>
+              <td>Quando o kit for obtido em máquina limpa com pré-requisitos declarados, então o fluxo principal
+                funcionará sem arquivos da máquina de origem</td>
+              <td>Log do ambiente, inventário e tarefa concluída; nenhuma pasta pessoal montada</td>
+            </tr>
+            <tr>
+              <td>AC-02</td>
+              <td>Quando o pacote mudar de diretório, inclusive caminho com espaços, então todas as referências
+                continuarão resolvendo</td>
+              <td>Diagnóstico e fixture em segundo caminho</td>
+            </tr>
+            <tr>
+              <td>AC-03</td>
+              <td>Quando o pacote Claude for carregado, então os 17 comandos e os 17 especialistas serão encontrados; o
+                Coordenador atuará na sessão principal</td>
+              <td>Descoberta real, invocação e validação dos 18 perfis</td>
+            </tr>
+            <tr>
+              <td>AC-04</td>
+              <td>Quando uma skill referenciar template, script ou guia, então o recurso estará no pacote ou listado
+                como requisito explícito</td>
+              <td>Validador de referências e manifesto sem links externos de execução ocultos</td>
+            </tr>
+            <tr>
+              <td>AC-05</td>
+              <td>Quando um usuário seguir o tutorial em sessão nova, então concluirá a fixture sem orientação do autor
+              </td>
+              <td>Roteiro executado, resultado esperado e fricções registradas</td>
+            </tr>
+            <tr>
+              <td>AC-06</td>
+              <td>Quando setup encontrar instruções existentes, então preservará seu conteúdo e explicitará conflitos
+              </td>
+              <td>Comparação antes/depois em projeto preconfigurado</td>
+            </tr>
+            <tr>
+              <td>AC-07</td>
+              <td>Quando build receber escopo autorizado, então entregará apenas esse escopo com revisão independente
+              </td>
+              <td>Critério → arquivo → check → revisão → resolução</td>
+            </tr>
+            <tr>
+              <td>AC-08</td>
+              <td>Quando fix receber defeito reproduzível, então demonstrará falha antes e correção depois</td>
+              <td>Reprodução e teste pertinente de regressão</td>
+            </tr>
+            <tr>
+              <td>AC-09</td>
+              <td>Quando refactor concluir, então os comportamentos contratados permanecerão válidos</td>
+              <td>Baseline e checks de preservação</td>
+            </tr>
+            <tr>
+              <td>AC-10</td>
+              <td>Quando um check não executar ou falhar, então a entrega manterá esse status explícito</td>
+              <td>Caso negativo sem conclusão falsa; UI não aprovada apenas por typecheck</td>
+            </tr>
+            <tr>
+              <td>AC-11</td>
+              <td>Quando uma nova sessão retomar a tarefa, então reconciliará o handoff com o estado atual</td>
+              <td>Continuação com alteração externa simulada e sem perda de restrições</td>
+            </tr>
+            <tr>
+              <td>AC-12</td>
+              <td>Quando o kit atualizar ou retornar versão, então preservará perfis e artefatos do consumidor</td>
+              <td>Comparação de arquivos e exercício na versão escolhida</td>
+            </tr>
+            <tr>
+              <td>AC-13</td>
+              <td>Quando um ativo for aprimorado, então passará seus casos positivos, negativos e regressões associadas
+              </td>
+              <td>Resultado antes/depois, versão e motivo da alteração</td>
+            </tr>
+            <tr>
+              <td>AC-14</td>
+              <td>Quando chegar à preparação de release, então apresentará resultado verificável antes da decisão de
+                publicar</td>
+              <td>Pacote de entrega sem ação remota automática</td>
+            </tr>
+            <tr>
+              <td>AC-15</td>
+              <td>Quando não houver rede, então guias, catálogo e referências de autoria continuarão legíveis; apenas diagramas Mermaid e fontes web podem depender de CDN</td>
+              <td>Abertura offline com texto, navegação e tabelas íntegros; diagramas e fontes web declarados como dependência remota</td>
+            </tr>
+            <tr>
+              <td>AC-16</td>
+              <td>Quando o pacote for reconstruído, então corresponderá às fontes versionadas</td>
+              <td>Comparação determinística e ausência de recursos fora da raiz</td>
+            </tr>
+            <tr>
+              <td>AC-17</td>
+              <td>Quando não houver Node, navegador, compilador ou integração opcional, então o diagnóstico distinguirá
+                o que impede cada tarefa</td>
+              <td>Casos com dependência removida, sem instalação silenciosa nem falso sucesso</td>
+            </tr>
+            <tr>
+              <td>AC-18</td>
+              <td>Quando uma tarefa percorrer o ciclo completo, então usará os procedimentos e templates distribuídos
+                pelo próprio Dev Harness</td>
+              <td>Fixture da descoberta ao handoff com referências resolvidas dentro do pacote</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Aceite adicional de memória</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cenário</th>
+              <th>Evidência exigida</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AC-19</td>
+              <td>Quando uma execução começar ou retomar, o Coordenador consulta MEMORY.md; os especialistas não
+                escrevem nos três registros</td>
+              <td>Rastro de leitura, despachos e autoria das alterações</td>
+            </tr>
+            <tr>
+              <td>AC-20</td>
+              <td>Quando consolidar, o histórico bruto fica preservado com data/hora e o estado pendente permanece na
+                memória</td>
+              <td>Comparação integral do lote com a origem; decisões, bloqueios e próximo passo preservados</td>
+            </tr>
+            <tr>
+              <td>AC-21</td>
+              <td>Quando falhar antes da confirmação do arquivo histórico, MEMORY.md permanece intacto; ao retomar após
+                gravação, o mesmo lote não é duplicado</td>
+              <td>Interrupções simuladas antes/depois de arquivar e antes de enxugar</td>
+            </tr>
+            <tr>
+              <td>AC-22</td>
+              <td>Quando não houver necessidade histórica nem pedido explícito, EPOCHAL.md não entra no contexto</td>
+              <td>Execução comum sem leitura do arquivo; consulta dirigida em cenário que exige histórico</td>
+            </tr>
+            <tr>
+              <td>AC-23</td>
+              <td>Quando uma mudança afetar comportamento consolidado ou área de alto risco, incidentes relevantes de
+                RISKS.md orientam plano e validação</td>
+              <td>Caso positivo com prevenção aplicada e caso rotineiro sem carregamento desnecessário</td>
+            </tr>
+            <tr>
+              <td>AC-24</td>
+              <td>Quando registrar incidente grave, os campos críticos e o estado são explícitos; a consolidação não
+                altera o registro</td>
+              <td>Incidente com arquivos, regra, data, impacto e resolução/prevenção; comparação de RISKS.md
+                antes/depois</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Matriz mínima de qualificação</h3>
+      <p>Linux e macOS em ambiente limpo; WSL2 em máquina Windows; caminho com espaços; pacote obtido por arquivo;
+        diretório de usuário sem assets do autor; projeto sem índice; projeto com instruções existentes; atualização e
+        retorno. Containers ajudam no caso Linux, mas não substituem execução nos outros sistemas anunciados.</p>
+      <p>Validação estática confere metadados, IDs, referências, inventário, licença e correspondência do pacote. IDs
+        duplicados, referências quebradas, arquivos não mapeados e capacidades sem tradução devem gerar erro acionável.
+        O inventário e os índices do catálogo serão derivados das fontes para evitar divergência. O empacotamento valida
+        uma saída temporária antes de substituir o pacote anterior, preservando a última versão válida em caso de falha.
+      </p>
+      <p>Avaliações com modelo conferem roteamento, limites, evidência e handoff. Pilotos conferem utilidade: pelo menos
+        seis tarefas em dois projetos, incluindo feature, bug, refactor, UI ou API, retomada e evolução do kit. Nenhuma
+        dessas camadas isolada comprova o produto.</p>
+
+      <h2 id="acoes"><span class="n">08</span>Próximas ações</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Direção</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Portabilidade desde o começo</td>
+              <td>Requisito de primeira entrega; nenhuma dependência do ambiente do autor</td>
+              <td>Doctor mecânico em path com espaços; sessão Claude em máquina limpa pendente</td>
+            </tr>
+            <tr>
+              <td>Estrutura .agents / .commands / .skills</td>
+              <td>Fontes versionadas com pacote nativo gerado</td>
+              <td>Feito. Adaptador Claude documentado; empacotador em scripts/build-claude-code.sh</td>
+            </tr>
+            <tr>
+              <td>Ciclo inteiro de desenvolvimento</td>
+              <td>18 papéis, 17 comandos e trilhas de uso/evolução na v1</td>
+              <td>Catálogo escrito. Trilhas 01–07 ainda não existem; 00 e início rápido sim</td>
+            </tr>
+            <tr>
+              <td>Memória e incidentes</td>
+              <td>MEMORY.md operacional, EPOCHAL.md bruto sob demanda e RISKS.md preventivo; escrita exclusiva do
+                Coordenador</td>
+              <td>Templates, procedimento e comando consolidate-memory prontos; sem memória real consolidada</td>
+            </tr>
+            <tr>
+              <td>Modelo de distribuição</td>
+              <td>Clone ou arquivo com pacote pronto; sem instalação global obrigatória</td>
+              <td>Pacote em dist/; carga via --plugin-dir documentada</td>
+            </tr>
+            <tr>
+              <td>Versões e suporte</td>
+              <td>Fixar versão mínima após prova em Linux, macOS e WSL2</td>
+              <td>Validação futura; Windows nativo ainda não fechado; Claude mínimo unverified</td>
+            </tr>
+            <tr>
+              <td>Licença e origem de publicação</td>
+              <td>MIT; não copiar ativos de procedência incerta</td>
+              <td>LICENSE e plugin.json em MIT</td>
+            </tr>
+            <tr>
+              <td>Pilotos</td>
+              <td>Um projeto Go/API e um TypeScript/Web, sem depender deles para instalar o kit</td>
+              <td>Projetos ainda não escolhidos. Fixture slice-01 é Python stdlib, só para o exercício guiado</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ol class="steps">
+        <li><strong>Prova de runtime:</strong> carregar o plugin numa sessão Claude Code real, em diretório de usuário
+          limpo, e registrar o que o runtime descobre.</li>
+        <li><strong>Exercer a fixture:</strong> percorrer slice-01 com plan/build/verify/review/handoff e guardar
+          evidência.</li>
+        <li><strong>Fase 2 em diante:</strong> evals comportamentais, trilhas 01–07, CI e matriz Linux/macOS/WSL2. O
+          catálogo de papéis já está escrito; não expandir papéis antes dessa prova.</li>
+      </ol>
+      <p>Fontes, comandos, empacotador, doctor mecânico, tutorial 00 e fixture existem nesta versão 0.1.0. Validação
+        estática não substitui avaliação dos agentes em execução. Não foi feita instalação global, publicação nem
+        alteração de configuração fora deste repositório.</p>
+
+      <footer class="doc-foot">
+        <div>Arquivo: <code>docs/plano-produto.html</code> · tipo <code>plano</code> · 20/09/2026 · v0.5</div>
+        <div>Próximo passo: sessão Claude Code real com o plugin e a fixture slice-01.</div>
+        <div>Fontes técnicas: documentação oficial de plugins, subagentes e skills do Claude Code. Compatibilidade do
+          produto ainda não testada em runtime.</div>
+      </footer>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var bar = document.getElementById("progress");
+      var links = {};
+      document.querySelectorAll(".side nav a").forEach(function (a) {
+        var href = a.getAttribute("href");
+        if (href && href.charAt(0) === "#") links[href.slice(1)] = a;
+      });
+      var visible = new Set();
+      function onScroll() {
+        var h = document.documentElement;
+        var max = h.scrollHeight - h.clientHeight;
+        if (bar && max > 0) bar.style.transform = "scaleX(" + (h.scrollTop / max) + ")";
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+      if (!("IntersectionObserver" in window)) return;
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          visible[e.isIntersecting ? "add" : "delete"](e.target.id);
+        });
+        var first = Object.keys(links).find(function (id) { return visible.has(id); });
+        Object.keys(links).forEach(function (id) {
+          links[id].classList.toggle("active", id === first);
+        });
+      }, { rootMargin: "0px 0px -70% 0px" });
+      document.querySelectorAll("h2[id]").forEach(function (h) { io.observe(h); });
+    })();
+  </script>
+</body>
+
+</html>

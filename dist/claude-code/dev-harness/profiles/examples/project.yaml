@@ -1,0 +1,26 @@
+# Example of a consumer .harness/project.yaml produced by /dev-harness:setup.
+# Copy is not automatic: setup writes this file only when it is absent and writing is authorized.
+# This example is documentation. It is not a stack profile.
+
+language: en
+profile: go-api
+profile_source: profiles/go-api.yaml
+commands:
+  test:
+    value: go test ./...
+    source: observed Makefile target "test"
+  lint:
+    value: null
+    source: unknown
+  build:
+    value: go build ./...
+    source: observed Makefile target "build"
+  run:
+    value: go run ./cmd/server
+    source: observed cmd/server
+conventions_applied:
+  - profiles/base.yaml
+  - profiles/go-api.yaml
+conflicts: []
+notes:
+  - Existing CLAUDE.md outranks this file.

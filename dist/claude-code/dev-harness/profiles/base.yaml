@@ -1,0 +1,21 @@
+id: base
+name: Base
+summary: Shared harness conventions when no stack profile matches, and the parent of every stack profile.
+stack: []
+commands:
+  test: null
+  lint: null
+  build: null
+  run: null
+conventions:
+  - The coordinator answers the owner in the owner's language, English by default; the project language is recorded as `language` in .harness/project.yaml and selects templates/<lang>/ for records and work artifacts. Agent-to-agent dispatches and replies, code and commit messages are always English.
+  - Harness artifacts use paths relative to the consumer project root.
+  - Facts, hypotheses and decisions are labeled as such.
+  - Evidence status is passed, failed or not-run. A typecheck is not behavior proof.
+  - Check commands come from .harness/project.yaml or from a command observed in the repo. Never invent a runner.
+  - .harness/MEMORY.md, EPOCHAL.md and RISKS.md are written only by the Coordinator.
+  - No secrets, tokens, credentials or absolute personal paths in .harness/.
+limits:
+  - Do not install, upgrade or remove tools unless the owner authorized that action for this task.
+  - Do not overwrite an existing .harness/ file during setup.
+  - Do not treat an absent RISKS.md as proof that no incidents exist.

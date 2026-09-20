@@ -1,0 +1,28 @@
+id: php
+name: PHP
+summary: PHP projects managed by Composer, including framework or CMS codebases (Laravel, Symfony, Craft) where business logic lives in a dedicated namespace and tests run with Pest or PHPUnit.
+extends: base
+stack:
+  - php
+  - composer
+commands:
+  test: null
+  lint: null
+  build: null
+  run: null
+conventions:
+  - Read composer.json scripts and any Makefile first; a repo-defined target such as make check outranks the raw vendor/bin invocation and is the value recorded in .harness/project.yaml.
+  - Typical observed values, recorded only with evidence: test vendor/bin/pest or vendor/bin/phpunit; lint vendor/bin/phpstan analyse; format check vendor/bin/php-cs-fixer fix --dry-run --diff; run docker compose up -d when the repo ships a compose file.
+  - When PHP runs inside a container, every check command is executed through the container (docker compose exec or the Makefile EXEC variable); a host without php or composer reports checks as not-run, never as passed.
+  - Strict rules (declare(strict_types=1), PSR-12, phpstan at the configured level) apply to the namespaces the project marks as business logic, typically src/, app/ or modules/, plus tests/. Framework or CMS configuration, templates, migrations and public/ stay out unless the project says otherwise.
+  - New business-logic files start with declare(strict_types=1); controllers stay thin and delegate to services; no @ error suppression and no mixed without a stated reason.
+  - A phpstan baseline file, when present, covers pre-existing findings only; new code is held to the configured level and the baseline is not regenerated to hide a new finding.
+  - Tests go in tests/ following the existing split (Unit, Feature); a new behavior ships with a test at the same level the repo already uses.
+  - composer.json and composer.lock stay in the write set of any slice that adds, updates or removes a package; the lock file is committed with the change.
+  - Database work uses the data-engineer role and the data-migrations skill; framework migrations run only against a disposable database during verification.
+limits:
+  - Do not run composer require, composer update or change the PHP version without authorization recorded for the slice.
+  - Do not assume Pest, PHPUnit, phpstan, php-cs-fixer, Docker or a Makefile are present; probe vendor/bin and the repo root and record unknown.
+  - Do not edit vendor/ or generated framework files; fixes go in the project namespace or configuration.
+  - Do not start, stop or rebuild containers on your own; report the stack state and ask when a check depends on it.
+  - Do not apply migrations, seeders or CMS project-config syncs against a non-disposable database.

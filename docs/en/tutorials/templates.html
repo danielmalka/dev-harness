@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harness  Templates: when to use each (do not publish)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* Harness Doc Shell
+   Ink paper on cool charcoal. Neon is a signal, not a wash.
+   One standalone HTML file, CSS inlined. Not a marketing page. */
+
+:root {
+  --void: #131418;
+  --void-deep: #0C0D10;
+  --void-elevated: #1A1C22;
+  --void-soft: #23262E;
+  --text: #F1EFE8;
+  --muted: #9A978E;
+  --border: rgba(241, 239, 232, 0.10);
+  --primary: #3DFF9A;
+  --primary-hover: #6AFFB4;
+  --primary-soft: rgba(61, 255, 154, 0.10);
+  --accent: #E2D2A8;
+  --accent-hover: #F0E4C4;
+  --accent-soft: rgba(226, 210, 168, 0.10);
+  --gold: #E2D2A8;
+  --ok: #3DFF9A;
+  --ok-bg: rgba(61, 255, 154, 0.08);
+  --no: #E08A8A;
+  --no-bg: rgba(224, 138, 138, 0.08);
+  --warn: #E2C48A;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 22px;
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Outfit", var(--font);
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: 180ms var(--ease);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 15.5px;
+  line-height: 1.62;
+  color: var(--text);
+  background: var(--void-deep);
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 56% 40% at 92% -10%, rgba(61, 255, 154, 0.06), transparent 55%),
+    radial-gradient(ellipse 44% 34% at 0% 100%, rgba(226, 210, 168, 0.04), transparent 50%),
+    var(--void-deep);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  pointer-events: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 50;
+  background: var(--primary);
+  color: var(--void-deep);
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+}
+
+.skip-link:focus { left: 1rem; top: 1rem; }
+
+.page {
+  position: relative;
+  z-index: 2;
+  width: min(92%, 1320px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 3.25rem;
+  align-items: start;
+  padding: 2.25rem 0 5rem;
+  min-width: 0;
+}
+
+.side {
+  position: sticky;
+  top: 1.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.side__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.12rem;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.2rem;
+}
+
+.side__brand span { color: var(--primary); }
+
+.mark {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.side__sub {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin: 0 0 0.85rem 2rem;
+}
+
+.side__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  background: var(--void-elevated);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  margin: 0 0 1.25rem;
+}
+
+.side__type::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.side nav {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.side nav a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.42rem 0.65rem;
+  border-left: 2px solid transparent;
+  border-radius: 0 8px 8px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+
+.side nav a:hover {
+  color: var(--text);
+  background: var(--void-elevated);
+}
+
+.side nav a.active {
+  color: var(--text);
+  border-left-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.side nav a b {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.68rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.wrap { min-width: 0; overflow-wrap: break-word; }
+.wrap > p,
+.wrap > .lead { max-width: 74ch; }
+
+.hero {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 0.28rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--void-elevated);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(1.85rem, 3.4vw, 2.45rem);
+  margin: 0;
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 2.75rem 0 0.95rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+h2 .n {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+h3 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin: 1.15rem 0 0.4rem;
+  letter-spacing: -0.02em;
+}
+
+p { margin: 0 0 0.85rem; color: var(--muted); }
+p.lead { color: var(--text); font-size: 1.05rem; line-height: 1.55; max-width: 62ch; }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+}
+
+.chip b {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.banner {
+  background: var(--accent-soft);
+  border: 1px dashed rgba(226, 210, 168, 0.38);
+  color: var(--gold);
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin: 0 0 1.5rem;
+}
+
+.banner.warn {
+  background: var(--no-bg);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: var(--no);
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 0.7rem;
+  margin: 0 0 1.5rem;
+}
+
+.strip a {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 0.95rem;
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-decoration: none;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.strip a:hover {
+  border-color: rgba(61, 255, 154, 0.28);
+  transform: translateY(-1px);
+  color: var(--muted);
+}
+
+.strip a strong {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.strip a span {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.card {
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.05rem 1.2rem;
+  margin: 0.8rem 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.card:hover { border-color: rgba(61, 255, 154, 0.22); transform: translateY(-1px); }
+.card h3 { margin-top: 0; }
+
+.card h3::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.in { border-color: rgba(52, 211, 153, 0.32); background: var(--ok-bg); }
+.in h3 { color: var(--ok); }
+.in h3::before { background: var(--ok); }
+.out { border-color: rgba(248, 113, 113, 0.32); background: var(--no-bg); }
+.out h3 { color: var(--no); }
+.out h3::before { background: var(--no); }
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  border: 1px solid rgba(61, 255, 154, 0.28);
+  color: var(--primary);
+  margin: 0 0 0.65rem;
+}
+
+.price {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: var(--primary-soft);
+  border: 1px solid rgba(61, 255, 154, 0.22);
+  color: var(--primary);
+  padding: 0.08rem 0.42rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.grid-asym {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 0.8rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 0.7rem 0 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--void-elevated);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.68rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--muted);
+}
+
+th {
+  background: var(--void-soft);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+tr:last-child td { border-bottom: 0; }
+tbody tr { transition: background var(--transition); }
+tbody tr:hover { background: rgba(241, 239, 232, 0.04); }
+tbody tr:hover td { color: var(--text); }
+
+ul, ol { margin: 0.25rem 0 0.85rem; padding-left: 1.2rem; color: var(--muted); }
+li { margin: 0.28rem 0; }
+
+.steps {
+  list-style: none;
+  margin: 0.5rem 0 1.15rem;
+  padding: 0;
+  counter-reset: step;
+}
+
+.steps > li {
+  position: relative;
+  margin: 0;
+  padding: 0 0 1.15rem 2.35rem;
+  border-left: 1px solid var(--border);
+  margin-left: 0.75rem;
+}
+
+.steps > li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.steps > li::before {
+  counter-increment: step;
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: -0.9rem;
+  top: 0.05rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  background: var(--void-soft);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  display: grid;
+  place-items: center;
+}
+
+.callout {
+  padding: 0.95rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  background: var(--void-elevated);
+  margin: 0.85rem 0;
+}
+
+.callout.gold {
+  border-left-color: var(--gold);
+  background: var(--accent-soft);
+}
+
+.callout.stop {
+  border-left-color: var(--no);
+  background: var(--no-bg);
+}
+
+a { color: var(--accent); text-decoration: none; transition: color var(--transition); }
+a:hover { color: var(--accent-hover); }
+strong { color: var(--text); font-weight: 600; }
+em { color: var(--text); }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+  background: var(--void-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.08rem 0.34rem;
+  border-radius: 6px;
+}
+
+::selection { background: rgba(61, 255, 154, 0.35); color: var(--void-deep); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+
+footer.doc-foot {
+  margin-top: 2.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: grid;
+  gap: 0.35rem;
+}
+
+@media (max-width: 1000px) {
+  .page {
+    width: auto;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem 1.1rem 4rem;
+  }
+  .side { position: static; }
+  .side nav {
+    display: flex;
+    gap: 0.35rem;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+  }
+  .side nav a {
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 8px;
+    white-space: nowrap;
+    background: var(--void-elevated);
+  }
+  .side nav a.active {
+    border-bottom-color: var(--primary);
+    border-left-color: transparent;
+  }
+  .strip,
+  .grid-2,
+  .grid-asym { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .card, .strip a, .side nav a, tbody tr { transition: none; }
+  .card:hover, .strip a:hover { transform: none; }
+}
+
+@media print {
+  body::before, body::after, .progress, .side, .skip-link { display: none !important; }
+  .page { display: block; width: auto; padding: 0; }
+  .card, .table-wrap, .banner { break-inside: avoid; }
+  a { color: inherit; }
+}
+</style>
+</head>
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <a class="skip-link" href="#conteudo">Skip to content</a>
+  <div class="page">
+    <aside class="side">
+      <div class="side__brand">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="mark-grad" x1="4" y1="2" x2="28" y2="30">
+              <stop offset="0" stop-color="#3DFF9A"/>
+              <stop offset="1" stop-color="#E2D2A8"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill="url(#mark-grad)"/>
+        </svg>
+        Harness<span>.</span>
+      </div>
+      <div class="side__sub">Internal doc</div>
+      <div class="side__type">catalogo</div>
+      <nav>
+        <a href="#posicionamento"><b>01</b>Positioning</a>
+        <a href="#prd"><b>02</b>PRD</a>
+        <a href="#story"><b>03</b>Story</a>
+        <a href="#task"><b>04</b>Task and Bug</a>
+        <a href="#adr"><b>05</b>ADR</a>
+        <a href="#rfc"><b>06</b>RFC</a>
+        <a href="#memoria"><b>07</b>Memoria</a>
+        <a href="#jornada"><b>08</b>Journey</a>
+        <a href="#tabela"><b>09</b>Consolidated table</a>
+        <a href="#pacotes"><b>10</b>Pacotes compostos</a>
+        <a href="#aberto"><b>11</b>Mapped vs. em aberto</a>
+      </nav>
+    </aside>
+     <div class="wrap" id="conteudo">
+       <div class="callout">Português: <a href="../../tutoriais/templates.html">versão em pt-br</a></div>
+       <div class="banner">Internal doc. Do not publish.</div>
+      <header class="hero">
+        <div class="eyebrow">Catalog  draft</div>
+        <h1>Templates: when to use each</h1>
+        <p class="lead">Guide to the kits eight templates: what each answers, who writes it, when to open and close it, and how they relate.</p>
+        <div class="chips">
+          <span class="chip">date <b>2026-09-20</b></span>
+          <span class="chip">status <b>draft</b></span>
+          <span class="chip">owner <b>Daniel Lemos</b></span>
+          <span class="chip">path <b>docs/tutoriais/templates.html</b></span>
+        </div>
+      </header>
+
+      <div class="strip">
+        <a href="#prd"><span>Anchor</span><strong>Product</strong>PRD e Story</a>
+        <a href="#task"><span>Execution</span><strong>Task and Bug</strong>Agent dispatch</a>
+        <a href="#adr"><span>Decision</span><strong>ADR e RFC</strong>Registro tiscnico</a>
+        <a href="#memoria"><span>State</span><strong>Memoria</strong>Coordinator only</a>
+      </div>
+
+      <h2 id="posicionamento"><span class="n">01</span>Positioning</h2>
+      <div class="card">
+        <h3>O que isto is</h3>
+        <p>The templates live in <code>templates/pt-br/</code> e <code>templates/en/</code> no kit, in mirrored versions; o <code>setup</code> grava <code>language</code> em <code>.harness/project.yaml</code> and selects the folder. No projeto consumidor, cada um is copiado para <code>.harness/</code> and filled in. Five describe work (PRD, Story, Task/Bug, ADR, RFC); three preserve state (MEMORY, EPOCHAL, RISKS). This guide explains which one to use, who writes it, and when to open and close it.</p>
+      </div>
+      <div class="callout gold">Facts, hypotheses, and decisions are marked as such. Paths relative to the project. No secrets. Cada critisrio de aceite is quando X, entao Y e aponta o cenario ou teste que o prova. Evidencia so existe com estado explicito: passed, failed ou not executado. Typecheck not prova comportamento.</div>
+      <div class="callout stop">Os tres registros de memoria sao escritos apenas pelo Coordenador. Os demais papisis reportam fatos, evidencias e incidentes; not editam <code>MEMORY.md</code>, <code>EPOCHAL.md</code> nem <code>RISKS.md</code>.</div>
+      <div class="callout">HTML comments inside templates are filling guidance. They are removed from the final file.</div>
+
+      <h2 id="prd"><span class="n">02</span>PRD</h2>
+      <span class="tag">Product  por que e o que</span>
+      <p>Answers why to do it and what to deliver, without saying how. Um PRD bom pode ser atendido por tres desenhos tiscnicos diferentes. Escreve o owner do produto, com o papel <code>product-discovery</code> via <code>/dev-harness:discover</code>. It closes when requirements and acceptance are approved and stories have been derived. Modelo: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+      <div class="grid-2">
+        <div class="card in">
+          <h3>In scope</h3>
+          <ul>
+            <li>Pain or opportunity without clear scope and acceptance.</li>
+            <li>Problem com evidencia, users e cenarios, resultado com sinal mensuravel.</li>
+            <li>Requisitos numerados (RF), aceite por requisito, restricoes que limitam a solucao.</li>
+            <li>Alternativas descartadas, riscos e decisoes pendings com owner.</li>
+          </ul>
+        </div>
+        <div class="card out">
+          <h3>Out of scope</h3>
+          <ul>
+            <li>Arquitetura, lib ou fluxo internal. Isso is ADR ou plano.</li>
+            <li>Scope ja claro que cabe em uma story: pule o PRD e abra a story apontando a origem.</li>
+            <li>Estimation and priority. Keep them in the profile or project kanban.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 id="story"><span class="n">03</span>Story</h2>
+      <span class="tag">Product  qual comportamento</span>
+      <p>A deliverable, end-to-end testable behavior. Escreve <code>product-discovery</code> ou <code>implementation-planner</code>. Os cenarios em Dado / Quando / Entao viram testes; a tabela de impacto tiscnico serve para decompor em tasks e escolher os papisis. Fecha quando todos os critisrios de aceite tem evidencia de passed. Modelo: <code>templates/&lt;lang&gt;/STORY.md</code>.</p>
+      <div class="grid-2">
+        <div class="card in">
+          <h3>In scope</h3>
+          <ul>
+            <li>Um requisito do PRD que precisa virar algo verificavel.</li>
+            <li>Caminho feliz, erro relevante e caso vazio ou limite.</li>
+            <li>Impacto em dados, contrato, interface, integracoes, dependencias e seguranca.</li>
+            <li>Estratisgia de verificacao alism dos testes das tasks.</li>
+          </ul>
+        </div>
+        <div class="card out">
+          <h3>Out of scope</h3>
+          <ul>
+            <li>Comportamento que not cabe em poucas tasks. Divida antes de planejar.</li>
+            <li>Passos de implementacao e arquivos. Isso is a task.</li>
+            <li>Mais de uma story no mesmo arquivo.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 id="task"><span class="n">04</span>Task and Bug</h2>
+      <span class="tag">Execution  como executar uma fatia</span>
+      <p>The dispatch an agent receives. Everything it needs to start without asking is in the file or linked. Task e bug usam o mesmo modelo: a task preenche a secao de escopo; o bug preenche a secao de defeito. Escreve <code>implementation-planner</code> (task) ou <code>debugger</code> (bug). Vive em <code>.harness/tasks/&lt;id&gt;/TASK.md</code>. Modelo: <code>templates/&lt;lang&gt;/TASK.md</code>.</p>
+      <div class="grid-2">
+        <div class="card in">
+          <h3>In scope</h3>
+          <ul>
+            <li>Objetivo em uma frase, escopo com not entra explicito.</li>
+            <li>Contexto tiscnico: arquivos candidatos, padrao local a seguir, contratos, decisoes, incidentes.</li>
+            <li>Mudancas de ambiente: lib instalar / atualizar / remover, env var, migracao com reversibilidade, config.</li>
+            <li>Plano em passos com check, tabela de testes cobrindo cada aceite, resultado com passed / failed / not executado.</li>
+            <li>Bug: sintoma literal, reproducao, esperado vs. observado, causa marcada como hipotese ou confirmada, gravidade.</li>
+          </ul>
+        </div>
+        <div class="card out">
+          <h3>Out of scope</h3>
+          <ul>
+            <li>Comportamento inventado quando ha decisao aberta. Parar e reportar.</li>
+            <li>Mais de duas rodadas de correcao sem sucesso. Devolver ao Coordenador com evidencia.</li>
+            <li>Fechar bug sem reproducao. Fica inconclusivo com a lacuna declarada.</li>
+            <li>Commit, push, or deploy without explicit authorization.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 id="adr"><span class="n">05</span>ADR</h2>
+      <span class="tag">Decision  o que foi decidido e por que</span>
+      <p>A durable decision that is expensive to reverse, with context, options, choice, consequences, and a review condition. Escreve <code>solution-architect</code>; aprova o owner. Tem a mesma forma que a skill <code>architecture-decisions</code> produz. Fecha com status aceito e is revisto quando a condicao de revisao ocorrer. Modelo: <code>templates/&lt;lang&gt;/ADR.md</code>.</p>
+      <div class="grid-2">
+        <div class="card in">
+          <h3>In scope</h3>
+          <ul>
+            <li>Escolha de banco, framework, contrato publico, modelo de autenticacao, fronteira entre componentes.</li>
+            <li>Always include the keep as is option.</li>
+            <li>Preferencia declarada como preferencia, not como requisito.</li>
+            <li>Check que prova que funciona e sinal de que esta failsndo.</li>
+          </ul>
+        </div>
+        <div class="card out">
+          <h3>Out of scope</h3>
+          <ul>
+            <li>Escolha barata e local. Fica no plano da task.</li>
+            <li>Design completo da solucao. Isso is RFC ou plano.</li>
+            <li>ADR sem condicao de revisao. Vira permanente por acidente.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 id="rfc"><span class="n">06</span>RFC</h2>
+      <span class="tag">Decision  proposta antes de construir  opcional</span>
+      <p>Propoe uma mudanca tiscnica ampla e coleta objecoes antes de construir. Once approved, it generates an ADR for the durable decision and stories for the work. Em desenvolvimento solo com agentes a funcao de coletar objecoes quase not existe; um ADR com status proposto costuma bastar. Modelo: <code>templates/&lt;lang&gt;/RFC.md</code>.</p>
+      <div class="grid-2">
+        <div class="card in">
+          <h3>In scope</h3>
+          <ul>
+            <li>Mudanca tiscnica sem PRD: refatoracao ampla, migracao de infra, troca de lib central.</li>
+            <li>Impacto alism do autor e caro de reverter.</li>
+            <li>Plano de adocao em fatias, cada uma com prova.</li>
+            <li>Discussao dateda; objecao resolvida fica marcada, not apagada.</li>
+          </ul>
+        </div>
+        <div class="card out">
+          <h3>Out of scope</h3>
+          <ul>
+            <li>Dor de user. Isso is PRD.</li>
+            <li>Decision pequena. Vai direto para ADR.</li>
+            <li>RFC como pris-requisito de toda mudanca. E opcional.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 id="memoria"><span class="n">07</span>Memory: MEMORY, EPOCHAL, and RISKS</h2>
+      <span class="tag">State  so o Coordenador escreve</span>
+      <p>Three files in the consumer project, inicializados por <code>/dev-harness:setup</code> a partir de <code>templates/</code>. None closes. <code>MEMORY.md</code> guarda a execucao vigente e is enxugado por <code>/dev-harness:consolidate-memory</code>. <code>EPOCHAL.md</code> recebe a copia integral de cada memoria anterior. <code>RISKS.md</code> guarda incidentes graves e prevencao; incidentes resolvidos permanecem.</p>
+      <div class="grid-2">
+        <div class="card in">
+          <h3>In scope</h3>
+          <ul>
+            <li>MEMORY: objetivo, escopo autorizado, decisoes vigentes, bloqueios, evidencias, proximo passo, historico breve.</li>
+            <li>EPOCHAL: lotes com ID, date e fuso; comentarios fora do bloco original.</li>
+            <li>RISKS: incidente com date, gravidade, arquivos, regra critica, causa, estado, prevencao.</li>
+          </ul>
+        </div>
+        <div class="card out">
+          <h3>Out of scope</h3>
+          <ul>
+            <li>Escrita por qualquer papel que not seja o Coordenador.</li>
+            <li>EPOCHAL carregado sem necessidade concreta ou pedido explicito.</li>
+            <li>Risco hipotistico em RISKS. So incidente conhecido entra.</li>
+            <li>Consolidacao que enxuga antes de conferir o lote arquivado.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 id="jornada"><span class="n">08</span>Journey</h2>
+      <p>Engineering flow com os comandos do kit. Nem toda tarefa passes por todas as etapas: um bug entra direto em <code>fix</code>; uma edicao pequena entra direto em <code>build</code> com uma task.</p>
+      <ol class="steps">
+        <li><strong>Discover</strong> pedido ou dor vira PRD com requisitos e aceite.</li>
+        <li><strong>Stories</strong> uma por requisito, com cenarios e impacto tiscnico.</li>
+        <li><strong>Understand</strong> o scout mapeia a area afetada, sem exigir indice.</li>
+        <li><strong>Plan</strong> o planejador fatia; o arquiteto entra se houver decisao cara de reverter e escreve o ADR. O Coordenador consulta MEMORY e, em area de risco, RISKS.</li>
+        <li><strong>Tasks</strong> uma por fatia, com ambiente, testes e aceite.</li>
+        <li><strong>Build</strong> o implementador entrega a fatia com checks executados.</li>
+        <li><strong>Verify and review</strong> QA e revisor avaliam o estado estabilizado. Atis duas rodadas de correcao; depois, replanejar.</li>
+        <li><strong>Release and handoff</strong> prontidao sem publicar; estado transportavel para a proxima sessao.</li>
+      </ol>
+      <div class="card">
+        <h3>Diagrama do fluxo</h3>
+        <pre class="mermaid">
+flowchart TB
+    ideia([Pedido ou dor]) --> discover["/dev-harness:discover<br/>product-discovery"]
+    discover --> prd[/PRD.md/]
+    prd --> stories[/STORY.md por requisito/]
+    stories --> understand["/dev-harness:understand<br/>repo-scout"]
+    understand --> plan["/dev-harness:plan<br/>implementation-planner<br/>+ solution-architect se preciso"]
+    plan --> decisao{Decisao cara<br/>de reverter?}
+    decisao -->|sim| adr[/ADR.md/]
+    decisao -->|nao| tasks
+    adr --> tasks[/TASK.md por fatia/]
+    tasks --> build["/dev-harness:build<br/>backend-builder / frontend-builder"]
+    build --> verify["/dev-harness:verify<br/>qa-verifier"]
+    build --> review["/dev-harness:review<br/>code-reviewer"]
+    verify --> ok{Aceite e revisao<br/>aprovados?}
+    review --> ok
+    ok -->|nao, ate 2 rodadas| build
+    ok -->|sim| release["/dev-harness:release<br/>release-manager"]
+    release --> handoff["/dev-harness:handoff<br/>Coordenador"]
+
+    bug([Defeito reportado]) --> fix["/dev-harness:fix<br/>debugger"]
+    fix --> bugtask[/TASK.md tipo bug/]
+    bugtask --> verify
+
+    rfc[/RFC.md opcional/] -.->|aprovado| adr
+    rfc -.->|aprovado| stories
+
+    memoria[(MEMORY.md)] <-.->|Coordenador| plan
+    memoria <-.-> handoff
+    risks[(RISKS.md)] -.->|area de risco| plan
+
+    classDef doc fill:#18201B,stroke:#3EE8A0,color:#E6EFE9
+    classDef mem fill:#121814,stroke:#C5E8D4,color:#E6EFE9
+    class prd,stories,adr,tasks,bugtask,rfc doc
+    class memoria,risks mem
+</pre>
+      </div>
+
+      <h2 id="tabela"><span class="n">09</span>Consolidated table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Template</th><th>Responde</th><th>Quem escreve</th><th>Abrir quando</th><th>Fechar quando</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>PRD.md</code></td><td>Por que e o que</td><td>Owner do produto, com product-discovery</td><td>Dor sem escopo e aceite claros</td><td>Requisitos e aceite aprovados; stories derivadas</td></tr>
+            <tr><td><code>STORY.md</code></td><td>Qual comportamento</td><td>product-discovery ou implementation-planner</td><td>Requisito precisa virar algo testavel</td><td>Todos os AC com evidencia de passed</td></tr>
+            <tr><td><code>TASK.md</code> (task)</td><td>Como executar uma fatia</td><td>implementation-planner; executa o builder</td><td>Story decomposta em fatias</td><td>Checks passesram, revisao feita, resultado preenchido</td></tr>
+            <tr><td><code>TASK.md</code> (bug)</td><td>O que fails e por que</td><td>debugger</td><td>Defeito reportado ou observado</td><td>Reproducao antes/depois e regressao, ou inconclusivo com lacuna</td></tr>
+            <tr><td><code>ADR.md</code></td><td>Qual decisao duravel</td><td>solution-architect; aprova o owner</td><td>Escolha cara de reverter</td><td>Status aceito; revisto na condicao de revisao</td></tr>
+            <tr><td><code>RFC.md</code></td><td>Qual mudanca tiscnica se propoe</td><td>Engenharia</td><td>Mudanca ampla sem PRD, impacto alism do autor</td><td>Aprovado (gera ADR e stories), rejeitado ou retirado</td></tr>
+            <tr><td><code>MEMORY.md</code></td><td>State vigente</td><td>Coordinator only</td><td>setup do projeto</td><td>Nunca; enxugado por consolidate-memory</td></tr>
+            <tr><td><code>EPOCHAL.md</code></td><td>Historico bruto</td><td>Coordinator only</td><td>Primeiro consolidate-memory</td><td>Nunca; so recebe lotes</td></tr>
+            <tr><td><code>RISKS.md</code></td><td>Incidentes e prevencao</td><td>Coordinator only</td><td>setup do projeto</td><td>Nunca; incidentes resolvidos permanecem</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="pacotes"><span class="n">10</span>Composed packages: how the files connect</h2>
+      <p>Um PRD gera varias stories, uma por requisito. Uma story gera varias tasks, cobrindo seus critisrios de aceite. ADR restringe tasks e tem origem em PRD, story, RFC ou incidente. Task entrega resultado e evidencia ao Coordenador, que escreve em MEMORY; incidente grave vai para RISKS, e a prevencao de RISKS volta para stories e tasks. Linha cheia is derivacao ou escrita; pontilhada is referencia ou consulta.</p>
+      <div class="card">
+        <h3>Relationship diagram</h3>
+        <pre class="mermaid">
+flowchart LR
+    subgraph produto[Produto e planejamento]
+        PRD[PRD.md] -->|"1  n (RF)"| STORY[STORY.md]
+        STORY -->|"1  n (AC)"| TASK[TASK.md<br/>task ou bug]
+    end
+
+    subgraph decisao[Decisao tecnica]
+        RFC[RFC.md<br/>opcional] -->|aprovado gera| ADR[ADR.md]
+        RFC -.->|aprovado gera| STORY
+        ADR -->|restringe| TASK
+        PRD -.->|origem| ADR
+        STORY -.->|origem| ADR
+    end
+
+    subgraph memoria["Memoria do projeto, so o Coordenador escreve"]
+        MEMORY[MEMORY.md] -->|consolidate-memory<br/>copia integral| EPOCHAL[EPOCHAL.md]
+        RISKS[RISKS.md]
+    end
+
+    TASK -->|resultado e evidencia| MEMORY
+    TASK -.->|incidente grave| RISKS
+    RISKS -.->|prevencao| STORY
+    RISKS -.->|prevencao| TASK
+    RISKS -.->|origem| ADR
+    RISKS -.->|origem| RFC
+
+    classDef doc fill:#18201B,stroke:#3EE8A0,color:#E6EFE9
+    classDef mem fill:#121814,stroke:#C5E8D4,color:#E6EFE9
+    class PRD,STORY,TASK,ADR,RFC doc
+    class MEMORY,EPOCHAL,RISKS mem
+</pre>
+      </div>
+      <div class="card">
+        <h3>Suggested locations in the consumer project</h3>
+        <p><code>.harness/project.yaml</code>  <code>.harness/MEMORY.md</code>  <code>.harness/EPOCHAL.md</code>  <code>.harness/RISKS.md</code>  <code>.harness/prd/PRD-001.md</code>  <code>.harness/stories/ST-001.md</code>  <code>.harness/adr/ADR-001.md</code>  <code>.harness/rfc/RFC-001.md</code>  <code>.harness/tasks/T-001/TASK.md</code>  <code>.harness/tasks/BUG-001/TASK.md</code></p>
+      </div>
+
+      <h2 id="aberto"><span class="n">11</span>Mapped vs. em aberto</h2>
+      <div class="grid-2">
+        <div class="card in">
+          <h3>Mapped</h3>
+          <ul>
+            <li>Eight templates in <code>templates/</code>, in pt-br.</li>
+            <li><code>.harness/tasks/&lt;id&gt;/</code> e os tres registros de memoria definidos pelo plano do produto.</li>
+            <li>Formato de resultado da task igual ao formato de resposta das skills.</li>
+          </ul>
+        </div>
+        <div class="card out">
+          <h3>Open</h3>
+          <ul>
+            <li>Directories <code>prd/</code>, <code>stories/</code>, <code>adr/</code> e <code>rfc/</code> sao convencao sugerida, not decisao do plano.</li>
+            <li>Keep or discard o RFC como template de primeira linha.</li>
+            <li>Separate template for plano, evidencia, revisao e handoff: a fatia usa <code>TASK.md</code>; evidencia
+              fica em <code>.harness/tasks/&lt;id&gt;/evidence/</code>; handoff is o comando
+              <code>/dev-harness:handoff</code>. Stack profiles exist in <code>profiles/</code> (ingles).</li>
+          </ul>
+        </div>
+      </div>
+
+      <footer class="doc-foot">
+        <div>File: <code>docs/tutoriais/templates.html</code>  type <code>catalogo</code></div>
+        <div>Next step: usar os templates via <code>/dev-harness:setup</code> na fixture slice-01.</div>
+      </footer>
+    </div>
+  </div>
+  <script>
+(function () {
+  var bar = document.getElementById("progress");
+  var links = {};
+  document.querySelectorAll(".side nav a").forEach(function (a) {
+    var href = a.getAttribute("href");
+    if (href && href.charAt(0) === "#") links[href.slice(1)] = a;
+  });
+  var visible = new Set();
+  function onScroll() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    if (bar && max > 0) bar.style.transform = "scaleX(" + (h.scrollTop / max) + ")";
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+  if (!("IntersectionObserver" in window)) return;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      visible[e.isIntersecting ? "add" : "delete"](e.target.id);
+    });
+    var first = Object.keys(links).find(function (id) { return visible.has(id); });
+    Object.keys(links).forEach(function (id) {
+      links[id].classList.toggle("active", id === first);
+    });
+  }, { rootMargin: "0px 0px -70% 0px" });
+  document.querySelectorAll("h2[id]").forEach(function (h) { io.observe(h); });
+})();
+  </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+        background: "#0C110E",
+        primaryColor: "#18201B",
+        primaryTextColor: "#E6EFE9",
+        primaryBorderColor: "#3EE8A0",
+        secondaryColor: "#121814",
+        secondaryTextColor: "#E6EFE9",
+        secondaryBorderColor: "#C5E8D4",
+        tertiaryColor: "#121814",
+        tertiaryTextColor: "#E6EFE9",
+        tertiaryBorderColor: "#C5E8D4",
+        lineColor: "#C5E8D4",
+        textColor: "#E6EFE9",
+        clusterBkg: "#121814",
+        clusterBorder: "#3E5A4A",
+        edgeLabelBackground: "#18201B",
+        nodeBorder: "#3EE8A0",
+        mainBkg: "#18201B"
+      }
+    });
+  </script>
+</body>
+</html>
