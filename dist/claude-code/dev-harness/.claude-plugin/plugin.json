@@ -1,16 +1,16 @@
 {
-  "name": "dev-harness",
-  "version": "0.1.0",
-  "description": "Portable AI-assisted development kit: coordinator plus specialist agents, skills and work commands with owner-authorized delivery.",
   "author": {
     "name": "malka"
   },
-  "license": "MIT",
+  "description": "Portable AI-assisted development kit: coordinator plus specialist agents, skills and work commands with owner-authorized delivery.",
   "keywords": [
     "development",
     "agents",
     "coordinator",
     "qa",
     "review"
-  ]
+  ],
+  "license": "MIT",
+  "name": "dev-harness",
+  "version": "0.2.0"
 }

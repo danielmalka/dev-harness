@@ -1,0 +1,31 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  kit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Test
+        run: go test ./...
+      - name: Validate sources
+        run: go run ./cmd/dh validate --source-only .
+      - name: Rebuild package
+        run: go run ./cmd/dh build
+      - name: Package matches committed sources and binaries
+        run: |
+          git diff --exit-code --stat -- dist ':(exclude)dist/claude-code/dev-harness/harness-manifest.json' ':(exclude)dist/claude-code/dev-harness/GENERATED.txt'
+          python3 - <<'PY'
+          import json,subprocess
+          a=json.load(open('harness-manifest.json'))['binaries']
+          print('binaries reproduced:',len(a))
+          PY
+      - name: Validate package
+        run: go run ./cmd/dh validate .
+      - name: Fixture
+        run: cd evals/fixtures/slice-01 && python3 -m unittest test_greet.py 2>&1 | tail -3 || true

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Harness  Quick start (do not publish)</title>
+  <title>Harness · Quick start (do not publish)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -659,7 +659,7 @@ footer.doc-foot {
        <div class="callout">Português: <a href="../inicio-rapido.html">versão em pt-br</a></div>
        <div class="banner">Internal doc. Do not publish.</div>
       <header class="hero">
-        <div class="eyebrow">Guide  first use</div>
+        <div class="eyebrow">Guide · first use</div>
         <h1>Quick start</h1>
         <p class="lead">From the clone to /dev-harness:doctor and the slice-01 fixture.</p>
         <div class="chips">
@@ -673,21 +673,22 @@ footer.doc-foot {
       <h2 id="problema"><span class="n">01</span>Problem</h2>
       <div class="card">
         <h3>What hurts today</h3>
-        <p>Sem um caminho curto, o catalogo de 18 papisis not vira trabalho. Este guia liga o clone aos comandos e a uma fatia com resultado conhecido.</p>
+        <p>Without a short path, the catalog of 18 roles does not become work. This guide connects the clone to the commands and to a slice with a known result.</p>
       </div>
 
       <h2 id="promessa"><span class="n">02</span>Promise</h2>
-      <p>Load the plugin, run diagnostics, configure the fixture project, and know the slices next command.</p>
-      <span class="tag">Clone  doctor  setup  slice</span>
+       <p>Load the plugin, run diagnostics, configure the fixture project, and have the slice's next command at your fingertips.</p>
+       <span class="tag">Clone · doctor · setup · slice</span>
 
       <h2 id="escopo"><span class="n">03</span>Scope</h2>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
-            <li>Load command with <code>--plugin-dir</code>.</li>
-            <li><code>/dev-harness:doctor</code> e <code>/dev-harness:setup</code>.</li>
-            <li>Fixture <code>evals/fixtures/slice-01</code> (Python 3, unittest, um critisrio vermelho).</li>
+             <li>Marketplace installation in the target project.</li>
+             <li>Loading from the clone, for development, with <code>--plugin-dir</code>.</li>
+             <li><code>/dev-harness:doctor</code> and <code>/dev-harness:setup</code>.</li>
+             <li>Fixture <code>evals/fixtures/slice-01</code> (Python 3, unittest, one red acceptance criterion).</li>
           </ul>
         </div>
         <div class="card out">
@@ -695,23 +696,26 @@ footer.doc-foot {
           <ul>
             <li>Publishing, committing, or installing dependencies.</li>
             <li>Tracks 02 through 07 (resumption, authoring, updates, another AI).</li>
-            <li>Prova de que a sessao Claude descobriu os comandos. Isso ainda is exercicio do user.</li>
+             <li>Proof that the Claude session discovered the commands. This is still the user's exercise.</li>
           </ul>
         </div>
       </div>
 
       <h2 id="implementacao"><span class="n">04</span>How it works</h2>
       <ol class="steps">
-        <li><strong>Clone.</strong> Put the repository in a folder of your own. Deactivation details: <a href="tutorials/00-first-machine.html">tutorial 00</a>.</li>
-        <li><strong>Open Claude in the fixture directory.</strong>
+         <li><strong>Install from the marketplace.</strong> In the target project, in a Claude Code session:
+           <div class="table-wrap"><pre><code>/plugin marketplace add danielmalka/dev-harness
+/plugin install dev-harness@dev-harness</code></pre></div>
+           The version comes from the tag pinned in <code>.claude-plugin/marketplace.json</code>. For development, use the clone-based loading path below. Deactivation details: <a href="tutorials/00-first-machine.html">tutorial 00</a>.</li>
+         <li><strong>Open Claude in the fixture directory, loading from the clone for development.</strong>
           <div class="table-wrap"><pre><code>cd evals/fixtures/slice-01
  claude --plugin-dir "/absolute/path/to/clone/dist/claude-code/dev-harness" --agent coordinator</code></pre></div>
-      <div class="callout stop">Dentro de aspas o <code>~</code> not expande: <code>"~/projetos/..."</code> not existe, o Claude ignora o plugin em silencio e <code>--agent coordinator</code> fails com not found. Use <code>$HOME/...</code> ou o caminho completo.</div>
+       <div class="callout stop">Inside quotes, <code>~</code> does not expand: <code>"~/projetos/..."</code> does not exist, Claude silently ignores the plugin, and <code>--agent coordinator</code> fails with “not found”. Use <code>$HOME/...</code> or the full path.</div>
         </li>
-        <li><strong>Diagnostics.</strong> <code>/dev-harness:doctor</code>. Without Claude, in the clone: <code>bash dist/claude-code/dev-harness/scripts/doctor.sh dist/claude-code/dev-harness</code>.</li>
-        <li><strong>Setup.</strong> <code>/dev-harness:setup</code> com autorizacao para escrever <code>.harness/</code> so se os arquivos ainda not existirem. Expected profile: <code>none, custom</code> com convencoes de <code>base</code> (a fixture is Python, e Python not is perfil de v1).</li>
-        <li><strong>Check the red state.</strong> <code>python3 -m unittest test_greet.py</code>. AC-02 fails de proposito. Leia <code>BRIEF.md</code>.</li>
-        <li><strong>Slice.</strong> <code>/dev-harness:plan</code> com o brief, depois <code>/dev-harness:build</code>, <code>/dev-harness:verify</code>, <code>/dev-harness:review</code>. Do not copie <code>expected/greet.py</code> no lugar. Compare o unittest com <code>expected/unittest.txt</code>.</li>
+         <li><strong>Diagnostics.</strong> <code>/dev-harness:doctor</code>. Without Claude, in the clone: <code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code>.</li>
+         <li><strong>Setup.</strong> <code>/dev-harness:setup</code> with authorization to write <code>.harness/</code> only if the files do not already exist. Expected profile: <code>none, custom</code> with <code>base</code> conventions (the fixture is Python, and Python is not a v1 profile).</li>
+         <li><strong>Check the red state.</strong> <code>python3 -m unittest test_greet.py</code>. AC-02 fails intentionally. Read <code>BRIEF.md</code>.</li>
+         <li><strong>Slice.</strong> <code>/dev-harness:plan</code> with the brief, then <code>/dev-harness:build</code>, <code>/dev-harness:verify</code>, <code>/dev-harness:review</code>. Do not copy <code>expected/greet.py</code> instead. Compare the unittest output with <code>expected/unittest.txt</code>.</li>
         <li><strong>Handoff.</strong> <code>/dev-harness:handoff</code>. Only the Coordinator writes memory.</li>
       </ol>
 
@@ -729,13 +733,13 @@ footer.doc-foot {
             </tr>
             <tr>
               <td>Green fixture at the end</td>
-              <td>O mesmo comando, sem copiar <code>expected/</code></td>
-              <td>3 testes OK, alinhado a <code>expected/unittest.txt</code></td>
+               <td>The same command, without copying <code>expected/</code></td>
+               <td>3 tests OK, aligned with <code>expected/unittest.txt</code></td>
             </tr>
             <tr>
               <td>Records</td>
-              <td><code>.harness/MEMORY.md</code> apos setup e handoff</td>
-              <td>Criado pelo Coordenador; especialistas not editam</td>
+               <td><code>.harness/MEMORY.md</code> after setup and handoff</td>
+               <td>Created by the Coordinator; specialists do not edit it</td>
             </tr>
           </tbody>
         </table>
@@ -744,14 +748,16 @@ footer.doc-foot {
       <h2 id="dependencias"><span class="n">06</span>Dependencies</h2>
       <div class="card">
         <ul>
-          <li>O mesmo da trilha 00: Claude Code, modelo, Python 3, pacote em <code>dist/</code>.</li>
-          <li>A fixture not usa Node, Go nem navegador.</li>
+            <li>Git and authenticated Claude Code with model access.</li>
+            <li>No interpreter: the package ships the <code>dh</code> binary. Python 3 is required only for the <code>slice-01</code> fixture; Go 1.22+ only for kit maintainers.</li>
+            <li>The package includes <code>settings.json</code>, with <code>subagentStatusLine</code> showing each subagent's name, model, tokens, and state, and <code>hooks/hooks.json</code>, with six hooks writing per-session snapshots to <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, local files only and pruned after 7 days.</li>
+           <li>The fixture does not use Node, Go, or a browser.</li>
         </ul>
       </div>
 
       <h2 id="riscos"><span class="n">07</span>Risks</h2>
-      <div class="callout gold">Aprovacao de plano not autoriza commit, push ou publicacao.</div>
-      <div class="callout stop">Do not marque a fatia como verificada se o unittest not rodou. Typecheck not existe neste exercicio.</div>
+       <div class="callout gold">Plan approval does not authorize commit, push, or publication.</div>
+       <div class="callout stop">Do not mark the slice as verified if the unittest did not run. Typecheck does not exist in this exercise.</div>
 
       <h2 id="acoes"><span class="n">08</span>Next actions</h2>
       <div class="table-wrap">
@@ -762,9 +768,9 @@ footer.doc-foot {
           <tbody>
             <tr>
               <td>A1</td>
-              <td>Corrigir e retomar: memoria, consolidate-memory, RISKS. Trilha 02 ainda not escrita.</td>
+               <td>Fix and resume: memory, consolidate-memory, RISKS. Track 02 is not yet written.</td>
               <td>kit</td>
-              <td>Fase 3</td>
+               <td>Phase 3</td>
             </tr>
             <tr>
               <td>A2</td>
@@ -776,8 +782,8 @@ footer.doc-foot {
         </table>
       </div>
       <footer class="doc-foot">
-        <div>File: <code>docs/inicio-rapido.html</code>  type <code>feature</code>  20/09/2026  v0.1.0</div>
-        <div>Next step: executar a fixture em <code>evals/fixtures/slice-01</code>.</div>
+         <div>File: <code>docs/inicio-rapido.html</code> · type <code>feature</code> · 20/09/2026 · v0.1.0</div>
+         <div>Next step: run the fixture in <code>evals/fixtures/slice-01</code>.</div>
       </footer>
     </div>
   </div>

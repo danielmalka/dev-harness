@@ -25,7 +25,7 @@ How to use this kit with an AI runtime that is not Claude Code. There is no nati
 
 1. Open the consumer project.
 2. Load `coordinator.md` as the main instructions.
-3. Run the diagnosis steps in `.skills/project-onboarding/SKILL.md`. If Python 3 is available, also run `scripts/doctor.sh` from a built package or from this checkout.
+3. Run the diagnosis steps in `.skills/project-onboarding/SKILL.md`. Also run `bin/dh doctor` from a built package (no interpreter needed).
 4. For each task, follow the matching command file, then the skill it names, then the specialist agent it names.
 5. Record limits that the runtime cannot enforce (read-only review, no Bash for reviewers) as instructions, and check the written files afterwards.
 

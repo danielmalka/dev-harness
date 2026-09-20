@@ -6,9 +6,20 @@ Portable AI-assisted development kit. Clone it, load it into Claude Code, and bu
 
 MIT license. Product plan: [`docs/plano-produto.html`](docs/plano-produto.html). Quick start: [`docs/en/quick-start.html`](docs/en/quick-start.html).
 
-## Load
+## Install
 
-Prerequisites: Git, Claude Code authenticated with model access, Python 3 (validator, doctor, and fixture).
+From the repository's own marketplace, without cloning, inside a Claude Code session in the project you will work on:
+
+```text
+/plugin marketplace add danielmalka/dev-harness
+/plugin install dev-harness@dev-harness
+```
+
+The version comes from the tag pinned in `.claude-plugin/marketplace.json`. For a team, the project can declare the marketplace in `extraKnownMarketplaces` and the plugin in `enabledPlugins` in `.claude/settings.json`, and Claude installs it for whoever trusts the folder.
+
+## Load from the clone (development)
+
+Prerequisites: Git and Claude Code authenticated with model access. Python 3 only for the `slice-01` fixture. Go 1.22+ only for kit maintainers.
 
 In the project where you will work:
 
@@ -28,7 +39,7 @@ Then, in the session:
 Mechanical diagnostics also run without Claude:
 
 ```bash
-bash dist/claude-code/dev-harness/scripts/doctor.sh dist/claude-code/dev-harness
+dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness
 ```
 
 Tutorial 00: [`docs/en/tutorials/00-first-machine.html`](docs/en/tutorials/00-first-machine.html). First-slice fixture: [`evals/fixtures/slice-01`](evals/fixtures/slice-01).
@@ -38,7 +49,7 @@ Tutorial 00: [`docs/en/tutorials/00-first-machine.html`](docs/en/tutorials/00-fi
 | Path | Role |
 | --- | --- |
 | `.agents/` `.commands/` `.skills/` `templates/` `profiles/` | Canonical sources |
-| `scripts/build-claude-code.sh` | Generates `dist/claude-code/dev-harness` |
+| `cmd/dh`, `internal/` | Go binary `dh`: `validate`, `build`, `doctor`, `snapshot`. `go run ./cmd/dh build` generates `dist/claude-code/dev-harness` |
 | `dist/` | Generated package. Do not edit. |
 | `adapters/claude-code/` | Mapping for Claude Code |
 | `adapters/generic/` | Manual use in another AI, without parity |
@@ -58,7 +69,8 @@ Profiles (`base`, `go-api`, `typescript-web`, `php`) are in English in `profiles
 ## Maintenance
 
 ```bash
-python3 scripts/validate.py --source-only .
-bash scripts/build-claude-code.sh
-python3 scripts/validate.py .
+go test ./...
+go run ./cmd/dh validate --source-only .
+go run ./cmd/dh build
+go run ./cmd/dh validate .
 ```

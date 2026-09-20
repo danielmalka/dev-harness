@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Harness  Templates: when to use each (do not publish)</title>
+  <title>Harness · Templates: when to use each (do not publish)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -642,29 +642,29 @@ footer.doc-foot {
         </svg>
         Harness<span>.</span>
       </div>
-      <div class="side__sub">Internal doc</div>
-      <div class="side__type">catalogo</div>
+       <div class="side__sub">Internal doc</div>
+       <div class="side__type">catalog</div>
       <nav>
-        <a href="#posicionamento"><b>01</b>Positioning</a>
+         <a href="#posicionamento"><b>01</b>Positioning</a>
         <a href="#prd"><b>02</b>PRD</a>
         <a href="#story"><b>03</b>Story</a>
-        <a href="#task"><b>04</b>Task and Bug</a>
+         <a href="#task"><b>04</b>Task and Bug</a>
         <a href="#adr"><b>05</b>ADR</a>
         <a href="#rfc"><b>06</b>RFC</a>
-        <a href="#memoria"><b>07</b>Memoria</a>
+         <a href="#memoria"><b>07</b>Memory</a>
         <a href="#jornada"><b>08</b>Journey</a>
         <a href="#tabela"><b>09</b>Consolidated table</a>
-        <a href="#pacotes"><b>10</b>Pacotes compostos</a>
-        <a href="#aberto"><b>11</b>Mapped vs. em aberto</a>
+         <a href="#pacotes"><b>10</b>Composed packages</a>
+         <a href="#aberto"><b>11</b>Mapped vs. open</a>
       </nav>
     </aside>
      <div class="wrap" id="conteudo">
        <div class="callout">Português: <a href="../../tutoriais/templates.html">versão em pt-br</a></div>
        <div class="banner">Internal doc. Do not publish.</div>
       <header class="hero">
-        <div class="eyebrow">Catalog  draft</div>
+         <div class="eyebrow">Catalog · draft</div>
         <h1>Templates: when to use each</h1>
-        <p class="lead">Guide to the kits eight templates: what each answers, who writes it, when to open and close it, and how they relate.</p>
+         <p class="lead">Guide to the kit's eight templates: what each one answers, who writes it, when to open and close it, and how they relate.</p>
         <div class="chips">
           <span class="chip">date <b>2026-09-20</b></span>
           <span class="chip">status <b>draft</b></span>
@@ -674,205 +674,205 @@ footer.doc-foot {
       </header>
 
       <div class="strip">
-        <a href="#prd"><span>Anchor</span><strong>Product</strong>PRD e Story</a>
-        <a href="#task"><span>Execution</span><strong>Task and Bug</strong>Agent dispatch</a>
-        <a href="#adr"><span>Decision</span><strong>ADR e RFC</strong>Registro tiscnico</a>
-        <a href="#memoria"><span>State</span><strong>Memoria</strong>Coordinator only</a>
+         <a href="#prd"><span>Anchor</span><strong>Product</strong>PRD and Story</a>
+         <a href="#task"><span>Execution</span><strong>Task and Bug</strong>Agent dispatch</a>
+         <a href="#adr"><span>Decision</span><strong>ADR and RFC</strong>Technical record</a>
+         <a href="#memoria"><span>State</span><strong>Memory</strong>Coordinator only</a>
       </div>
 
       <h2 id="posicionamento"><span class="n">01</span>Positioning</h2>
       <div class="card">
-        <h3>O que isto is</h3>
-        <p>The templates live in <code>templates/pt-br/</code> e <code>templates/en/</code> no kit, in mirrored versions; o <code>setup</code> grava <code>language</code> em <code>.harness/project.yaml</code> and selects the folder. No projeto consumidor, cada um is copiado para <code>.harness/</code> and filled in. Five describe work (PRD, Story, Task/Bug, ADR, RFC); three preserve state (MEMORY, EPOCHAL, RISKS). This guide explains which one to use, who writes it, and when to open and close it.</p>
+         <h3>What this is</h3>
+         <p>The templates live in <code>templates/pt-br/</code> and <code>templates/en/</code> in the kit, in mirrored versions; <code>setup</code> writes <code>language</code> to <code>.harness/project.yaml</code> and selects the folder. In the consumer project, each one is copied to <code>.harness/</code> and filled in. Five describe work (PRD, Story, Task/Bug, ADR, RFC); three preserve state (MEMORY, EPOCHAL, RISKS). This guide explains which one to use, who writes it, and when to open and close it.</p>
       </div>
-      <div class="callout gold">Facts, hypotheses, and decisions are marked as such. Paths relative to the project. No secrets. Cada critisrio de aceite is quando X, entao Y e aponta o cenario ou teste que o prova. Evidencia so existe com estado explicito: passed, failed ou not executado. Typecheck not prova comportamento.</div>
-      <div class="callout stop">Os tres registros de memoria sao escritos apenas pelo Coordenador. Os demais papisis reportam fatos, evidencias e incidentes; not editam <code>MEMORY.md</code>, <code>EPOCHAL.md</code> nem <code>RISKS.md</code>.</div>
+       <div class="callout gold">Facts, hypotheses, and decisions are marked as such. Paths are relative to the project. No secrets. Every acceptance criterion is “When X, then Y” and points to the scenario or test that proves it. Evidence exists only with an explicit state: passed, failed, or not-run. Typechecking does not prove behavior.</div>
+       <div class="callout stop">The three memory records are written only by the Coordinator. All other roles report facts, evidence, and incidents; they do not edit <code>MEMORY.md</code>, <code>EPOCHAL.md</code>, or <code>RISKS.md</code>.</div>
       <div class="callout">HTML comments inside templates are filling guidance. They are removed from the final file.</div>
 
       <h2 id="prd"><span class="n">02</span>PRD</h2>
-      <span class="tag">Product  por que e o que</span>
-      <p>Answers why to do it and what to deliver, without saying how. Um PRD bom pode ser atendido por tres desenhos tiscnicos diferentes. Escreve o owner do produto, com o papel <code>product-discovery</code> via <code>/dev-harness:discover</code>. It closes when requirements and acceptance are approved and stories have been derived. Modelo: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+       <span class="tag">Product · why and what</span>
+       <p>It answers why to do something and what to deliver, without saying how. A good PRD can be satisfied by three different technical designs. The product owner writes it, with the <code>product-discovery</code> role through <code>/dev-harness:discover</code>. It closes when the requirements and acceptance criteria are approved and the stories have been derived. Template: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
-            <li>Pain or opportunity without clear scope and acceptance.</li>
-            <li>Problem com evidencia, users e cenarios, resultado com sinal mensuravel.</li>
-            <li>Requisitos numerados (RF), aceite por requisito, restricoes que limitam a solucao.</li>
-            <li>Alternativas descartadas, riscos e decisoes pendings com owner.</li>
+             <li>Pain or opportunity without clear scope and acceptance criteria.</li>
+             <li>Problem with evidence, users, and scenarios; an outcome with a measurable signal.</li>
+             <li>Numbered requirements (RF), acceptance criteria for each requirement, and constraints that limit the solution.</li>
+             <li>Discarded alternatives, risks, and pending decisions with an owner.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Out of scope</h3>
           <ul>
-            <li>Arquitetura, lib ou fluxo internal. Isso is ADR ou plano.</li>
-            <li>Scope ja claro que cabe em uma story: pule o PRD e abra a story apontando a origem.</li>
+             <li>Architecture, a library, or an internal flow. That belongs in an ADR or a plan.</li>
+             <li>Scope that is already clear and fits in one story: skip the PRD and open the story with its origin linked.</li>
             <li>Estimation and priority. Keep them in the profile or project kanban.</li>
           </ul>
         </div>
       </div>
 
       <h2 id="story"><span class="n">03</span>Story</h2>
-      <span class="tag">Product  qual comportamento</span>
-      <p>A deliverable, end-to-end testable behavior. Escreve <code>product-discovery</code> ou <code>implementation-planner</code>. Os cenarios em Dado / Quando / Entao viram testes; a tabela de impacto tiscnico serve para decompor em tasks e escolher os papisis. Fecha quando todos os critisrios de aceite tem evidencia de passed. Modelo: <code>templates/&lt;lang&gt;/STORY.md</code>.</p>
+       <span class="tag">Product · what behavior</span>
+       <p>A deliverable, end-to-end testable behavior. It is written by <code>product-discovery</code> or <code>implementation-planner</code>. The Given / When / Then scenarios become tests; the technical impact table supports decomposition into tasks and role selection. It closes when every acceptance criterion has evidence that it passed. Template: <code>templates/&lt;lang&gt;/STORY.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
-            <li>Um requisito do PRD que precisa virar algo verificavel.</li>
-            <li>Caminho feliz, erro relevante e caso vazio ou limite.</li>
-            <li>Impacto em dados, contrato, interface, integracoes, dependencias e seguranca.</li>
-            <li>Estratisgia de verificacao alism dos testes das tasks.</li>
+             <li>A PRD requirement that needs to become something verifiable.</li>
+             <li>Happy path, relevant error, and empty or boundary case.</li>
+             <li>Impact on data, contracts, interfaces, integrations, dependencies, and security.</li>
+             <li>Verification strategy beyond the task tests.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Out of scope</h3>
           <ul>
-            <li>Comportamento que not cabe em poucas tasks. Divida antes de planejar.</li>
-            <li>Passos de implementacao e arquivos. Isso is a task.</li>
-            <li>Mais de uma story no mesmo arquivo.</li>
+             <li>Behavior that does not fit in a few tasks. Split it before planning.</li>
+             <li>Implementation steps and files. That belongs in the task.</li>
+             <li>More than one story in the same file.</li>
           </ul>
         </div>
       </div>
 
       <h2 id="task"><span class="n">04</span>Task and Bug</h2>
-      <span class="tag">Execution  como executar uma fatia</span>
-      <p>The dispatch an agent receives. Everything it needs to start without asking is in the file or linked. Task e bug usam o mesmo modelo: a task preenche a secao de escopo; o bug preenche a secao de defeito. Escreve <code>implementation-planner</code> (task) ou <code>debugger</code> (bug). Vive em <code>.harness/tasks/&lt;id&gt;/TASK.md</code>. Modelo: <code>templates/&lt;lang&gt;/TASK.md</code>.</p>
+       <span class="tag">Execution · how to execute a slice</span>
+       <p>The dispatch an agent receives. Everything it needs to start without asking is in the file or linked. Tasks and bugs use the same template: the task fills in the scope section; the bug fills in the defect section. It is written by <code>implementation-planner</code> (task) or <code>debugger</code> (bug). It lives in <code>.harness/tasks/&lt;id&gt;/TASK.md</code>. Template: <code>templates/&lt;lang&gt;/TASK.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
-            <li>Objetivo em uma frase, escopo com not entra explicito.</li>
-            <li>Contexto tiscnico: arquivos candidatos, padrao local a seguir, contratos, decisoes, incidentes.</li>
-            <li>Mudancas de ambiente: lib instalar / atualizar / remover, env var, migracao com reversibilidade, config.</li>
-            <li>Plano em passos com check, tabela de testes cobrindo cada aceite, resultado com passed / failed / not executado.</li>
-            <li>Bug: sintoma literal, reproducao, esperado vs. observado, causa marcada como hipotese ou confirmada, gravidade.</li>
+             <li>One-sentence objective, with the out-of-scope boundary stated explicitly.</li>
+             <li>Technical context: candidate files, local pattern to follow, contracts, decisions, and incidents.</li>
+             <li>Environment changes: library to install, update, or remove; environment variable; reversible migration; configuration.</li>
+             <li>Step-by-step plan with checks, a test table covering every acceptance criterion, and a result of passed / failed / not-run.</li>
+             <li>Bug: literal symptom, reproduction, expected versus observed behavior, cause marked as hypothesized or confirmed, and severity.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Out of scope</h3>
           <ul>
-            <li>Comportamento inventado quando ha decisao aberta. Parar e reportar.</li>
-            <li>Mais de duas rodadas de correcao sem sucesso. Devolver ao Coordenador com evidencia.</li>
-            <li>Fechar bug sem reproducao. Fica inconclusivo com a lacuna declarada.</li>
+             <li>Invented behavior when a decision is open. Stop and report it.</li>
+             <li>More than two unsuccessful correction rounds. Return it to the Coordinator with evidence.</li>
+             <li>Closing a bug without reproduction. Leave it inconclusive and state the gap.</li>
             <li>Commit, push, or deploy without explicit authorization.</li>
           </ul>
         </div>
       </div>
 
       <h2 id="adr"><span class="n">05</span>ADR</h2>
-      <span class="tag">Decision  o que foi decidido e por que</span>
-      <p>A durable decision that is expensive to reverse, with context, options, choice, consequences, and a review condition. Escreve <code>solution-architect</code>; aprova o owner. Tem a mesma forma que a skill <code>architecture-decisions</code> produz. Fecha com status aceito e is revisto quando a condicao de revisao ocorrer. Modelo: <code>templates/&lt;lang&gt;/ADR.md</code>.</p>
+       <span class="tag">Decision · what was decided and why</span>
+       <p>A durable decision that is expensive to reverse, with context, options, choice, consequences, and a review condition. It is written by <code>solution-architect</code>; the owner approves it. It has the same form produced by the <code>architecture-decisions</code> skill. It closes with accepted status and is reviewed when the review condition occurs. Template: <code>templates/&lt;lang&gt;/ADR.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
-            <li>Escolha de banco, framework, contrato publico, modelo de autenticacao, fronteira entre componentes.</li>
+             <li>Choice of database, framework, public contract, authentication model, or boundary between components.</li>
             <li>Always include the keep as is option.</li>
-            <li>Preferencia declarada como preferencia, not como requisito.</li>
-            <li>Check que prova que funciona e sinal de que esta failsndo.</li>
+             <li>A preference stated as a preference, not as a requirement.</li>
+             <li>A check that proves it works and a signal that it is failing.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Out of scope</h3>
           <ul>
-            <li>Escolha barata e local. Fica no plano da task.</li>
-            <li>Design completo da solucao. Isso is RFC ou plano.</li>
-            <li>ADR sem condicao de revisao. Vira permanente por acidente.</li>
+             <li>Cheap, local choice. Keep it in the task plan.</li>
+             <li>Complete solution design. That belongs in an RFC or a plan.</li>
+             <li>ADR without a review condition. It becomes permanent by accident.</li>
           </ul>
         </div>
       </div>
 
       <h2 id="rfc"><span class="n">06</span>RFC</h2>
-      <span class="tag">Decision  proposta antes de construir  opcional</span>
-      <p>Propoe uma mudanca tiscnica ampla e coleta objecoes antes de construir. Once approved, it generates an ADR for the durable decision and stories for the work. Em desenvolvimento solo com agentes a funcao de coletar objecoes quase not existe; um ADR com status proposto costuma bastar. Modelo: <code>templates/&lt;lang&gt;/RFC.md</code>.</p>
+       <span class="tag">Decision · proposal before building · optional</span>
+       <p>It proposes a broad technical change and collects objections before building. Once approved, it generates an ADR for the durable decision and stories for the work. In solo development with agents, the function of collecting objections barely exists; an ADR with proposed status is usually enough. Template: <code>templates/&lt;lang&gt;/RFC.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
-            <li>Mudanca tiscnica sem PRD: refatoracao ampla, migracao de infra, troca de lib central.</li>
-            <li>Impacto alism do autor e caro de reverter.</li>
-            <li>Plano de adocao em fatias, cada uma com prova.</li>
-            <li>Discussao dateda; objecao resolvida fica marcada, not apagada.</li>
+             <li>Technical change without a PRD: broad refactor, infrastructure migration, or replacement of a central library.</li>
+             <li>Impact beyond the author and expensive to reverse.</li>
+             <li>Adoption plan in slices, each with proof.</li>
+             <li>Dated discussion; a resolved objection remains marked, not deleted.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Out of scope</h3>
           <ul>
-            <li>Dor de user. Isso is PRD.</li>
-            <li>Decision pequena. Vai direto para ADR.</li>
-            <li>RFC como pris-requisito de toda mudanca. E opcional.</li>
+             <li>User pain. That belongs in a PRD.</li>
+             <li>Small decision. Go directly to an ADR.</li>
+             <li>An RFC as a prerequisite for every change. It is optional.</li>
           </ul>
         </div>
       </div>
 
       <h2 id="memoria"><span class="n">07</span>Memory: MEMORY, EPOCHAL, and RISKS</h2>
-      <span class="tag">State  so o Coordenador escreve</span>
-      <p>Three files in the consumer project, inicializados por <code>/dev-harness:setup</code> a partir de <code>templates/</code>. None closes. <code>MEMORY.md</code> guarda a execucao vigente e is enxugado por <code>/dev-harness:consolidate-memory</code>. <code>EPOCHAL.md</code> recebe a copia integral de cada memoria anterior. <code>RISKS.md</code> guarda incidentes graves e prevencao; incidentes resolvidos permanecem.</p>
+       <span class="tag">State · Coordinator only</span>
+       <p>Three files in the consumer project, initialized by <code>/dev-harness:setup</code> from <code>templates/</code>. None of them closes. <code>MEMORY.md</code> stores the current execution state and is trimmed by <code>/dev-harness:consolidate-memory</code>. <code>EPOCHAL.md</code> receives the complete copy of each previous memory. <code>RISKS.md</code> stores serious incidents and prevention; resolved incidents remain.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
-            <li>MEMORY: objetivo, escopo autorizado, decisoes vigentes, bloqueios, evidencias, proximo passo, historico breve.</li>
-            <li>EPOCHAL: lotes com ID, date e fuso; comentarios fora do bloco original.</li>
-            <li>RISKS: incidente com date, gravidade, arquivos, regra critica, causa, estado, prevencao.</li>
+             <li>MEMORY: objective, authorized scope, current decisions, blockers, evidence, next step, and brief history.</li>
+             <li>EPOCHAL: batches with ID, date, and time zone; comments outside the original block.</li>
+             <li>RISKS: incident with date, severity, files, critical rule, cause, state, and prevention.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Out of scope</h3>
           <ul>
-            <li>Escrita por qualquer papel que not seja o Coordenador.</li>
-            <li>EPOCHAL carregado sem necessidade concreta ou pedido explicito.</li>
-            <li>Risco hipotistico em RISKS. So incidente conhecido entra.</li>
-            <li>Consolidacao que enxuga antes de conferir o lote arquivado.</li>
+             <li>Writing by any role other than the Coordinator.</li>
+             <li>Loading EPOCHAL without a concrete need or explicit request.</li>
+             <li>Hypothetical risk in RISKS. Only a known incident belongs there.</li>
+             <li>Consolidation that trims the record before checking the archived batch.</li>
           </ul>
         </div>
       </div>
 
       <h2 id="jornada"><span class="n">08</span>Journey</h2>
-      <p>Engineering flow com os comandos do kit. Nem toda tarefa passes por todas as etapas: um bug entra direto em <code>fix</code>; uma edicao pequena entra direto em <code>build</code> com uma task.</p>
+       <p>Engineering flow using the kit commands. Not every task goes through every stage: a bug goes directly to <code>fix</code>; a small edit goes directly to <code>build</code> with a task.</p>
       <ol class="steps">
-        <li><strong>Discover</strong> pedido ou dor vira PRD com requisitos e aceite.</li>
-        <li><strong>Stories</strong> uma por requisito, com cenarios e impacto tiscnico.</li>
-        <li><strong>Understand</strong> o scout mapeia a area afetada, sem exigir indice.</li>
-        <li><strong>Plan</strong> o planejador fatia; o arquiteto entra se houver decisao cara de reverter e escreve o ADR. O Coordenador consulta MEMORY e, em area de risco, RISKS.</li>
-        <li><strong>Tasks</strong> uma por fatia, com ambiente, testes e aceite.</li>
-        <li><strong>Build</strong> o implementador entrega a fatia com checks executados.</li>
-        <li><strong>Verify and review</strong> QA e revisor avaliam o estado estabilizado. Atis duas rodadas de correcao; depois, replanejar.</li>
-        <li><strong>Release and handoff</strong> prontidao sem publicar; estado transportavel para a proxima sessao.</li>
+         <li><strong>Discover</strong> a request or pain point becomes a PRD with requirements and acceptance criteria.</li>
+         <li><strong>Stories</strong> one per requirement, with scenarios and technical impact.</li>
+         <li><strong>Understand</strong> the scout maps the affected area without requiring an index.</li>
+         <li><strong>Plan</strong> the planner splits the work; the architect joins if there is a decision that is expensive to reverse and writes the ADR. The Coordinator consults MEMORY and, in a risk area, RISKS.</li>
+         <li><strong>Tasks</strong> one per slice, with environment, tests, and acceptance criteria.</li>
+         <li><strong>Build</strong> the implementer delivers the slice with checks run.</li>
+         <li><strong>Verify and review</strong> QA and the reviewer assess the stabilized state. Up to two correction rounds; then replan.</li>
+         <li><strong>Release and handoff</strong> readiness without publishing; state that can be carried into the next session.</li>
       </ol>
       <div class="card">
-        <h3>Diagrama do fluxo</h3>
+         <h3>Flow diagram</h3>
         <pre class="mermaid">
 flowchart TB
-    ideia([Pedido ou dor]) --> discover["/dev-harness:discover<br/>product-discovery"]
+     ideia([Request or pain]) --> discover["/dev-harness:discover<br/>product-discovery"]
     discover --> prd[/PRD.md/]
-    prd --> stories[/STORY.md por requisito/]
+     prd --> stories[/STORY.md per requirement/]
     stories --> understand["/dev-harness:understand<br/>repo-scout"]
-    understand --> plan["/dev-harness:plan<br/>implementation-planner<br/>+ solution-architect se preciso"]
-    plan --> decisao{Decisao cara<br/>de reverter?}
-    decisao -->|sim| adr[/ADR.md/]
-    decisao -->|nao| tasks
-    adr --> tasks[/TASK.md por fatia/]
+     understand --> plan["/dev-harness:plan<br/>implementation-planner<br/>+ solution-architect if needed"]
+     plan --> decisao{Decision expensive<br/>to reverse?}
+     decisao -->|yes| adr[/ADR.md/]
+     decisao -->|no| tasks
+     adr --> tasks[/TASK.md per slice/]
     tasks --> build["/dev-harness:build<br/>backend-builder / frontend-builder"]
     build --> verify["/dev-harness:verify<br/>qa-verifier"]
     build --> review["/dev-harness:review<br/>code-reviewer"]
-    verify --> ok{Aceite e revisao<br/>aprovados?}
+     verify --> ok{Acceptance and review<br/>approved?}
     review --> ok
-    ok -->|nao, ate 2 rodadas| build
-    ok -->|sim| release["/dev-harness:release<br/>release-manager"]
-    release --> handoff["/dev-harness:handoff<br/>Coordenador"]
+     ok -->|no, up to 2 rounds| build
+     ok -->|yes| release["/dev-harness:release<br/>release-manager"]
+     release --> handoff["/dev-harness:handoff<br/>Coordinator"]
 
-    bug([Defeito reportado]) --> fix["/dev-harness:fix<br/>debugger"]
-    fix --> bugtask[/TASK.md tipo bug/]
+     bug([Reported defect]) --> fix["/dev-harness:fix<br/>debugger"]
+     fix --> bugtask[/TASK.md bug type/]
     bugtask --> verify
 
-    rfc[/RFC.md opcional/] -.->|aprovado| adr
-    rfc -.->|aprovado| stories
+     rfc[/RFC.md optional/] -.->|approved| adr
+     rfc -.->|approved| stories
 
-    memoria[(MEMORY.md)] <-.->|Coordenador| plan
+     memoria[(MEMORY.md)] <-.->|Coordinator| plan
     memoria <-.-> handoff
-    risks[(RISKS.md)] -.->|area de risco| plan
+     risks[(RISKS.md)] -.->|risk area| plan
 
     classDef doc fill:#18201B,stroke:#3EE8A0,color:#E6EFE9
     classDef mem fill:#121814,stroke:#C5E8D4,color:#E6EFE9
@@ -881,56 +881,56 @@ flowchart TB
 </pre>
       </div>
 
-      <h2 id="tabela"><span class="n">09</span>Consolidated table</h2>
+       <h2 id="tabela"><span class="n">09</span>Consolidated table</h2>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Template</th><th>Responde</th><th>Quem escreve</th><th>Abrir quando</th><th>Fechar quando</th></tr>
+           <tr><th>Template</th><th>Answers</th><th>Who writes it</th><th>Open when</th><th>Close when</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>PRD.md</code></td><td>Por que e o que</td><td>Owner do produto, com product-discovery</td><td>Dor sem escopo e aceite claros</td><td>Requisitos e aceite aprovados; stories derivadas</td></tr>
-            <tr><td><code>STORY.md</code></td><td>Qual comportamento</td><td>product-discovery ou implementation-planner</td><td>Requisito precisa virar algo testavel</td><td>Todos os AC com evidencia de passed</td></tr>
-            <tr><td><code>TASK.md</code> (task)</td><td>Como executar uma fatia</td><td>implementation-planner; executa o builder</td><td>Story decomposta em fatias</td><td>Checks passesram, revisao feita, resultado preenchido</td></tr>
-            <tr><td><code>TASK.md</code> (bug)</td><td>O que fails e por que</td><td>debugger</td><td>Defeito reportado ou observado</td><td>Reproducao antes/depois e regressao, ou inconclusivo com lacuna</td></tr>
-            <tr><td><code>ADR.md</code></td><td>Qual decisao duravel</td><td>solution-architect; aprova o owner</td><td>Escolha cara de reverter</td><td>Status aceito; revisto na condicao de revisao</td></tr>
-            <tr><td><code>RFC.md</code></td><td>Qual mudanca tiscnica se propoe</td><td>Engenharia</td><td>Mudanca ampla sem PRD, impacto alism do autor</td><td>Aprovado (gera ADR e stories), rejeitado ou retirado</td></tr>
-            <tr><td><code>MEMORY.md</code></td><td>State vigente</td><td>Coordinator only</td><td>setup do projeto</td><td>Nunca; enxugado por consolidate-memory</td></tr>
-            <tr><td><code>EPOCHAL.md</code></td><td>Historico bruto</td><td>Coordinator only</td><td>Primeiro consolidate-memory</td><td>Nunca; so recebe lotes</td></tr>
-            <tr><td><code>RISKS.md</code></td><td>Incidentes e prevencao</td><td>Coordinator only</td><td>setup do projeto</td><td>Nunca; incidentes resolvidos permanecem</td></tr>
+             <tr><td><code>PRD.md</code></td><td>Why and what</td><td>Product owner, with product-discovery</td><td>Pain without clear scope and acceptance</td><td>Requirements and acceptance approved; stories derived</td></tr>
+             <tr><td><code>STORY.md</code></td><td>What behavior</td><td>product-discovery or implementation-planner</td><td>Requirement needs to become something testable</td><td>All AC have evidence that they passed</td></tr>
+             <tr><td><code>TASK.md</code> (task)</td><td>How to execute a slice</td><td>implementation-planner; builder executes it</td><td>Story decomposed into slices</td><td>Checks passed, review completed, result filled in</td></tr>
+             <tr><td><code>TASK.md</code> (bug)</td><td>What fails and why</td><td>debugger</td><td>Defect reported or observed</td><td>Before-and-after reproduction and regression, or inconclusive with a stated gap</td></tr>
+             <tr><td><code>ADR.md</code></td><td>Which durable decision</td><td>solution-architect; owner approves it</td><td>Choice expensive to reverse</td><td>Accepted status; reviewed under the review condition</td></tr>
+             <tr><td><code>RFC.md</code></td><td>Which technical change is proposed</td><td>Engineering</td><td>Broad change without a PRD, with impact beyond the author</td><td>Approved (generates ADR and stories), rejected, or withdrawn</td></tr>
+             <tr><td><code>MEMORY.md</code></td><td>Current state</td><td>Coordinator only</td><td>Project setup</td><td>Never; trimmed by consolidate-memory</td></tr>
+             <tr><td><code>EPOCHAL.md</code></td><td>Raw history</td><td>Coordinator only</td><td>First consolidate-memory</td><td>Never; only receives batches</td></tr>
+             <tr><td><code>RISKS.md</code></td><td>Incidents and prevention</td><td>Coordinator only</td><td>Project setup</td><td>Never; resolved incidents remain</td></tr>
           </tbody>
         </table>
       </div>
 
-      <h2 id="pacotes"><span class="n">10</span>Composed packages: how the files connect</h2>
-      <p>Um PRD gera varias stories, uma por requisito. Uma story gera varias tasks, cobrindo seus critisrios de aceite. ADR restringe tasks e tem origem em PRD, story, RFC ou incidente. Task entrega resultado e evidencia ao Coordenador, que escreve em MEMORY; incidente grave vai para RISKS, e a prevencao de RISKS volta para stories e tasks. Linha cheia is derivacao ou escrita; pontilhada is referencia ou consulta.</p>
+       <h2 id="pacotes"><span class="n">10</span>Composed packages: how the files connect</h2>
+       <p>A PRD generates several stories, one per requirement. A story generates several tasks covering its acceptance criteria. An ADR constrains tasks and originates from a PRD, story, RFC, or incident. A task delivers its result and evidence to the Coordinator, who writes it to MEMORY; a serious incident goes to RISKS, and prevention from RISKS flows back to stories and tasks. A solid line means derivation or writing; a dotted line means reference or consultation.</p>
       <div class="card">
         <h3>Relationship diagram</h3>
         <pre class="mermaid">
 flowchart LR
-    subgraph produto[Produto e planejamento]
-        PRD[PRD.md] -->|"1  n (RF)"| STORY[STORY.md]
-        STORY -->|"1  n (AC)"| TASK[TASK.md<br/>task ou bug]
+     subgraph produto[Product and planning]
+         PRD[PRD.md] -->|"1 → n (RF)"| STORY[STORY.md]
+         STORY -->|"1 → n (AC)"| TASK[TASK.md<br/>task or bug]
     end
 
-    subgraph decisao[Decisao tecnica]
-        RFC[RFC.md<br/>opcional] -->|aprovado gera| ADR[ADR.md]
-        RFC -.->|aprovado gera| STORY
-        ADR -->|restringe| TASK
-        PRD -.->|origem| ADR
-        STORY -.->|origem| ADR
+     subgraph decisao[Technical decision]
+         RFC[RFC.md<br/>optional] -->|approved generates| ADR[ADR.md]
+         RFC -.->|approved generates| STORY
+         ADR -->|constrains| TASK
+         PRD -.->|origin| ADR
+         STORY -.->|origin| ADR
     end
 
-    subgraph memoria["Memoria do projeto, so o Coordenador escreve"]
-        MEMORY[MEMORY.md] -->|consolidate-memory<br/>copia integral| EPOCHAL[EPOCHAL.md]
+     subgraph memoria["Project memory, Coordinator only"]
+         MEMORY[MEMORY.md] -->|consolidate-memory<br/>complete copy| EPOCHAL[EPOCHAL.md]
         RISKS[RISKS.md]
     end
 
-    TASK -->|resultado e evidencia| MEMORY
-    TASK -.->|incidente grave| RISKS
-    RISKS -.->|prevencao| STORY
-    RISKS -.->|prevencao| TASK
-    RISKS -.->|origem| ADR
-    RISKS -.->|origem| RFC
+     TASK -->|result and evidence| MEMORY
+     TASK -.->|serious incident| RISKS
+     RISKS -.->|prevention| STORY
+     RISKS -.->|prevention| TASK
+     RISKS -.->|origin| ADR
+     RISKS -.->|origin| RFC
 
     classDef doc fill:#18201B,stroke:#3EE8A0,color:#E6EFE9
     classDef mem fill:#121814,stroke:#C5E8D4,color:#E6EFE9
@@ -940,34 +940,34 @@ flowchart LR
       </div>
       <div class="card">
         <h3>Suggested locations in the consumer project</h3>
-        <p><code>.harness/project.yaml</code>  <code>.harness/MEMORY.md</code>  <code>.harness/EPOCHAL.md</code>  <code>.harness/RISKS.md</code>  <code>.harness/prd/PRD-001.md</code>  <code>.harness/stories/ST-001.md</code>  <code>.harness/adr/ADR-001.md</code>  <code>.harness/rfc/RFC-001.md</code>  <code>.harness/tasks/T-001/TASK.md</code>  <code>.harness/tasks/BUG-001/TASK.md</code></p>
+         <p><code>.harness/project.yaml</code> · <code>.harness/MEMORY.md</code> · <code>.harness/EPOCHAL.md</code> · <code>.harness/RISKS.md</code> · <code>.harness/prd/PRD-001.md</code> · <code>.harness/stories/ST-001.md</code> · <code>.harness/adr/ADR-001.md</code> · <code>.harness/rfc/RFC-001.md</code> · <code>.harness/tasks/T-001/TASK.md</code> · <code>.harness/tasks/BUG-001/TASK.md</code></p>
       </div>
 
-      <h2 id="aberto"><span class="n">11</span>Mapped vs. em aberto</h2>
+       <h2 id="aberto"><span class="n">11</span>Mapped vs. open</h2>
       <div class="grid-2">
         <div class="card in">
           <h3>Mapped</h3>
           <ul>
-            <li>Eight templates in <code>templates/</code>, in pt-br.</li>
-            <li><code>.harness/tasks/&lt;id&gt;/</code> e os tres registros de memoria definidos pelo plano do produto.</li>
-            <li>Formato de resultado da task igual ao formato de resposta das skills.</li>
+             <li>Eight templates in <code>templates/</code>, in pt-br.</li>
+             <li><code>.harness/tasks/&lt;id&gt;/</code> and the three memory records defined by the product plan.</li>
+             <li>Task result format matches the response format for skills.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Open</h3>
           <ul>
-            <li>Directories <code>prd/</code>, <code>stories/</code>, <code>adr/</code> e <code>rfc/</code> sao convencao sugerida, not decisao do plano.</li>
-            <li>Keep or discard o RFC como template de primeira linha.</li>
-            <li>Separate template for plano, evidencia, revisao e handoff: a fatia usa <code>TASK.md</code>; evidencia
-              fica em <code>.harness/tasks/&lt;id&gt;/evidence/</code>; handoff is o comando
-              <code>/dev-harness:handoff</code>. Stack profiles exist in <code>profiles/</code> (ingles).</li>
+             <li>Directories <code>prd/</code>, <code>stories/</code>, <code>adr/</code>, and <code>rfc/</code> are a suggested convention, not a decision in the plan.</li>
+             <li>Whether to keep or discard the RFC as a first-line template.</li>
+             <li>Separate templates for plan, evidence, review, and handoff: a slice uses <code>TASK.md</code>; evidence
+               goes in <code>.harness/tasks/&lt;id&gt;/evidence/</code>; handoff is the
+               <code>/dev-harness:handoff</code> command. Stack profiles exist in <code>profiles/</code> (English).</li>
           </ul>
         </div>
       </div>
 
       <footer class="doc-foot">
-        <div>File: <code>docs/tutoriais/templates.html</code>  type <code>catalogo</code></div>
-        <div>Next step: usar os templates via <code>/dev-harness:setup</code> na fixture slice-01.</div>
+         <div>File: <code>docs/tutoriais/templates.html</code> · type <code>catalogo</code></div>
+         <div>Next step: use the templates through <code>/dev-harness:setup</code> in the slice-01 fixture.</div>
       </footer>
     </div>
   </div>

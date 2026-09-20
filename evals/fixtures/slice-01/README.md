@@ -22,4 +22,4 @@ The starting tree is intentionally incomplete: `greet("  ")` should raise `Value
 4. `python3 -m unittest test_greet.py` matches `expected/unittest.txt`.
 5. `/dev-harness:handoff`.
 
-Python 3 is a declared prerequisite of the kit's own scripts. The fixture uses it so a clean machine does not need Node, Go or a browser.
+Python 3 is required only by this fixture. The kit itself ships the `dh` binary and needs no interpreter; the fixture stays in Python so a clean machine does not need Node, Go or a browser.

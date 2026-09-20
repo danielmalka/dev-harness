@@ -1,7 +1,13 @@
 # Changelog
 
-## Não lançado
+## 0.2.0 — 2026-09-20
 
+Etapa 1: distribuição pelo marketplace e observabilidade de sessões e agentes no plugin (PRD-001). Binário Go substitui os scripts.
+
+- Binário Go `dh` (`cmd/dh`, `internal/`): `snapshot` (event, subagents, statusline, prune), `validate` (com comparação de conteúdo do pacote), `doctor` (binário, hooks, settings, diretório de snapshots, `.harness/` ignorado) e `build` (cinco alvos cross-compilados, checksums no manifesto). `scripts/` em Python e bash removidos (ADR-001).
+- Plugin: `settings.json` com `subagentStatusLine` e `hooks/hooks.json` com seis hooks gravando `~/.claude/dev-harness/sessions/<session_id>.json`; wrapper `bin/dh` por plataforma.
+- `.claude-plugin/marketplace.json` na raiz: instalação por `/plugin marketplace add danielmalka/dev-harness`, versão fixada por tag.
+- Spec da etapa 1 em `docs/prd/PRD-001-etapa-1.md`; PRD-002 (revisor adversarial de documentos) em rascunho.
 - Skill `doc-template-html`: `--lang pt-br|en` no stamp, rótulos e esqueletos por idioma em `assets/skeletons/<lang>/`.
 - Docs em inglês em `docs/en/` (início rápido, tutorial 00, tutorial de templates) e `README.en.md`, com link de troca de idioma em cada página; seção Idioma nos dois READMEs.
 - Templates em duas versões espelhadas, `templates/en/` e `templates/pt-br/`; validador exige paridade entre idiomas e resolve `templates/<lang>/`.

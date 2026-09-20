@@ -6,9 +6,20 @@ Kit portátil de desenvolvimento assistido por IA. Clone, carregue no Claude Cod
 
 Licença MIT. Plano de produto: [`docs/plano-produto.html`](docs/plano-produto.html). Início rápido: [`docs/inicio-rapido.html`](docs/inicio-rapido.html).
 
-## Carregar
+## Instalar
 
-Pré-requisitos: Git, Claude Code autenticado com acesso a um modelo, Python 3 (validador, doctor e fixture).
+Pelo marketplace do próprio repositório, sem clonar, dentro de uma sessão do Claude Code no projeto em que você vai trabalhar:
+
+```text
+/plugin marketplace add danielmalka/dev-harness
+/plugin install dev-harness@dev-harness
+```
+
+A versão vem da tag fixada em `.claude-plugin/marketplace.json`. Para um time, o projeto pode declarar o marketplace em `extraKnownMarketplaces` e o plugin em `enabledPlugins` no `.claude/settings.json`, e o Claude instala para quem confiar na pasta.
+
+## Carregar a partir do clone (desenvolvimento)
+
+Pré-requisitos: Git e Claude Code autenticado com acesso a um modelo. Python 3 só para a fixture `slice-01`. Go 1.22+ só para quem mantém o kit.
 
 No projeto em que você vai trabalhar:
 
@@ -28,7 +39,7 @@ Depois, na sessão:
 O diagnóstico mecânico também roda sem o Claude:
 
 ```bash
-bash dist/claude-code/dev-harness/scripts/doctor.sh dist/claude-code/dev-harness
+dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness
 ```
 
 Tutorial 00: [`docs/tutoriais/00-primeira-maquina.html`](docs/tutoriais/00-primeira-maquina.html). Fixture da primeira fatia: [`evals/fixtures/slice-01`](evals/fixtures/slice-01).
@@ -38,7 +49,7 @@ Tutorial 00: [`docs/tutoriais/00-primeira-maquina.html`](docs/tutoriais/00-prime
 | Caminho | Papel |
 | --- | --- |
 | `.agents/` `.commands/` `.skills/` `templates/` `profiles/` | Fontes canônicas |
-| `scripts/build-claude-code.sh` | Gera `dist/claude-code/dev-harness` |
+| `cmd/dh`, `internal/` | Binário Go `dh`: `validate`, `build`, `doctor`, `snapshot`. `go run ./cmd/dh build` gera `dist/claude-code/dev-harness` |
 | `dist/` | Pacote gerado. Não editar. |
 | `adapters/claude-code/` | Mapeamento para o Claude Code |
 | `adapters/generic/` | Uso manual em outra IA, sem paridade |
@@ -58,7 +69,8 @@ Perfis (`base`, `go-api`, `typescript-web`, `php`) estão em inglês em `profile
 ## Manutenção
 
 ```bash
-python3 scripts/validate.py --source-only .
-bash scripts/build-claude-code.sh
-python3 scripts/validate.py .
+go test ./...
+go run ./cmd/dh validate --source-only .
+go run ./cmd/dh build
+go run ./cmd/dh validate .
 ```

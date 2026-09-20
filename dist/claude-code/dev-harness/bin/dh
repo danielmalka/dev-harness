@@ -1,0 +1,27 @@
+#!/bin/sh
+set -u
+
+dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+os=$(uname -s)
+arch=$(uname -m)
+
+case "$os" in
+  Linux) os=linux ;;
+  Darwin) os=darwin ;;
+  *) os=unknown ;;
+esac
+
+case "$arch" in
+  x86_64) arch=amd64 ;;
+  aarch64|arm64) arch=arm64 ;;
+  *) arch=unknown ;;
+esac
+
+platform="${os}_${arch}"
+binary="$dir/$platform/dh"
+if [ ! -x "$binary" ]; then
+  printf 'dev-harness: no dh binary for %s; run dh doctor\n' "$platform" >&2
+  exit 0
+fi
+
+exec "$binary" "$@"

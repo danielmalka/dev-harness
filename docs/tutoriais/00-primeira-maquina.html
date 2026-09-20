@@ -685,36 +685,39 @@ footer.doc-foot {
         <div class="card in">
           <h3>Entra</h3>
           <ul>
-            <li>Obter o repositório por clone ou arquivo.</li>
-            <li>Conferir pré-requisitos e o pacote gerado.</li>
-            <li>Carregar com <code>--plugin-dir</code>.</li>
-            <li>Rodar <code>/dev-harness:doctor</code> e <code>scripts/doctor.sh</code>.</li>
+             <li>Instalar pelo marketplace, sem clone.</li>
+             <li>Conferir pré-requisitos e o pacote gerado.</li>
+             <li>Carregar a partir do clone, para desenvolvimento, com <code>--plugin-dir</code>.</li>
+             <li>Rodar <code>/dev-harness:doctor</code> e <code>bin/dh doctor</code>.</li>
             <li>Desativar o plugin.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Fica de fora</h3>
           <ul>
-            <li>Implementar a fixture (isso é o próximo tutorial / início rápido).</li>
-            <li>Instalar ferramentas automaticamente.</li>
-            <li>Marketplace remoto ou instalação global obrigatória.</li>
-            <li>Windows nativo. WSL2 entra na matriz da Fase 4.</li>
+             <li>Implementar a fixture (isso é o próximo tutorial / início rápido).</li>
+             <li>Instalar ferramentas automaticamente.</li>
+             <li>Instalação global obrigatória.</li>
+             <li>Windows nativo. WSL2 entra na matriz da Fase 4.</li>
           </ul>
         </div>
       </div>
 
       <h2 id="implementacao"><span class="n">04</span>Como se implementa</h2>
       <ol class="steps">
-        <li><strong>Obter.</strong> Clone o repositório ou extraia um arquivo da release para um diretório sem espaços primeiro. Depois, se quiser, copie o pacote para um caminho com espaços e repita o doctor. Não use um caminho da máquina de origem de outra pessoa.</li>
-        <li><strong>Conferir pré-requisitos.</strong> Git, Claude Code autenticado, acesso a um modelo, Python 3. Nada disso viaja no kit.</li>
-        <li><strong>Localizar o pacote.</strong> Dentro do clone: <code>dist/claude-code/dev-harness</code>. Confirme <code>GENERATED.txt</code> e <code>.claude-plugin/plugin.json</code>.</li>
-        <li><strong>Carregar.</strong> No projeto alvo (pode ser uma pasta vazia ou <code>evals/fixtures/slice-01</code>):
+         <li><strong>Obter.</strong> No projeto alvo, em uma sessão Claude Code, adicione e instale o marketplace:
+           <div class="table-wrap"><pre><code>/plugin marketplace add danielmalka/dev-harness
+/plugin install dev-harness@dev-harness</code></pre></div>
+           A versão vem da tag fixada em <code>.claude-plugin/marketplace.json</code>. Para desenvolvimento, clone ou extraia a release para um diretório sem espaços primeiro. Depois, se quiser, copie o pacote para um caminho com espaços e repita o doctor. Não use um caminho da máquina de origem de outra pessoa.</li>
+         <li><strong>Conferir pré-requisitos.</strong> Git, Claude Code autenticado e acesso a um modelo. Nenhum interpretador é necessário: o pacote traz o binário <code>dh</code>. Python 3 só é necessário para a fixture <code>slice-01</code>; Go 1.22+ só para mantenedores do kit.</li>
+         <li><strong>Localizar o pacote.</strong> No clone de desenvolvimento: <code>dist/claude-code/dev-harness</code>. Confirme <code>GENERATED.txt</code> e <code>.claude-plugin/plugin.json</code>. O pacote também inclui <code>settings.json</code>, com <code>subagentStatusLine</code> para nome, modelo, tokens e estado de cada subagente, e <code>hooks/hooks.json</code>, com seis hooks que gravam snapshots por sessão em <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, apenas em arquivos locais e podados após 7 dias.</li>
+         <li><strong>Carregar.</strong> No projeto alvo (pode ser uma pasta vazia ou <code>evals/fixtures/slice-01</code>), a instalação do marketplace já está pronta. Para desenvolvimento, use o clone:
           <div class="table-wrap"><pre><code>claude --plugin-dir "/caminho/absoluto/do/clone/dist/claude-code/dev-harness" --agent coordinator</code></pre></div>
       <div class="callout stop">Dentro de aspas o <code>~</code> não expande: <code>"~/projetos/..."</code> não existe, o Claude ignora o plugin em silêncio e <code>--agent coordinator</code> falha com “not found”. Use <code>$HOME/...</code> ou o caminho completo.</div>
           Se o runtime exigir o nome qualificado, use <code>--agent dev-harness:coordinator</code>.</li>
-        <li><strong>Diagnosticar.</strong> Na sessão: <code>/dev-harness:doctor</code>. Fora da sessão, no clone:
-          <div class="table-wrap"><pre><code>bash dist/claude-code/dev-harness/scripts/doctor.sh dist/claude-code/dev-harness</code></pre></div>
-          O script não instala nada. Esperado: 18 agentes, 17 comandos, 19 skills, 3 perfis, <code>status: passed</code>.</li>
+         <li><strong>Diagnosticar.</strong> Na sessão: <code>/dev-harness:doctor</code>. Fora da sessão, no clone:
+           <div class="table-wrap"><pre><code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code></pre></div>
+           O binário não instala nada. Para validar o pacote, use <code>bin/dh validate</code>. Esperado: 18 agentes, 17 comandos, 19 skills, 3 perfis, <code>status: passed</code>.</li>
         <li><strong>Desativar.</strong> Encerre a sessão sem o <code>--plugin-dir</code>, ou remova a vinculação do projeto. Os arquivos em <code>.harness/</code> do projeto alvo, se existirem, permanecem. O kit não apaga trabalho do consumidor.</li>
       </ol>
 
@@ -727,7 +730,7 @@ footer.doc-foot {
           <tbody>
             <tr>
               <td>Doctor mecânico</td>
-              <td>Saída de <code>scripts/doctor.sh</code></td>
+               <td>Saída de <code>bin/dh doctor</code></td>
               <td><code>status: passed</code>, zero erros de referência</td>
             </tr>
             <tr>
@@ -749,8 +752,8 @@ footer.doc-foot {
       <div class="card">
         <ul>
           <li>Claude Code instalado e autenticado pelo usuário.</li>
-          <li>Python 3 para <code>scripts/doctor.sh</code> e <code>scripts/validate.py</code>.</li>
-          <li>Pacote gerado em <code>dist/</code>. Se estiver ausente no checkout, rode <code>bash scripts/build-claude-code.sh</code> a partir da raiz do kit.</li>
+           <li>Nenhum interpretador: o pacote traz o binário <code>dh</code>. Python 3 só é necessário para a fixture <code>slice-01</code>; Go 1.22+ só para mantenedores do kit.</li>
+           <li>Pacote gerado em <code>dist/</code>. Se estiver ausente no checkout, um mantenedor do kit pode rodar <code>go run ./cmd/dh build</code> a partir da raiz.</li>
         </ul>
       </div>
 

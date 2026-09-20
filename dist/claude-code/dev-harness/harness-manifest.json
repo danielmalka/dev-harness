@@ -1,10 +1,10 @@
 {
   "name": "dev-harness",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "generated": true,
-  "generated_at": "2026-09-20T17:50:41Z",
-  "source": "scripts/build-claude-code.sh",
+  "generated_at": "2026-09-20T19:16:32Z",
+  "source": "dh build",
   "runtime": {
     "primary": "claude-code",
     "load": "claude --plugin-dir dist/claude-code/dev-harness --agent coordinator",
@@ -96,5 +96,37 @@
       "pt-br/STORY.md",
       "pt-br/TASK.md"
     ]
-  }
+  },
+  "binaries": [
+    {
+      "os": "linux",
+      "arch": "amd64",
+      "path": "bin/linux_amd64/dh",
+      "sha256": "daffe3a8d4573d850e09fe57ba8e1de820cdc4aa65d58c6dffcfca0c726414de"
+    },
+    {
+      "os": "linux",
+      "arch": "arm64",
+      "path": "bin/linux_arm64/dh",
+      "sha256": "aa382e6ac87dc91453c37ed0e9fcd2f9edd5618a96bb097e6627c835f7b714cc"
+    },
+    {
+      "os": "darwin",
+      "arch": "amd64",
+      "path": "bin/darwin_amd64/dh",
+      "sha256": "9b1b27e0d191e4030c7a89af6a02b3025518ee7df5dda82d72396992558ce574"
+    },
+    {
+      "os": "darwin",
+      "arch": "arm64",
+      "path": "bin/darwin_arm64/dh",
+      "sha256": "5df5ba92fdba4485695d8c8e9aa8beaeb0eb6628c606288e3a80a6e5ada0095c"
+    },
+    {
+      "os": "windows",
+      "arch": "amd64",
+      "path": "bin/windows_amd64/dh.exe",
+      "sha256": "4dfad75129bfbb6978db85bbcd60e111a4a9db250c35c420da5ab492bbc93060"
+    }
+  ]
 }

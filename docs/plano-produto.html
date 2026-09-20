@@ -982,9 +982,13 @@
         Sem framework universal. CI que compare fontes e pacote ainda não existe. Edição manual em <code>dist/</code>
         não é o fluxo de manutenção. O pacote inclui scripts de doctor/validate, templates e perfis na própria raiz, sem
         symlinks externos.</p>
-      <p>Scripts de manutenção usam bash e Python 3 da biblioteca padrão, já exigidos pelo stamp HTML. Não há
-        dependência de Node para empacotar ou diagnosticar. Python 3 é requisito declarado de manutenção e da fixture;
-        não é requisito para ler os tutoriais. A versão mínima do Claude Code permanece <code>unverified</code> até a
+      <p>Decisão do dono em 20/09/2026 (ADR-001): os scripts do kit migram de bash e Python 3 para um único binário Go,
+        <code>dh</code>, com os subcomandos <code>validate</code>, <code>build</code>, <code>doctor</code> e
+        <code>snapshot</code>. Binários pré-compilados para linux amd64 e arm64, darwin amd64 e arm64 e windows amd64
+        entram em <code>dist/claude-code/dev-harness/bin/&lt;os&gt;_&lt;arch&gt;/</code>, gerados pela CI de forma
+        determinística; um wrapper escolhe o binário pela plataforma. Go é requisito de manutenção do kit, não do
+        consumidor. Migração concluída em 20/09/2026: <code>scripts/</code> removido, <code>dh build</code> gera o pacote com
+        os cinco binários e checksums no manifesto. Python 3 segue requisito apenas da fixture <code>slice-01</code>. A versão mínima do Claude Code permanece <code>unverified</code> até a
         Fase 4.</p>
       <p><strong>No projeto de trabalho:</strong> <code>.harness/project.yaml</code> guarda perfil compartilhável,
         comandos e convenções; <code>.harness/tasks/&lt;id&gt;/</code> guarda os artefatos detalhados de cada tarefa.
@@ -1976,7 +1980,7 @@
             <tr>
               <td>Estrutura .agents / .commands / .skills</td>
               <td>Fontes versionadas com pacote nativo gerado</td>
-              <td>Feito. Adaptador Claude documentado; empacotador em scripts/build-claude-code.sh</td>
+              <td>Feito. Adaptador Claude documentado; empacotador <code>dh build</code> em Go, binários no pacote</td>
             </tr>
             <tr>
               <td>Ciclo inteiro de desenvolvimento</td>

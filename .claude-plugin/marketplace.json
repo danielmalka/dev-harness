@@ -1,0 +1,28 @@
+{
+  "name": "dev-harness",
+  "owner": {
+    "name": "Daniel Malka",
+    "url": "https://github.com/danielmalka"
+  },
+  "metadata": {
+    "description": "Portable AI-assisted development kit for Claude Code: coordinator, 17 specialist agents, 19 skills, 17 work commands."
+  },
+  "plugins": [
+    {
+      "name": "dev-harness",
+      "description": "Coordinator plus specialist agents, skills and work commands with owner-authorized delivery.",
+      "version": "0.2.0",
+      "author": { "name": "malka" },
+      "homepage": "https://github.com/danielmalka/dev-harness",
+      "repository": "https://github.com/danielmalka/dev-harness",
+      "license": "MIT",
+      "keywords": ["development", "agents", "coordinator", "qa", "review"],
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/danielmalka/dev-harness.git",
+        "path": "dist/claude-code/dev-harness",
+        "ref": "v0.2.0"
+      }
+    }
+  ]
+}

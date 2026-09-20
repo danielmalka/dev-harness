@@ -21,12 +21,14 @@ Do not present `.agents/`, `.commands/` or `.skills/` as directories Claude disc
 | `.skills/<id>/` | `skills/<id>/` | Skill. `SKILL.md` `name` must equal the folder name. |
 | `templates/` | `templates/` | Not auto-discovered. Referenced by agents, skills and setup. |
 | `profiles/` | `profiles/` | Not auto-discovered. Referenced by project-onboarding. |
-| `scripts/validate.py`, `scripts/doctor.sh` | `scripts/` | Mechanical diagnosis. `/dev-harness:doctor` runs `scripts/doctor.sh` from the plugin directory when a shell is available. |
+| `cmd/dh`, `internal/` (Go) | `bin/<os>_<arch>/dh` plus `bin/dh` wrapper | Mechanical diagnosis, validation, build and session snapshots. `/dev-harness:doctor` runs `bin/dh doctor` from the plugin directory. |
+| `adapters/claude-code/plugin/settings.json` | `settings.json` | `subagentStatusLine` calling `bin/dh snapshot subagents`. |
+| `adapters/claude-code/plugin/hooks/hooks.json` | `hooks/hooks.json` | Session and subagent hooks calling `bin/dh snapshot event`. |
 | generated | `.claude-plugin/plugin.json` | Plugin identity. `name` is `dev-harness`, `license` is `MIT`. |
 | generated | `harness-manifest.json` | Inventory derived from sources at build time. |
 | generated | `GENERATED.txt` | Marker that this tree is not a source. |
 
-Build: from the kit root, `scripts/build-claude-code.sh`. It validates sources, stages a complete package, then replaces `dist/claude-code/dev-harness`. Edit sources and rebuild. Never patch files under `dist/`.
+Build: from the kit root, `go run ./cmd/dh build` (Go 1.22+ with the toolchain pinned in `go.mod`; cross-compiles five targets). It validates sources, stages a complete package, then replaces `dist/claude-code/dev-harness`. Edit sources and rebuild. Never patch files under `dist/`.
 
 ## Frontmatter mapping
 

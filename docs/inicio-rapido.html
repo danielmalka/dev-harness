@@ -685,7 +685,8 @@ footer.doc-foot {
         <div class="card in">
           <h3>Entra</h3>
           <ul>
-            <li>Comando de carga com <code>--plugin-dir</code>.</li>
+           <li>Instalação pelo marketplace no projeto alvo.</li>
+           <li>Carregamento a partir do clone, para desenvolvimento, com <code>--plugin-dir</code>.</li>
             <li><code>/dev-harness:doctor</code> e <code>/dev-harness:setup</code>.</li>
             <li>Fixture <code>evals/fixtures/slice-01</code> (Python 3, unittest, um critério vermelho).</li>
           </ul>
@@ -702,13 +703,16 @@ footer.doc-foot {
 
       <h2 id="implementacao"><span class="n">04</span>Como se implementa</h2>
       <ol class="steps">
-        <li><strong>Clone.</strong> Coloque o repositório numa pasta sua. Detalhes de desativação: <a href="tutoriais/00-primeira-maquina.html">tutorial 00</a>.</li>
-        <li><strong>Abra o Claude no diretório da fixture.</strong>
+         <li><strong>Instale pelo marketplace.</strong> No projeto alvo, em uma sessão Claude Code:
+           <div class="table-wrap"><pre><code>/plugin marketplace add danielmalka/dev-harness
+/plugin install dev-harness@dev-harness</code></pre></div>
+           A versão vem da tag fixada em <code>.claude-plugin/marketplace.json</code>. Para desenvolvimento, use o carregamento a partir do clone abaixo. Detalhes de desativação: <a href="tutoriais/00-primeira-maquina.html">tutorial 00</a>.</li>
+         <li><strong>Abra o Claude no diretório da fixture, a partir do clone para desenvolvimento.</strong>
           <div class="table-wrap"><pre><code>cd evals/fixtures/slice-01
 claude --plugin-dir "/caminho/absoluto/do/clone/dist/claude-code/dev-harness" --agent coordinator</code></pre></div>
       <div class="callout stop">Dentro de aspas o <code>~</code> não expande: <code>"~/projetos/..."</code> não existe, o Claude ignora o plugin em silêncio e <code>--agent coordinator</code> falha com “not found”. Use <code>$HOME/...</code> ou o caminho completo.</div>
         </li>
-        <li><strong>Diagnóstico.</strong> <code>/dev-harness:doctor</code>. Sem o Claude, no clone: <code>bash dist/claude-code/dev-harness/scripts/doctor.sh dist/claude-code/dev-harness</code>.</li>
+         <li><strong>Diagnóstico.</strong> <code>/dev-harness:doctor</code>. Sem o Claude, no clone: <code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code>.</li>
         <li><strong>Setup.</strong> <code>/dev-harness:setup</code> com autorização para escrever <code>.harness/</code> só se os arquivos ainda não existirem. Perfil esperado: <code>none, custom</code> com convenções de <code>base</code> (a fixture é Python, e Python não é perfil de v1).</li>
         <li><strong>Confira o vermelho.</strong> <code>python3 -m unittest test_greet.py</code>. AC-02 falha de propósito. Leia <code>BRIEF.md</code>.</li>
         <li><strong>Fatia.</strong> <code>/dev-harness:plan</code> com o brief, depois <code>/dev-harness:build</code>, <code>/dev-harness:verify</code>, <code>/dev-harness:review</code>. Não copie <code>expected/greet.py</code> no lugar. Compare o unittest com <code>expected/unittest.txt</code>.</li>
@@ -744,7 +748,9 @@ claude --plugin-dir "/caminho/absoluto/do/clone/dist/claude-code/dev-harness" --
       <h2 id="dependencias"><span class="n">06</span>Dependências</h2>
       <div class="card">
         <ul>
-          <li>O mesmo da trilha 00: Claude Code, modelo, Python 3, pacote em <code>dist/</code>.</li>
+           <li>Git e Claude Code autenticado, com acesso a um modelo.</li>
+           <li>Nenhum interpretador: o pacote traz o binário <code>dh</code>. Python 3 só é necessário para a fixture <code>slice-01</code>; Go 1.22+ só para mantenedores do kit.</li>
+           <li>O pacote inclui <code>settings.json</code>, com <code>subagentStatusLine</code> para exibir nome, modelo, tokens e estado de cada subagente, e <code>hooks/hooks.json</code>, com seis hooks que gravam snapshots por sessão em <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, apenas em arquivos locais e podados após 7 dias.</li>
           <li>A fixture não usa Node, Go nem navegador.</li>
         </ul>
       </div>

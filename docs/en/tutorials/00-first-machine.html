@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Harness  First machine (do not publish)</title>
+  <title>Harness · First machine (do not publish)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -642,7 +642,7 @@ footer.doc-foot {
         </svg>
         Harness<span>.</span>
       </div>
-      <div class="side__sub">Internal doc</div>
+       <div class="side__sub">Internal doc</div>
       <div class="side__type">feature</div>
       <nav>
         <a href="#problema"><b>01</b>Problem</a>
@@ -657,9 +657,9 @@ footer.doc-foot {
     </aside>
      <div class="wrap" id="conteudo">
        <div class="callout">Português: <a href="../../tutoriais/00-primeira-maquina.html">versão em pt-br</a></div>
-       <div class="banner">Internal doc. Do not publish.</div>
+        <div class="banner">Internal doc. Do not publish.</div>
       <header class="hero">
-        <div class="eyebrow">Tutorial 00  installation</div>
+         <div class="eyebrow">Tutorial 00 · installation</div>
         <h1>First machine</h1>
         <p class="lead">Get the kit, load it into Claude Code, run diagnostics, and deactivate it without source-machine files.</p>
         <div class="chips">
@@ -673,90 +673,93 @@ footer.doc-foot {
       <h2 id="problema"><span class="n">01</span>Problem</h2>
       <div class="card">
         <h3>What hurts today</h3>
-        <p>Um kit que so funciona na maquina de quem o escreveu not is portatil. Este tutorial existe para provar o carregamento em um clone, sem pastas pessoais, skills globais ou memorias privadas.</p>
+         <p>A kit that only works on the machine of the person who wrote it is not portable. This tutorial exists to prove loading it in a clone, without personal folders, global skills, or private memories.</p>
       </div>
 
       <h2 id="promessa"><span class="n">02</span>Promise</h2>
-      <p>Ao terminar, o Claude Code encontra os 17 comandos e os 18 papisis a partir do pacote em <code>dist/claude-code/dev-harness</code>, o diagnostico mecanico passes, e desativar o plugin deixa os arquivos de trabalho intactos.</p>
-      <span class="tag">Outcome  plugin discovered</span>
+       <p>When finished, Claude Code finds the 17 commands and 18 roles from the package at <code>dist/claude-code/dev-harness</code>, the mechanical diagnostic passes, and deactivating the plugin leaves the work files intact.</p>
+       <span class="tag">Outcome · plugin discovered</span>
 
       <h2 id="escopo"><span class="n">03</span>Scope</h2>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
-            <li>Obter o repositorio por clone ou arquivo.</li>
-            <li>Conferir pris-requisitos e o pacote gerado.</li>
-            <li>Carregar com <code>--plugin-dir</code>.</li>
-            <li>Rodar <code>/dev-harness:doctor</code> e <code>scripts/doctor.sh</code>.</li>
-            <li>Desativar o plugin.</li>
+              <li>Install from the marketplace, without a clone.</li>
+              <li>Check the prerequisites and generated package.</li>
+              <li>Load from the clone, for development, with <code>--plugin-dir</code>.</li>
+              <li>Run <code>/dev-harness:doctor</code> and <code>bin/dh doctor</code>.</li>
+             <li>Deactivate the plugin.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Out of scope</h3>
           <ul>
-            <li>Implementar a fixture (isso is o proximo tutorial / inicio rapido).</li>
-            <li>Instalar ferramentas automaticamente.</li>
-            <li>Marketplace remoto ou instalacao global obrigatoria.</li>
-            <li>Windows nativo. WSL2 entra na matriz da Fase 4.</li>
+              <li>Implement the fixture (that is the next tutorial / quick start).</li>
+              <li>Install tools automatically.</li>
+              <li>Mandatory global installation.</li>
+              <li>Native Windows. WSL2 enters the Phase 4 matrix.</li>
           </ul>
         </div>
       </div>
 
       <h2 id="implementacao"><span class="n">04</span>How it works</h2>
       <ol class="steps">
-        <li><strong>Obter.</strong> Clone o repositorio ou extraia um arquivo da release para um diretorio sem espacos primeiro. Depois, se quiser, copie o pacote para um caminho com espacos e repita o doctor. Do not use um caminho da maquina de origem de outra pessoa.</li>
-        <li><strong>Conferir pris-requisitos.</strong> Git, Claude Code autenticado, acesso a um modelo, Python 3. Nada disso viaja no kit.</li>
-        <li><strong>Localizar o pacote.</strong> Dentro do clone: <code>dist/claude-code/dev-harness</code>. Confirme <code>GENERATED.txt</code> e <code>.claude-plugin/plugin.json</code>.</li>
-        <li><strong>Carregar.</strong> No projeto alvo (pode ser uma pasta vazia ou <code>evals/fixtures/slice-01</code>):
+          <li><strong>Obtain.</strong> In the target project, in a Claude Code session, add and install the marketplace:
+           <div class="table-wrap"><pre><code>/plugin marketplace add danielmalka/dev-harness
+/plugin install dev-harness@dev-harness</code></pre></div>
+           The version comes from the tag pinned in <code>.claude-plugin/marketplace.json</code>. For development, clone the repository or extract a release archive into a directory without spaces first. Then, if you want, copy the package to a path with spaces and run the doctor again. Do not use another person’s source-machine path.</li>
+          <li><strong>Check prerequisites.</strong> Git, authenticated Claude Code, and access to a model. No interpreter is needed: the package ships the <code>dh</code> binary. Python 3 is required only for the <code>slice-01</code> fixture; Go 1.22+ only for kit maintainers.</li>
+          <li><strong>Locate the package.</strong> In the development clone: <code>dist/claude-code/dev-harness</code>. Confirm <code>GENERATED.txt</code> and <code>.claude-plugin/plugin.json</code>. The package also includes <code>settings.json</code>, with <code>subagentStatusLine</code> showing each subagent's name, model, tokens, and state, and <code>hooks/hooks.json</code>, with six hooks writing per-session snapshots to <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, local files only and pruned after 7 days.</li>
+          <li><strong>Load.</strong> In the target project (which may be an empty folder or <code>evals/fixtures/slice-01</code>), the marketplace installation is already active. For development, use the clone:
           <div class="table-wrap"><pre><code>claude --plugin-dir "/absolute/path/to/clone/dist/claude-code/dev-harness" --agent coordinator</code></pre></div>
-      <div class="callout stop">Dentro de aspas o <code>~</code> not expande: <code>"~/projetos/..."</code> not existe, o Claude ignora o plugin em silencio e <code>--agent coordinator</code> fails com not found. Use <code>$HOME/...</code> ou o caminho completo.</div>
-          Se o runtime exigir o nome qualificado, use <code>--agent dev-harness:coordinator</code>.</li>
-        <li><strong>Diagnosticar.</strong> Na sessao: <code>/dev-harness:doctor</code>. Fora da sessao, no clone:
-          <div class="table-wrap"><pre><code>bash dist/claude-code/dev-harness/scripts/doctor.sh dist/claude-code/dev-harness</code></pre></div>
-          O script not instala nada. Esperado: 18 agentes, 17 comandos, 19 skills, 3 perfis, <code>status: passed</code>.</li>
-        <li><strong>Desativar.</strong> Encerre a sessao sem o <code>--plugin-dir</code>, ou remova a vinculacao do projeto. Os arquivos em <code>.harness/</code> do projeto alvo, se existirem, permanecem. O kit not apaga trabalho do consumidor.</li>
+       <div class="callout stop">Inside quotes, <code>~</code> does not expand: <code>"~/projetos/..."</code> does not exist, Claude silently ignores the plugin, and <code>--agent coordinator</code> fails with “not found.” Use <code>$HOME/...</code> or the full path.</div>
+           If the runtime requires the qualified name, use <code>--agent dev-harness:coordinator</code>.</li>
+          <li><strong>Diagnose.</strong> In the session: <code>/dev-harness:doctor</code>. Outside the session, in the clone:
+           <div class="table-wrap"><pre><code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code></pre></div>
+            The binary does not install anything. To validate the package, use <code>bin/dh validate</code>. Expected: 18 agents, 17 commands, 19 skills, 3 profiles, <code>status: passed</code>.</li>
+         <li><strong>Deactivate.</strong> End the session without <code>--plugin-dir</code>, or remove the project binding. The files in <code>.harness/</code> of the target project, if they exist, remain. The kit does not delete the consumer’s work.</li>
       </ol>
 
       <h2 id="metricas"><span class="n">05</span>Metrics</h2>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Signal</th><th>How we check</th><th>Target</th></tr>
+             <tr><th>Signal</th><th>How we check</th><th>Target</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td>Doctor mecanico</td>
-              <td>Saida de <code>scripts/doctor.sh</code></td>
-              <td><code>status: passed</code>, zero erros de referencia</td>
+               <td>Mechanical doctor</td>
+                <td>Output of <code>bin/dh doctor</code></td>
+               <td><code>status: passed</code>, zero reference errors</td>
             </tr>
             <tr>
-              <td>Descoberta no Claude</td>
-              <td>A sessao lista <code>/dev-harness:doctor</code> e o agente coordinator</td>
-              <td>Comandos e papisis encontrados sem skills globais do autor</td>
+               <td>Discovery in Claude</td>
+               <td>The session lists <code>/dev-harness:doctor</code> and the coordinator agent</td>
+               <td>Commands and roles found without the author’s global skills</td>
             </tr>
             <tr>
-              <td>Caminho com espacos</td>
-              <td>Copiar o pacote para outro diretorio e repetir o doctor</td>
-              <td>Mesmo inventario, referencias resolvidas</td>
+               <td>Path with spaces</td>
+               <td>Copy the package to another directory and run the doctor again</td>
+               <td>Same inventory, references resolved</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p>A descoberta real no Claude Code ainda not foi executada nesta entrega. O doctor mecanico foi. Trate a linha do Claude como exercicio seu, not como prova ja colhida.</p>
+       <p>Discovery in Claude Code has not yet been run for this deliverable. The mechanical doctor has. Treat the Claude line as your exercise, not as evidence already collected.</p>
 
       <h2 id="dependencias"><span class="n">06</span>Dependencies</h2>
       <div class="card">
         <ul>
-          <li>Claude Code instalado e autenticado pelo user.</li>
-          <li>Python 3 para <code>scripts/doctor.sh</code> e <code>scripts/validate.py</code>.</li>
-          <li>Pacote gerado em <code>dist/</code>. Se estiver ausente no checkout, rode <code>bash scripts/build-claude-code.sh</code> a partir da raiz do kit.</li>
+           <li>Claude Code installed and authenticated by the user.</li>
+            <li>No interpreter: the package ships the <code>dh</code> binary. Python 3 is required only for the <code>slice-01</code> fixture; Go 1.22+ only for kit maintainers.</li>
+            <li>Generated package in <code>dist/</code>. If it is missing from the checkout, a kit maintainer can run <code>go run ./cmd/dh build</code> from the root.</li>
         </ul>
       </div>
 
       <h2 id="riscos"><span class="n">07</span>Risks</h2>
-      <div class="callout gold">O caminho do <code>--plugin-dir</code> is o do computador de destino. Copiar um comando com o path de outra pessoa fails.</div>
-      <div class="callout stop">Do not instale dependencias globais para fazer o doctor passesr. Falta de Claude ou de modelo is limitacao declarada, not motivo para o script instalar algo.</div>
+       <div class="callout gold">The <code>--plugin-dir</code> path is the destination computer’s path. Copying a command with someone else’s path fails.</div>
+       <div class="callout stop">Do not install global dependencies to “make the doctor pass.” Missing Claude or a model is a declared limitation, not a reason for the script to install anything.</div>
 
       <h2 id="acoes"><span class="n">08</span>Next actions</h2>
       <div class="table-wrap">
@@ -767,22 +770,22 @@ footer.doc-foot {
           <tbody>
             <tr>
               <td>A1</td>
-              <td>Seguir <code>docs/inicio-rapido.html</code> e a fixture <code>evals/fixtures/slice-01</code></td>
+               <td>Follow <code>docs/inicio-rapido.html</code> and the fixture <code>evals/fixtures/slice-01</code></td>
               <td>user</td>
-              <td>proximo tutorial</td>
+               <td>next tutorial</td>
             </tr>
             <tr>
               <td>A2</td>
-              <td>Executar este roteiro numa sessao Claude Code real e anotar friccoes</td>
-              <td>owner do kit</td>
-              <td>pending (Fase 4)</td>
+               <td>Run this procedure in a real Claude Code session and note friction</td>
+               <td>kit owner</td>
+               <td>pending (Phase 4)</td>
             </tr>
           </tbody>
         </table>
       </div>
       <footer class="doc-foot">
-        <div>File: <code>docs/tutoriais/00-primeira-maquina.html</code>  type <code>feature</code>  20/09/2026  v0.1.0</div>
-        <div>Next step: <code>docs/inicio-rapido.html</code> e a fixture <code>evals/fixtures/slice-01</code>.</div>
+         <div>File: <code>docs/tutoriais/00-primeira-maquina.html</code> · type <code>feature</code> · 20/09/2026 · v0.1.0</div>
+         <div>Next step: <code>docs/inicio-rapido.html</code> and the fixture <code>evals/fixtures/slice-01</code>.</div>
       </footer>
     </div>
   </div>
