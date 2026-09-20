@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 — 2026-09-20
+
+- `dh build` compila com `-buildvcs=false`: binários idênticos entre a máquina do mantenedor e a CI (a 0.2.0 embutia revisão e estado sujo do git, e a CI reprovou a reprodutibilidade).
+
 ## 0.2.0 — 2026-09-20
 
 Etapa 1: distribuição pelo marketplace e observabilidade de sessões e agentes no plugin (PRD-001). Binário Go substitui os scripts.

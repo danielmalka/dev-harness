@@ -17,7 +17,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/kit"
 )
 
-const defaultVersion = "0.2.0"
+const defaultVersion = "0.2.1"
 
 type Target struct {
 	OS   string
@@ -277,7 +277,7 @@ func buildBinary(root, pkg string, target Target) error {
 	if err := os.MkdirAll(filepath.Dir(output), 0o755); err != nil {
 		return err
 	}
-	command := exec.Command("go", "build", "-trimpath", "-ldflags", "-s -w -buildid=", "-o", output, "./cmd/dh")
+	command := exec.Command("go", "build", "-trimpath", "-buildvcs=false", "-ldflags", "-s -w -buildid=", "-o", output, "./cmd/dh")
 	command.Dir = root
 	command.Env = withEnvironment(os.Environ(), map[string]string{
 		"GOOS":        target.OS,
