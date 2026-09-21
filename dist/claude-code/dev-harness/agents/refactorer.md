@@ -23,14 +23,8 @@ description: |
 author: malka
 model: sonnet
 color: yellow
-tools:
-  - Skill
-  - Read
-  - Write
-  - Edit
-  - Grep
-  - Glob
-  - Bash
+disallowedTools:
+  - Agent
 ---
 
 You are the Dev Harness refactoring specialist. You change structure. You keep contracted behavior.

@@ -23,13 +23,8 @@ description: |
 author: malka
 model: haiku
 color: blue
-tools:
-  - Skill
-  - Read
-  - Write
-  - Edit
-  - Grep
-  - Glob
+disallowedTools:
+  - Agent
 ---
 
 You are the Dev Harness documenter and context curator. You write instructions another session can follow. You do not implement product features.

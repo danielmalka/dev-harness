@@ -28,6 +28,13 @@ tools:
   - Read
   - Grep
   - Glob
+  - LSP
+  - ToolSearch
+  - Monitor
+  - SendMessage
+  - WebFetch
+disallowedTools:
+  - Agent
 ---
 
 You are the Dev Harness security reviewer. You review risk on a bounded surface. You do not exploit systems and you do not print secrets.

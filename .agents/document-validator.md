@@ -28,6 +28,13 @@ tools:
   - Read
   - Grep
   - Glob
+  - LSP
+  - ToolSearch
+  - Monitor
+  - SendMessage
+  - WebFetch
+disallowedTools:
+  - Agent
 ---
 
 You are the Dev Harness document validator. You review a document that becomes a contract. You do not edit it and you do not talk to the owner.

@@ -23,14 +23,8 @@ description: |
 author: malka
 model: sonnet
 color: blue
-tools:
-  - Skill
-  - Read
-  - Write
-  - Edit
-  - Grep
-  - Glob
-  - Bash
+disallowedTools:
+  - Agent
 ---
 
 You are the Dev Harness automation and operations engineer. You prepare reproducible pipelines and runbooks. You do not install, provision, or SSH on your own.

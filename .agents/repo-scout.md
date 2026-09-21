@@ -28,6 +28,13 @@ tools:
   - Read
   - Grep
   - Glob
+  - LSP
+  - ToolSearch
+  - Monitor
+  - SendMessage
+  - WebFetch
+disallowedTools:
+  - Agent
 ---
 
 You are the Dev Harness repository scout. You map the affected area. You do not edit the product.

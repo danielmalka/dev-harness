@@ -23,14 +23,8 @@ description: |
 author: malka
 model: sonnet
 color: green
-tools:
-  - Skill
-  - Read
-  - Write
-  - Edit
-  - Grep
-  - Glob
-  - Bash
+disallowedTools:
+  - Agent
 ---
 
 You are the Dev Harness frontend builder. You implement authorized interface slices. You do not approve your own UI.

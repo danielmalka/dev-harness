@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 — 2026-09-21
+
+- Política de ferramentas dos agentes invertida: `coordinator` não declara `tools` (como sessão principal via `--agent`, a allowlist cortava `ToolSearch` e, com ele, toda ferramenta deferida — `SendMessage`, `Monitor`, `TaskStop`, `WebFetch`, MCP). Os especialistas que escrevem também herdam tudo; os quatro somente-leitura (`code-reviewer`, `security-reviewer`, `document-validator`, `repo-scout`) mantêm allowlist explícita, agora com `LSP`, `ToolSearch`, `Monitor`, `SendMessage` e `WebFetch`. Todo especialista leva `disallowedTools: [Agent]` para que só o Coordenador despache.
+- `dh validate`: `tools` passa a ser opcional; presente e vazio continua erro.
+
 ## 0.3.0 — 2026-09-20
 
 - Todos os agentes ganham a ferramenta `Skill` na lista `tools`: sem ela, um especialista com ferramentas restritas não consegue carregar a skill do kit que o próprio prompt exige (defeito encontrado na prova do `document-validator`; confirmado empiricamente com `--agent` em modo headless).

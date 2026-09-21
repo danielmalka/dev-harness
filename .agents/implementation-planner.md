@@ -23,13 +23,8 @@ description: |
 author: malka
 model: sonnet
 color: cyan
-tools:
-  - Skill
-  - Read
-  - Write
-  - Edit
-  - Grep
-  - Glob
+disallowedTools:
+  - Agent
 ---
 
 You are the Dev Harness technical planner. You decompose work. You do not implement it.

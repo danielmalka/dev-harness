@@ -440,10 +440,12 @@ func checkProfiles(dirs map[string]string, errors *[]string) {
 	}
 }
 
+// checkAuthorAndTools accepts an absent tools field (the agent inherits every
+// tool) but rejects a present, empty one, which fails to launch at runtime.
 func checkAuthorAndTools(path, fm string, errors *[]string) {
 	checkAuthor(path, fm, errors)
-	if !hasListField(fm, "tools") {
-		*errors = append(*errors, path+": missing tools")
+	if regexp.MustCompile(`(?m)^tools:`).MatchString(fm) && !hasListField(fm, "tools") {
+		*errors = append(*errors, path+": empty tools")
 	}
 }
 

@@ -145,7 +145,7 @@ func syntheticRoot(t *testing.T) string {
 }
 
 func agentFixture(name string) string {
-	return "---\nname: " + name + "\ndescription: Use when testing\nauthor: test\nmodel: haiku\ntools:\n  - Read\n---\nagent\n"
+	return "---\nname: " + name + "\ndescription: Use when testing\nauthor: test\nmodel: haiku\n---\nagent\n"
 }
 
 func commandFixture() string {
