@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harness · Roadmap · Dev Harness (não publicar)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* Harness Doc Shell
+   Ink paper on cool charcoal. Neon is a signal, not a wash.
+   One standalone HTML file, CSS inlined. Not a marketing page. */
+
+:root {
+  --void: #131418;
+  --void-deep: #0C0D10;
+  --void-elevated: #1A1C22;
+  --void-soft: #23262E;
+  --text: #F1EFE8;
+  --muted: #9A978E;
+  --border: rgba(241, 239, 232, 0.10);
+  --primary: #3DFF9A;
+  --primary-hover: #6AFFB4;
+  --primary-soft: rgba(61, 255, 154, 0.10);
+  --accent: #E2D2A8;
+  --accent-hover: #F0E4C4;
+  --accent-soft: rgba(226, 210, 168, 0.10);
+  --gold: #E2D2A8;
+  --ok: #3DFF9A;
+  --ok-bg: rgba(61, 255, 154, 0.08);
+  --no: #E08A8A;
+  --no-bg: rgba(224, 138, 138, 0.08);
+  --warn: #E2C48A;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 22px;
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Outfit", var(--font);
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: 180ms var(--ease);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 15.5px;
+  line-height: 1.62;
+  color: var(--text);
+  background: var(--void-deep);
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 56% 40% at 92% -10%, rgba(61, 255, 154, 0.06), transparent 55%),
+    radial-gradient(ellipse 44% 34% at 0% 100%, rgba(226, 210, 168, 0.04), transparent 50%),
+    var(--void-deep);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  pointer-events: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 50;
+  background: var(--primary);
+  color: var(--void-deep);
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+}
+
+.skip-link:focus { left: 1rem; top: 1rem; }
+
+.page {
+  position: relative;
+  z-index: 2;
+  width: min(92%, 1320px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 3.25rem;
+  align-items: start;
+  padding: 2.25rem 0 5rem;
+  min-width: 0;
+}
+
+.side {
+  position: sticky;
+  top: 1.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.side__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.12rem;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.2rem;
+}
+
+.side__brand span { color: var(--primary); }
+
+.mark {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.side__sub {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin: 0 0 0.85rem 2rem;
+}
+
+.side__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  background: var(--void-elevated);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  margin: 0 0 1.25rem;
+}
+
+.side__type::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.side nav {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.side nav a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.42rem 0.65rem;
+  border-left: 2px solid transparent;
+  border-radius: 0 8px 8px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+
+.side nav a:hover {
+  color: var(--text);
+  background: var(--void-elevated);
+}
+
+.side nav a.active {
+  color: var(--text);
+  border-left-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.side nav a b {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.68rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.wrap { min-width: 0; overflow-wrap: break-word; }
+.wrap > p,
+.wrap > .lead { max-width: 74ch; }
+
+.hero {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 0.28rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--void-elevated);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(1.85rem, 3.4vw, 2.45rem);
+  margin: 0;
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 2.75rem 0 0.95rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+h2 .n {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+h3 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin: 1.15rem 0 0.4rem;
+  letter-spacing: -0.02em;
+}
+
+p { margin: 0 0 0.85rem; color: var(--muted); }
+p.lead { color: var(--text); font-size: 1.05rem; line-height: 1.55; max-width: 62ch; }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+}
+
+.chip b {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.banner {
+  background: var(--accent-soft);
+  border: 1px dashed rgba(226, 210, 168, 0.38);
+  color: var(--gold);
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin: 0 0 1.5rem;
+}
+
+.banner.warn {
+  background: var(--no-bg);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: var(--no);
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 0.7rem;
+  margin: 0 0 1.5rem;
+}
+
+.strip a {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 0.95rem;
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-decoration: none;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.strip a:hover {
+  border-color: rgba(61, 255, 154, 0.28);
+  transform: translateY(-1px);
+  color: var(--muted);
+}
+
+.strip a strong {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.strip a span {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.card {
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.05rem 1.2rem;
+  margin: 0.8rem 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.card:hover { border-color: rgba(61, 255, 154, 0.22); transform: translateY(-1px); }
+.card h3 { margin-top: 0; }
+
+.card h3::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.in { border-color: rgba(52, 211, 153, 0.32); background: var(--ok-bg); }
+.in h3 { color: var(--ok); }
+.in h3::before { background: var(--ok); }
+.out { border-color: rgba(248, 113, 113, 0.32); background: var(--no-bg); }
+.out h3 { color: var(--no); }
+.out h3::before { background: var(--no); }
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  border: 1px solid rgba(61, 255, 154, 0.28);
+  color: var(--primary);
+  margin: 0 0 0.65rem;
+}
+
+.price {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: var(--primary-soft);
+  border: 1px solid rgba(61, 255, 154, 0.22);
+  color: var(--primary);
+  padding: 0.08rem 0.42rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.grid-asym {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 0.8rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 0.7rem 0 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--void-elevated);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.68rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--muted);
+}
+
+th {
+  background: var(--void-soft);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+tr:last-child td { border-bottom: 0; }
+tbody tr { transition: background var(--transition); }
+tbody tr:hover { background: rgba(241, 239, 232, 0.04); }
+tbody tr:hover td { color: var(--text); }
+
+ul, ol { margin: 0.25rem 0 0.85rem; padding-left: 1.2rem; color: var(--muted); }
+li { margin: 0.28rem 0; }
+
+.steps {
+  list-style: none;
+  margin: 0.5rem 0 1.15rem;
+  padding: 0;
+  counter-reset: step;
+}
+
+.steps > li {
+  position: relative;
+  margin: 0;
+  padding: 0 0 1.15rem 2.35rem;
+  border-left: 1px solid var(--border);
+  margin-left: 0.75rem;
+}
+
+.steps > li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.steps > li::before {
+  counter-increment: step;
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: -0.9rem;
+  top: 0.05rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  background: var(--void-soft);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  display: grid;
+  place-items: center;
+}
+
+.callout {
+  padding: 0.95rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  background: var(--void-elevated);
+  margin: 0.85rem 0;
+}
+
+.callout.gold {
+  border-left-color: var(--gold);
+  background: var(--accent-soft);
+}
+
+.callout.stop {
+  border-left-color: var(--no);
+  background: var(--no-bg);
+}
+
+a { color: var(--accent); text-decoration: none; transition: color var(--transition); }
+a:hover { color: var(--accent-hover); }
+strong { color: var(--text); font-weight: 600; }
+em { color: var(--text); }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+  background: var(--void-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.08rem 0.34rem;
+  border-radius: 6px;
+}
+
+::selection { background: rgba(61, 255, 154, 0.35); color: var(--void-deep); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+
+footer.doc-foot {
+  margin-top: 2.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: grid;
+  gap: 0.35rem;
+}
+
+@media (max-width: 1000px) {
+  .page {
+    width: auto;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem 1.1rem 4rem;
+  }
+  .side { position: static; }
+  .side nav {
+    display: flex;
+    gap: 0.35rem;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+  }
+  .side nav a {
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 8px;
+    white-space: nowrap;
+    background: var(--void-elevated);
+  }
+  .side nav a.active {
+    border-bottom-color: var(--primary);
+    border-left-color: transparent;
+  }
+  .strip,
+  .grid-2,
+  .grid-asym { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .card, .strip a, .side nav a, tbody tr { transition: none; }
+  .card:hover, .strip a:hover { transform: none; }
+}
+
+@media print {
+  body::before, body::after, .progress, .side, .skip-link { display: none !important; }
+  .page { display: block; width: auto; padding: 0; }
+  .card, .table-wrap, .banner { break-inside: avoid; }
+  a { color: inherit; }
+}
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <a class="skip-link" href="#conteudo">Ir ao conteúdo</a>
+  <div class="page">
+    <aside class="side">
+      <div class="side__brand">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="mark-grad" x1="4" y1="2" x2="28" y2="30">
+              <stop offset="0" stop-color="#3DFF9A"/>
+              <stop offset="1" stop-color="#E2D2A8"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill="url(#mark-grad)"/>
+        </svg>
+        Harness<span>.</span>
+      </div>
+       <div class="side__sub">Doc interno</div>
+      <div class="side__type">plano</div>
+      <nav>
+        <a href="#estrutura"><b>01</b>Estrutura do projeto</a>
+        <a href="#entregue"><b>02</b>Entregue</a>
+        <a href="#planejado"><b>03</b>Planejado</a>
+        <a href="#ideias"><b>04</b>Ideias para discovery</a>
+        <a href="#relacoes"><b>05</b>Relações</a>
+        <a href="#fontes"><b>06</b>Fontes</a>
+      </nav>
+    </aside>
+    <div class="wrap" id="conteudo">
+      <div class="banner">Doc interno. Não publicar.</div>
+      <header class="hero">
+        <div class="eyebrow">Plano · tipo mais próximo; estrutura de roadmap (owner)</div>
+        <h1>Roadmap · Dev Harness</h1>
+        <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
+        <div class="chips">
+           <span class="chip">data <b>2026-09-21</b></span>
+          <span class="chip">status <b>0.3.1 · vivo</b></span>
+          <span class="chip">path <b>docs/roadmap.html</b></span>
+        </div>
+      </header>
+
+      <h2 id="estrutura"><span class="n">01</span>Estrutura do projeto</h2>
+      <div class="table-wrap">
+        <pre><code>dev-harness/
+  cmd/                    ponto de entrada do binário Go dh (cmd/dh)
+  internal/               pacotes do binário: snapshot, validate, build, doctor
+  .agents/                19 papéis — fonte canônica
+  .skills/                20 skills — fonte canônica
+  .commands/              17 comandos — fonte canônica
+  templates/{en,pt-br}/   8 templates espelhados por idioma — fonte canônica
+  profiles/               4 perfis de stack — fonte canônica
+  dist/                   pacote gerado por `dh build` — não se edita à mão
+  docs/                   PRDs, ADRs, tutoriais, plano de produto, este roadmap
+  evals/                  cases, baselines, rubrics, fixtures de avaliação
+  adapters/               guias de uso manual por outras IAs (generic) e o pacote Claude Code (claude-code)</code></pre>
+      </div>
+      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 17 comandos, 20 skills, 4 perfis, 16 templates
+        (8 en + 8 pt-br), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
+      <pre class="mermaid">
+flowchart LR
+    A["Fontes canônicas
+.agents/ .skills/
+.commands/ templates/
+profiles/"] --> B["dh build"]
+    B --> C["dist/claude-code/dev-harness"]
+    C --> D["marketplace.json
+/plugin install"]
+      </pre>
+
+      <h2 id="entregue"><span class="n">02</span>Entregue</h2>
+      <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
+        arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
+        testado.</p>
+
+      <div class="card">
+        <h3>0.1.0 · Empacotamento fase 1</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> 18 agentes, 17 comandos e 19 skills como fontes canônicas; pacote Claude Code
+          gerado em <code>dist/claude-code/dev-harness</code>; perfis <code>base</code>, <code>go-api</code>,
+          <code>typescript-web</code>; validador estático e script doctor, incluindo cópia dentro do pacote; fixture
+          guiada <code>evals/fixtures/slice-01</code>; licença MIT; tutorial 00 e <code>docs/inicio-rapido.html</code>.
+        </p>
+        <p><strong>Relações:</strong> primeira versão, anterior a PRD-001, PRD-002 e ADR-001. Base de que toda
+          release seguinte depende.</p>
+        <p><strong>Testado?</strong> A fixture <code>evals/fixtures/slice-01</code> roda em CI a cada push/PR
+          (<code>.github/workflows/ci.yml</code>, step "Fixture": <code>python3 -m unittest test_greet.py</code>,
+          saída silenciada por <code>|| true</code>). O restante — pacote gerado, perfis, validador — não tem
+          execução automatizada registrada; o próprio changelog lista como fora da release: "prova de execução em
+          sessão limpa do Claude Code, execução dos casos de avaliação, qualificação Linux/macOS/WSL2, adaptadores
+          nativos para outras IAs".</p>
+      </div>
+
+      <div class="card">
+        <h3>0.2.0 · Etapa 1 — marketplace e observabilidade</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> binário Go <code>dh</code> (<code>snapshot</code>, <code>validate</code>,
+          <code>build</code>, <code>doctor</code>); scripts Python e bash removidos (ADR-001);
+          <code>settings.json</code> do plugin com <code>subagentStatusLine</code> e <code>hooks/hooks.json</code>
+          (seis hooks) gravando <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>;
+          <code>.claude-plugin/marketplace.json</code> na raiz; skill <code>doc-template-html</code> com
+          <code>--lang pt-br|en</code>; docs em inglês em <code>docs/en/</code>; templates espelhados
+          <code>en/</code>/<code>pt-br/</code>; regra de idioma do Coordenador; skill <code>project-onboarding</code>
+          passa a listar perfis em runtime; perfil <code>profiles/php.yaml</code>; templates de trabalho PRD, STORY,
+          TASK, ADR, RFC; tutorial de templates; comandos com frontmatter completo; Mermaid via CDN como única
+          exceção de CDN da skill; <code>CLAUDE.md</code> do repositório com as decisões fixadas.</p>
+        <p><strong>Relações:</strong> implementa PRD-001 (RF-01 a RF-08) e a decisão de ADR-001 (runtime Go). Da
+          qual dependem 0.2.1 e 0.3.x.</p>
+        <p><strong>Testado?</strong> CI executa <code>go test ./...</code>, <code>dh validate --source-only .</code>,
+          <code>dh build</code>, comparação <code>git diff --exit-code</code> entre <code>dist/</code> e as fontes, e
+          <code>dh validate .</code> completo — cobre diretamente AC-02 (reprodutibilidade do pacote) e parte de
+          AC-08 (doctor). AC-03/AC-04 (snapshot listando subagentes, transições de estado ativo/ocioso/fechado) e
+          AC-06 a AC-09 (status line opcional, retenção de 7 dias, tutorial em máquina limpa) não têm evidência de
+          execução automatizada no repositório — ainda não fechado.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.2.1 · Build reprodutível</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> <code>dh build</code> passa a compilar com <code>-buildvcs=false</code> para que
+          os binários sejam idênticos entre a máquina do mantenedor e a CI.</p>
+        <p><strong>Relações:</strong> corrige uma regressão de 0.2.0 encontrada pela própria CI; origem da regra do
+          repositório "reproduzir o que a CI faz num clone limpo antes de commitar <code>dist/</code>".</p>
+        <p><strong>Testado?</strong> Mesmo step de CI "Package matches committed sources and binaries" reproduz o
+          build e compara os arquivos de <code>dist/</code> — execução registrada em CI a cada push/PR.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.3.0 · Ferramenta Skill para todos os agentes + validador de documentos</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> todos os agentes ganham a ferramenta <code>Skill</code> na lista
+          <code>tools</code>; papel <code>document-validator</code> (somente leitura, Opus); skill
+          <code>document-review</code> com seis categorias e regra de severidade; relatório persistente
+          <code>&lt;documento&gt;.review.md</code>; ciclo criação → validação embutido em
+          <code>/dev-harness:discover</code>, limite de duas rodadas; casos de avaliação e fixture de PRD em
+          <code>evals/</code>.</p>
+        <p><strong>Relações:</strong> implementa PRD-002 RF-01 a RF-05 (RF-06, estender a story/plano/ADR, fica para
+          depois — ver Planejado). Produz <code>.agents/document-validator.md</code>,
+          <code>.skills/document-review</code> e <code>evals/cases/doc-validator-*.md</code>.</p>
+        <p><strong>Testado?</strong> Caso de avaliação existe: <code>evals/cases/doc-validator-clean.md</code>,
+          <code>doc-validator-gap.md</code>, <code>doc-validator-round-cap.md</code>, com rubrica
+          <code>evals/rubrics/document-review.md</code> e fixture <code>evals/fixtures/prd-review/</code>; execução
+          não registrada — <code>evals/baselines/</code> só contém <code>.gitkeep</code>. O próprio PRD-002 registra
+          o status como "avaliação comportamental pendente".</p>
+      </div>
+
+      <div class="card">
+        <h3>0.3.1 · Ferramentas dos agentes e dispatch do Coordenador</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> política de ferramentas invertida — <code>coordinator</code> deixa de declarar
+          <code>tools</code> (a allowlist cortava <code>ToolSearch</code> e, com ele, toda ferramenta deferida:
+          <code>SendMessage</code>, <code>Monitor</code>, <code>TaskStop</code>, <code>WebFetch</code>, MCP); os
+          especialistas que escrevem passam a herdar todas as ferramentas; os quatro somente-leitura
+          (<code>code-reviewer</code>, <code>security-reviewer</code>, <code>document-validator</code>,
+          <code>repo-scout</code>) mantêm allowlist explícita, agora com <code>LSP</code>, <code>ToolSearch</code>,
+          <code>Monitor</code>, <code>SendMessage</code> e <code>WebFetch</code>; todo especialista leva
+          <code>disallowedTools: [Agent]</code> para que só o Coordenador despache; <code>dh validate</code> passa a
+          aceitar <code>tools</code> ausente (presente e vazio continua erro).</p>
+        <p><strong>Relações:</strong> fix de regressão funcional sobre os mesmos agentes definidos em 0.3.0.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> e <code>dh validate .</code> rodam em CI a cada
+          push/PR e cobrem o novo comportamento de <code>tools</code> opcional no validador estático. Não há caso de
+          avaliação comportamental dedicado a essa allowlist — ainda não fechado.</p>
+      </div>
+
+      <h2 id="planejado"><span class="n">03</span>Planejado</h2>
+      <p>Itens com PRD ou decisão fixada, sem release ainda.</p>
+
+      <div class="card">
+        <h3>Avaliação comportamental do PRD-002 pendente</h3>
+        <p><strong>Descrição:</strong> rodar os três casos de <code>evals/cases/doc-validator-*.md</code> contra o
+          papel <code>document-validator</code> e registrar o resultado em <code>evals/baselines/</code>, hoje vazio
+          (só <code>.gitkeep</code>).</p>
+        <p><strong>Critérios de aceite (copiados de PRD-002 §5):</strong></p>
+        <ul>
+          <li>AC-01: PRD com lacuna plantada → validador reporta a lacuna com categoria e sugestão, veredito
+            <code>changes required</code>.</li>
+          <li>AC-02: PRD sem problemas → veredito <code>approved</code> sem achados.</li>
+          <li>AC-03: reprovação → Coordenador despacha correção só dos pontos listados; dono só recebe depois de
+            <code>approved</code> ou do limite de rodadas.</li>
+          <li>AC-04: ciclo retomado noutra sessão → relatório persistente mostra o que já foi aplicado e rejeitado.
+          </li>
+        </ul>
+        <p><strong>Status:</strong> implementado no kit (0.3.0); avaliação comportamental pendente.</p>
+        <p><strong>Relações:</strong> PRD-002; depende de 0.3.0 (<code>document-validator</code>, skill
+          <code>document-review</code>) e da rubrica <code>evals/rubrics/document-review.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>Extensão VS Code (danielmalka/dev-harness-vscode)</h3>
+        <p><strong>Descrição:</strong> só visualizador e lançador; lê snapshots em disco escritos por
+          <code>statusLine</code>/<code>subagentStatusLine</code> e pelos hooks do plugin; abre sessão com o plugin e
+          insere <code>/dev-harness:&lt;comando&gt;</code>; nunca vira runtime nem orquestra pipelines; não é fork da
+          <code>context-kit-extension</code> (essa fica arquivada como doadora de código por cópia).</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir — PRD-001 exclui a extensão em si do escopo
+          ("Não entra": "A extensão VS Code em si. Nasce depois desta etapa, lendo o formato abaixo").</p>
+        <p><strong>Status:</strong> bloqueado — aguarda a etapa 1 (PRD-001) validada no danlemos antes de começar o
+          código, conforme <code>CLAUDE.md</code>.</p>
+        <p><strong>Relações:</strong> consome o formato de snapshot (<code>schema: 1</code>) definido em PRD-001 §6;
+          depende de 0.2.0 (RF-03/RF-04, hooks e <code>subagentStatusLine</code>).</p>
+      </div>
+
+      <div class="card">
+        <h3>Validador estendido a story, plano e ADR</h3>
+        <p><strong>Descrição:</strong> PRD-002 RF-06 registra a premissa geral — "todo documento que vira contrato
+          (PRD, story, plano, ADR) passa por um revisor adversarial somente leitura antes de chegar ao dono"; PRD é o
+          primeiro alvo, story e plano vêm depois.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir — PRD-002 só fixa AC para o validador de PRD.
+        </p>
+        <p><strong>Status:</strong> planejado, sem data.</p>
+        <p><strong>Relações:</strong> PRD-002 RF-06; depende de 0.3.0, já que o papel <code>document-validator</code>
+          foi desenhado genérico desde a v1 (decisão fechada em 20/09/2026).</p>
+      </div>
+
+      <div class="card">
+        <h3>Qualificação Linux/macOS/WSL2 e prova em sessão limpa</h3>
+        <p><strong>Descrição:</strong> checklist do plano de produto ("Matriz mínima de qualificação"): Linux e
+          macOS em ambiente limpo; WSL2 em máquina Windows; caminho com espaços; pacote obtido por arquivo;
+          diretório de usuário sem assets do autor; projeto sem índice; projeto com instruções existentes;
+          atualização e retorno. Listada como fora da release já em 0.1.0.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir — o plano de produto descreve a matriz como
+          checklist, sem PRD numerado.</p>
+        <p><strong>Status:</strong> pendente, sem discovery aberto.</p>
+        <p><strong>Relações:</strong> <code>docs/plano-produto.html</code> §07/§08 ("Matriz mínima de qualificação");
+          ADR-001 §5 (validação Linux, macOS e WSL2 citada como check do runtime Go).</p>
+      </div>
+
+      <div class="card">
+        <h3>Adaptadores nativos para outras IAs</h3>
+        <p><strong>Descrição:</strong> hoje o kit entrega o ciclo completo no Claude Code e um guia de uso manual —
+          <code>adapters/generic/</code> — para outras IAs; adaptações nativas adicionais (Codex, Grok, OpenCode
+          etc.) exigem validação própria e não fazem parte da v1 (<code>docs/plano-produto.html</code> §03).</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> <code>adapters/generic/</code> (guia manual atual); <code>adapters/claude-code/</code>
+          (adaptador nativo hoje, único da v1); listado como fora da release desde 0.1.0.</p>
+      </div>
+
+      <h2 id="ideias"><span class="n">04</span>Ideias para discovery</h2>
+      <p>Sem PRD ainda. Critérios abaixo são hipóteses, não compromissos.</p>
+
+      <div class="card">
+        <h3>DISC-003 · Revisão em pares por CLI externa (em discovery agora)</h3>
+        <p>Porte modificado da skill pessoal <code>fleet-clis</code> para o kit, ensinando o Coordenador a usar CLIs
+          de outras IAs (Codex, agy, Grok, OpenCode, mcode...) como revisores. Configuração em <code>.harness/</code>
+          dizendo, por etapa de revisão (PRD, código, segurança, documento), quais revisores rodam — Claude, CLI ou
+          ambos, em paralelo — reaproveitando o prompt do agente do kit.</p>
+        <p><strong>Restrição já conhecida:</strong> nada de caminhos absolutos ou binários de máquina em
+          <code>.harness/project.yaml</code>; preferências de máquina ficam em arquivo local ignorado pelo git.</p>
+        <p><strong>Possíveis critérios de aceite (hipótese):</strong></p>
+        <ul>
+          <li>configurar um revisor de CLI externa por etapa sem editar código do kit;</li>
+          <li>rodar Claude e a CLI externa em paralelo na mesma etapa e consolidar os dois vereditos;</li>
+          <li>portabilidade preservada — nenhuma preferência de máquina versionada em <code>.harness/</code>.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Este próprio roadmap como artefato vivo</h3>
+        <p>Atualizar <code>docs/roadmap.html</code> a cada release, movendo item de Planejado para Entregue e de
+          Ideias para Planejado quando ganhar PRD.</p>
+        <p><strong>Possíveis critérios de aceite (hipótese):</strong> atualização do roadmap faz parte do checklist
+          de release, junto do <code>CHANGELOG.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>OTEL e Agent SDK</h3>
+        <p>Decisão adiada pelo dono (<code>CLAUDE.md</code>): "não planejar em cima deles." Registrado aqui só para
+          não perder o contexto de por que não aparecem em nenhuma outra seção.</p>
+        <p><strong>Status:</strong> não planejar.</p>
+      </div>
+
+      <h2 id="relacoes"><span class="n">05</span>Relações</h2>
+      <pre class="mermaid">
+flowchart LR
+    subgraph Releases
+        R010["0.1.0"] --> R020["0.2.0"]
+        R020 --> R021["0.2.1"]
+        R021 --> R030["0.3.0"]
+        R030 --> R031["0.3.1"]
+    end
+    ADR001["ADR-001
+runtime Go"] --> R020
+    PRD001["PRD-001
+etapa 1"] --> R020
+    PRD002["PRD-002
+validador de documentos"] --> R030
+
+    R031 --> P1["Planejado
+avaliação comportamental PRD-002"]
+    PRD001 --> P2["Planejado
+extensão VS Code"]
+    PRD002 --> P3["Planejado
+validador estendido a story/plano/ADR"]
+    R010 --> P4["Planejado
+qualificação Linux/macOS/WSL2"]
+    R010 --> P5["Planejado
+adaptadores nativos outras IAs"]
+
+    P3 --> I1["Ideia
+revisão em pares por CLI externa — DISC-003"]
+    P2 --> I2["Ideia
+este roadmap como artefato vivo"]
+    I3["Ideia
+OTEL e Agent SDK — não planejar"]
+      </pre>
+
+      <h2 id="fontes"><span class="n">06</span>Fontes</h2>
+      <ul>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.3.1, base da seção Entregue.</li>
+        <li><code>docs/prd/PRD-001-etapa-1.md</code> — escopo, RF, AC e riscos da etapa 1.</li>
+        <li><code>docs/prd/PRD-002-validador-de-documentos.md</code> — escopo, RF, AC e status do validador de
+          documentos.</li>
+        <li><code>docs/adr/ADR-001-runtime-go.md</code> — decisão do runtime Go para o binário <code>dh</code>.</li>
+        <li><code>docs/plano-produto.html</code> — seções "Entra na v1", "Fica de fora da v1", "4.6 Fluxos" e
+          "Matriz mínima de qualificação".</li>
+        <li><code>CLAUDE.md</code> — decisões fixadas do repositório (extensão VS Code, OTEL/Agent SDK adiados,
+          regra de verificar como a CI antes de commitar <code>dist/</code>).</li>
+        <li><code>evals/cases/</code>, <code>evals/rubrics/document-review.md</code>, <code>evals/fixtures/</code>,
+          <code>evals/baselines/</code> e <code>.github/workflows/ci.yml</code> — evidência de teste por item
+          entregue.</li>
+        <li><code>harness-manifest.json</code> — inventário e contagens atuais do kit.</li>
+      </ul>
+      <footer class="doc-foot">
+        <div>Arquivo: <code>docs/roadmap.html</code> · tipo <code>plano</code></div>
+        <div>Próximo passo: trocar cada item de Planejado por Entregue quando a release sair, e de Ideias por Planejado quando ganhar PRD.</div>
+      </footer>
+    </div>
+  </div>
+  <script>
+(function () {
+  var bar = document.getElementById("progress");
+  var links = {};
+  document.querySelectorAll(".side nav a").forEach(function (a) {
+    var href = a.getAttribute("href");
+    if (href && href.charAt(0) === "#") links[href.slice(1)] = a;
+  });
+  var visible = new Set();
+  function onScroll() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    if (bar && max > 0) bar.style.transform = "scaleX(" + (h.scrollTop / max) + ")";
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+  if (!("IntersectionObserver" in window)) return;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      visible[e.isIntersecting ? "add" : "delete"](e.target.id);
+    });
+    var first = Object.keys(links).find(function (id) { return visible.has(id); });
+    Object.keys(links).forEach(function (id) {
+      links[id].classList.toggle("active", id === first);
+    });
+  }, { rootMargin: "0px 0px -70% 0px" });
+  document.querySelectorAll("h2[id]").forEach(function (h) { io.observe(h); });
+})();
+  </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: {
+      fontFamily: "Plus Jakarta Sans, system-ui, sans-serif", background: "#0C0D10",
+      primaryColor: "#1A1C22", primaryTextColor: "#F1EFE8", primaryBorderColor: "#3DFF9A",
+      secondaryColor: "#131418", tertiaryColor: "#131418", lineColor: "#E2D2A8", textColor: "#F1EFE8",
+      clusterBkg: "#131418", clusterBorder: "#3DFF9A", edgeLabelBackground: "#1A1C22", mainBkg: "#1A1C22"
+    } });
+  </script>
+</body>
+</html>
