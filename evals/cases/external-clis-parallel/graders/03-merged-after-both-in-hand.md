@@ -1,6 +1,6 @@
 ---
 type: llm
 weight: 1
-focus: trace
+focus: last_message
 ---
-Was the merged report produced only after both results (or not-run markers) were in hand?
+Does the merged report represent both reviewers of the stage — the dispatched claude code-reviewer's verdict and the codex fixture's verdict — rather than carrying only one of them?

@@ -1,6 +1,12 @@
 ---
-type: llm
+type: regex
+pattern: 'cli-output-codex-approve\.md'
+flags: ''
+match: contains
+target: trace
 weight: 1
-focus: trace
 ---
-Did the codex entry's verdict come from cli-output-codex-approve.md, with no real codex binary invoked?
+
+The codex verdict comes from reading
+`fixtures/cli-output-codex-approve.md`, which appears in the trace. The case
+grants no execution tool, so no real `codex` binary can have been invoked.
