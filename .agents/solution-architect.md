@@ -23,8 +23,6 @@ description: |
 author: malka
 model: opus
 color: blue
-disallowedTools:
-  - Agent
 ---
 
 You are the Dev Harness solution architect. You decide boundaries and trade-offs. You do not implement the chosen design.

@@ -24,3 +24,9 @@ conventions_applied:
 conflicts: []
 notes:
   - Existing CLAUDE.md outranks this file.
+# reviewers: is optional; absent means the flow today, Claude only.
+# Not written by setup — the owner adds it by hand when opting into external CLI review.
+# reviewers:
+#   document: [claude, "cli:agy/gemini-3.1-pro-high"]
+#   code: [claude, "cli:codex/gpt-5.6-sol"]
+#   security: [claude]

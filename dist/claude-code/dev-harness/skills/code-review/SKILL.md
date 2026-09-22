@@ -95,6 +95,7 @@ If you are the reviewer, your procedure ends at step 11. The steps below belong 
   - Scenario: <the input or sequence that triggers it>
   - Impact: <what the user or system loses>
   - Recommendation: <smallest change that resolves it>
+  - Reported by: claude | cli:<binary>/<slug>
 ### Major
 ### Minor (non-blocking)
 (or: No issues found on this axis.)
@@ -120,6 +121,8 @@ If you are the reviewer, your procedure ends at step 11. The steps below belong 
 ```
 
 Record checks as reported by the author, marked `reported (unverified)`, or as `not-run` when you could not observe them. Only mark passed or failed for a command you executed yourself.
+
+When more than one reviewer covers this stage, `.agents/coordinator.md` ("External CLI reviewers") owns how their findings are merged, deduplicated and reported on disagreement; this skill only defines the `Reported by:` field each finding carries.
 
 ## Quick reference
 
@@ -169,6 +172,7 @@ Input: a diff that adds pagination to a list endpoint, with the brief "return at
   - Scenario: an existing caller sends limit=200 with no page parameter.
   - Impact: caller silently receives 50 items and treats the truncated page as the full set.
   - Recommendation: read the caller limit first, then clamp to the maximum of 50.
+  - Reported by: claude
 
 ## Spec compliance
 - Implemented: maximum of 50 items per page.

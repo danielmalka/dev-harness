@@ -84,6 +84,7 @@ Scope the review to the trust boundaries and exposures the change actually touch
 - Scenario: <inputs and expected effect, no real secrets>
 - Mitigation: <smallest change that closes the path>
 - Verification: <the check that proves it is closed>
+- Reported by: claude | cli:<binary>/<slug>
 
 (or: No demonstrated vulnerability or confirmed exposure found in the reviewed scope; unresolved hypotheses remain listed below.)
 
@@ -101,6 +102,8 @@ Scope the review to the trust boundaries and exposures the change actually touch
 ```
 
 Record only inspections you performed; a command you did not run is `not-run` with the reason.
+
+When more than one reviewer covers this stage, `.agents/coordinator.md` ("External CLI reviewers") owns how their findings are merged, deduplicated and reported on disagreement; this skill only defines the `Reported by:` field each finding carries.
 
 ## Quick reference
 
@@ -159,6 +162,7 @@ Input: a diff adding an endpoint that returns an invoice by identifier.
 - Scenario: authenticate as account A, request an invoice id owned by account B, receive it
 - Mitigation: filter by the session account in the repository query, not in the handler
 - Verification: test asserting a 404 when the invoice belongs to another account
+- Reported by: claude
 
 ## Hypotheses requiring investigation
 - Invoice PDF export may reuse the same unfiltered lookup - the export worker's entry point was not resolved from this diff - trace src/jobs/export.ts callers

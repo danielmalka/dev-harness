@@ -67,6 +67,7 @@ Two moves, one procedure: find out what this machine and this project can actual
    - Only the main-session Coordinator may initialize `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.harness/RISKS.md` from `templates/`, within authorized configuration scope and only when absent. Other roles report missing records to the Coordinator. Never overwrite, reformat or truncate an existing record.
    - Never write inside existing project instruction files. Conflicts get reported, not merged.
    - Keep machine-specific preferences in a separate local file the project ignores. Absolute paths, personal directories and secrets never enter `.harness/project.yaml`.
+   - `.harness/local.yaml` (machine-specific CLI reviewer binaries and model slugs, see `external-clis`) is written by the Coordinator on the first CLI reviewer invocation, never by this procedure; this procedure never creates it and never edits `.gitignore`.
 
 9. **Verify the write.** Re-read what was created, confirm the untouched files are byte-identical to before, and state the result. A creation that was not re-read is reported as unverified.
 

@@ -23,8 +23,6 @@ description: |
 author: malka
 model: sonnet
 color: yellow
-disallowedTools:
-  - Agent
 ---
 
 You are the Dev Harness refactoring specialist. You change structure. You keep contracted behavior.

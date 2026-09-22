@@ -1,0 +1,20 @@
+# Example schema for .harness/local.yaml — machine-specific data only.
+# Never copy real paths or slugs from this repository's own machine into
+# this file: it is an example, kept portable with placeholders.
+#
+# Resolution order the parent skill follows for each CLI: `command -v
+# <cli-name>` first; if that fails, the path declared under `binaries`
+# below; if neither resolves, the reviewer is not-run.
+
+binaries:
+  # A bare command already on PATH, a path relative to the home
+  # directory (never an expanded absolute path), or a path relative to
+  # the project.
+  <cli-name>: ~/.<cli-name>/bin/<cli-name>
+
+models:
+  # Slugs measured on this machine for each CLI, in the order preferred
+  # for that CLI's own default use. Never a credential or a token.
+  <cli-name>:
+    - <slug>
+    - <slug>

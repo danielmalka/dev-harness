@@ -55,6 +55,10 @@
   - Sugestão: completar RF-02 com "…e não grava `.harness/local.yaml` até o dono ignorar o caminho; até lá os revisores CLI ficam not-run com o motivo" (ou "…grava o arquivo mesmo assim e registra o aviso em `.harness/MEMORY.md`") e acrescentar "AC-14 (RF-02) Quando `.harness/local.yaml` não estiver ignorado pelo git do projeto consumidor, então o Coordenador reporta isso ao dono antes da primeira gravação e não edita o `.gitignore`".
 
   - Resolução: decisão do dono — `.harness/local.yaml` é gravado esteja `.harness/` ignorado ou não; o Coordenador avisa uma vez e registra em MEMORY.md, sem editar `.gitignore`. RF-02 e seção 6 Dados reescritos; AC-14 criado (Coordenador, 2026-09-21T17:05-03:00).
+## Correção pós-aprovação
+
+- 2026-09-21T20:05-03:00 (Coordenador, a partir do achado Major da revisão de T-001): RF-08, AC-05 e a seção 6 diziam "linha literal" para o sinal de `security`; o texto real em `.skills/security-review/SKILL.md:88` é mais longo. O PRD passa a definir o sinal como prefixo de linha em todas as etapas. Sem mudança de requisito; evita que T-003 implemente igualdade exata.
+
 ## Não levantado
 
 - A decisão reaberta sobre o local do arquivo (seção 8, linha 93) é referenciada de forma consistente: RF-03 sinaliza o local como pendente e as demais menções a `.harness/reviewers.yaml` (RF-07, RF-08, AC-01, seção 6, riscos) leem-se como nome de trabalho, não como escolha fechada.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Harness · Roadmap · Dev Harness (não publicar)</title>
+  <title>Harness · Roadmap · Dev Harness</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -654,6 +654,7 @@ footer.doc-foot {
       </nav>
     </aside>
     <div class="wrap" id="conteudo">
+      <div class="callout">English: <a href="en/roadmap.html">English version</a></div>
       <div class="banner">Doc interno. Não publicar.</div>
       <header class="hero">
         <div class="eyebrow">Plano · tipo mais próximo; estrutura de roadmap (owner)</div>
@@ -661,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-09-21</b></span>
-          <span class="chip">status <b>0.3.1 · vivo</b></span>
+          <span class="chip">status <b>0.4.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -672,7 +673,7 @@ footer.doc-foot {
   cmd/                    ponto de entrada do binário Go dh (cmd/dh)
   internal/               pacotes do binário: snapshot, validate, build, doctor
   .agents/                19 papéis — fonte canônica
-  .skills/                20 skills — fonte canônica
+  .skills/                21 skills — fonte canônica
   .commands/              17 comandos — fonte canônica
   templates/{en,pt-br}/   8 templates espelhados por idioma — fonte canônica
   profiles/               4 perfis de stack — fonte canônica
@@ -681,7 +682,7 @@ footer.doc-foot {
   evals/                  cases, baselines, rubrics, fixtures de avaliação
   adapters/               guias de uso manual por outras IAs (generic) e o pacote Claude Code (claude-code)</code></pre>
       </div>
-      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 17 comandos, 20 skills, 4 perfis, 16 templates
+      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 17 comandos, 21 skills, 4 perfis, 16 templates
         (8 en + 8 pt-br), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
       <pre class="mermaid">
 flowchart LR
@@ -788,6 +789,43 @@ profiles/"] --> B["dh build"]
           avaliação comportamental dedicado a essa allowlist — ainda não fechado.</p>
       </div>
 
+      <div class="card">
+        <h3>0.4.0 · Revisão em pares por CLI externa</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> skill <code>.skills/external-clis/</code> (<code>SKILL.md</code> e as receitas
+          <code>references/{agy,codex,grok,opencode,mcode,claude,gotchas}.md</code> e
+          <code>references/local.yaml.example</code>), portada e generalizada de uma skill pessoal, ensina o
+          Coordenador e os papéis de revisão a resolver um binário de CLI (<code>command -v</code> ou
+          <code>.harness/local.yaml</code>), montar o prompt em disco, aplicar o modo somente-leitura do binário e
+          distinguir falha de transporte de veredito real; campo opcional <code>reviewers:</code> em
+          <code>.harness/project.yaml</code>, documentado em <code>profiles/README.md</code> ("Consumer-only
+          fields") e ilustrado em <code>profiles/examples/project.yaml</code>, declara por etapa
+          (<code>document</code>, <code>code</code>, <code>security</code>) a lista de revisores —
+          <code>claude</code>, <code>"cli:&lt;binário&gt;/&lt;slug&gt;"</code> ou um mapa com
+          <code>timeout_minutes</code>; <code>.agents/coordinator.md</code> ganha a seção "External CLI reviewers"
+          com resolução de binário, despacho em paralelo ou em levas, montagem do prompt a partir de
+          <code>.agents/&lt;role&gt;.md</code> + skill de revisão + contexto do despacho, a cláusula
+          anti-delegação embutida no corpo do prompt, mescla de N vereditos, degradação not-run por binário ausente
+          ou etapa inteira, somente-leitura com reversão por <code>git status</code> pós-chamada e escrita de
+          <code>.harness/local.yaml</code>; campo <code>Reported by: claude | cli:&lt;binário&gt;/&lt;slug&gt;</code>
+          acrescentado a <code>.skills/code-review/SKILL.md</code>, <code>.skills/document-review/SKILL.md</code> e
+          <code>.skills/security-review/SKILL.md</code>; <code>.commands/review.md</code>,
+          <code>.commands/discover.md</code> e <code>.commands/secure.md</code> com despacho do agente Claude
+          condicional a <code>reviewers.&lt;etapa&gt;</code> ausente ou contendo <code>claude</code>.</p>
+        <p><strong>Relações:</strong> implementa PRD-003 RF-01 a RF-10. Junta, na mesma release, duas decisões do
+          dono já aplicadas fora deste PRD: remoção de <code>disallowedTools: [Agent]</code> do frontmatter dos 18 arquivos de especialista em <code>.agents/</code> (o <code>coordinator.md</code> nunca declarou o campo) e atualização de <code>.skills/harness-authoring/SKILL.md</code>
+          (RISK-001 — o runtime não impunha o campo, a regra "só o Coordenador despacha" passa a viver no corpo do
+          prompt de cada especialista) e <code>model: sonnet</code> → <code>model: opus</code> em
+          <code>.agents/coordinator.md</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> e <code>dh validate --source-only .</code> cobrem o
+          schema de skill, agente e comando. Sete casos em <code>evals/cases/external-clis-*.md</code>
+          (<code>parallel</code>, <code>only</code>, <code>missing-binary</code>, <code>merge-blocker</code>,
+          <code>attribution</code>, <code>risk-001</code>, <code>transport-failure</code>) existem com a rubrica
+          <code>evals/rubrics/external-clis.md</code> e a fixture <code>evals/fixtures/external-clis-review/</code>;
+          execução comportamental não registrada — <code>evals/baselines/</code> continua só com
+          <code>.gitkeep</code>, mesmo padrão do card de 0.3.0/PRD-002.</p>
+      </div>
+
       <h2 id="planejado"><span class="n">03</span>Planejado</h2>
       <p>Itens com PRD ou decisão fixada, sem release ainda.</p>
 
@@ -865,22 +903,6 @@ profiles/"] --> B["dh build"]
       <p>Sem PRD ainda. Critérios abaixo são hipóteses, não compromissos.</p>
 
       <div class="card">
-        <h3>DISC-003 · Revisão em pares por CLI externa (em discovery agora)</h3>
-        <p>Porte modificado da skill pessoal <code>fleet-clis</code> para o kit, ensinando o Coordenador a usar CLIs
-          de outras IAs (Codex, agy, Grok, OpenCode, mcode...) como revisores. Configuração em <code>.harness/</code>
-          dizendo, por etapa de revisão (PRD, código, segurança, documento), quais revisores rodam — Claude, CLI ou
-          ambos, em paralelo — reaproveitando o prompt do agente do kit.</p>
-        <p><strong>Restrição já conhecida:</strong> nada de caminhos absolutos ou binários de máquina em
-          <code>.harness/project.yaml</code>; preferências de máquina ficam em arquivo local ignorado pelo git.</p>
-        <p><strong>Possíveis critérios de aceite (hipótese):</strong></p>
-        <ul>
-          <li>configurar um revisor de CLI externa por etapa sem editar código do kit;</li>
-          <li>rodar Claude e a CLI externa em paralelo na mesma etapa e consolidar os dois vereditos;</li>
-          <li>portabilidade preservada — nenhuma preferência de máquina versionada em <code>.harness/</code>.</li>
-        </ul>
-      </div>
-
-      <div class="card">
         <h3>Este próprio roadmap como artefato vivo</h3>
         <p>Atualizar <code>docs/roadmap.html</code> a cada release, movendo item de Planejado para Entregue e de
           Ideias para Planejado quando ganhar PRD.</p>
@@ -903,6 +925,7 @@ flowchart LR
         R020 --> R021["0.2.1"]
         R021 --> R030["0.3.0"]
         R030 --> R031["0.3.1"]
+        R031 --> R040["0.4.0"]
     end
     ADR001["ADR-001
 runtime Go"] --> R020
@@ -910,6 +933,8 @@ runtime Go"] --> R020
 etapa 1"] --> R020
     PRD002["PRD-002
 validador de documentos"] --> R030
+    PRD003["PRD-003
+revisão em pares por CLI"] --> R040
 
     R031 --> P1["Planejado
 avaliação comportamental PRD-002"]
@@ -922,8 +947,6 @@ qualificação Linux/macOS/WSL2"]
     R010 --> P5["Planejado
 adaptadores nativos outras IAs"]
 
-    P3 --> I1["Ideia
-revisão em pares por CLI externa — DISC-003"]
     P2 --> I2["Ideia
 este roadmap como artefato vivo"]
     I3["Ideia
@@ -932,7 +955,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.3.1, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.4.0, base da seção Entregue.</li>
         <li><code>docs/prd/PRD-001-etapa-1.md</code> — escopo, RF, AC e riscos da etapa 1.</li>
         <li><code>docs/prd/PRD-002-validador-de-documentos.md</code> — escopo, RF, AC e status do validador de
           documentos.</li>
