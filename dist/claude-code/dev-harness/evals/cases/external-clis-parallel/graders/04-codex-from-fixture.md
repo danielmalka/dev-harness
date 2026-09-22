@@ -1,6 +1,12 @@
 ---
-type: llm
+type: regex
+pattern: 'cli-output-codex-approve\.md'
+flags: ''
+match: contains
+target: trace
 weight: 1
-focus: trace
 ---
-Is the codex verdict traceable to reading fixtures/cli-output-codex-approve.md, with no attempt to execute a codex binary?
+
+The codex verdict comes from reading
+`fixtures/cli-output-codex-approve.md`, which appears in the trace. The case
+grants no execution tool, so no real `codex` binary can have been invoked.

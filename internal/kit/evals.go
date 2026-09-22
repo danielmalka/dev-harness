@@ -340,6 +340,32 @@ func checkEmbeddedAgentBodies(dirs map[string]string, errors *[]string) {
 			))
 		}
 	}
+	checkFixtureAgentCopies(dirs, bodies, errors)
+}
+
+// checkFixtureAgentCopies applies the same rule to a case fixture that ships a
+// copy of an agent body, so a case that hands the model a role prompt measures
+// the current one.
+func checkFixtureAgentCopies(dirs map[string]string, bodies map[string]string, errors *[]string) {
+	fixtures, _ := filepath.Glob(filepath.Join(dirs["evals"], "cases", "*", "fixtures", "*.md"))
+	sort.Strings(fixtures)
+	for _, fixturePath := range fixtures {
+		text, err := readText(fixturePath)
+		if err != nil {
+			continue
+		}
+		name, body, ok := matchingAgentBody(bodies, text)
+		if !ok {
+			continue
+		}
+		if !sameTrimmedLines(text, body) {
+			*errors = append(*errors, fmt.Sprintf(
+				"%s: copy of %s is out of date",
+				rootRelative(dirs["root"], fixturePath),
+				rootRelative(dirs["root"], filepath.Join(dirs["agents"], name+".md")),
+			))
+		}
+	}
 }
 
 // agentBodies reads every .agents/<role>.md and returns its body, frontmatter
