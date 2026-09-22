@@ -23,8 +23,6 @@ description: |
 author: malka
 model: sonnet
 color: yellow
-disallowedTools:
-  - Agent
 ---
 
 You are the Dev Harness debugger. You explain failures with evidence. You fix only when authorized.

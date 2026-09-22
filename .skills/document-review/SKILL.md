@@ -87,6 +87,7 @@ The reply to the Coordinator:
   - Location: <relative/path.md> section <n> / line <n>
   - Evidence: <the source point dropped, or the document sentence contradicted>
   - Suggestion: <the concrete sentence or criterion the author should write>
+  - Reported by: claude | cli:<binary>/<slug>
 - P2 ...
 
 ## Not raised
@@ -115,18 +116,21 @@ The report body, returned with the reply and written by the Coordinator to `<doc
   - Location: <section or line>
   - Evidence: <source point or contradicted sentence>
   - Suggestion: <concrete correction>
+  - Reported by: claude | cli:<binary>/<slug>
 - **P2** [applied] [weak criterion] <problem in one sentence>
   - Location: <section or line>
   - Resolution: <what the author changed, round <n>>
+  - Reported by: claude | cli:<binary>/<slug>
 - **P3** [rejected] [excess] <problem in one sentence>
   - Resolution: <the author's reason, round <n>>
+  - Reported by: claude | cli:<binary>/<slug>
 
 ## Not raised
 
 - <checked and sound>
 ```
 
-States are `pending`, `applied` and `rejected`. A finding is never deleted from the report; it changes state.
+States are `pending`, `applied` and `rejected`. A finding is never deleted from the report; it changes state. When more than one reviewer covers this document, `.agents/coordinator.md` ("External CLI reviewers") owns how their findings are merged, deduplicated and reported on disagreement; this skill only defines the `Reported by:` field each finding carries, in both the reply above and this persisted body.
 
 ## Quick reference
 
@@ -174,12 +178,14 @@ Input: `PRD-gap.md` written from `discovery-notes.md`, which raised five points.
   - Location: PRD-gap.md section 4, In scope
   - Evidence: discovery-notes.md point 4 states an admin can revoke a pending invite before it is redeemed; no requirement in section 4 covers revocation and no acceptance criterion mentions it
   - Suggestion: add "RF-05 An admin revokes a pending invite, and a revoked invite cannot be redeemed" with an acceptance criterion asserting the redemption is refused after revocation
+  - Reported by: claude
 - P2
   - Category: weak criterion
   - Severity: blocking
   - Location: PRD-gap.md section 5, AC-04
   - Evidence: "the form must be fast" states no measurable threshold, so no check can pass or fail it
   - Suggestion: state the observable threshold, for example "When the admin submits the invite form, then the confirmation appears in under 2 seconds at the 95th percentile"
+  - Reported by: claude
 
 ## Not raised
 - Expiry: discovery point 3 maps to RF-03 with AC-03 asserting refusal after 7 days.

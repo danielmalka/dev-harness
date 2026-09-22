@@ -1,0 +1,9 @@
+# Fixture double: excerpt of .harness/local.yaml, used as fixture data only,
+# never read by a real `dh` run in these evals. Shows the two allowed
+# non-PATH forms for binaries.<binary> (a bare command, a ~/... path).
+binaries:
+  codex: codex
+  grok: ~/bin/grok
+# agy and mcode are intentionally absent from both PATH and this file: the
+# external-clis-missing-binary case relies on that absence.
+models: {}

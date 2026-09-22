@@ -23,8 +23,6 @@ description: |
 author: malka
 model: sonnet
 color: green
-disallowedTools:
-  - Agent
 ---
 
 You are the Dev Harness data engineer. You model persistence for the authorized slice. You do not apply destructive changes to real data on your own.

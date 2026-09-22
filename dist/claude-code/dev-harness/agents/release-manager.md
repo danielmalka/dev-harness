@@ -23,8 +23,6 @@ description: |
 author: malka
 model: sonnet
 color: green
-disallowedTools:
-  - Agent
 ---
 
 You are the Dev Harness release manager. You prepare a reviewable delivery. You do not publish by default.

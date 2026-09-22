@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harness · Roadmap · Dev Harness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* Harness Doc Shell
+   Ink paper on cool charcoal. Neon is a signal, not a wash.
+   One standalone HTML file, CSS inlined. Not a marketing page. */
+
+:root {
+  --void: #131418;
+  --void-deep: #0C0D10;
+  --void-elevated: #1A1C22;
+  --void-soft: #23262E;
+  --text: #F1EFE8;
+  --muted: #9A978E;
+  --border: rgba(241, 239, 232, 0.10);
+  --primary: #3DFF9A;
+  --primary-hover: #6AFFB4;
+  --primary-soft: rgba(61, 255, 154, 0.10);
+  --accent: #E2D2A8;
+  --accent-hover: #F0E4C4;
+  --accent-soft: rgba(226, 210, 168, 0.10);
+  --gold: #E2D2A8;
+  --ok: #3DFF9A;
+  --ok-bg: rgba(61, 255, 154, 0.08);
+  --no: #E08A8A;
+  --no-bg: rgba(224, 138, 138, 0.08);
+  --warn: #E2C48A;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 22px;
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Outfit", var(--font);
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: 180ms var(--ease);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 15.5px;
+  line-height: 1.62;
+  color: var(--text);
+  background: var(--void-deep);
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 56% 40% at 92% -10%, rgba(61, 255, 154, 0.06), transparent 55%),
+    radial-gradient(ellipse 44% 34% at 0% 100%, rgba(226, 210, 168, 0.04), transparent 50%),
+    var(--void-deep);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  pointer-events: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 50;
+  background: var(--primary);
+  color: var(--void-deep);
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+}
+
+.skip-link:focus { left: 1rem; top: 1rem; }
+
+.page {
+  position: relative;
+  z-index: 2;
+  width: min(92%, 1320px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 3.25rem;
+  align-items: start;
+  padding: 2.25rem 0 5rem;
+  min-width: 0;
+}
+
+.side {
+  position: sticky;
+  top: 1.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.side__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.12rem;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.2rem;
+}
+
+.side__brand span { color: var(--primary); }
+
+.mark {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.side__sub {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin: 0 0 0.85rem 2rem;
+}
+
+.side__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  background: var(--void-elevated);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  margin: 0 0 1.25rem;
+}
+
+.side__type::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.side nav {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.side nav a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.42rem 0.65rem;
+  border-left: 2px solid transparent;
+  border-radius: 0 8px 8px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+
+.side nav a:hover {
+  color: var(--text);
+  background: var(--void-elevated);
+}
+
+.side nav a.active {
+  color: var(--text);
+  border-left-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.side nav a b {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.68rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.wrap { min-width: 0; overflow-wrap: break-word; }
+.wrap > p,
+.wrap > .lead { max-width: 74ch; }
+
+.hero {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 0.28rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--void-elevated);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(1.85rem, 3.4vw, 2.45rem);
+  margin: 0;
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 2.75rem 0 0.95rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+h2 .n {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+h3 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin: 1.15rem 0 0.4rem;
+  letter-spacing: -0.02em;
+}
+
+p { margin: 0 0 0.85rem; color: var(--muted); }
+p.lead { color: var(--text); font-size: 1.05rem; line-height: 1.55; max-width: 62ch; }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+}
+
+.chip b {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.banner {
+  background: var(--accent-soft);
+  border: 1px dashed rgba(226, 210, 168, 0.38);
+  color: var(--gold);
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin: 0 0 1.5rem;
+}
+
+.banner.warn {
+  background: var(--no-bg);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: var(--no);
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 0.7rem;
+  margin: 0 0 1.5rem;
+}
+
+.strip a {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 0.95rem;
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-decoration: none;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.strip a:hover {
+  border-color: rgba(61, 255, 154, 0.28);
+  transform: translateY(-1px);
+  color: var(--muted);
+}
+
+.strip a strong {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.strip a span {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.card {
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.05rem 1.2rem;
+  margin: 0.8rem 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.card:hover { border-color: rgba(61, 255, 154, 0.22); transform: translateY(-1px); }
+.card h3 { margin-top: 0; }
+
+.card h3::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.in { border-color: rgba(52, 211, 153, 0.32); background: var(--ok-bg); }
+.in h3 { color: var(--ok); }
+.in h3::before { background: var(--ok); }
+.out { border-color: rgba(248, 113, 113, 0.32); background: var(--no-bg); }
+.out h3 { color: var(--no); }
+.out h3::before { background: var(--no); }
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  border: 1px solid rgba(61, 255, 154, 0.28);
+  color: var(--primary);
+  margin: 0 0 0.65rem;
+}
+
+.price {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: var(--primary-soft);
+  border: 1px solid rgba(61, 255, 154, 0.22);
+  color: var(--primary);
+  padding: 0.08rem 0.42rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.grid-asym {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 0.8rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 0.7rem 0 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--void-elevated);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.68rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--muted);
+}
+
+th {
+  background: var(--void-soft);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+tr:last-child td { border-bottom: 0; }
+tbody tr { transition: background var(--transition); }
+tbody tr:hover { background: rgba(241, 239, 232, 0.04); }
+tbody tr:hover td { color: var(--text); }
+
+ul, ol { margin: 0.25rem 0 0.85rem; padding-left: 1.2rem; color: var(--muted); }
+li { margin: 0.28rem 0; }
+
+.steps {
+  list-style: none;
+  margin: 0.5rem 0 1.15rem;
+  padding: 0;
+  counter-reset: step;
+}
+
+.steps > li {
+  position: relative;
+  margin: 0;
+  padding: 0 0 1.15rem 2.35rem;
+  border-left: 1px solid var(--border);
+  margin-left: 0.75rem;
+}
+
+.steps > li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.steps > li::before {
+  counter-increment: step;
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: -0.9rem;
+  top: 0.05rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  background: var(--void-soft);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  display: grid;
+  place-items: center;
+}
+
+.callout {
+  padding: 0.95rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  background: var(--void-elevated);
+  margin: 0.85rem 0;
+}
+
+.callout.gold {
+  border-left-color: var(--gold);
+  background: var(--accent-soft);
+}
+
+.callout.stop {
+  border-left-color: var(--no);
+  background: var(--no-bg);
+}
+
+a { color: var(--accent); text-decoration: none; transition: color var(--transition); }
+a:hover { color: var(--accent-hover); }
+strong { color: var(--text); font-weight: 600; }
+em { color: var(--text); }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+  background: var(--void-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.08rem 0.34rem;
+  border-radius: 6px;
+}
+
+::selection { background: rgba(61, 255, 154, 0.35); color: var(--void-deep); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+
+footer.doc-foot {
+  margin-top: 2.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: grid;
+  gap: 0.35rem;
+}
+
+@media (max-width: 1000px) {
+  .page {
+    width: auto;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem 1.1rem 4rem;
+  }
+  .side { position: static; }
+  .side nav {
+    display: flex;
+    gap: 0.35rem;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+  }
+  .side nav a {
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 8px;
+    white-space: nowrap;
+    background: var(--void-elevated);
+  }
+  .side nav a.active {
+    border-bottom-color: var(--primary);
+    border-left-color: transparent;
+  }
+  .strip,
+  .grid-2,
+  .grid-asym { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .card, .strip a, .side nav a, tbody tr { transition: none; }
+  .card:hover, .strip a:hover { transform: none; }
+}
+
+@media print {
+  body::before, body::after, .progress, .side, .skip-link { display: none !important; }
+  .page { display: block; width: auto; padding: 0; }
+  .card, .table-wrap, .banner { break-inside: avoid; }
+  a { color: inherit; }
+}
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <a class="skip-link" href="#conteudo">Skip to content</a>
+  <div class="page">
+    <aside class="side">
+      <div class="side__brand">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="mark-grad" x1="4" y1="2" x2="28" y2="30">
+              <stop offset="0" stop-color="#3DFF9A"/>
+              <stop offset="1" stop-color="#E2D2A8"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill="url(#mark-grad)"/>
+        </svg>
+        Harness<span>.</span>
+      </div>
+       <div class="side__sub">Internal doc</div>
+      <div class="side__type">plan</div>
+      <nav>
+        <a href="#estrutura"><b>01</b>Project structure</a>
+        <a href="#entregue"><b>02</b>Delivered</a>
+        <a href="#planejado"><b>03</b>Planned</a>
+        <a href="#ideias"><b>04</b>Discovery ideas</a>
+        <a href="#relacoes"><b>05</b>Relations</a>
+        <a href="#fontes"><b>06</b>Sources</a>
+      </nav>
+    </aside>
+    <div class="wrap" id="conteudo">
+      <div class="callout">Português: <a href="../roadmap.html">versão em pt-br</a></div>
+      <div class="banner">Internal doc. Do not publish.</div>
+      <header class="hero">
+        <div class="eyebrow">Plan · closest type; roadmap structure (owner)</div>
+        <h1>Roadmap · Dev Harness</h1>
+        <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
+        <div class="chips">
+           <span class="chip">date <b>2026-09-21</b></span>
+          <span class="chip">status <b>0.4.0 · live</b></span>
+          <span class="chip">path <b>docs/roadmap.html</b></span>
+        </div>
+      </header>
+
+      <h2 id="estrutura"><span class="n">01</span>Project structure</h2>
+      <div class="table-wrap">
+        <pre><code>dev-harness/
+  cmd/                    entry point of the Go binary dh (cmd/dh)
+  internal/               binary packages: snapshot, validate, build, doctor
+  .agents/                19 roles — canonical source
+  .skills/                21 skills — canonical source
+  .commands/              17 commands — canonical source
+  templates/{en,pt-br}/   8 templates mirrored per language — canonical source
+  profiles/               4 stack profiles — canonical source
+  dist/                   package generated by `dh build` — never hand-edited
+  docs/                   PRDs, ADRs, tutorials, product plan, this roadmap
+  evals/                  cases, baselines, rubrics, evaluation fixtures
+  adapters/               manual usage guides for other AIs (generic) and the Claude Code package (claude-code)</code></pre>
+      </div>
+      <p>Current count (<code>harness-manifest.json</code>): 19 agents, 17 commands, 21 skills, 4 profiles, 16 templates
+        (8 en + 8 pt-br), 5 precompiled binaries (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
+      <pre class="mermaid">
+flowchart LR
+    A["Canonical sources
+.agents/ .skills/
+.commands/ templates/
+profiles/"] --> B["dh build"]
+    B --> C["dist/claude-code/dev-harness"]
+    C --> D["marketplace.json
+/plugin install"]
+      </pre>
+
+      <h2 id="entregue"><span class="n">02</span>Delivered</h2>
+      <p>Tasks completed per release, sourced from <code>CHANGELOG.md</code>. "Tested?" only claims execution when a
+        file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
+        tested.</p>
+
+      <div class="card">
+        <h3>0.1.0 · Phase 1 packaging</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> 18 agents, 17 commands and 19 skills as canonical sources; Claude Code package
+          generated at <code>dist/claude-code/dev-harness</code>; profiles <code>base</code>, <code>go-api</code>,
+          <code>typescript-web</code>; static validator and doctor script, including a copy inside the package;
+          guided fixture <code>evals/fixtures/slice-01</code>; MIT license; tutorial 00 and
+          <code>docs/inicio-rapido.html</code>.</p>
+        <p><strong>Relations:</strong> first version, prior to PRD-001, PRD-002 and ADR-001. The base every
+          following release depends on.</p>
+        <p><strong>Tested?</strong> The <code>evals/fixtures/slice-01</code> fixture runs in CI on every push/PR
+          (<code>.github/workflows/ci.yml</code>, "Fixture" step: <code>python3 -m unittest test_greet.py</code>,
+          output silenced by <code>|| true</code>). The rest — the generated package, profiles, the validator — has
+          no recorded automated execution; the changelog itself lists as out of the release: "execution proof in a
+          clean Claude Code session, running the evaluation cases, Linux/macOS/WSL2 qualification, native adapters
+          for other AIs".</p>
+      </div>
+
+      <div class="card">
+        <h3>0.2.0 · Phase 1 — marketplace and observability</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> Go binary <code>dh</code> (<code>snapshot</code>, <code>validate</code>,
+          <code>build</code>, <code>doctor</code>); Python and bash scripts removed (ADR-001);
+          plugin <code>settings.json</code> with <code>subagentStatusLine</code> and <code>hooks/hooks.json</code>
+          (six hooks) writing to <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>;
+          <code>.claude-plugin/marketplace.json</code> at the root; skill <code>doc-template-html</code> with
+          <code>--lang pt-br|en</code>; English docs under <code>docs/en/</code>; mirrored templates
+          <code>en/</code>/<code>pt-br/</code>; Coordinator language rule; skill <code>project-onboarding</code>
+          now lists profiles at runtime; stack profile <code>profiles/php.yaml</code>; work templates PRD, STORY,
+          TASK, ADR, RFC; templates tutorial; commands with full frontmatter; Mermaid via CDN as the skill's only
+          CDN exception; repository <code>CLAUDE.md</code> with the fixed decisions.</p>
+        <p><strong>Relations:</strong> implements PRD-001 (RF-01 to RF-08) and the ADR-001 decision (Go runtime).
+          0.2.1 and 0.3.x depend on it.</p>
+        <p><strong>Tested?</strong> CI runs <code>go test ./...</code>, <code>dh validate --source-only .</code>,
+          <code>dh build</code>, a <code>git diff --exit-code</code> comparison between <code>dist/</code> and the
+          sources, and full <code>dh validate .</code> — directly covers AC-02 (package reproducibility) and part
+          of AC-08 (doctor). AC-03/AC-04 (snapshot listing subagents, active/idle/closed state transitions) and
+          AC-06 to AC-09 (optional status line, 7-day retention, clean-machine tutorial) have no recorded automated
+          execution in the repository — still open.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.2.1 · Reproducible build</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> <code>dh build</code> now compiles with <code>-buildvcs=false</code> so the
+          binaries are identical between the maintainer's machine and CI.</p>
+        <p><strong>Relations:</strong> fixes a 0.2.0 regression found by CI itself; origin of the repository rule
+          "reproduce what CI does in a clean clone before committing <code>dist/</code>".</p>
+        <p><strong>Tested?</strong> The same CI step "Package matches committed sources and binaries" reproduces
+          the build and compares the <code>dist/</code> files — execution recorded in CI on every push/PR.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.3.0 · Skill tool for every agent + document validator</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> every agent gains the <code>Skill</code> tool in its <code>tools</code> list;
+          role <code>document-validator</code> (read-only, Opus); skill <code>document-review</code> with six
+          categories and the severity rule; persistent report <code>&lt;document&gt;.review.md</code>; a
+          creation → validation cycle embedded in <code>/dev-harness:discover</code>, capped at two rounds;
+          evaluation cases and a PRD fixture under <code>evals/</code>.</p>
+        <p><strong>Relations:</strong> implements PRD-002 RF-01 to RF-05 (RF-06, extending to story/plan/ADR, comes
+          later — see Planned). Produces <code>.agents/document-validator.md</code>,
+          <code>.skills/document-review</code> and <code>evals/cases/doc-validator-*.md</code>.</p>
+        <p><strong>Tested?</strong> An evaluation case exists: <code>evals/cases/doc-validator-clean.md</code>,
+          <code>doc-validator-gap.md</code>, <code>doc-validator-round-cap.md</code>, with rubric
+          <code>evals/rubrics/document-review.md</code> and fixture <code>evals/fixtures/prd-review/</code>;
+          execution not recorded — <code>evals/baselines/</code> holds only a <code>.gitkeep</code>. PRD-002 itself
+          records the status as "behavioral evaluation pending".</p>
+      </div>
+
+      <div class="card">
+        <h3>0.3.1 · Agent tools and Coordinator dispatch</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> inverted tool policy — <code>coordinator</code> no longer declares
+          <code>tools</code> (the allowlist cut off <code>ToolSearch</code> and, with it, every deferred tool:
+          <code>SendMessage</code>, <code>Monitor</code>, <code>TaskStop</code>, <code>WebFetch</code>, MCP); the
+          writing specialists now inherit every tool; the four read-only roles (<code>code-reviewer</code>,
+          <code>security-reviewer</code>, <code>document-validator</code>, <code>repo-scout</code>) keep an
+          explicit allowlist, now with <code>LSP</code>, <code>ToolSearch</code>, <code>Monitor</code>,
+          <code>SendMessage</code> and <code>WebFetch</code>; every specialist carries
+          <code>disallowedTools: [Agent]</code> so only the Coordinator dispatches; <code>dh validate</code> now
+          accepts an absent <code>tools</code> field (present and empty is still an error).</p>
+        <p><strong>Relations:</strong> a functional regression fix over the same agents defined in 0.3.0.</p>
+        <p><strong>Tested?</strong> <code>go test ./...</code> and <code>dh validate .</code> run in CI on every
+          push/PR and cover the new optional <code>tools</code> behavior in the static validator. No dedicated
+          behavioral evaluation case for this allowlist — still open.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.4.0 · Peer review through external CLIs</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> skill <code>.skills/external-clis/</code> (<code>SKILL.md</code> and the
+          recipes <code>references/{agy,codex,grok,opencode,mcode,claude,gotchas}.md</code> plus
+          <code>references/local.yaml.example</code>), ported and generalized from a personal skill, teaches the
+          Coordinator and the review roles to resolve a CLI binary (<code>command -v</code> or
+          <code>.harness/local.yaml</code>), assemble the prompt on disk, apply the binary's read-only mode and
+          distinguish transport failure from a real verdict; optional <code>reviewers:</code> field in
+          <code>.harness/project.yaml</code>, documented in <code>profiles/README.md</code> ("Consumer-only
+          fields") and illustrated in <code>profiles/examples/project.yaml</code>, declares per stage
+          (<code>document</code>, <code>code</code>, <code>security</code>) the list of reviewers —
+          <code>claude</code>, <code>"cli:&lt;binary&gt;/&lt;slug&gt;"</code> or a map with
+          <code>timeout_minutes</code>; <code>.agents/coordinator.md</code> gains the "External CLI reviewers"
+          section with binary resolution, dispatch in parallel or in batches, prompt assembly from
+          <code>.agents/&lt;role&gt;.md</code> + review skill + dispatch context, the anti-delegation clause
+          embedded in the prompt body, merging N verdicts, not-run degradation per reviewer or for the whole
+          stage, read-only with reversion via <code>git status</code> after the call, and writing
+          <code>.harness/local.yaml</code>; field <code>Reported by: claude | cli:&lt;binary&gt;/&lt;slug&gt;</code>
+          added to <code>.skills/code-review/SKILL.md</code>, <code>.skills/document-review/SKILL.md</code> and
+          <code>.skills/security-review/SKILL.md</code>; <code>.commands/review.md</code>,
+          <code>.commands/discover.md</code> and <code>.commands/secure.md</code> now dispatch the Claude agent
+          conditionally on <code>reviewers.&lt;stage&gt;</code> being absent or containing <code>claude</code>.</p>
+        <p><strong>Relations:</strong> implements PRD-003 RF-01 to RF-10. Bundles, in the same release, two owner
+          decisions already applied outside this PRD: removal of <code>disallowedTools: [Agent]</code> from the
+          frontmatter of the 18 specialist files in <code>.agents/</code> (<code>coordinator.md</code> never declared the field) and the update to
+          <code>.skills/harness-authoring/SKILL.md</code> (RISK-001 — the runtime did not enforce the field, the
+          rule "only the Coordinator dispatches" now lives in the prompt body of every specialist), and
+          <code>model: sonnet</code> → <code>model: opus</code> in <code>.agents/coordinator.md</code>.</p>
+        <p><strong>Tested?</strong> <code>go test ./...</code> and <code>dh validate --source-only .</code> cover
+          the skill, agent and command schema. Seven cases under <code>evals/cases/external-clis-*.md</code>
+          (<code>parallel</code>, <code>only</code>, <code>missing-binary</code>, <code>merge-blocker</code>,
+          <code>attribution</code>, <code>risk-001</code>, <code>transport-failure</code>) exist with rubric
+          <code>evals/rubrics/external-clis.md</code> and fixture <code>evals/fixtures/external-clis-review/</code>;
+          behavioral execution not recorded — <code>evals/baselines/</code> still holds only a
+          <code>.gitkeep</code>, same pattern as the 0.3.0/PRD-002 card.</p>
+      </div>
+
+      <h2 id="planejado"><span class="n">03</span>Planned</h2>
+      <p>Items with a PRD or fixed decision, not yet released.</p>
+
+      <div class="card">
+        <h3>PRD-002 behavioral evaluation pending</h3>
+        <p><strong>Description:</strong> run the three cases in <code>evals/cases/doc-validator-*.md</code> against
+          the <code>document-validator</code> role and record the result under <code>evals/baselines/</code>,
+          empty today (only <code>.gitkeep</code>).</p>
+        <p><strong>Acceptance criteria (copied from PRD-002 §5):</strong></p>
+        <ul>
+          <li>AC-01: PRD with a planted gap → validator reports the gap with category and suggestion, verdict
+            <code>changes required</code>.</li>
+          <li>AC-02: PRD with no problems → verdict <code>approved</code> with no findings.</li>
+          <li>AC-03: rejection → Coordinator dispatches a correction for only the listed points; the owner only
+            receives it after <code>approved</code> or the round limit.</li>
+          <li>AC-04: cycle resumed in another session → the persistent report shows what was already applied and
+            rejected.</li>
+        </ul>
+        <p><strong>Status:</strong> implemented in the kit (0.3.0); behavioral evaluation pending.</p>
+        <p><strong>Relations:</strong> PRD-002; depends on 0.3.0 (<code>document-validator</code>, skill
+          <code>document-review</code>) and the rubric <code>evals/rubrics/document-review.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>VS Code extension (danielmalka/dev-harness-vscode)</h3>
+        <p><strong>Description:</strong> viewer and launcher only; reads disk snapshots written by
+          <code>statusLine</code>/<code>subagentStatusLine</code> and by the plugin's hooks; opens a session with
+          the plugin and inserts <code>/dev-harness:&lt;command&gt;</code>; never becomes a runtime or orchestrates
+          pipelines; not a fork of <code>context-kit-extension</code> (that one stays archived as a code donor by
+          copy).</p>
+        <p><strong>Acceptance criteria:</strong> to be defined — PRD-001 excludes the extension itself from scope
+          ("Out": "The VS Code extension itself. Born after this phase, reading the format below").</p>
+        <p><strong>Status:</strong> blocked — waits for phase 1 (PRD-001) validated on danlemos before the code
+          starts, per <code>CLAUDE.md</code>.</p>
+        <p><strong>Relations:</strong> consumes the snapshot format (<code>schema: 1</code>) defined in PRD-001 §6;
+          depends on 0.2.0 (RF-03/RF-04, hooks and <code>subagentStatusLine</code>).</p>
+      </div>
+
+      <div class="card">
+        <h3>Validator extended to story, plan and ADR</h3>
+        <p><strong>Description:</strong> PRD-002 RF-06 records the general premise — "every document that becomes a
+          contract (PRD, story, plan, ADR) goes through a read-only adversarial reviewer before reaching the
+          owner"; PRD is the first target, story and plan come after.</p>
+        <p><strong>Acceptance criteria:</strong> to be defined — PRD-002 only fixes AC for the PRD validator.</p>
+        <p><strong>Status:</strong> planned, no date.</p>
+        <p><strong>Relations:</strong> PRD-002 RF-06; depends on 0.3.0, since the <code>document-validator</code>
+          role was designed generic since v1 (decision closed 2026-09-20).</p>
+      </div>
+
+      <div class="card">
+        <h3>Linux/macOS/WSL2 qualification and clean-session proof</h3>
+        <p><strong>Description:</strong> product plan checklist ("Minimum qualification matrix"): Linux and macOS
+          in a clean environment; WSL2 on a Windows machine; a path with spaces; package obtained as a file; user
+          directory with no author assets; project with no index; project with existing instructions; update and
+          rollback. Listed as out of the release since 0.1.0.</p>
+        <p><strong>Acceptance criteria:</strong> to be defined — the product plan describes the matrix as a
+          checklist, with no numbered PRD.</p>
+        <p><strong>Status:</strong> pending, no discovery open.</p>
+        <p><strong>Relations:</strong> <code>docs/plano-produto.html</code> §07/§08 ("Minimum qualification
+          matrix"); ADR-001 §5 (Linux, macOS and WSL2 validation cited as a Go runtime check).</p>
+      </div>
+
+      <div class="card">
+        <h3>Native adapters for other AIs</h3>
+        <p><strong>Description:</strong> today the kit ships the full cycle in Claude Code and a manual usage guide
+          — <code>adapters/generic/</code> — for other AIs; additional native adaptations (Codex, Grok, OpenCode
+          etc.) need their own validation and are not part of v1 (<code>docs/plano-produto.html</code> §03).</p>
+        <p><strong>Acceptance criteria:</strong> to be defined.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> <code>adapters/generic/</code> (current manual guide);
+          <code>adapters/claude-code/</code> (native adapter today, the only one in v1); listed as out of the
+          release since 0.1.0.</p>
+      </div>
+
+      <h2 id="ideias"><span class="n">04</span>Discovery ideas</h2>
+      <p>No PRD yet. Criteria below are hypotheses, not commitments.</p>
+
+      <div class="card">
+        <h3>This roadmap itself as a living artifact</h3>
+        <p>Update <code>docs/roadmap.html</code> on every release, moving an item from Planned to Delivered and from
+          Ideas to Planned once it gains a PRD.</p>
+        <p><strong>Possible acceptance criteria (hypothesis):</strong> updating the roadmap is part of the release
+          checklist, alongside <code>CHANGELOG.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>OTEL and Agent SDK</h3>
+        <p>Decision deferred by the owner (<code>CLAUDE.md</code>): "do not plan on top of them." Recorded here
+          only so the context for why they appear in no other section is not lost.</p>
+        <p><strong>Status:</strong> not planning.</p>
+      </div>
+
+      <h2 id="relacoes"><span class="n">05</span>Relations</h2>
+      <pre class="mermaid">
+flowchart LR
+    subgraph Releases
+        R010["0.1.0"] --> R020["0.2.0"]
+        R020 --> R021["0.2.1"]
+        R021 --> R030["0.3.0"]
+        R030 --> R031["0.3.1"]
+        R031 --> R040["0.4.0"]
+    end
+    ADR001["ADR-001
+Go runtime"] --> R020
+    PRD001["PRD-001
+phase 1"] --> R020
+    PRD002["PRD-002
+document validator"] --> R030
+    PRD003["PRD-003
+peer review by CLI"] --> R040
+
+    R031 --> P1["Planned
+PRD-002 behavioral evaluation"]
+    PRD001 --> P2["Planned
+VS Code extension"]
+    PRD002 --> P3["Planned
+validator extended to story/plan/ADR"]
+    R010 --> P4["Planned
+Linux/macOS/WSL2 qualification"]
+    R010 --> P5["Planned
+native adapters for other AIs"]
+
+    P2 --> I2["Idea
+this roadmap as a living artifact"]
+    I3["Idea
+OTEL and Agent SDK — not planning"]
+      </pre>
+
+      <h2 id="fontes"><span class="n">06</span>Sources</h2>
+      <ul>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.4.0, base for the Delivered section.</li>
+        <li><code>docs/prd/PRD-001-etapa-1.md</code> — scope, RF, AC and risks of phase 1.</li>
+        <li><code>docs/prd/PRD-002-validador-de-documentos.md</code> — scope, RF, AC and status of the document
+          validator.</li>
+        <li><code>docs/adr/ADR-001-runtime-go.md</code> — decision for the Go runtime behind the <code>dh</code>
+          binary.</li>
+        <li><code>docs/plano-produto.html</code> — sections "In for v1", "Out for v1", "4.6 Flows" and "Minimum
+          qualification matrix".</li>
+        <li><code>CLAUDE.md</code> — the repository's fixed decisions (VS Code extension, OTEL/Agent SDK deferred,
+          the rule to verify like CI before committing <code>dist/</code>).</li>
+        <li><code>evals/cases/</code>, <code>evals/rubrics/document-review.md</code>, <code>evals/fixtures/</code>,
+          <code>evals/baselines/</code> and <code>.github/workflows/ci.yml</code> — test evidence per delivered
+          item.</li>
+        <li><code>harness-manifest.json</code> — the kit's current inventory and counts.</li>
+      </ul>
+      <footer class="doc-foot">
+        <div>File: <code>docs/roadmap.html</code> · type <code>plan</code></div>
+        <div>Next step: swap each item from Planned to Delivered when the release ships, and from Ideas to Planned
+          once it gains a PRD.</div>
+      </footer>
+    </div>
+  </div>
+  <script>
+(function () {
+  var bar = document.getElementById("progress");
+  var links = {};
+  document.querySelectorAll(".side nav a").forEach(function (a) {
+    var href = a.getAttribute("href");
+    if (href && href.charAt(0) === "#") links[href.slice(1)] = a;
+  });
+  var visible = new Set();
+  function onScroll() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    if (bar && max > 0) bar.style.transform = "scaleX(" + (h.scrollTop / max) + ")";
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+  if (!("IntersectionObserver" in window)) return;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      visible[e.isIntersecting ? "add" : "delete"](e.target.id);
+    });
+    var first = Object.keys(links).find(function (id) { return visible.has(id); });
+    Object.keys(links).forEach(function (id) {
+      links[id].classList.toggle("active", id === first);
+    });
+  }, { rootMargin: "0px 0px -70% 0px" });
+  document.querySelectorAll("h2[id]").forEach(function (h) { io.observe(h); });
+})();
+  </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: {
+      fontFamily: "Plus Jakarta Sans, system-ui, sans-serif", background: "#0C0D10",
+      primaryColor: "#1A1C22", primaryTextColor: "#F1EFE8", primaryBorderColor: "#3DFF9A",
+      secondaryColor: "#131418", tertiaryColor: "#131418", lineColor: "#E2D2A8", textColor: "#F1EFE8",
+      clusterBkg: "#131418", clusterBorder: "#3DFF9A", edgeLabelBackground: "#1A1C22", mainBkg: "#1A1C22"
+    } });
+  </script>
+</body>
+</html>

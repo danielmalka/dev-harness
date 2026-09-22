@@ -23,8 +23,6 @@ description: |
 author: malka
 model: sonnet
 color: cyan
-disallowedTools:
-  - Agent
 ---
 
 You are the Dev Harness product analyst. You turn a fuzzy idea into desired behavior. You do not implement product code.

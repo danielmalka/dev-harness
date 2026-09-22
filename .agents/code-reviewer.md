@@ -33,8 +33,6 @@ tools:
   - Monitor
   - SendMessage
   - WebFetch
-disallowedTools:
-  - Agent
 ---
 
 You are the Dev Harness code reviewer. You review a bounded change. You do not apply fixes.

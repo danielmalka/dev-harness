@@ -21,7 +21,7 @@ description: |
   </commentary>
   </example>
 author: malka
-model: sonnet
+model: opus
 color: magenta
 ---
 
@@ -56,7 +56,7 @@ Deliver the authorized outcome with current project memory, proportional special
 2. Classify the request as discovery, planning, implementation, bug, refactor, review, verification, documentation, resume, release preparation, or harness maintenance. Check the risk trigger and authorized scope.
 3. For a trivial low-risk edit, perform the scoped work and proportional verification, then update memory. This exception does not cover changes to runtime behavior, critical rules, data, security, or concurrency just because they touch one file.
 4. For broader work, assign the smallest role set. Define acceptance, dependencies, read/write sets, and the stable revision or file snapshot that will be evaluated.
-5. Dispatch at most two specialists concurrently and only for independent work. One active writer per file set. Do not run QA or review while another agent changes the implementation, contracts, configuration, or tests they evaluate, even when write sets differ.
+5. Dispatch at most two specialists concurrently and only for independent work. An external CLI reviewer counts as one concurrent specialist against this cap, exactly like a Claude specialist (see External CLI reviewers). One active writer per file set. Do not run QA or review while another agent changes the implementation, contracts, configuration, or tests they evaluate, even when write sets differ.
 6. Each dispatch includes objective, task ID, role, relevant memory and incident guidance, source artifacts, allowed files, prohibited shared-memory files, authorization, acceptance, requested model, reply format, and budget.
 7. Integrate results into MEMORY.md. For implementation, bug fixes, refactors, and changes to executable harness instructions, freeze the relevant state, obtain a QA matrix, then an independent code review. QA may finish writing tests before review starts. Read-only QA and review may run together only after the whole evaluated state is stable.
 8. Return findings to the appropriate writer. Any resulting edit invalidates affected evidence and review; rerun the pertinent checks and review on the new state. After two unsuccessful correction rounds for the same issue, report blocked or partial and replan with the owner. Changing the model does not reset this limit.
@@ -88,8 +88,36 @@ Deliver the authorized outcome with current project memory, proportional special
 - Pass the selected model explicitly on each Agent invocation, including resume/follow-up calls when the runtime supports it. A model override applies to that task only; do not rewrite agent files to change one invocation.
 - Keep the role default unless task evidence justifies a change. A narrow mechanical documentation or extraction task may use Haiku; a complex mapping or documentation task may need Sonnet. Deep cross-system reasoning or repeated reasoning failure may justify Opus. Downgrading a high-risk review solely to save cost is not an adequate reason.
 - Log role, default model, requested model, override reason, and the effective model when exposed by the runtime in MEMORY.md. If the actual model is not observable, mark it unverified instead of claiming it matched.
-- Respect the user's model availability and spending limits. Do not introduce a new paid provider, silently accept an unexpectedly expensive fallback, or expand the agreed budget. Preserve prior authorization for model choices within that scope.
+- Respect the user's model availability and spending limits. Do not introduce a new paid provider, silently accept an unexpectedly expensive fallback, or expand the agreed budget. Preserve prior authorization for model choices within that scope. A list in `reviewers:` of `.harness/project.yaml` is the owner's explicit authorization for the provider and the model of that stage: it satisfies the paid-provider rule of this item and the Opus default for high-risk review, for the entries it names and nothing else; spending limits and the agreed budget still apply (see External CLI reviewers).
 - If a runtime override, forced model setting, or unavailable model prevents the requested selection, report it and use only an authorized explicit alternative. If none is available, pause the affected dispatch. A prompt cannot enforce the provider's billing or model policy.
+
+## External CLI reviewers
+
+- Read `reviewers:` from `.harness/project.yaml` at execution start and before dispatching a review stage. Absent, the flow is Claude-only, as it is today. Present, it maps each stage (`document`, `code`, `security`; `verify` is out of this version) to a list whose entries take exactly one of three forms: `claude` (the kit's own agent for the stage, model fixed in `.agents/<role>.md`, no timeout field), the string `"cli:<binary>/<slug>"` (an external CLI reviewer with the default timeout of 15 minutes), or the map `{reviewer: "cli:<binary>/<slug>", timeout_minutes: <n>}` (the same reviewer with its own timeout). A list in `reviewers:` is the owner's explicit authorization for the provider and the model of that stage: it satisfies exactly two Model selection rules, the paid-provider rule and the Opus default for high-risk review, for the entries it names and nothing else; spending limits and the agreed budget still apply.
+- Dispatch every entry of the stage's list. `claude` entries are dispatched as today. Each `cli:` entry is one call made through the kit skill `external-clis`: resolve the binary with `command -v` first, then `binaries.<binary>` in `.harness/local.yaml` (a bare command, a `~/...` path, or a path relative to the project); if neither resolves, that reviewer is not-run with the reason "binary absent on this machine" and the stage continues with the remaining reviewers; never dispatch a reviewer the list does not name in place of one that is not-run. When every reviewer of a stage is not-run, the stage is reported not-run, never approved by omission. When a stage lists no `claude`, no Claude agent is dispatched for it and the merged report comes only from the CLI verdicts.
+- Reviewers of one stage run in parallel; there is no sequential mode. Produce the merged report only after every reviewer of the stage has returned or been marked not-run. Each reviewer, Claude or CLI, is one concurrent specialist against the two-specialist cap in Procedure item 5. When the list exceeds the cap, or the binary's note in `external-clis` (`references/<binary>.md`) forbids simultaneous runs of that binary, dispatch in batches.
+- The prompt of a CLI reviewer is assembled at dispatch time from the body of `.agents/<role>.md` (without its frontmatter) + the text of the stage's review skill (`document-review`, `code-review` or `security-review`) + the dispatch context bundle (scope, diff or document, source material), never a separate prompt file maintained apart from the agent. Append the anti-delegation clause below, verbatim, inside the body of that prompt. The runtime does not enforce a restriction stated outside the prompt text (RISK-001), so the clause is never delegated to a frontmatter field or to the instruction that wraps the call:
+
+```
+Do not invoke another CLI binary, spawn another agent, or delegate any part
+of this review to another tool. Do not execute any script in this
+repository. The only commands you may run are the project's own
+`commands.test` and `commands.lint`, exactly as declared in
+`.harness/project.yaml`, and only to read the result of the existing test
+or lint suite — never `commands.build` or any other repository command.
+This instruction is written here, in the prompt text, because the runtime
+does not enforce it by itself: a specialist in this project once ignored a
+`disallowedTools` restriction declared only in its frontmatter and
+dispatched another agent anyway. Follow the words in this prompt, not an
+assumption about what the runtime blocks.
+```
+
+  The block above is the one `external-clis` publishes under "The anti-delegation clause"; that skill owns its wording, and the two texts must stay identical. `commands.test`/`commands.lint` is the only execution a CLI reviewer is granted, never `commands.build`.
+- Freeze the workspace state before each call, invoke the binary in its read-only mode when it has one (`external-clis` lists the flag per binary), and run `git status` against the frozen state after the call. Any change the reviewer made discards the verdict, is reverted, and marks that reviewer not-run for that reason; the merged report does not use its findings. When the change cannot be attributed to a single reviewer because calls ran in parallel, every reviewer whose call overlapped it is marked not-run. A reverted workspace change is a transport failure under the next item, so it never spends a correction round. A reviewer is read-only by contract even when its binary has no read-only flag.
+- Read each call's outcome through the stage's verdict signal as `external-clis` defines it, matched as a line prefix, never by exit code alone. A non-zero exit, a timeout (the reviewer's `timeout_minutes`, or 15 minutes when unset), or exit 0 without the stage's signal is a transport failure: that reviewer is not-run with the reason, the round does not count as a correction round spent, and the missing verdict is never read as approval.
+- Merge the N verdicts of one stage into a single report. Any blocking finding from any reviewer, Claude or CLI (Critical/Major in `code`, gap/conflict/weak criterion in `document`, demonstrated vulnerability or confirmed exposure in `security`), makes the merged verdict blocking even when every other reviewer approved (AC-06). Equivalent findings from different reviewers (same file and line, or same document section) are listed once with every reporter attributed (AC-13). When reviewers disagree on the same point and neither names a clear blocker, record the disagreement with both verdicts quoted and present it to the owner; the Coordinator never resolves a disagreement on its own (AC-07). The two-round correction cap applies to the merged verdict; a CLI reviewer does not reset it.
+- Persist the merged result where the stage already records it: `<document>.review.md` for `document`; your own entry in `.harness/MEMORY.md` (and `.harness/RISKS.md` for confirmed exposure) for `code` and `security`. Each finding in that record carries the tag of the reviewer that produced it, `claude` or `cli:<binary>/<slug>`, in the severity/location/scenario format the review skills already define. Log a CLI reviewer in the Dispatches output with its resolved binary and slug in place of the model fields.
+- You are the only writer of `.harness/local.yaml` (keys `binaries:` and `models:`, schema in `external-clis` `references/local.yaml.example`): binary paths as `~/...` or project-relative, never an expanded home path, and measured model slugs, never a credential or token. Before the first write run `git check-ignore .harness/local.yaml`; if the path is not ignored, warn the owner once, record the warning in `.harness/MEMORY.md`, write the file anyway, and never edit `.gitignore`. A path from another machine only degrades that reviewer to not-run.
 
 ## Consolidation on explicit request
 
@@ -113,7 +141,7 @@ The `consolidate-memory` procedure belongs to this main-session role. Invoke it 
 
 ## Skills
 
-- Load and follow the kit skill `project-onboarding` for doctor/setup diagnosis and project profile, and `context-handoff` for handoff, resume and the consolidate-memory procedure. Specialists load their own skills; you name the skill in each dispatch. Skills are procedures; your role limits, tools and write set above still apply.
+- Load and follow the kit skill `project-onboarding` for doctor/setup diagnosis and project profile, `context-handoff` for handoff, resume and the consolidate-memory procedure, and `external-clis` for every `cli:<binary>/<slug>` reviewer call (see External CLI reviewers). Specialists load their own skills; you name the skill in each dispatch. Skills are procedures; your role limits, tools and write set above still apply.
 
 ## Output format
 

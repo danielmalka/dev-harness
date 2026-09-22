@@ -5,14 +5,14 @@ author: malka
 argument-hint: "[scope or comparison ref]"
 metadata:
   roles: [coordinator, code-reviewer]
-  skills: [code-review]
+  skills: [code-review, external-clis]
   writes: none (read-only)
 ---
 ## Role
 Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
 
 ## Routing
-Scope or comparison ref: $ARGUMENTS. Dispatch `code-reviewer` with the Agent tool, model `sonnet`, and require it to load the kit skill `code-review`. Pass the file scope, the stable comparison point, the requirement source, the project conventions and the author's reported checks marked as unverified claims.
+Scope or comparison ref: $ARGUMENTS. Dispatch `code-reviewer` with the Agent tool, model `sonnet`, and require it to load the kit skill `code-review`, only when `reviewers.code` is absent from `.harness/project.yaml` or contains `claude`. Entries of the form `cli:...` in `reviewers.code` follow the `external-clis` procedure described in `.agents/coordinator.md` ("External CLI reviewers"); both the Claude dispatch and any `cli:...` entry count against the two-specialist concurrency cap. Pass the file scope, the stable comparison point, the requirement source, the project conventions and the author's reported checks marked as unverified claims.
 
 ## Prerequisites
 A scope and a stable comparison point: base commit, branch, tag or merge base. Missing either, ask the owner; with no version control, ask for the touched files and their before state. Missing requirement source (brief, plan, issue or acceptance): run the correctness axis, record the spec axis as not-run with the reason and mark the review incomplete. Nothing may be changing in the reviewed files while the review runs.

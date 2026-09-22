@@ -49,3 +49,26 @@ Rules:
 2. Pick `go-api`, `typescript-web` or `php` when the stack evidence is direct.
 3. Otherwise use `base` and record `none, custom` for stack-specific commands.
 4. Existing project instructions outrank the profile.
+
+## Consumer-only fields in `.harness/project.yaml`
+
+These fields exist only in a consumer's `.harness/project.yaml`, never in a `profiles/*.yaml` stack profile — `base.yaml`, `go-api.yaml`, `typescript-web.yaml` and `php.yaml` never carry them.
+
+`reviewers:` is optional. Absent, the flow is Claude-only, as it is today. When present, it maps a stage to a list of reviewers for that stage:
+
+```yaml
+reviewers:                       # optional; absent = flow today, Claude only
+  document: [claude, "cli:agy/gemini-3.1-pro-high"]
+  code: [claude, "cli:codex/gpt-5.6-sol"]
+  security: [claude]
+```
+
+Valid stages: `document`, `code`, `security`. `verify` is out of v1.
+
+Each entry in a stage's list is one of exactly three forms — no fourth form:
+
+- `claude` — dispatches the kit's own agent for the stage; the model is already fixed in `.agents/<role>.md`.
+- `"cli:<binary>/<slug>"` — a string; an external CLI reviewer with the default timeout of 15 minutes.
+- `{reviewer: "cli:<binary>/<slug>", timeout_minutes: <n>}` — a map; the same CLI reviewer with a custom timeout.
+
+`internal/kit/validate.go` does not change for this field: it validates the kit's own source tree (`.agents/`, `.skills/`, `.commands/`, `profiles/`), not a consumer's `.harness/project.yaml`, so it has nothing to check here.
