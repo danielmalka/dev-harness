@@ -1,0 +1,8 @@
+# Fixture double: excerpt of a consumer .harness/project.yaml, used as
+# fixture data only. `security` lists a single CLI reviewer, no `claude`
+# entry.
+language: en
+profile: go-api
+reviewers:
+  security:
+    - "cli:codex/gpt-5.6-sol"

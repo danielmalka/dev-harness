@@ -56,7 +56,7 @@ Split authorized work into slices that can each be finished and proven on their 
 
 8. **Name the interface each slice publishes and consumes.** The builder of slice four sees only slice four. Exact names and types of what earlier slices produced, and what later slices will rely on, are the only way the seams line up. Contract drift between slices is the most common failure of multi-slice plans.
 
-9. **Give each slice its own check line and its own risk line.** Which check proves this slice, how it is invoked, and what result counts. Status stays `not-run` in a plan, because planning runs nothing. The risk line names what could go wrong here and the cheapest early signal that it did, remembering that a slice gets at most two correction rounds for the same issue before it is reported blocked or partial and replanned.
+9. **Give each slice its own check line and its own risk line.** Which check proves this slice, how it is invoked, and what result counts. Status stays `not-run` in a plan, because planning runs nothing. The risk line names what could go wrong here and the cheapest early signal that it did, remembering that a slice gets at most two correction rounds for the same issue before it is reported blocked or partial and replanned. For a slice that changes `internal/build`, `internal/kit`, or any `dist/` content, the check line's order is fixed: apply the code change, then `go run ./cmd/dh build`, then `go test ./...` / `go run ./cmd/dh validate .` — never the reverse, because the reproducibility test compares the committed `dist/` against a fresh rebuild and fails by construction if the rebuild has not run yet.
 
 10. **Self-review the finished plan against the brief.** Three passes, inline, fixing as you go. Coverage: point at the slice that satisfies each acceptance item and list any gap. Readiness: executable slices have concrete checks and no unresolved prerequisite; unknown commands or interfaces leave only the affected slices provisional. Do not invent values to remove placeholders. Consistency: the name a later slice consumes matches the name the earlier slice produces, exactly.
 
@@ -140,6 +140,7 @@ When persisted, each slice becomes `.harness/tasks/<id>/TASK.md` from the kit te
 | Skipping the risk record on a consolidated-behavior change | Repeats an incident the project already paid for | Ask the Coordinator for relevant incidents and carry them into slices |
 | Implementing slice one while writing the plan | Removes the review point the plan exists to create | Deliver the plan, then let the build command start it |
 | Adding a nice extra slice nobody asked for | Scope creep dressed as thoroughness | Keep it under decisions needed, as a suggestion |
+| Cloning before committing to "prove" a dist rebuild | `git clone` copies HEAD; uncommitted changes are invisible in the clone, so the comparison proves nothing | Commit locally after the gate is green and review approves, then clone that commit, rerun the CI sequence there (`go test ./...`, `go run ./cmd/dh validate --source-only .`, `go run ./cmd/dh build`, `git diff --exit-code --stat -- dist` with the CI exclusions, `go run ./cmd/dh validate .`), and compare binary sha256 between clone and tree; amend only while unpushed, never with `--force`, then push |
 
 ## Example
 

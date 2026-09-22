@@ -1,0 +1,5 @@
+# Fixture double: excerpt of .harness/local.yaml, used as fixture data
+# only, never read by a real `dh` run in these evals.
+binaries:
+  codex: codex
+models: {}

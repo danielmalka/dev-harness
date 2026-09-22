@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
-           <span class="chip">date <b>2026-09-21</b></span>
-          <span class="chip">status <b>0.4.0 · live</b></span>
+           <span class="chip">date <b>2026-09-22</b></span>
+          <span class="chip">status <b>0.5.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -826,6 +826,56 @@ profiles/"] --> B["dh build"]
           <code>.gitkeep</code>, same pattern as the 0.3.0/PRD-002 card.</p>
       </div>
 
+      <div class="card">
+        <h3>0.5.0 · Executable eval runner and 0.4.0 batch hygiene</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> <code>evals/</code> migrates from the single-file format to the native
+          <code>claude plugin eval</code> layout (Claude Code CLI 2.1.278) —
+          <code>evals/cases/&lt;id&gt;/{prompt.md,case.yaml,scaffold.sh,fixtures/,graders/}</code>; the 10 existing
+          cases migrated and gained 4 new ones covering
+          <code>reviewers.document</code>/<code>reviewers.security</code>
+          (<code>external-clis-document-only</code>, <code>external-clis-document-merge-blocker</code>,
+          <code>external-clis-security-only</code>, <code>external-clis-security-merge-blocker</code>);
+          <code>doc-validator-round-cap</code> cannot be driven by the runner and lives in
+          <code>evals/not-run/doc-validator-round-cap/</code> with a <code>REASON.md</code>.
+          <code>evals/rubrics/</code> and the shared fixtures <code>evals/fixtures/external-clis-review</code> and
+          <code>prd-review</code> were removed — each case now carries its own graders and fixtures; only
+          <code>evals/fixtures/slice-01</code> stays outside the cases. <code>dh build</code> now copies
+          <code>evals/</code> into the package, excluding <code>results/</code>, <code>baselines/</code>,
+          <code>not-run/</code> and <code>__pycache__</code>/<code>*.pyc</code>. <code>dh validate</code> gains two
+          checks: parity of the anti-delegation clause between <code>.agents/coordinator.md</code> and
+          <code>.skills/external-clis/SKILL.md</code>, and resolution of the relative references inside
+          <code>evals/</code> (<code>context.add_dirs</code>/<code>scaffold_script</code>/<code>history_file</code>
+          in <code>case.yaml</code>, a grader's <code>target.path</code>). <code>.github/workflows/evals.yml</code>
+          (new, <code>ci.yml</code> untouched) runs the runner with <code>--scaffold --threshold 0.8</code> only when
+          the <code>ANTHROPIC_API_KEY</code> secret exists; without it, the job ends green with
+          <code>skipped: ANTHROPIC_API_KEY absent</code>. Prose fixes: the Coordinator's output format now names the
+          CLI reviewer used or the not-run reason; the workspace-freeze mechanism before a CLI reviewer call is now
+          concrete (<code>git status --porcelain -uall</code> + <code>git hash-object</code> per path, recomputed
+          after the call); the document-validation cycle (create → <code>document-validator</code> → up to two
+          rounds) now covers <code>PLAN.md</code> in <code>.commands/plan.md</code> and the PRD/STORY/TASK/ADR
+          templates in <code>.commands/document.md</code>; the build-before-test order for a slice that changes
+          <code>dist/</code> is now explicit in <code>.skills/implementation-planning/SKILL.md</code>, with a
+          one-line pointer in <code>.skills/delivery-readiness/SKILL.md</code>;
+          <code>.skills/harness-evaluation/SKILL.md</code> rewritten for the native layout.</p>
+        <p><strong>Relations:</strong> implements PRD-004 (RF-01 to RF-18). Closes the CLI reviewer coverage that
+          PRD-003 (0.4.0) had left only on <code>code</code>, and closes the behavioral evaluation that the
+          0.3.0/PRD-002 card listed as pending — the "PRD-002 behavioral evaluation pending" item below leaves
+          Planned.</p>
+        <p><strong>Tested?</strong> First real baseline of the kit:
+          <code>evals/baselines/2026-09-22-0.5.0.{json,md}</code> — 13 cases scored, 4 passed
+          (<code>doc-validator-clean</code>, <code>external-clis-document-merge-blocker</code>,
+          <code>external-clis-document-only</code>, <code>external-clis-security-only</code>), overall score 0.74,
+          cost 4.81 USD; the 9 failed cases are behavioral findings for a future
+          <code>/dev-harness:improve</code> cycle, not runner defects. <code>external-clis-risk-001</code>: the
+          anti-delegation graders passed, only <code>06-no-paraphrasing</code> failed — RISK-001 stays
+          <em>mitigated</em>, not <em>resolved</em>. Two runner lessons found during this run and already folded
+          into <code>.skills/harness-evaluation/SKILL.md</code>: <code>context.add_dirs</code> does not materialize
+          fixtures in the workspace cwd (each case needed its own <code>scaffold.sh</code> run via
+          <code>--scaffold</code>); <code>regex</code> graders reject inline flags — moved to the <code>flags:</code>
+          key.</p>
+      </div>
+
       <h2 id="planejado"><span class="n">03</span>Planned</h2>
       <p>Items with a PRD or fixed decision, not yet released.</p>
 
@@ -844,9 +894,14 @@ profiles/"] --> B["dh build"]
           <li>AC-04: cycle resumed in another session → the persistent report shows what was already applied and
             rejected.</li>
         </ul>
-        <p><strong>Status:</strong> implemented in the kit (0.3.0); behavioral evaluation pending.</p>
+        <p><strong>Status:</strong> done in 0.5.0 — <code>doc-validator-clean</code> and <code>doc-validator-gap</code>
+          ran in the baseline <code>evals/baselines/2026-09-22-0.5.0.json</code> (the first passed, the second
+          failed 2 of 11 graders); <code>doc-validator-round-cap</code> cannot be driven by the native runner and
+          lives in <code>evals/not-run/doc-validator-round-cap/</code> with a <code>REASON.md</code>, never counted
+          as passed. See the 0.5.0 card above.</p>
         <p><strong>Relations:</strong> PRD-002; depends on 0.3.0 (<code>document-validator</code>, skill
-          <code>document-review</code>) and the rubric <code>evals/rubrics/document-review.md</code>.</p>
+          <code>document-review</code>) and on PRD-004 (native runner, <code>evals/rubrics/</code> removed — the
+          criterion moved into each <code>graders/*.md</code>).</p>
       </div>
 
       <div class="card">
@@ -927,6 +982,7 @@ flowchart LR
         R021 --> R030["0.3.0"]
         R030 --> R031["0.3.1"]
         R031 --> R040["0.4.0"]
+        R040 --> R050["0.5.0"]
     end
     ADR001["ADR-001
 Go runtime"] --> R020
@@ -936,8 +992,10 @@ phase 1"] --> R020
 document validator"] --> R030
     PRD003["PRD-003
 peer review by CLI"] --> R040
+    PRD004["PRD-004
+eval runner and hygiene"] --> R050
 
-    R031 --> P1["Planned
+    R050 --> P1["Done 0.5.0
 PRD-002 behavioral evaluation"]
     PRD001 --> P2["Planned
 VS Code extension"]
@@ -956,7 +1014,10 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.4.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.5.0, base for the Delivered section.</li>
+        <li><code>docs/prd/PRD-004-evals-executaveis-e-higiene.md</code> — scope, RF, AC and risks for the eval
+          runner and the 0.4.0 batch hygiene.</li>
+        <li><code>evals/baselines/2026-09-22-0.5.0.md</code> — real numbers from the first executed baseline.</li>
         <li><code>docs/prd/PRD-001-etapa-1.md</code> — scope, RF, AC and risks of phase 1.</li>
         <li><code>docs/prd/PRD-002-validador-de-documentos.md</code> — scope, RF, AC and status of the document
           validator.</li>

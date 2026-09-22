@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: external-clis-document-only
+context:
+  scaffold_script: scaffold.sh

@@ -86,6 +86,12 @@ func Validate(target string, options Options) (Report, error) {
 	checkLinks(dirs["root"], &report.Errors)
 	checkTemplateRefs(dirs, &report.Errors)
 	checkPrivatePaths(dirs["root"], &report.Errors)
+	if isDir(dirs["agents"]) && isDir(dirs["skills"]) {
+		checkAntiDelegationClause(dirs, &report.Errors)
+	}
+	if isDir(dirs["evals"]) {
+		checkEvalReferences(dirs, &report.Errors)
+	}
 
 	if layout == "package" {
 		checkPlugin(resolved, &report.Errors)
@@ -94,6 +100,7 @@ func Validate(target string, options Options) (Report, error) {
 		packageRoot := dirs["package"]
 		checkPlugin(packageRoot, &report.Errors)
 		checkCoverage(dirs, packageRoot, &report.Errors)
+		checkEvalsCoverage(dirs, packageRoot, &report.Errors)
 		checkRequiredPackageFiles(packageRoot, &report.Errors)
 		license := filepath.Join(resolved, "LICENSE")
 		if _, err := os.Stat(license); err != nil {
@@ -194,6 +201,7 @@ func layoutDirs(target, layout string) map[string]string {
 			"templates": filepath.Join(target, "templates"),
 			"profiles":  filepath.Join(target, "profiles"),
 			"scripts":   filepath.Join(target, "scripts"),
+			"evals":     filepath.Join(target, "evals"),
 		}
 	}
 	packageRoot := filepath.Join(target, "dist", "claude-code", "dev-harness")
@@ -205,6 +213,7 @@ func layoutDirs(target, layout string) map[string]string {
 		"templates": filepath.Join(target, "templates"),
 		"profiles":  filepath.Join(target, "profiles"),
 		"scripts":   filepath.Join(target, "scripts"),
+		"evals":     filepath.Join(target, "evals"),
 		"package":   packageRoot,
 	}
 }
@@ -540,6 +549,11 @@ func checkPrivatePaths(root string, errors *[]string) {
 		if filepath.Ext(path) == ".html" || filepath.Base(path) == "validate.py" {
 			continue
 		}
+		rel, _ := filepath.Rel(root, path)
+		relSlash := filepath.ToSlash(rel)
+		if strings.HasPrefix(relSlash, "evals/baselines/") || strings.HasPrefix(relSlash, "evals/results/") {
+			continue
+		}
 		text, err := readText(path)
 		if err != nil || !privatePattern.MatchString(text) {
 			continue
@@ -547,7 +561,6 @@ func checkPrivatePaths(root string, errors *[]string) {
 		if (strings.Contains(text, "code.claude.com")) && !strings.Contains(text, "/home/") && !strings.Contains(text, "/Users/") {
 			continue
 		}
-		rel, _ := filepath.Rel(root, path)
 		for lineNumber, line := range strings.Split(text, "\n") {
 			if privatePattern.MatchString(line) && !strings.Contains(line, "code.claude.com") {
 				*errors = append(*errors, fmt.Sprintf("%s:%d: private path", rel, lineNumber+1))

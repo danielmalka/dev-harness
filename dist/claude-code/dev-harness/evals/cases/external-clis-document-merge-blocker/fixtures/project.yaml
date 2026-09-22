@@ -1,0 +1,9 @@
+# Fixture double: excerpt of a consumer .harness/project.yaml, used as
+# fixture data only. `document` lists both a claude entry and a CLI
+# reviewer.
+language: en
+profile: go-api
+reviewers:
+  document:
+    - claude
+    - "cli:codex/gpt-5.6-sol"
