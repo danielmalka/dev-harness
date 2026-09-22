@@ -118,6 +118,72 @@ func TestRepositoryBuildNoBinariesPassesValidator(t *testing.T) {
 	}
 }
 
+func TestBuildCopiesEvalsWithoutResultsBaselinesNotRun(t *testing.T) {
+	root := minimalRoot(t)
+	for _, path := range []string{
+		"evals/cases/x/fixtures/results",
+		"evals/results",
+		"evals/baselines",
+		"evals/not-run",
+		"evals/fixtures/slice-01/__pycache__",
+	} {
+		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(path)), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeBuildFixture(t, root, "evals/cases/x/case.yaml", "id: x\n", 0o644)
+	writeBuildFixture(t, root, "evals/cases/x/fixtures/results/kept.txt", "kept\n", 0o644)
+	writeBuildFixture(t, root, "evals/results/run.json", "{}\n", 0o644)
+	writeBuildFixture(t, root, "evals/baselines/base.json", "{}\n", 0o644)
+	writeBuildFixture(t, root, "evals/not-run/skip.json", "{}\n", 0o644)
+	writeBuildFixture(t, root, "evals/fixtures/slice-01/__pycache__/x.pyc", "cache\n", 0o644)
+	writeBuildFixture(t, root, "evals/fixtures/slice-01/keep.py", "print(1)\n", 0o644)
+
+	output := filepath.Join(t.TempDir(), "dev-harness")
+	if err := Build(root, Options{
+		Output:            output,
+		NoBinaries:        true,
+		SkipMinimumCounts: true,
+	}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, path := range []string{
+		"evals/cases/x/case.yaml",
+		"evals/cases/x/fixtures/results/kept.txt",
+		"evals/fixtures/slice-01/keep.py",
+	} {
+		if _, err := os.Stat(filepath.Join(output, filepath.FromSlash(path))); err != nil {
+			t.Errorf("missing package file %s: %v", path, err)
+		}
+	}
+	for _, path := range []string{
+		"evals/results",
+		"evals/baselines",
+		"evals/not-run",
+		"evals/fixtures/slice-01/__pycache__",
+	} {
+		if _, err := os.Stat(filepath.Join(output, filepath.FromSlash(path))); !os.IsNotExist(err) {
+			t.Errorf("excluded path present: %s", path)
+		}
+	}
+}
+
+func TestBuildWithoutEvalsDirectory(t *testing.T) {
+	root := minimalRoot(t)
+	output := filepath.Join(t.TempDir(), "dev-harness")
+	if err := Build(root, Options{
+		Output:            output,
+		NoBinaries:        true,
+		SkipMinimumCounts: true,
+	}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(output, "evals")); !os.IsNotExist(err) {
+		t.Errorf("evals should not exist in the package when absent from source")
+	}
+}
+
 func minimalRoot(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()

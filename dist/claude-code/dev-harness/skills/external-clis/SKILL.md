@@ -46,7 +46,7 @@ An external CLI reviewer (`agy`, `codex`, `grok`, `opencode`, `mcode`, `claude`)
 4. **Write the prompt to disk** when it is longer than one line. Do not stuff a multi-kilobyte prompt into argv when the binary offers `--prompt-file`, stdin, or an attached-file flag; `references/<binary>.md` names which one that binary takes.
 5. **Invoke with the binary's flag order**, from `references/<binary>.md`. Flag order is part of the contract for some binaries (a misplaced flag is read as the prompt itself); do not reorder from what the reference shows. Apply the binary's read-only flag when it has one — see the table below.
 6. **Classify the outcome by the stage's verdict signal**, not by exit code alone — see "Transport failure vs. a real verdict" below. A non-zero exit, a timeout, or exit 0 with no recognizable verdict signal is a transport failure: it is reported not-run with the reason, and it does not count as either an approval or a rejection.
-7. **Check `git status` against the state frozen before the call.** Any change the reviewer made to the workspace discards its verdict, reverts the change, and marks the reviewer not-run — regardless of what it said. A reviewer is read-only by contract even when its binary has no read-only flag.
+7. **Recompute the frozen state and compare.** Frozen before the call: `git status --porcelain -uall` for the path list, then `git hash-object <path>` for every listed path (modified or untracked; a path absent on disk records the marker `deleted` in place of the hash). After the call, recompute both. Any difference — a changed path list, or a changed hash for any path — is a transport failure: the verdict is discarded, the change is reverted, and the reviewer is not-run for that reason, regardless of what it said. This also catches an edit made inside a file that was already dirty in the frozen state, which the path list alone cannot distinguish. A reviewer is read-only by contract even when its binary has no read-only flag.
 8. **Report to the Coordinator**: the resolved binary and slug, the verdict or the not-run reason, and the raw output location if one was written to disk. This skill does not merge verdicts across reviewers or write a persistent report; both are the Coordinator's procedure.
 
 ## Output format
@@ -59,7 +59,7 @@ What step 8 hands back to the Coordinator for one CLI reviewer call:
 - Verdict: <the stage's verdict signal, verbatim> | not-run (<reason: binary absent, transport failure, timeout, or reverted change>)
 - Timeout: <the value used, configured per reviewer or the 15-minute default>
 - Raw output: <path on disk to the prompt and the reply, if either was written there>
-- git status: clean | reverted (<what the reviewer changed, now reverted>)
+- Workspace check (`git status --porcelain -uall` + `git hash-object` per path): clean | reverted (<what the reviewer changed, now reverted>)
 ```
 
 This skill does not merge verdicts across reviewers or write a persistent report; the Coordinator folds this line into the stage's own report format (`code-review`, `document-review`, `security-review`), tagged with `cli:<binary>/<slug>` the same way it tags a Claude reviewer's findings with `claude`.
@@ -90,10 +90,10 @@ assumption about what the runtime blocks.
 | --- | --- | --- |
 | `codex` | `codex exec -s read-only` | — |
 | `mcode` | `mcode exec --permission off` | — |
-| `agy` | none documented | Guarantee comes from the post-call `git status` check (step 7) |
-| `grok` | none documented | Guarantee comes from the post-call `git status` check (step 7) |
-| `opencode` | none documented | Guarantee comes from the post-call `git status` check (step 7) |
-| `claude` | none documented, as a CLI reviewer distinct from a Coordinator-dispatched agent | Guarantee comes from the post-call `git status` check (step 7) |
+| `agy` | none documented | Guarantee comes from the post-call porcelain+hash-object check (step 7) |
+| `grok` | none documented | Guarantee comes from the post-call porcelain+hash-object check (step 7) |
+| `opencode` | none documented | Guarantee comes from the post-call porcelain+hash-object check (step 7) |
+| `claude` | none documented, as a CLI reviewer distinct from a Coordinator-dispatched agent | Guarantee comes from the post-call porcelain+hash-object check (step 7) |
 
 ## Transport failure vs. a real verdict
 
@@ -131,14 +131,14 @@ Recorded transport-failure patterns, generalized across binaries: [references/go
 | Treating exit 0 as a pass | Help text, a reasoning preamble, and a silent no-op all exit 0 | Read the stage's own verdict signal, never the exit code alone |
 | Putting the anti-delegation clause only in the dispatch instruction | The runtime does not enforce a restriction stated outside the prompt body (RISK-001) | Copy the clause verbatim into the prompt text itself |
 | Letting a CLI reviewer run `commands.build` | Can rewrite versioned artifacts such as `dist/`, which then reads as an unrelated change | The clause permits only `commands.test`/`commands.lint` |
-| Assuming a binary without a read-only flag cannot touch the workspace | Several binaries in this fleet have no read-only mode at all | The post-call `git status` check is the guarantee, not the binary's own flags |
+| Assuming a binary without a read-only flag cannot touch the workspace | Several binaries in this fleet have no read-only mode at all | The post-call `git status --porcelain -uall` + `git hash-object` comparison (step 7) is the guarantee, not the binary's own flags |
 | Stuffing a multi-kilobyte prompt into argv | Several binaries truncate, misparse, or treat part of it as a second argument | Write the prompt to disk and pass it the way `references/<binary>.md` shows |
 | Reordering a binary's flags because another binary takes them in a different order | For some binaries a misplaced flag is read as the prompt itself | Follow the exact order in `references/<binary>.md` |
 | Believing `commands.test` under `codex exec -s read-only` proves behavior | That sandbox blocks the check from actually running — see [references/codex.md](references/codex.md) | Treat that reviewer's pass as reading and reasoning only, not behavioral validation |
 
 ## Example
 
-A `code` stage lists `["claude", "cli:codex/<slug>"]`. For the `codex` entry: resolve `codex` on `PATH`; assemble the prompt from `.agents/code-reviewer.md`'s body, `code-review`'s skill text, the diff, and the anti-delegation clause; write it to disk; invoke `codex exec --skip-git-repo-check -s read-only -m <slug> - < prompt.md`; read the reply for `Review status:` under `## Verdict`. If found, that is the verdict. If the process exits 0 with no `## Verdict` section, the reviewer is not-run, reason "no verdict signal", and the round is not spent. Either way, `git status` is checked against the pre-call state before the result is reported.
+A `code` stage lists `["claude", "cli:codex/<slug>"]`. For the `codex` entry: resolve `codex` on `PATH`; assemble the prompt from `.agents/code-reviewer.md`'s body, `code-review`'s skill text, the diff, and the anti-delegation clause; write it to disk; invoke `codex exec --skip-git-repo-check -s read-only -m <slug> - < prompt.md`; read the reply for `Review status:` under `## Verdict`. If found, that is the verdict. If the process exits 0 with no `## Verdict` section, the reviewer is not-run, reason "no verdict signal", and the round is not spent. Either way, the frozen `git status --porcelain -uall` path list and per-path `git hash-object` are recomputed and compared against the pre-call state before the result is reported.
 
 ## Related
 

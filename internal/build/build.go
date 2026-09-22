@@ -17,7 +17,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/kit"
 )
 
-const defaultVersion = "0.4.0"
+const defaultVersion = "0.5.0"
 
 type Target struct {
 	OS   string
@@ -137,6 +137,12 @@ func Build(root string, options Options, out io.Writer) error {
 	if err := copyTree(pluginSource, pkg); err != nil {
 		return err
 	}
+	evalsSource := filepath.Join(root, "evals")
+	if isDir(evalsSource) {
+		if err := copyTreeSkipping(evalsSource, filepath.Join(pkg, "evals"), evalsSkip); err != nil {
+			return err
+		}
+	}
 
 	if !options.NoBinaries {
 		for _, target := range targets {
@@ -213,6 +219,11 @@ func Build(root string, options Options, out io.Writer) error {
 	}
 	if err := compareCopiedTree(pluginSource, pkg); err != nil {
 		return fmt.Errorf("copy mismatch: adapters/claude-code/plugin -> package: %w", err)
+	}
+	if isDir(evalsSource) {
+		if err := compareTreesSkipping(evalsSource, filepath.Join(pkg, "evals"), evalsSkip); err != nil {
+			return fmt.Errorf("copy mismatch: evals -> evals: %w", err)
+		}
 	}
 
 	packageReport, err := kit.Validate(pkg, kit.Options{SkipMinimumCounts: options.SkipMinimumCounts})
@@ -378,6 +389,13 @@ func templateNames(directory string) []string {
 }
 
 func copyTree(source, destination string) error {
+	return copyTreeSkipping(source, destination, nil)
+}
+
+// copyTreeSkipping copies source into destination like copyTree, except any
+// entry (relative to source) for which skip returns true is left out; for a
+// directory that means the whole subtree is left out.
+func copyTreeSkipping(source, destination string, skip func(relative string, isDir bool) bool) error {
 	return filepath.WalkDir(source, func(path string, entry os.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -390,6 +408,12 @@ func copyTree(source, destination string) error {
 			return os.MkdirAll(destination, 0o755)
 		}
 		if entry.Name() == ".gitkeep" {
+			if entry.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if skip != nil && skip(relative, entry.IsDir()) {
 			if entry.IsDir() {
 				return filepath.SkipDir
 			}
@@ -418,8 +442,14 @@ func copyTree(source, destination string) error {
 }
 
 func compareTrees(source, destination string) error {
-	left := treeFiles(source)
-	right := treeFiles(destination)
+	return compareTreesSkipping(source, destination, nil)
+}
+
+// compareTreesSkipping compares source and destination like compareTrees,
+// ignoring any entry (relative to each tree) for which skip returns true.
+func compareTreesSkipping(source, destination string, skip func(relative string, isDir bool) bool) error {
+	left := treeFilesSkipping(source, skip)
+	right := treeFilesSkipping(destination, skip)
 	for relative := range left {
 		if !right[relative] {
 			return fmt.Errorf("missing %s", relative)
@@ -462,6 +492,10 @@ func compareCopiedTree(source, destination string) error {
 }
 
 func treeFiles(root string) map[string]bool {
+	return treeFilesSkipping(root, nil)
+}
+
+func treeFilesSkipping(root string, skip func(relative string, isDir bool) bool) map[string]bool {
 	files := make(map[string]bool)
 	_ = filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
 		if err != nil {
@@ -470,13 +504,42 @@ func treeFiles(root string) map[string]bool {
 		if entry.IsDir() {
 			return nil
 		}
-		if entry.Name() != ".gitkeep" {
-			relative, _ := filepath.Rel(root, path)
-			files[relative] = true
+		if entry.Name() == ".gitkeep" {
+			return nil
 		}
+		relative, _ := filepath.Rel(root, path)
+		if skip != nil && skip(relative, false) {
+			return nil
+		}
+		files[relative] = true
 		return nil
 	})
 	return files
+}
+
+// evalsSkip reports whether a path relative to evals/ should be excluded
+// from the package: results/, baselines/, and not-run/ only at the first
+// level of evals/ (a same-named directory nested deeper, e.g. under a case's
+// fixtures/, is kept); __pycache__/ and *.pyc are excluded at any depth.
+func evalsSkip(relative string, isDirEntry bool) bool {
+	parts := strings.Split(filepath.ToSlash(relative), "/")
+	if len(parts) > 0 {
+		switch parts[0] {
+		case "results", "baselines", "not-run":
+			return true
+		}
+	}
+	for _, part := range parts {
+		if part == "__pycache__" {
+			return true
+		}
+	}
+	return !isDirEntry && strings.HasSuffix(relative, ".pyc")
+}
+
+func isDir(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.IsDir()
 }
 
 func writeFile(path string, data []byte, mode os.FileMode) error {

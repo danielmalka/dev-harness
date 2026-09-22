@@ -1,0 +1,44 @@
+name: evals
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      # ponytail: job-level `if: secrets.X` is unreliable in GitHub Actions;
+      # gate via a step output instead and branch every later step on it.
+      - name: Check for ANTHROPIC_API_KEY
+        id: gate
+        env:
+          KEY_PRESENT: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: echo "present=$KEY_PRESENT" >> "$GITHUB_OUTPUT"
+      - name: Skip (no API key)
+        if: steps.gate.outputs.present != 'true'
+        run: 'echo "skipped: ANTHROPIC_API_KEY absent"'
+      - name: Rebuild package
+        if: steps.gate.outputs.present == 'true'
+        run: go run ./cmd/dh build
+      # Pinned per code.claude.com's npm install method; version matches
+      # the CLI validated locally (`claude --version` -> 2.1.278).
+      - name: Install Claude Code CLI
+        if: steps.gate.outputs.present == 'true'
+        run: npm install -g @anthropic-ai/claude-code@2.1.278
+      - name: Run evals
+        if: steps.gate.outputs.present == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          mkdir -p evals/results/ci
+          claude plugin eval dist/claude-code/dev-harness --trust-plugin --scaffold --runs 1 --ablation none --no-publish --max-cost-usd 15 --threshold 0.8 --output-dir evals/results/ci --json evals/results/ci/aggregate.json
+      - name: Upload eval results
+        if: steps.gate.outputs.present == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: evals-results
+          path: evals/results/ci
