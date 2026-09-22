@@ -3,4 +3,4 @@ type: llm
 weight: 1
 focus: trace
 ---
-Did the codex entry's verdict come from cli-output-codex-approve.md, with no real codex binary invoked?
+Is the codex verdict traceable to reading fixtures/cli-output-codex-approve.md, with no attempt to execute a codex binary?

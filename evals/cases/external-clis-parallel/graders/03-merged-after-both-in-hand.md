@@ -1,6 +1,6 @@
 ---
 type: llm
 weight: 1
-focus: trace
+focus: last_message
 ---
-Was the merged report produced only after both results (or not-run markers) were in hand?
+Does the report show the merged verdict was produced only after both results (or not-run markers) were in hand, rather than from one reviewer with the other still outstanding?

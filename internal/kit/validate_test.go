@@ -228,6 +228,55 @@ func TestAntiDelegationClauseParity(t *testing.T) {
 	}
 }
 
+func TestEmbeddedAgentBodyDrift(t *testing.T) {
+	body := "You are the coordinator.\n\n## Mission\n\nDeliver the outcome."
+	agentFile := "---\nname: coordinator\ndescription: Use when testing\nauthor: test\nmodel: haiku\n---\n" + body + "\n"
+	indent := func(text string) string {
+		lines := strings.Split(text, "\n")
+		for i, line := range lines {
+			if strings.TrimSpace(line) != "" {
+				lines[i] = "  " + line
+			}
+		}
+		return strings.Join(lines, "\n")
+	}
+	prompt := func(embedded string) string {
+		return "---\nname: c\nmax_turns: 3\nappend_system_prompt: |\n" + indent(embedded) + "\n---\nDo the thing.\n"
+	}
+
+	tests := []struct {
+		name     string
+		embedded string
+		want     string
+	}{
+		{name: "in sync", embedded: body, want: ""},
+		{name: "trailing whitespace only", embedded: "You are the coordinator.  \n\n## Mission\n\nDeliver the outcome.", want: ""},
+		{name: "drifted", embedded: "You are the coordinator.\n\n## Mission\n\nDeliver something else.", want: "evals/cases/c/prompt.md: append_system_prompt no longer matches .agents/coordinator.md"},
+		{name: "unknown agent", embedded: "You are somebody else.\n\n## Mission\n\nDeliver the outcome.", want: ""},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			root := syntheticRoot(t)
+			writeFixture(t, filepath.Join(root, ".agents", "coordinator.md"), agentFile)
+			writeFixture(t, filepath.Join(root, "evals", "cases", "c", "prompt.md"), prompt(test.embedded))
+			report, err := Validate(root, Options{SkipMinimumCounts: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			joined := strings.Join(report.Errors, "\n")
+			if test.want == "" {
+				if strings.Contains(joined, "append_system_prompt no longer matches") {
+					t.Fatalf("errors = %v, want no drift error", report.Errors)
+				}
+				return
+			}
+			if !strings.Contains(joined, test.want) {
+				t.Fatalf("errors = %v, want substring %q", report.Errors, test.want)
+			}
+		})
+	}
+}
+
 func TestEvalReferences(t *testing.T) {
 	tests := []struct {
 		name    string

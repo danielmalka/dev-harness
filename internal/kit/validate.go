@@ -91,6 +91,7 @@ func Validate(target string, options Options) (Report, error) {
 	}
 	if isDir(dirs["evals"]) {
 		checkEvalReferences(dirs, &report.Errors)
+		checkEmbeddedAgentBodies(dirs, &report.Errors)
 	}
 
 	if layout == "package" {

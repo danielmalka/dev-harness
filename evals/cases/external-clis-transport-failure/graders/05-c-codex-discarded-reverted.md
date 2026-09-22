@@ -1,6 +1,6 @@
 ---
 type: llm
 weight: 1
-focus: trace
+focus: last_message
 ---
-In (c), was cli:codex/gpt-5.6-sol's verdict discarded and diff.md's change reverted despite the raw reply carrying a real `Review status: approve` signal?
+In (c), does the report discard cli:codex/gpt-5.6-sol's verdict and state that the change it left in diff.md is reverted, despite the raw reply carrying a real `Review status: approve` signal?

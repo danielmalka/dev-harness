@@ -305,3 +305,140 @@ func relativeFilesSkipping(root string, skip func(relative string) bool) map[str
 	}
 	return files
 }
+
+// checkEmbeddedAgentBodies compares each evals/cases/<id>/prompt.md's
+// append_system_prompt block against the body of the agent it copies. The
+// runner accepts no file reference for that field, so the copy is the only
+// text a case actually runs against: when it drifts from .agents/<role>.md,
+// every run of that case silently measures the old instructions. It stays
+// silent when the block is absent or no shipped agent body matches it.
+func checkEmbeddedAgentBodies(dirs map[string]string, errors *[]string) {
+	bodies := agentBodies(dirs["agents"])
+	if len(bodies) == 0 {
+		return
+	}
+	prompts, _ := filepath.Glob(filepath.Join(dirs["evals"], "cases", "*", "prompt.md"))
+	sort.Strings(prompts)
+	for _, promptPath := range prompts {
+		text, err := readText(promptPath)
+		if err != nil {
+			continue
+		}
+		embedded, ok := yamlBlockScalar(text, "append_system_prompt")
+		if !ok {
+			continue
+		}
+		name, body, ok := matchingAgentBody(bodies, embedded)
+		if !ok {
+			continue
+		}
+		if !sameTrimmedLines(embedded, body) {
+			*errors = append(*errors, fmt.Sprintf(
+				"%s: append_system_prompt no longer matches %s",
+				rootRelative(dirs["root"], promptPath),
+				rootRelative(dirs["root"], filepath.Join(dirs["agents"], name+".md")),
+			))
+		}
+	}
+}
+
+// agentBodies reads every .agents/<role>.md and returns its body, frontmatter
+// removed, keyed by role name.
+func agentBodies(agentsDir string) map[string]string {
+	bodies := map[string]string{}
+	paths, _ := filepath.Glob(filepath.Join(agentsDir, "*.md"))
+	for _, path := range paths {
+		text, err := readText(path)
+		if err != nil {
+			continue
+		}
+		body, ok := bodyAfterFrontmatter(text)
+		if !ok {
+			continue
+		}
+		bodies[strings.TrimSuffix(filepath.Base(path), ".md")] = body
+	}
+	return bodies
+}
+
+// matchingAgentBody picks the agent whose body the embedded copy was taken
+// from, identified by its first non-empty line, so a drifted copy is still
+// attributed to its source instead of silently skipped.
+func matchingAgentBody(bodies map[string]string, embedded string) (string, string, bool) {
+	first := firstNonEmptyLine(embedded)
+	if first == "" {
+		return "", "", false
+	}
+	names := make([]string, 0, len(bodies))
+	for name := range bodies {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		if firstNonEmptyLine(bodies[name]) == first {
+			return name, bodies[name], true
+		}
+	}
+	return "", "", false
+}
+
+func firstNonEmptyLine(text string) string {
+	for _, line := range strings.Split(text, "\n") {
+		if trimmed := strings.TrimSpace(line); trimmed != "" {
+			return trimmed
+		}
+	}
+	return ""
+}
+
+// bodyAfterFrontmatter strips a leading YAML frontmatter block.
+func bodyAfterFrontmatter(text string) (string, bool) {
+	if !strings.HasPrefix(text, "---\n") {
+		return "", false
+	}
+	rest := text[len("---\n"):]
+	end := strings.Index(rest, "\n---\n")
+	if end < 0 {
+		return "", false
+	}
+	return strings.TrimSpace(rest[end+len("\n---\n"):]), true
+}
+
+// yamlBlockScalar reads a literal block scalar (key: |) and returns it with the
+// block indentation removed.
+func yamlBlockScalar(text, key string) (string, bool) {
+	lines := strings.Split(text, "\n")
+	start := -1
+	for i, line := range lines {
+		if strings.TrimRight(line, " ") == key+": |" {
+			start = i + 1
+			break
+		}
+	}
+	if start < 0 {
+		return "", false
+	}
+	indent := ""
+	for _, line := range lines[start:] {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		indent = line[:len(line)-len(strings.TrimLeft(line, " "))]
+		break
+	}
+	if indent == "" {
+		return "", false
+	}
+	collected := []string{}
+	for _, line := range lines[start:] {
+		if strings.TrimSpace(line) == "" {
+			collected = append(collected, "")
+			continue
+		}
+		if !strings.HasPrefix(line, indent) {
+			break
+		}
+		collected = append(collected, strings.TrimPrefix(line, indent))
+	}
+	return strings.TrimSpace(strings.Join(collected, "\n")), true
+}
