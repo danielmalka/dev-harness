@@ -42,7 +42,7 @@ An external CLI reviewer (`agy`, `codex`, `grok`, `opencode`, `mcode`, `claude`)
 
 1. **Resolve the binary.** `command -v <binary>` first. If that fails, look up `binaries.<binary>` in `.harness/local.yaml` (a bare command on `PATH`, a `~/...` path, or a path relative to the project — see `references/local.yaml.example`). If neither resolves, the reviewer is not-run, reason "binary absent on this machine". Never substitute a different binary for the one configured.
 2. **Pin the model.** Take the slug from the `cli:<binary>/<slug>` entry the Coordinator dispatched. Do not invent a slug; an unmeasured slug is a transport failure at the CLI's own level (unknown model), not something this skill guesses around.
-3. **Assemble the prompt**: the role prompt body, the stage's review skill text, the dispatch context bundle, and the anti-delegation clause below, verbatim, in the body of the prompt itself — never only in a frontmatter field or a dispatch instruction the CLI's runtime is trusted to enforce on its own.
+3. **Assemble the prompt**: the role prompt body, the stage's review skill text, the dispatch context bundle, the anti-delegation clause below, and the verdict-line contract below, verbatim, in the body of the prompt itself — never only in a frontmatter field or a dispatch instruction the CLI's runtime is trusted to enforce on its own. A CLI reviewer reads the stage's output format as one section among many and will paraphrase its verdict line unless the prompt states the line as a requirement; a measured `codex` run on 2026-09-22 returned a correct blocking verdict written as `- **Request changes**` and no `Review status:` line at all, which the classification in step 6 would have thrown away.
 4. **Write the prompt to disk** when it is longer than one line. Do not stuff a multi-kilobyte prompt into argv when the binary offers `--prompt-file`, stdin, or an attached-file flag; `references/<binary>.md` names which one that binary takes.
 5. **Invoke with the binary's flag order**, from `references/<binary>.md`. Flag order is part of the contract for some binaries (a misplaced flag is read as the prompt itself); do not reorder from what the reference shows. Apply the binary's read-only flag when it has one — see the table below.
 6. **Classify the outcome by the stage's verdict signal**, not by exit code alone — see "Transport failure vs. a real verdict" below. A non-zero exit, a timeout, or exit 0 with no recognizable verdict signal is a transport failure: it is reported not-run with the reason, and it does not count as either an approval or a rejection.
@@ -84,6 +84,40 @@ assumption about what the runtime blocks.
 
 `commands.test`/`commands.lint` is the only execution this skill permits a CLI reviewer (owner decision, PRD-003 RF-01) — never `commands.build`, which can rewrite versioned artifacts such as `dist/` and trip the reversion in step 7 above. For `codex` under its read-only sandbox, this permission is inert in practice: [references/codex.md](references/codex.md) explains why.
 
+## The verdict-line contract
+
+Append this block, with `<stage signal>` replaced by the stage's own line from the table below, to every CLI reviewer prompt:
+
+```
+Your reply must contain, on its own line, exactly this line, with no bold, no
+quoting and no extra words before it:
+<stage signal>
+Write it inside the `<stage section>` section of the output format above. Every
+other part of your reply follows that format as written. A reply without this
+exact line is discarded as a transport failure and your review is recorded as
+not-run, however sound its content.
+```
+
+| Stage | `<stage section>` | `<stage signal>` |
+| --- | --- | --- |
+| `document` | `## Verdict` | `- approved` or `- changes required` |
+| `code` | `## Verdict` | `- Review status: approve` or `- Review status: request changes` |
+| `security` | `## Findings` | `### <SEVERITY>: <title>` for each finding, or `- No demonstrated vulnerability or confirmed exposure found in the reviewed scope` when there is none |
+
+`security` has no `## Verdict` section: its own Output format ends the scope block and goes straight to `## Findings`, which is where its signal lives. Substituting the section name, not only the signal line, is what keeps the contract from contradicting the format it is appended to.
+
+## Recovering a deviating verdict
+
+A reply that carries no signal is a transport failure (step 6). One narrow exception, because discarding a blocking verdict is worse than reading a deviating one: when the reply has the stage's own verdict section — `## Verdict` for `document` and `code`, `## Findings` for `security` — and that section contains exactly one of the stage's two outcomes, read it as that outcome and record the deviation beside it (`verdict recovered: the reviewer wrote "<the line it actually wrote>"`).
+
+| Stage | Recoverable when the section contains exactly one of |
+| --- | --- |
+| `document` | `approved` or `changes required`, in any emphasis or punctuation |
+| `code` | `approve` or `request changes`, in any emphasis or punctuation |
+| `security` | a severity entry for at least one finding, or a statement that none was found — never both |
+
+Both outcomes present, neither present, or the stage's section absent altogether stays a transport failure. The recovery never upgrades anything: a recovered approval is still one reviewer's approval, a recovered blocking verdict blocks exactly as a well-formed one would, and a `security` reply whose findings cannot be told apart from its clean statement is not guessed at.
+
 ## Read-only mode by binary
 
 | Binary | Read-only flag | When none exists |
@@ -105,7 +139,7 @@ The verdict signal is defined per stage, read from the stage's own output format
 | `code` | A line under `## Verdict` starting with `Review status:` | Exit 0 with no `## Verdict` section, or the line missing under it |
 | `security` | A `### <SEVERITY>` entry under `## Findings`, or a line under `## Findings` starting with `No demonstrated vulnerability or confirmed exposure found` (the full sentence continues "in the reviewed scope; unresolved hypotheses remain listed below" — match the prefix, not the whole line) | Exit 0 with a `## Findings` section that has neither |
 
-A non-zero exit, a timeout, or exit 0 without the stage's signal is a transport failure: not-run with the reason, never counted as an approval, and never spending a correction round. Help text, a reasoning preamble with no verdict, and an empty file on disk are all transport failures, not a lenient pass.
+A non-zero exit, a timeout, or exit 0 without the stage's signal is a transport failure: not-run with the reason, never counted as an approval, and never spending a correction round. Help text, a reasoning preamble with no verdict, and an empty file on disk are all transport failures, not a lenient pass. Before classifying a reply that has a `## Verdict` section but no signal line, apply "Recovering a deviating verdict" above; only an ambiguous or absent verdict falls through to transport failure.
 
 ## `.harness/local.yaml`
 
@@ -128,6 +162,8 @@ Recorded transport-failure patterns, generalized across binaries: [references/go
 
 | Mistake | Why it hurts | Do instead |
 | --- | --- | --- |
+| Building the context bundle with a directory pathspec, such as `git show <sha> -- 'evals/cases/*/graders'` | Git matches files, not directories, so the command succeeds with an empty diff and the reviewer silently judges a scope that was never sent; a measured run on 2026-09-22 only caught it because the CLI reviewer reported the gap itself | Match files (`'evals/cases/*/graders/*'`) and check the byte count of the assembled bundle before sending it |
+| Assembling the prompt without the verdict-line contract | A real CLI writes its own verdict shape and the reply gets discarded as a transport failure | Include the contract block verbatim, with the stage's own signal line |
 | Treating exit 0 as a pass | Help text, a reasoning preamble, and a silent no-op all exit 0 | Read the stage's own verdict signal, never the exit code alone |
 | Putting the anti-delegation clause only in the dispatch instruction | The runtime does not enforce a restriction stated outside the prompt body (RISK-001) | Copy the clause verbatim into the prompt text itself |
 | Letting a CLI reviewer run `commands.build` | Can rewrite versioned artifacts such as `dist/`, which then reads as an unrelated change | The clause permits only `commands.test`/`commands.lint` |

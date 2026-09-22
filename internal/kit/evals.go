@@ -387,22 +387,38 @@ func agentBodies(agentsDir string) map[string]string {
 	return bodies
 }
 
-// matchingAgentBody picks the agent whose body the embedded copy was taken
-// from, identified by its first non-empty line, so a drifted copy is still
-// attributed to its source instead of silently skipped.
+// matchingAgentBody picks the agent whose body an embedded copy was taken from.
+// Two independent paths claim a copy, because each one alone goes silent on a
+// different drift: the opening line still matching a shipped agent, and a high
+// share of lines in common. Identity by opening line alone misses a copy whose
+// first line drifted with the rest; identity by overlap alone misses a copy
+// that drifted past the threshold. A copy that lost both its opening line and
+// most of its lines is no longer attributable to any agent and is left to the
+// case author, which the skill records as a known limit.
 func matchingAgentBody(bodies map[string]string, embedded string) (string, string, bool) {
-	first := firstNonEmptyLine(embedded)
-	if first == "" {
-		return "", "", false
-	}
+	const minOverlap = 0.6
 	names := make([]string, 0, len(bodies))
 	for name := range bodies {
 		names = append(names, name)
 	}
 	sort.Strings(names)
+	first := firstNonEmptyLine(embedded)
+	bestName, bestScore := "", 0.0
 	for _, name := range names {
-		if firstNonEmptyLine(bodies[name]) == first {
-			return name, bodies[name], true
+		if score := lineOverlap(embedded, bodies[name]); score > bestScore {
+			bestName, bestScore = name, score
+		}
+	}
+	if bestName != "" && bestScore >= minOverlap {
+		return bestName, bodies[bestName], true
+	}
+	// Overlap did not claim it: fall back to the opening line, which is what
+	// caught a partially rewritten copy before overlap existed.
+	if first != "" {
+		for _, name := range names {
+			if firstNonEmptyLine(bodies[name]) == first {
+				return name, bodies[name], true
+			}
 		}
 	}
 	return "", "", false
@@ -415,6 +431,34 @@ func firstNonEmptyLine(text string) string {
 		}
 	}
 	return ""
+}
+
+// lineOverlap is the fraction of the candidate's non-empty lines that also
+// appear in the text, trimmed. Membership, not order: a body whose sections
+// were reordered still identifies as the same agent, and the exact comparison
+// that follows is what decides whether it drifted.
+func lineOverlap(text, candidate string) float64 {
+	present := map[string]bool{}
+	for _, line := range strings.Split(text, "\n") {
+		if trimmed := strings.TrimSpace(line); trimmed != "" {
+			present[trimmed] = true
+		}
+	}
+	total, shared := 0, 0
+	for _, line := range strings.Split(candidate, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		total++
+		if present[trimmed] {
+			shared++
+		}
+	}
+	if total == 0 {
+		return 0
+	}
+	return float64(shared) / float64(total)
 }
 
 // bodyAfterFrontmatter strips a leading YAML frontmatter block.
