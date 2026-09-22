@@ -878,7 +878,10 @@ func readText(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(data), nil
+	// Normalize CRLF once, here, so every line-based check downstream sees the
+	// same shape. A file saved on Windows otherwise slips past a key match or a
+	// frontmatter prefix and the check that should have failed skips in silence.
+	return strings.ReplaceAll(string(data), "\r\n", "\n"), nil
 }
 
 func isDir(path string) bool {
