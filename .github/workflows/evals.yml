@@ -24,11 +24,14 @@ jobs:
       - name: Rebuild package
         if: steps.gate.outputs.present == 'true'
         run: go run ./cmd/dh build
-      # Pinned per code.claude.com's npm install method; version matches
-      # the CLI validated locally (`claude --version` -> 2.1.278).
+      # Not pinned on purpose. The runner writes the CLI version it used into
+      # every result (`claudeVersion` in the baseline JSON), so a run is
+      # comparable by what it recorded, not by a number frozen in this file.
+      # A pin here would rot between releases and make CI measure an older
+      # kit than the machine that produced the baseline.
       - name: Install Claude Code CLI
         if: steps.gate.outputs.present == 'true'
-        run: npm install -g @anthropic-ai/claude-code@2.1.278
+        run: npm install -g @anthropic-ai/claude-code@latest
       - name: Run evals
         if: steps.gate.outputs.present == 'true'
         env:

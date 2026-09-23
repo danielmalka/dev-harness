@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.5 — 2026-09-23
+
+- **A CLI do Claude Code deixa de ser fixada no workflow de evals.** O runner grava em cada resultado a versão sob a qual rodou (`claudeVersion` no JSON do baseline), então a comparabilidade vem do que a execução registrou, não de um número congelado num arquivo que envelhece entre releases — a máquina já estava em 2.1.280 com a CI ainda pedindo 2.1.278. A skill `harness-evaluation` passa a mandar reportar a versão registrada junto do resultado e tratar diferença de versão entre duas execuções como condição declarada da comparação, em vez de algo que o pino escondia.
+
 ## 0.5.4 — 2026-09-22
 
 - **O rótulo do veredito mesclado não carrega qualificador do Coordenador.** Medido: em 2 de 12 execuções de um caso, o relatório saía com `- Merged review status: **request changes**` — renomeado e em negrito — apesar da regra de reprodução verbatim existir desde a 0.5.2. A cláusula nova nomeia exatamente essa forma, e o desvio não apareceu em 18 execuções depois dela (duas séries de 9). Dezoito execuções não provam zero; provam que o que aparecia uma vez a cada seis parou de aparecer.
