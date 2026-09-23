@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-09-22</b></span>
-          <span class="chip">status <b>0.5.0 · vivo</b></span>
+          <span class="chip">status <b>0.5.2 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -875,6 +875,91 @@ profiles/"] --> B["dh build"]
           graders <code>regex</code> não aceitam flags inline — migraram para a chave <code>flags:</code>.</p>
       </div>
 
+      <div class="card">
+        <h3>0.5.1 · Regras do Coordenador para revisor CLI e checagem de deriva do prompt</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> primeiro ciclo real de <code>/dev-harness:improve</code> sobre o próprio kit,
+          guiado pelo baseline 0.5.0. Duas regras novas no Coordenador: só se registra como revisor quem foi de fato
+          despachado (uma entrada não chamada vira not-run com motivo, e a leitura do próprio Coordenador nunca
+          ocupa o lugar de um revisor), e o relatório mesclado passa a registrar o veredito de cada revisor ao lado
+          do mesclado, para que uma aprovação derrubada por um achado bloqueador continue visível. Três regras novas
+          em <code>.agents/coordinator.md</code> ("External CLI reviewers"), cada uma originada de um caso de eval
+          que falhou no baseline 0.5.0: um revisor not-run não gasta rodada de correção; a deduplicação de achados
+          equivalentes preserva a redação de cada revisor; o relatório mesclado reproduz verbatim os títulos e
+          rótulos da skill da etapa. <code>dh validate</code> passa a comparar o <code>append_system_prompt</code>
+          de cada <code>evals/cases/&lt;id&gt;/prompt.md</code> com o corpo do agente que ele copia e falha quando a
+          cópia defasa do original — as onze cópias do corpo do Coordenador foram re-sincronizadas. Oito correções
+          do lado dos casos de eval, onde o critério era inobservável por construção; sete graders viraram
+          mecânicos ou foram reescritos para forma observável.</p>
+        <p><strong>Relações:</strong> primeiro ciclo de <code>/dev-harness:improve</code> sobre 0.5.0. Origem direta
+          da 0.5.2 abaixo, que fecha dois dos achados deixados em aberto aqui.</p>
+        <p><strong>Testado?</strong> Medição antes/depois em <code>evals/baselines/2026-09-22-0.5.0.md</code> →
+          <code>2026-09-22-0.5.1.md</code>: com três rodadas nos quatro casos decisivos, o defeito real do ciclo
+          (<code>external-clis-merge-blocker</code>, veredito individual dissolvido na mescla) vai de FFF para PPP,
+          e dois casos que pareciam ter regredido numa rodada única passam PPP — era variância. Rodada única do
+          conjunto inteiro oscila entre 0,84 e 0,91 com os mesmos assets, então ela é o retrato que acompanha o
+          pacote, não o critério de aceitação. Ficaram em aberto, com evidência no companion: sobre-despacho em
+          <code>external-clis-parallel</code> (<code>Agent called 2x</code>) e uma rodada em três que renomeou e
+          colocou em negrito o rótulo do veredito apesar da regra de reprodução verbatim — os dois fechados por
+          medição na 0.5.2, ver abaixo.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.2 · Primeira revisão real por CLI externa e contrato da linha de veredito</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> primeira revisão por CLI externa de verdade (nenhum fixture):
+          <code>codex exec --skip-git-repo-check -s read-only -m &lt;slug&gt; -</code> com o prompt do papel
+          <code>code-reviewer</code> no stdin, sobre o commit da 0.5.1 — o contrato de somente-leitura se confirmou
+          na prática (congelamento <code>git status --porcelain -uall</code> + <code>git hash-object</code> antes e
+          depois da chamada, idêntico). Contrato da linha de veredito em <code>.skills/external-clis/SKILL.md</code>:
+          o prompt montado para um revisor CLI passa a exigir a linha de sinal da etapa, sob pena de a revisão ser
+          descartada — motivo medido: o revisor real bloqueou corretamente sem emitir a linha
+          <code>Review status:</code>, e pela regra antiga aquele bloqueio teria sido jogado fora como falha de
+          transporte. Recuperação de veredito desviante: uma resposta cuja seção <code>## Verdict</code> contém
+          exatamente uma das duas palavras de veredito passa a ser lida como esse veredito, com o desvio registrado
+          ao lado; ambíguo ou ausente continua falha de transporte. O contrato e a recuperação são por etapa —
+          <code>security</code> não tem seção <code>## Verdict</code>, o sinal vive em <code>## Findings</code>.
+          <code>readText</code> normaliza CRLF (<code>internal/kit/validate.go</code>) para que um
+          <code>prompt.md</code> salvo com CRLF não escape em silêncio a checagem de deriva do
+          <code>append_system_prompt</code>. Identidade de cópia por sobreposição de linhas em
+          <code>matchingAgentBody</code> (<code>internal/kit/evals.go</code>), com dois caminhos independentes
+          (sobreposição e linha de abertura) e teste novo com oito casos. Asserção negativa restaurada em
+          <code>evals/cases/external-clis-only</code> — achado do próprio revisor CLI externo, que o revisor Claude
+          e o Coordenador não pegaram.</p>
+        <p><strong>Relações:</strong> segundo ciclo de <code>/dev-harness:improve</code>, sobre 0.5.1 — primeira vez
+          que uma revisão CLI real (não fixture) roda contra o próprio kit.</p>
+        <p><strong>Testado?</strong> A própria revisão real é a prova: dois achados do kit saíram dessa chamada.
+          Medido depois desta release, ainda sem registro em nenhum documento antes deste: as etapas
+          <code>security</code> e <code>document</code> também foram exercitadas com um revisor CLI real pela
+          primeira vez, e ambas produziram o sinal de veredito exato da etapa já na primeira tentativa — o contrato
+          da linha de veredito da 0.5.2 se sustenta nas três etapas (<code>document</code>, <code>security</code>,
+          <code>code</code>). A revisão de segurança encontrou duas vulnerabilidades MEDIUM demonstradas em
+          <code>dh validate</code> (contenção de symlink, leituras sem limite), corrigidas no mesmo lote por outro
+          especialista. O achado de sobre-despacho registrado no card 0.5.1 (<code>external-clis-parallel</code>,
+          <code>Agent called 2x</code>) não reproduz mais: três execuções consecutivas contra o pacote 0.5.2
+          marcaram <code>Agent called 1x</code> — fechado por medição; o histórico do achado continua registrado no
+          card 0.5.1 acima, não apagado. Continua em aberto: uma execução em três renomeia ou coloca em negrito o
+          rótulo do veredito apesar da regra de reprodução verbatim.</p>
+      </div>
+
+      <div class="card">
+        <h3>Validador estendido a story, plano e ADR</h3>
+        <p><strong>Status:</strong> concluído na 0.5.0.</p>
+        <p><strong>Resumo:</strong> PRD-002 RF-06 registrava a premissa geral — "todo documento que vira contrato
+          (PRD, story, plano, ADR) passa por um revisor adversarial somente leitura antes de chegar ao dono"; PRD
+          era o primeiro alvo, story e plano ficaram para depois. O PRD-004 (RF-10, RF-11) fechou a extensão: o
+          ciclo criação → <code>document-validator</code> → até duas rodadas passa a cobrir <code>PLAN.md</code> via
+          <code>.commands/plan.md</code> (persistido em <code>.harness/tasks/&lt;PRD-id&gt;/PLAN.md</code>,
+          relatório em <code>PLAN.review.md</code>) e os templates PRD/STORY/TASK/ADR via
+          <code>.commands/document.md</code>.</p>
+        <p><strong>Relações:</strong> PRD-002 RF-06; PRD-004 RF-10/RF-11; depende de 0.3.0, já que o papel
+          <code>document-validator</code> foi desenhado genérico desde a v1 (decisão fechada em 20/09/2026). Ver o
+          card 0.5.0 acima.</p>
+        <p><strong>Testado?</strong> Sem caso de avaliação dedicado a <code>PLAN.md</code> nem aos templates
+          STORY/TASK/ADR — o baseline <code>2026-09-22-0.5.0</code> cobre <code>doc-validator-*</code>, que
+          exercitam PRD.md. Cobertura comportamental dos tipos novos ainda não testada.</p>
+      </div>
+
       <h2 id="planejado"><span class="n">03</span>Planejado</h2>
       <p>Itens com PRD ou decisão fixada, sem release ainda.</p>
 
@@ -915,18 +1000,6 @@ profiles/"] --> B["dh build"]
           código, conforme <code>CLAUDE.md</code>.</p>
         <p><strong>Relações:</strong> consome o formato de snapshot (<code>schema: 1</code>) definido em PRD-001 §6;
           depende de 0.2.0 (RF-03/RF-04, hooks e <code>subagentStatusLine</code>).</p>
-      </div>
-
-      <div class="card">
-        <h3>Validador estendido a story, plano e ADR</h3>
-        <p><strong>Descrição:</strong> PRD-002 RF-06 registra a premissa geral — "todo documento que vira contrato
-          (PRD, story, plano, ADR) passa por um revisor adversarial somente leitura antes de chegar ao dono"; PRD é o
-          primeiro alvo, story e plano vêm depois.</p>
-        <p><strong>Critérios de aceite:</strong> critérios a definir — PRD-002 só fixa AC para o validador de PRD.
-        </p>
-        <p><strong>Status:</strong> planejado, sem data.</p>
-        <p><strong>Relações:</strong> PRD-002 RF-06; depende de 0.3.0, já que o papel <code>document-validator</code>
-          foi desenhado genérico desde a v1 (decisão fechada em 20/09/2026).</p>
       </div>
 
       <div class="card">
@@ -981,6 +1054,8 @@ flowchart LR
         R030 --> R031["0.3.1"]
         R031 --> R040["0.4.0"]
         R040 --> R050["0.5.0"]
+        R050 --> R051["0.5.1"]
+        R051 --> R052["0.5.2"]
     end
     ADR001["ADR-001
 runtime Go"] --> R020
@@ -995,10 +1070,10 @@ runner de evals e higiene"] --> R050
 
     R050 --> P1["Concluído 0.5.0
 avaliação comportamental PRD-002"]
+    R050 --> P1b["Concluído 0.5.0
+validador estendido a story/plano/ADR"]
     PRD001 --> P2["Planejado
 extensão VS Code"]
-    PRD002 --> P3["Planejado
-validador estendido a story/plano/ADR"]
     R010 --> P4["Planejado
 qualificação Linux/macOS/WSL2"]
     R010 --> P5["Planejado
@@ -1012,10 +1087,11 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.5.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.5.2, base da seção Entregue.</li>
         <li><code>docs/prd/PRD-004-evals-executaveis-e-higiene.md</code> — escopo, RF, AC e riscos do runner de evals
           e da higiene do lote 0.4.0.</li>
-        <li><code>evals/baselines/2026-09-22-0.5.0.md</code> — números reais do primeiro baseline executado.</li>
+        <li><code>evals/baselines/2026-09-22-0.5.0.md</code> e <code>2026-09-22-0.5.1.md</code> — números reais do
+          primeiro baseline executado e da medição antes/depois do primeiro ciclo de <code>/dev-harness:improve</code>.</li>
         <li><code>docs/prd/PRD-001-etapa-1.md</code> — escopo, RF, AC e riscos da etapa 1.</li>
         <li><code>docs/prd/PRD-002-validador-de-documentos.md</code> — escopo, RF, AC e status do validador de
           documentos.</li>

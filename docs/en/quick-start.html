@@ -673,7 +673,7 @@ footer.doc-foot {
       <h2 id="problema"><span class="n">01</span>Problem</h2>
       <div class="card">
         <h3>What hurts today</h3>
-        <p>Without a short path, the catalog of 18 roles does not become work. This guide connects the clone to the commands and to a slice with a known result.</p>
+        <p>Without a short path, the catalog of 19 roles does not become work. This guide connects the clone to the commands and to a slice with a known result.</p>
       </div>
 
       <h2 id="promessa"><span class="n">02</span>Promise</h2>
@@ -718,6 +718,12 @@ footer.doc-foot {
          <li><strong>Slice.</strong> <code>/dev-harness:plan</code> with the brief, then <code>/dev-harness:build</code>, <code>/dev-harness:verify</code>, <code>/dev-harness:review</code>. Do not copy <code>expected/greet.py</code> instead. Compare the unittest output with <code>expected/unittest.txt</code>.</li>
         <li><strong>Handoff.</strong> <code>/dev-harness:handoff</code>. Only the Coordinator writes memory.</li>
       </ol>
+      <p><strong>External CLI review (optional).</strong> After setup, <code>.harness/project.yaml</code> accepts an optional <code>reviewers:</code> field per stage (<code>document</code>, <code>code</code>, <code>security</code>) to add an external CLI reviewer (<code>codex</code>, <code>agy</code>, <code>grok</code>, …) alongside Claude, or in its place:</p>
+      <div class="table-wrap"><pre><code>reviewers:
+  document: [claude, "cli:agy/gemini-3.1-pro-high"]
+  code: [claude, "cli:codex/gpt-5.6-sol"]
+  security: [claude]</code></pre></div>
+      <p>Absent, the flow stays Claude-only, as it is today. Binary resolution, prompt assembly and read-only mode details: <code>profiles/README.md</code> ("Consumer-only fields in <code>.harness/project.yaml</code>") and the <code>external-clis</code> skill.</p>
 
       <h2 id="metricas"><span class="n">05</span>Metrics</h2>
       <div class="table-wrap">
@@ -782,7 +788,7 @@ footer.doc-foot {
         </table>
       </div>
       <footer class="doc-foot">
-         <div>File: <code>docs/inicio-rapido.html</code> · type <code>feature</code> · 20/09/2026 · v0.1.0</div>
+         <div>File: <code>docs/inicio-rapido.html</code> · type <code>feature</code> · reviewed 2026-09-22</div>
          <div>Next step: run the fixture in <code>evals/fixtures/slice-01</code>.</div>
       </footer>
     </div>

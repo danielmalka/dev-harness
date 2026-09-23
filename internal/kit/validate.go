@@ -85,6 +85,7 @@ func Validate(target string, options Options) (Report, error) {
 	}
 	checkLinks(dirs["root"], &report.Errors)
 	checkTemplateRefs(dirs, &report.Errors)
+	checkDocumentedCounts(dirs["root"], report.Inventory, &report.Errors)
 	checkPrivatePaths(dirs["root"], &report.Errors)
 	if isDir(dirs["agents"]) && isDir(dirs["skills"]) {
 		checkAntiDelegationClause(dirs, &report.Errors)
@@ -732,7 +733,7 @@ func sameFileHash(left, right string) bool {
 }
 
 func fileHash(path string) (string, bool) {
-	data, err := os.ReadFile(path)
+	data, err := readFileGuarded(path)
 	if err != nil {
 		return "", false
 	}
@@ -873,8 +874,57 @@ func listField(fm, name string) []string {
 	return nil
 }
 
+// maxReadableFileSize bounds every text read and hash comparison the
+// validator performs. The largest file it legitimately reads today, across
+// .agents/, .skills/, .commands/, templates/, profiles/ and evals/ (excluding
+// evals/results/ and evals/baselines/, which no check here ever opens), is
+// docs/plano-produto.html at ~96KiB (measured 2026-09-22). 5MiB leaves about
+// 50x headroom while still bounding memory and I/O against an oversized or
+// adversarial file — such as a case a third party contributed under
+// evals/cases/ (see readFileGuarded).
+const maxReadableFileSize = 5 * 1024 * 1024 // 5MiB
+
+// readFileGuarded is the one place the validator turns a path into bytes.
+// Several of its callers resolve paths declared inside an eval case a third
+// party may have authored (evals/cases/<id>/case.yaml, graders/*.md,
+// prompt.md, fixtures/) — an untrusted-input boundary — so every read stays
+// inside two limits regardless of caller:
+//
+//  1. Lstat, not Stat: a symlink (or a FIFO, device, or other special file)
+//     is rejected outright rather than followed, because a kit package is
+//     meant to be self-contained and portable and a symlink inside it has no
+//     legitimate use.
+//  2. maxReadableFileSize, enforced twice: once from the size Lstat reports,
+//     before anything is allocated, and once from what the read actually
+//     returns, so a file that grows after Lstat cannot slip past the ceiling.
+func readFileGuarded(path string) ([]byte, error) {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("%s: not a regular file (refusing to follow a symlink or read a special file)", path)
+	}
+	if info.Size() > maxReadableFileSize {
+		return nil, fmt.Errorf("%s: %d bytes exceeds the %d byte read limit", path, info.Size(), maxReadableFileSize)
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = file.Close() }() // read-only: nothing to flush, nothing to report
+	data, err := io.ReadAll(io.LimitReader(file, maxReadableFileSize+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > maxReadableFileSize {
+		return nil, fmt.Errorf("%s: exceeds the %d byte read limit", path, maxReadableFileSize)
+	}
+	return data, nil
+}
+
 func readText(path string) (string, error) {
-	data, err := os.ReadFile(path)
+	data, err := readFileGuarded(path)
 	if err != nil {
 		return "", err
 	}

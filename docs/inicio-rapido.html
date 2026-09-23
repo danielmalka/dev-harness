@@ -673,7 +673,7 @@ footer.doc-foot {
       <h2 id="problema"><span class="n">01</span>Problema</h2>
       <div class="card">
         <h3>O que dói hoje</h3>
-        <p>Sem um caminho curto, o catálogo de 18 papéis não vira trabalho. Este guia liga o clone aos comandos e a uma fatia com resultado conhecido.</p>
+        <p>Sem um caminho curto, o catálogo de 19 papéis não vira trabalho. Este guia liga o clone aos comandos e a uma fatia com resultado conhecido.</p>
       </div>
 
       <h2 id="promessa"><span class="n">02</span>Promessa</h2>
@@ -718,6 +718,12 @@ claude --plugin-dir "/caminho/absoluto/do/clone/dist/claude-code/dev-harness" --
         <li><strong>Fatia.</strong> <code>/dev-harness:plan</code> com o brief, depois <code>/dev-harness:build</code>, <code>/dev-harness:verify</code>, <code>/dev-harness:review</code>. Não copie <code>expected/greet.py</code> no lugar. Compare o unittest com <code>expected/unittest.txt</code>.</li>
         <li><strong>Handoff.</strong> <code>/dev-harness:handoff</code>. Memória só o Coordenador escreve.</li>
       </ol>
+      <p><strong>Revisão por CLI externa (opcional).</strong> Depois do setup, <code>.harness/project.yaml</code> aceita um campo opcional <code>reviewers:</code> por etapa (<code>document</code>, <code>code</code>, <code>security</code>) para acrescentar um revisor de CLI externa (<code>codex</code>, <code>agy</code>, <code>grok</code>, …) ao lado do Claude, ou no lugar dele:</p>
+      <div class="table-wrap"><pre><code>reviewers:
+  document: [claude, "cli:agy/gemini-3.1-pro-high"]
+  code: [claude, "cli:codex/gpt-5.6-sol"]
+  security: [claude]</code></pre></div>
+      <p>Ausente, o fluxo continua só Claude, como hoje. Detalhes de resolução de binário, prompt e modo somente-leitura: <code>profiles/README.md</code> ("Consumer-only fields in <code>.harness/project.yaml</code>") e a skill <code>external-clis</code>.</p>
 
       <h2 id="metricas"><span class="n">05</span>Métricas</h2>
       <div class="table-wrap">
@@ -782,7 +788,7 @@ claude --plugin-dir "/caminho/absoluto/do/clone/dist/claude-code/dev-harness" --
         </table>
       </div>
       <footer class="doc-foot">
-        <div>Arquivo: <code>docs/inicio-rapido.html</code> · tipo <code>feature</code> · 20/09/2026 · v0.1.0</div>
+        <div>Arquivo: <code>docs/inicio-rapido.html</code> · tipo <code>feature</code> · revisado em 22/09/2026</div>
         <div>Próximo passo: executar a fixture em <code>evals/fixtures/slice-01</code>.</div>
       </footer>
     </div>
