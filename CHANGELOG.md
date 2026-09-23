@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.4 — 2026-09-22
+
+- **O rótulo do veredito mesclado não carrega qualificador do Coordenador.** Medido: em 2 de 12 execuções de um caso, o relatório saía com `- Merged review status: **request changes**` — renomeado e em negrito — apesar da regra de reprodução verbatim existir desde a 0.5.2. A cláusula nova nomeia exatamente essa forma, e o desvio não apareceu em 18 execuções depois dela (duas séries de 9). Dezoito execuções não provam zero; provam que o que aparecia uma vez a cada seis parou de aparecer.
+- **Três armadilhas novas em `harness-evaluation`, todas medidas neste ciclo e todas sobre o mesmo ponto — o corpo do grader é o prompt do juiz.**
+  - Uma redação que deixa ambígua a construção do próprio caso faz o juiz responder à ambiguidade, não ao relatório. O mesmo critério, sobre relatórios que não mudaram: com a frase que nomeava a construção ("o caso substitui uma fixture pelo despacho, então a pergunta é o que o relatório registra"), 3 falhas em 12; sem ela, numa pergunta mais curta e limpa, 7 em 9. Encurtar piorou, duas vezes — uma redação intermediária deu 4 em 9.
+  - Comentário sobre o próprio grader dentro do corpo vira parte da pergunta.
+  - Critério que manda o juiz comparar com um arquivo que ele não pode ler não é respondível: citar uma fixture é legítimo quando a pergunta é o que a resposta registra sobre ela, não quando se pede igualdade entre dois textos.
+- Nenhuma mudança de código; o pacote sobe de versão porque o corpo do Coordenador muda e é ele que os casos carregam.
+
 ## 0.5.3 — 2026-09-22
 
 - **Primeira revisão real nas etapas `security` e `document`** (antes só `code` tinha sido exercitada com binário externo): `codex` headless em modo somente-leitura produziu o sinal exato de cada etapa na primeira tentativa — `### MEDIUM:` sob `## Findings` e `- changes required` sob `## Verdict`. O contrato de linha de veredito da 0.5.2 vale nas três etapas, e o workspace ficou intacto nas duas chamadas.
