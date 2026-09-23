@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-09-22</b></span>
-          <span class="chip">status <b>0.5.0 · live</b></span>
+          <span class="chip">status <b>0.5.2 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -876,6 +876,90 @@ profiles/"] --> B["dh build"]
           key.</p>
       </div>
 
+      <div class="card">
+        <h3>0.5.1 · Coordinator rules for CLI reviewers and prompt-drift check</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> first real <code>/dev-harness:improve</code> cycle over the kit itself, guided
+          by the 0.5.0 baseline. Two new Coordinator rules: only a reviewer that was actually dispatched gets
+          logged as one (an entry that was never called becomes not-run with a reason, and the Coordinator's own
+          reading never takes a reviewer's place), and the merged report now records each reviewer's own verdict
+          next to the merged one, so an approval overturned by a blocking finding stays visible. Three new rules in
+          <code>.agents/coordinator.md</code> ("External CLI reviewers"), each one coming from an eval case that
+          failed in the 0.5.0 baseline: a not-run reviewer never spends a correction round; deduplication of
+          equivalent findings preserves each reviewer's own wording; the merged report reproduces the stage skill's
+          headings and labels verbatim. <code>dh validate</code> now compares the <code>append_system_prompt</code>
+          of every <code>evals/cases/&lt;id&gt;/prompt.md</code> against the body of the agent it copies, and fails
+          when the copy has drifted from the original — the Coordinator body's eleven copies were re-synced. Eight
+          fixes on the case side, where the criterion was unobservable by construction; seven graders became
+          mechanical or were rewritten into observable form.</p>
+        <p><strong>Relations:</strong> first <code>/dev-harness:improve</code> cycle over 0.5.0. Direct origin of
+          0.5.2 below, which closes two of the findings left open here.</p>
+        <p><strong>Tested?</strong> Before/after measurement in <code>evals/baselines/2026-09-22-0.5.0.md</code> →
+          <code>2026-09-22-0.5.1.md</code>: across three rounds on the four decisive cases, the cycle's real defect
+          (<code>external-clis-merge-blocker</code>, each reviewer's individual verdict dissolved in the merge)
+          goes from FFF to PPP, and two cases that looked regressed in a single round pass PPP — it was variance. A
+          single round of the whole set swings between 0.84 and 0.91 with the same assets, so that is the snapshot
+          that ships with the package, not the acceptance criterion. Left open, with evidence in the companion
+          file: over-dispatch in <code>external-clis-parallel</code> (<code>Agent called 2x</code>) and one round
+          in three that renamed and bolded the verdict label despite the verbatim-reproduction rule — both closed
+          by measurement in 0.5.2, see below.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.2 · First real external CLI review and the verdict-line contract</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> the first real external CLI review (no fixture):
+          <code>codex exec --skip-git-repo-check -s read-only -m &lt;slug&gt; -</code> with the
+          <code>code-reviewer</code> role's prompt on stdin, over the 0.5.1 commit — the read-only contract held up
+          in practice (a <code>git status --porcelain -uall</code> + <code>git hash-object</code> freeze before and
+          after the call, identical). Verdict-line contract in <code>.skills/external-clis/SKILL.md</code>: the
+          prompt assembled for a CLI reviewer now requires the stage's signal line, on pain of the review being
+          discarded — measured reason: the real reviewer correctly blocked without emitting a
+          <code>Review status:</code> line, and under the old rule that block would have been thrown away as a
+          transport failure. Deviant-verdict recovery: a response whose <code>## Verdict</code> section contains
+          exactly one of the two verdict words is now read as that verdict, with the deviation logged alongside;
+          ambiguous or absent still counts as transport failure. The contract and the recovery rule are per stage
+          — <code>security</code> has no <code>## Verdict</code> section, its signal lives in
+          <code>## Findings</code>. <code>readText</code> now normalizes CRLF (<code>internal/kit/validate.go</code>)
+          so a CRLF-saved <code>prompt.md</code> no longer silently escapes the
+          <code>append_system_prompt</code> drift check. Copy identity by line overlap in
+          <code>matchingAgentBody</code> (<code>internal/kit/evals.go</code>), with two independent paths (overlap
+          and opening line) and a new eight-case test. A negative assertion restored in
+          <code>evals/cases/external-clis-only</code> — a finding from the external CLI reviewer itself, which
+          neither the Claude reviewer nor the Coordinator had caught.</p>
+        <p><strong>Relations:</strong> second <code>/dev-harness:improve</code> cycle, over 0.5.1 — the first time
+          a real (non-fixture) CLI review runs against the kit itself.</p>
+        <p><strong>Tested?</strong> The real review is itself the proof: two kit findings came out of that call.
+          Measured after this release, not recorded in any document before this one: the <code>security</code> and
+          <code>document</code> stages were also each exercised with a real CLI reviewer for the first time, and
+          both produced the stage's exact verdict signal on the first attempt — the 0.5.2 verdict-line contract
+          holds across all three stages (<code>document</code>, <code>security</code>, <code>code</code>). The
+          security review found two demonstrated MEDIUM vulnerabilities in <code>dh validate</code> (symlink
+          containment, unbounded reads), fixed in the same batch by another specialist. The over-dispatch finding
+          recorded in the 0.5.1 card (<code>external-clis-parallel</code>, <code>Agent called 2x</code>) no longer
+          reproduces: three consecutive runs against the 0.5.2 package scored <code>Agent called 1x</code> —
+          closed by measurement; the finding's history stays recorded in the 0.5.1 card above, not deleted. Still
+          open: one run in three renames or bolds the verdict label despite the verbatim-reproduction rule.</p>
+      </div>
+
+      <div class="card">
+        <h3>Validator extended to story, plan and ADR</h3>
+        <p><strong>Status:</strong> done in 0.5.0.</p>
+        <p><strong>Summary:</strong> PRD-002 RF-06 recorded the general premise — "every document that becomes a
+          contract (PRD, story, plan, ADR) goes through a read-only adversarial reviewer before reaching the
+          owner"; PRD was the first target, story and plan were left for later. PRD-004 (RF-10, RF-11) closed the
+          extension: the create → <code>document-validator</code> → up to two rounds cycle now covers
+          <code>PLAN.md</code> via <code>.commands/plan.md</code> (persisted at
+          <code>.harness/tasks/&lt;PRD-id&gt;/PLAN.md</code>, report at <code>PLAN.review.md</code>) and the
+          PRD/STORY/TASK/ADR templates via <code>.commands/document.md</code>.</p>
+        <p><strong>Relations:</strong> PRD-002 RF-06; PRD-004 RF-10/RF-11; depends on 0.3.0, since the
+          <code>document-validator</code> role was designed generic since v1 (decision closed 2026-09-20). See the
+          0.5.0 card above.</p>
+        <p><strong>Tested?</strong> No evaluation case dedicated to <code>PLAN.md</code> or the STORY/TASK/ADR
+          templates — the <code>2026-09-22-0.5.0</code> baseline covers <code>doc-validator-*</code>, which
+          exercise PRD.md. Behavioral coverage of the new document types is still untested.</p>
+      </div>
+
       <h2 id="planejado"><span class="n">03</span>Planned</h2>
       <p>Items with a PRD or fixed decision, not yet released.</p>
 
@@ -917,17 +1001,6 @@ profiles/"] --> B["dh build"]
           starts, per <code>CLAUDE.md</code>.</p>
         <p><strong>Relations:</strong> consumes the snapshot format (<code>schema: 1</code>) defined in PRD-001 §6;
           depends on 0.2.0 (RF-03/RF-04, hooks and <code>subagentStatusLine</code>).</p>
-      </div>
-
-      <div class="card">
-        <h3>Validator extended to story, plan and ADR</h3>
-        <p><strong>Description:</strong> PRD-002 RF-06 records the general premise — "every document that becomes a
-          contract (PRD, story, plan, ADR) goes through a read-only adversarial reviewer before reaching the
-          owner"; PRD is the first target, story and plan come after.</p>
-        <p><strong>Acceptance criteria:</strong> to be defined — PRD-002 only fixes AC for the PRD validator.</p>
-        <p><strong>Status:</strong> planned, no date.</p>
-        <p><strong>Relations:</strong> PRD-002 RF-06; depends on 0.3.0, since the <code>document-validator</code>
-          role was designed generic since v1 (decision closed 2026-09-20).</p>
       </div>
 
       <div class="card">
@@ -983,6 +1056,8 @@ flowchart LR
         R030 --> R031["0.3.1"]
         R031 --> R040["0.4.0"]
         R040 --> R050["0.5.0"]
+        R050 --> R051["0.5.1"]
+        R051 --> R052["0.5.2"]
     end
     ADR001["ADR-001
 Go runtime"] --> R020
@@ -997,10 +1072,10 @@ eval runner and hygiene"] --> R050
 
     R050 --> P1["Done 0.5.0
 PRD-002 behavioral evaluation"]
+    R050 --> P1b["Done 0.5.0
+validator extended to story/plan/ADR"]
     PRD001 --> P2["Planned
 VS Code extension"]
-    PRD002 --> P3["Planned
-validator extended to story/plan/ADR"]
     R010 --> P4["Planned
 Linux/macOS/WSL2 qualification"]
     R010 --> P5["Planned
@@ -1014,10 +1089,12 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.5.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.5.2, base for the Delivered section.</li>
         <li><code>docs/prd/PRD-004-evals-executaveis-e-higiene.md</code> — scope, RF, AC and risks for the eval
           runner and the 0.4.0 batch hygiene.</li>
-        <li><code>evals/baselines/2026-09-22-0.5.0.md</code> — real numbers from the first executed baseline.</li>
+        <li><code>evals/baselines/2026-09-22-0.5.0.md</code> and <code>2026-09-22-0.5.1.md</code> — real numbers
+          from the first executed baseline and the before/after measurement of the first
+          <code>/dev-harness:improve</code> cycle.</li>
         <li><code>docs/prd/PRD-001-etapa-1.md</code> — scope, RF, AC and risks of phase 1.</li>
         <li><code>docs/prd/PRD-002-validador-de-documentos.md</code> — scope, RF, AC and status of the document
           validator.</li>

@@ -117,6 +117,7 @@ func checkCaseYAML(caseDir string, errors *[]string) {
 	}
 	text, err := readText(caseYAML)
 	if err != nil {
+		*errors = append(*errors, fmt.Sprintf("%s: %v", caseYAML, err))
 		return
 	}
 	addDirs, scaffoldScript, historyFile := contextFields(text)
@@ -128,11 +129,19 @@ func checkCaseYAML(caseDir string, errors *[]string) {
 }
 
 func checkCaseGraders(caseDir string, errors *[]string) {
+	if symlinkedSubdir(caseDir, "graders") {
+		*errors = append(*errors, fmt.Sprintf(
+			"%s: graders is a symbolic link; a case directory holds its own files",
+			filepath.Join(caseDir, "graders"),
+		))
+		return
+	}
 	graders, _ := filepath.Glob(filepath.Join(caseDir, "graders", "*.md"))
 	sort.Strings(graders)
 	for _, graderPath := range graders {
 		text, err := readText(graderPath)
 		if err != nil {
+			*errors = append(*errors, fmt.Sprintf("%s: %v", graderPath, err))
 			continue
 		}
 		fm := frontmatter(text)
@@ -149,8 +158,10 @@ func checkCaseGraders(caseDir string, errors *[]string) {
 }
 
 // checkFieldPath resolves value relative to caseDir and fails when it
-// escapes caseDir, or, if it stays inside, when it does not resolve to an
-// existing file or directory. An empty value (field absent) is not an error.
+// escapes caseDir lexically, when a symlink sits anywhere between caseDir and
+// the resolved path, or, if neither applies, when the path does not resolve
+// to an existing file or directory. An empty value (field absent) is not an
+// error.
 func checkFieldPath(referencingPath, caseDir, field, value string, errors *[]string) {
 	if value == "" {
 		return
@@ -161,9 +172,55 @@ func checkFieldPath(referencingPath, caseDir, field, value string, errors *[]str
 		*errors = append(*errors, fmt.Sprintf("%s: %s escapes case directory: %s", referencingPath, field, value))
 		return
 	}
+	if hasSymlinkComponent(caseDirClean, resolved) {
+		*errors = append(*errors, fmt.Sprintf("%s: %s is or passes through a symlink: %s", referencingPath, field, value))
+		return
+	}
 	if !isFileOrDir(resolved) {
 		*errors = append(*errors, fmt.Sprintf("%s: %s unresolved: %s", referencingPath, field, value))
 	}
+}
+
+// hasSymlinkComponent reports whether any path component between caseDir and
+// resolved is a symlink, checked with Lstat component by component rather
+// than filepath.EvalSymlinks — the latter would resolve the link and could
+// silently allow exactly the escape this check exists to catch. A case
+// directory is meant to be self-contained, so a symlink anywhere under it,
+// pointing anywhere, has no legitimate use and is rejected outright rather
+// than followed and re-checked for containment.
+// symlinkedSubdir reports whether <parent>/<name> is a symbolic link. A case
+// directory's own `graders/` or `fixtures/` is globbed by name, and a glob
+// walks through a symlinked named segment: the files it then matches are
+// regular files outside the case, which the per-file guard cannot tell from
+// legitimate ones. The containment has to be decided on the directory, before
+// anything under it is enumerated.
+func symlinkedSubdir(parent, name string) bool {
+	info, err := os.Lstat(filepath.Join(parent, name))
+	if err != nil {
+		return false
+	}
+	return info.Mode()&os.ModeSymlink != 0
+}
+
+func hasSymlinkComponent(caseDir, resolved string) bool {
+	rel, err := filepath.Rel(caseDir, resolved)
+	if err != nil || rel == "." {
+		return false
+	}
+	current := caseDir
+	for _, part := range strings.Split(rel, string(filepath.Separator)) {
+		current = filepath.Join(current, part)
+		info, err := os.Lstat(current)
+		if err != nil {
+			// Missing path: not a symlink escape. checkFieldPath's
+			// existence check reports this case.
+			return false
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // contextFields extracts the known scalar and list keys from the `context:`
@@ -322,6 +379,7 @@ func checkEmbeddedAgentBodies(dirs map[string]string, errors *[]string) {
 	for _, promptPath := range prompts {
 		text, err := readText(promptPath)
 		if err != nil {
+			*errors = append(*errors, fmt.Sprintf("%s: %v", promptPath, err))
 			continue
 		}
 		embedded, ok := yamlBlockScalar(text, "append_system_prompt")
@@ -347,11 +405,28 @@ func checkEmbeddedAgentBodies(dirs map[string]string, errors *[]string) {
 // copy of an agent body, so a case that hands the model a role prompt measures
 // the current one.
 func checkFixtureAgentCopies(dirs map[string]string, bodies map[string]string, errors *[]string) {
-	fixtures, _ := filepath.Glob(filepath.Join(dirs["evals"], "cases", "*", "fixtures", "*.md"))
+	caseDirs, _ := filepath.Glob(filepath.Join(dirs["evals"], "cases", "*"))
+	sort.Strings(caseDirs)
+	fixtures := []string{}
+	for _, caseDir := range caseDirs {
+		if !isDir(caseDir) {
+			continue
+		}
+		if symlinkedSubdir(caseDir, "fixtures") {
+			*errors = append(*errors, fmt.Sprintf(
+				"%s: fixtures is a symbolic link; a case directory holds its own files",
+				rootRelative(dirs["root"], filepath.Join(caseDir, "fixtures")),
+			))
+			continue
+		}
+		matches, _ := filepath.Glob(filepath.Join(caseDir, "fixtures", "*.md"))
+		fixtures = append(fixtures, matches...)
+	}
 	sort.Strings(fixtures)
 	for _, fixturePath := range fixtures {
 		text, err := readText(fixturePath)
 		if err != nil {
+			*errors = append(*errors, fmt.Sprintf("%s: %v", fixturePath, err))
 			continue
 		}
 		name, body, ok := matchingAgentBody(bodies, text)

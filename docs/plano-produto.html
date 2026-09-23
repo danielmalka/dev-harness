@@ -796,7 +796,7 @@
       </nav>
     </aside>
     <div class="wrap" id="conteudo">
-      <div class="banner">Documento interno. Não publicar. Plano v0.5. Fase 1 empacotada. Prova de runtime Claude pendente.</div>
+      <div class="banner">Documento interno. Não publicar. Plano v0.5. Fase 1 entregue (0.1.0–0.5.2). Runtime já exercitado por baselines de eval reais e revisão por CLI externa real; qualificação multiplataforma (Fase 4) segue pendente.</div>
       <header class="hero">
         <div class="eyebrow">Plano de produto · kit portátil</div>
         <h1>Dev Harness<br>Clone. Configure. Desenvolva. Evolua.</h1>
@@ -804,7 +804,7 @@
           desenvolvimento para outra máquina.</p>
         <div class="chips">
           <span class="chip">data <b>2026-09-20</b></span>
-          <span class="chip">status <b>fase 1 empacotada · runtime Claude pendente</b></span>
+          <span class="chip">status <b>fase 1 entregue · 0.5.2 · Fase 4 (qualificação multiplataforma) pendente</b></span>
           <span class="chip">dono <b>Daniel Lemos</b></span>
           <span class="chip">path <b>docs/plano-produto.html</b></span>
         </div>
@@ -824,12 +824,15 @@
         <code>.skills/</code>; agentes personalizados para todo o ciclo; tutoriais para usar, aprimorar e progredir;
         Claude Code como primeiro runtime; conteúdo reaproveitável por outras IAs.
       </p>
-      <p><strong>Inspeção desta revisão:</strong> fontes canônicas com 18 agentes, 17 comandos e 19 skills; templates de
-        memória e de trabalho; perfis <code>base</code>, <code>go-api</code> e <code>typescript-web</code>; adaptador
-        Claude e guia genérico; empacotador determinístico; validador e doctor mecânicos; fixture
-        <code>evals/fixtures/slice-01</code>; tutorial 00 e início rápido; licença MIT. Não houve sessão Claude Code em
-        máquina limpa. Evals comportamentais continuam vazios. A regra <code>docs/**</code> no ignore foi substituída
-        pela exclusão só das capturas de conferência.</p>
+      <p><strong>Inspeção desta revisão (atualizada para a 0.5.2):</strong> fontes canônicas com 19 agentes, 17
+        comandos e 21 skills; templates de memória e de trabalho; perfis <code>base</code>, <code>go-api</code>,
+        <code>typescript-web</code> e <code>php</code>; adaptador Claude e guia genérico; empacotador determinístico;
+        validador e doctor mecânicos; fixture <code>evals/fixtures/slice-01</code>; tutorial 00 e início rápido;
+        licença MIT. Evals comportamentais deixaram de estar vazios: baselines reais em
+        <code>evals/baselines/2026-09-22-0.5.0.md</code> e <code>-0.5.1.md</code>, e uma revisão real por CLI
+        externa (não fixture) rodou nas três etapas — <code>document</code>, <code>security</code> e
+        <code>code</code> — na 0.5.2. Não houve, ainda, sessão Claude Code interativa em máquina limpa (Fase 4); a
+        regra <code>docs/**</code> no ignore foi substituída pela exclusão só das capturas de conferência.</p>
 
       <h2 id="resultado"><span class="n">02</span>Resultado esperado</h2>
       <p class="lead">Levar o kit para uma máquina com os pré-requisitos documentados e conduzir uma tarefa da ideia à
@@ -1781,9 +1784,10 @@
 
       <h2 id="aceite"><span class="n">07</span>Critérios de aceite</h2>
       <p><strong>Critérios do produto.</strong> AC-16 tem evidência estática desta entrega (rebuild + validador). AC-04
-        tem evidência parcial (links relativos e templates conferidos pelo validador). Os demais, inclusive descoberta
-        real no Claude (AC-03) e máquina limpa (AC-01), não foram executados. Status da versão do kit: 0.1.0 empacotada,
-        qualificação de runtime pendente.</p>
+        tem evidência parcial (links relativos e templates conferidos pelo validador). Descoberta interativa em
+        sessão limpa (AC-03) e máquina limpa (AC-01) continuam sem execução registrada. Status da versão do kit:
+        0.5.2, com runtime já exercitado de verdade — baselines de eval reais (0.5.0, 0.5.1) e revisão por CLI
+        externa real nas três etapas (0.5.2); qualificação multiplataforma (Fase 4) segue pendente.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -2021,11 +2025,13 @@
           limpo, e registrar o que o runtime descobre.</li>
         <li><strong>Exercer a fixture:</strong> percorrer slice-01 com plan/build/verify/review/handoff e guardar
           evidência.</li>
-        <li><strong>Fase 2 em diante:</strong> evals comportamentais, trilhas 01–07, CI e matriz Linux/macOS/WSL2. O
+        <li><strong>Fase 2 em diante:</strong> evals comportamentais têm baseline real desde a 0.5.0 (ver
+          <code>docs/roadmap.html</code>); ainda faltam as trilhas 01–07 e a matriz Linux/macOS/WSL2 (Fase 4). O
           catálogo de papéis já está escrito; não expandir papéis antes dessa prova.</li>
       </ol>
-      <p>Fontes, comandos, empacotador, doctor mecânico, tutorial 00 e fixture existem nesta versão 0.1.0. Validação
-        estática não substitui avaliação dos agentes em execução. Não foi feita instalação global, publicação nem
+      <p>Fontes, comandos, empacotador, doctor mecânico, tutorial 00 e fixture existem desde a versão 0.1.0; a versão
+        atual do kit é 0.5.2. Validação estática não substitui avaliação dos agentes em execução. Não foi feita
+        instalação global, publicação nem
         alteração de configuração fora deste repositório.</p>
 
       <footer class="doc-foot">
