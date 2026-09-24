@@ -99,6 +99,9 @@ Split authorized work into slices that can each be finished and proven on their 
 ## Decisions needed
 - <question>, which slice it blocks, recommended answer
 
+## Assumptions
+- <default chosen>, why it did not go to Decisions needed, what changes if wrong
+
 ## Self-review
 - Coverage: <acceptance item -> slice, or gap>
 - Unresolved prerequisites: none | <affected slices and what must be resolved>

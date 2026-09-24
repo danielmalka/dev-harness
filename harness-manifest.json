@@ -1,9 +1,9 @@
 {
   "name": "dev-harness",
-  "version": "0.5.5",
+  "version": "0.6.0",
   "license": "MIT",
   "generated": true,
-  "generated_at": "2026-09-23T01:13:23Z",
+  "generated_at": "2026-09-24T22:33:00Z",
   "source": "dh build",
   "runtime": {
     "primary": "claude-code",
@@ -105,31 +105,31 @@
       "os": "linux",
       "arch": "amd64",
       "path": "bin/linux_amd64/dh",
-      "sha256": "47e83576ba7064fadbeec24c48135a3cedb0b244c4622e59d27f3dbed7d8b291"
+      "sha256": "3c3dee62b7ff14b62e5d3e98d9aea04cc8ae78f5619bf9e4670ef09bec3cf99b"
     },
     {
       "os": "linux",
       "arch": "arm64",
       "path": "bin/linux_arm64/dh",
-      "sha256": "6e57f2db222e4871635bea9c7a3fefc91256f33dfc536416ef9c6a0d90b5ecc3"
+      "sha256": "737b4f319c2cfb56fe09ee0a11afa13162921276c1da36a14d4f1c6a214ba07b"
     },
     {
       "os": "darwin",
       "arch": "amd64",
       "path": "bin/darwin_amd64/dh",
-      "sha256": "547ff3b98f0ee9bedf2ade58e0b05b30a8b1485df376fcd21ae55f3b50dfdfa9"
+      "sha256": "be7ac4ae1bca1ca6b1b5cb0d547b48c4ecc572cf0b7db979e7e6371362405a1d"
     },
     {
       "os": "darwin",
       "arch": "arm64",
       "path": "bin/darwin_arm64/dh",
-      "sha256": "215782def5d83982fb489c844e6a657ac0c373abff21bf0cc82501cf201a62bb"
+      "sha256": "ceac9d716f05ffe35234edfa5bb6a269ff734af16a5ec38d926b612b9ca2b9d9"
     },
     {
       "os": "windows",
       "arch": "amd64",
       "path": "bin/windows_amd64/dh.exe",
-      "sha256": "5d41b50d8ac94b5fa660714f8658563741d2ac9bc93d0c6edc78ee81aa8174de"
+      "sha256": "37f3728a5c5c433411e98b61707d0085f10dec94fdcf2af12484a6fd7856a168"
     }
   ]
 }

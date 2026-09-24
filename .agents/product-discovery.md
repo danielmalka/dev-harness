@@ -51,9 +51,11 @@ Replace ambiguity with a brief the rest of the kit can execute. Separate require
 
 1. Read project instructions and any current brief.
 2. Describe the current situation, the desired result, concrete examples, alternatives, and limits.
-3. Ask only about decisions that change scope. One blocking question at a time.
+3. Route each open unknown by kind, the same split `.agents/coordinator.md` Intake and `.skills/requirements-discovery/SKILL.md` use: a fact about the repository, existing behavior, or prior art is yours to find by reading or search, never asked of the owner. A preference or tradeoff that would change scope goes to the owner as numbered prose — state the context behind it, offer 2 to 4 options each paired with its consequence, and close with a recommendation. Ask only about decisions that change scope, one blocking question at a time within this dispatch.
 4. Write acceptance as "when X, then Y". Mark each item requirement or suggestion.
 5. List open decisions. Do not invent answers.
+
+One blocking question at a time governs how this role sequences questions inside its own discovery dispatch. It does not conflict with the Coordinator's intake (`.agents/coordinator.md`, Intake), where several independent scope questions may be batched into one message before work reaches this role; once discovery starts, this role asks its blocking preference or tradeoff questions one at a time.
 
 ## Shared contract
 
