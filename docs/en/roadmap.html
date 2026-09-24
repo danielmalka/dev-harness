@@ -943,6 +943,58 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>0.6.0 · Coordinator intake, decision-complete plans and an explore-vs-ask eval case</h3>
+        <p><strong>Status:</strong> done — partial: AC-15 ("show the change helps") is not demonstrated by the
+          judge's score, owner's recorded decision.</p>
+        <p><strong>Summary:</strong> <code>.agents/coordinator.md</code> gains two new sections, <code>## Intake</code>
+          and <code>## Owner-facing replies</code>: explore before asking — a fact discoverable in the repository,
+          the task record, or <code>.harness/</code> is the Coordinator's own job, by direct reading or a
+          <code>repo-scout</code> dispatch, never asked of the owner; a real preference or tradeoff becomes an
+          owner-facing question in numbered prose, with the context behind the choice, 2 to 4 options each paired
+          with its consequence, and a closing recommendation — advice, not a decision taken for the owner, so it is
+          given even when the owner keeps the choice. An unanswered low-stakes question proceeds on the
+          recommendation, recorded as an assumption; a blocking question waits; silence never authorizes
+          implementing, installing, committing, pushing, publishing or deploying. Non-trivial work gets a read-only
+          phase before any mutation — explore, ask only what exploration could not settle, present a
+          decision-complete plan, wait for approval — with the runtime's native plan-mode tooling treated as
+          optional. The 1-2 line restatement of the demand becomes the first line of the first reply to a
+          non-trivial request; the trivial path now closes with an explicit verdict (done, partial or blocked); a
+          report that skipped QA and review gets a spot-check before entering a decision or <code>MEMORY.md</code>.
+          Model contradiction fixed: the body said "your default is Sonnet" even though the frontmatter has carried
+          <code>model: opus</code> since 0.4.0 — the body now points to its own frontmatter instead.
+          <code>product-discovery</code> gains the same question format and a reconciliation sentence corrected
+          during review (the original wording contradicted the Coordinator's single-batch rule).
+          <code>repo-scout</code> gains parallel reads and searches when independent, a preference for excerpts
+          over whole files in a fan-out survey, and two restated non-goals. <code>implementation-planner</code> and
+          the <code>implementation-planning</code> skill now require decision-complete plans, with a new
+          <code>## Assumptions</code> section in the Output format. New eval case
+          <code>evals/cases/coordinator-explore-then-ask</code> (9 graders) and baselines
+          <code>evals/baselines/2026-09-24-0.5.5-{before,after}.{json,md}</code>.</p>
+        <p><strong>Relations:</strong> PLAN-005 (AC-01 through AC-16, brief IMP-001); third
+          <code>/dev-harness:improve</code> cycle over the kit itself, this time over the Coordinator and the
+          discovery/mapping/planning roles — the earlier cycles (0.5.1, 0.5.2) touched external CLI review.
+          Reviewer criticality (<code>code-reviewer</code>, <code>security-reviewer</code>,
+          <code>document-validator</code>) is out of this batch by owner decision, for the second batch.</p>
+        <p><strong>Tested?</strong> Measured, with the limit stated: score 0.67 before and 0.74 after on the decisive case,
+          3 runs each side, sonnet judge, CLI 2.1.282 — a difference this sample cannot separate from noise,
+          so it is not a measured gain. Only grader 03b (question with context, options and a
+          recommendation) moved clearly, 1/3 → 3/3. Grader 06 (restates the demand first) scored 0/3 on both sides
+          on the judge, but a manual reading of the replies shows the restatement appearing after the change —
+          literal first line 0/3 → 2/3, at the top of the reply 0/3 → 3/3 — the grader needs recalibration, a
+          candidate for the second batch. AC-15 is not demonstrated by the judge's score. A re-run of the 11
+          neighboring <code>external-clis-*</code> cases (1 run each, CLI 2.1.282, <code>evals/results/</code>,
+          git-ignored): mean 0.91, and 0.82 for the same cases on 0.5.1 (CLI 2.1.278) — with one run per case the comparison supports
+          neither an improvement nor a regression; three dropped (<code>attribution</code>, <code>only</code>,
+          <code>risk-001</code>) and are left to re-check. Additional known limits for the second batch: the wording of the
+          Coordinator's Procedure item 4 on dispatching <code>repo-scout</code> before assigning roles; the two
+          adjacent architecture-audit bullets in <code>repo-scout</code>; and the prompt assembled for a CLI
+          reviewer needs to say explicitly that reading files is allowed — one review attempt read the
+          anti-delegation clause as forbidding reads. Go code: only the version constant in <code>internal/build/build.go</code>; <code>go run ./cmd/dh validate
+          --source-only .</code> confirms 0 errors and the agent/command/skill/profile/template counts unchanged
+          (19/17/21/4/16).</p>
+      </div>
+
+      <div class="card">
         <h3>Validator extended to story, plan and ADR</h3>
         <p><strong>Status:</strong> done in 0.5.0.</p>
         <p><strong>Summary:</strong> PRD-002 RF-06 recorded the general premise — "every document that becomes a

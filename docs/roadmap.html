@@ -943,6 +943,57 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>0.6.0 · Intake do Coordenador, plano decision-complete e caso de exploração vs. pergunta</h3>
+        <p><strong>Status:</strong> concluído — parcial: AC-15 ("mostrar que a mudança ajuda") não é demonstrado
+          pela nota do juiz, decisão registrada do dono.</p>
+        <p><strong>Resumo:</strong> <code>.agents/coordinator.md</code> ganha as seções <code>## Intake</code> e
+          <code>## Owner-facing replies</code>: explorar antes de perguntar — fato descobrível no repositório, na
+          tarefa ou em <code>.harness/</code> é responsabilidade do Coordenador (leitura direta ou despacho de
+          <code>repo-scout</code>), nunca perguntado ao dono; preferência ou tradeoff real vira pergunta em prosa
+          numerada, com o contexto da escolha, de 2 a 4 opções cada uma com sua consequência, e uma recomendação —
+          conselho, não decisão tomada no lugar do dono, por isso presente mesmo quando ele mantém a escolha para
+          si. Pergunta de baixo risco sem resposta segue pela recomendação, registrada como suposição; pergunta
+          bloqueante espera; silêncio nunca autoriza implementar, instalar, commitar, dar push, publicar ou fazer
+          deploy. Trabalho não trivial ganha fase somente leitura antes de qualquer mutação — explorar, perguntar
+          só o que a exploração não resolveu, apresentar plano decision-complete, esperar aprovação — com
+          ferramenta nativa de plan mode do runtime tratada como opcional. A reafirmação da demanda em 1-2 linhas
+          vira a primeira linha da primeira resposta a um pedido não trivial; o caminho trivial fecha com veredito
+          explícito (pronto, parcial ou bloqueado); relatório que pulou QA e revisão ganha checagem pontual antes de
+          entrar numa decisão ou no <code>MEMORY.md</code>. Contradição de modelo corrigida: o corpo dizia "seu
+          padrão é Sonnet" apesar do frontmatter já trazer <code>model: opus</code> desde a 0.4.0 — o corpo passa a
+          remeter ao próprio frontmatter. <code>product-discovery</code> ganha o mesmo formato de pergunta e uma
+          frase de reconciliação corrigida em revisão (a redação original contradizia a regra de lote único do
+          Coordenador). <code>repo-scout</code> ganha leitura e busca paralelas quando independentes, preferência
+          por trechos sobre arquivo inteiro numa varredura em leque, e dois não-objetivos restabelecidos.
+          <code>implementation-planner</code> e a skill <code>implementation-planning</code> passam a exigir plano
+          decision-complete, com uma seção <code>## Assumptions</code> nova no formato de saída. Caso de avaliação
+          novo <code>evals/cases/coordinator-explore-then-ask</code> (9 graders) e baselines
+          <code>evals/baselines/2026-09-24-0.5.5-{before,after}.{json,md}</code>.</p>
+        <p><strong>Relações:</strong> PLAN-005 (AC-01 a AC-16, brief IMP-001); terceiro ciclo de
+          <code>/dev-harness:improve</code> sobre o próprio kit, desta vez sobre o Coordenador e os papéis de
+          descoberta, mapeamento e planejamento — os ciclos anteriores (0.5.1, 0.5.2) tocaram a revisão por CLI
+          externa. Revisores mais críticos (<code>code-reviewer</code>, <code>security-reviewer</code>,
+          <code>document-validator</code>) ficam fora deste lote por decisão do dono, para o segundo lote.</p>
+        <p><strong>Testado?</strong> Medido, com o limite declarado: nota 0,67 antes e 0,74 depois no caso decisivo, 3
+          execuções de cada lado, juiz sonnet, CLI 2.1.282 — diferença que essa amostra não separa do ruído,
+          portanto não é ganho medido. Só o grader 03b (pergunta com contexto, opções e
+          recomendação) moveu com clareza, 1/3 → 3/3. O grader 06 (reafirma a demanda primeiro) pontuou 0/3 nos dois
+          lados no juiz, mas a leitura manual das respostas mostra a reafirmação aparecendo depois da mudança —
+          primeira linha literal 0/3 → 2/3, no topo da resposta 0/3 → 3/3 — o grader precisa de recalibração,
+          candidata ao segundo lote. AC-15 não é demonstrado pela nota do juiz. Reexecução dos 11 casos vizinhos
+          <code>external-clis-*</code> (1 execução cada, CLI 2.1.282, <code>evals/results/</code>, fora do controle
+          de versão): média 0,91, e 0,82 para os mesmos casos na 0.5.1 (CLI 2.1.278) — com uma execução por caso a comparação não
+          sustenta melhora nem piora; três caíram (<code>attribution</code>, <code>only</code>,
+          <code>risk-001</code>) e ficam para reverificar. Limites conhecidos adicionais para o segundo lote: a redação do item 4 do Procedure do
+          Coordenador quanto ao despacho de <code>repo-scout</code> antes da atribuição de papéis; os dois bullets
+          adjacentes de auditoria de arquitetura em <code>repo-scout</code>; e o prompt montado para um revisor CLI
+          precisa dizer explicitamente que ler arquivos é permitido — uma tentativa de revisão leu a cláusula
+          anti-delegação como proibição de leitura. Código Go: só a constante de versão em <code>internal/build/build.go</code>; <code>go run ./cmd/dh validate
+          --source-only .</code> confirma 0 erros e as contagens de agentes/comandos/skills/perfis/templates
+          inalteradas (19/17/21/4/16).</p>
+      </div>
+
+      <div class="card">
         <h3>Validador estendido a story, plano e ADR</h3>
         <p><strong>Status:</strong> concluído na 0.5.0.</p>
         <p><strong>Resumo:</strong> PRD-002 RF-06 registrava a premissa geral — "todo documento que vira contrato
