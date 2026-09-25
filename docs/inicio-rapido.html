@@ -723,7 +723,7 @@ claude --plugin-dir "/caminho/absoluto/do/clone/dist/claude-code/dev-harness" --
   document: [claude, "cli:agy/gemini-3.1-pro-high"]
   code: [claude, "cli:codex/gpt-5.6-sol"]
   security: [claude]</code></pre></div>
-      <p>Ausente, o fluxo continua só Claude, como hoje. Detalhes de resolução de binário, prompt e modo somente-leitura: <code>profiles/README.md</code> ("Consumer-only fields in <code>.harness/project.yaml</code>") e a skill <code>external-clis</code>.</p>
+      <p>Ausente, o fluxo continua só Claude, como hoje. Um binário sem modo somente-leitura próprio (o <code>grok</code>, por exemplo, roda com <code>--always-approve</code>) pode ser negado pelo classificador de permissões do modo automático do runtime; nesse caso, o dono precisa acrescentar uma regra de permissão Bash explícita para o binário em <code>.claude/settings.local.json</code> antes que o Coordenador consiga despachá-lo. Detalhes de resolução de binário, prompt e modo somente-leitura: <code>profiles/README.md</code> ("Consumer-only fields in <code>.harness/project.yaml</code>") e a skill <code>external-clis</code>.</p>
 
       <h2 id="metricas"><span class="n">05</span>Métricas</h2>
       <div class="table-wrap">
@@ -788,7 +788,7 @@ claude --plugin-dir "/caminho/absoluto/do/clone/dist/claude-code/dev-harness" --
         </table>
       </div>
       <footer class="doc-foot">
-        <div>Arquivo: <code>docs/inicio-rapido.html</code> · tipo <code>feature</code> · revisado em 22/09/2026</div>
+        <div>Arquivo: <code>docs/inicio-rapido.html</code> · tipo <code>feature</code> · revisado em 24/09/2026</div>
         <div>Próximo passo: executar a fixture em <code>evals/fixtures/slice-01</code>.</div>
       </footer>
     </div>
