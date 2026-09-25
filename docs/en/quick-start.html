@@ -723,7 +723,7 @@ footer.doc-foot {
   document: [claude, "cli:agy/gemini-3.1-pro-high"]
   code: [claude, "cli:codex/gpt-5.6-sol"]
   security: [claude]</code></pre></div>
-      <p>Absent, the flow stays Claude-only, as it is today. Binary resolution, prompt assembly and read-only mode details: <code>profiles/README.md</code> ("Consumer-only fields in <code>.harness/project.yaml</code>") and the <code>external-clis</code> skill.</p>
+      <p>Absent, the flow stays Claude-only, as it is today. A binary with no read-only mode of its own (<code>grok</code>, for instance, runs with <code>--always-approve</code>) can be denied by the runtime's auto-mode permission classifier; when that happens, the owner needs to add an explicit Bash permission rule for the binary in <code>.claude/settings.local.json</code> before the Coordinator can dispatch it. Binary resolution, prompt assembly and read-only mode details: <code>profiles/README.md</code> ("Consumer-only fields in <code>.harness/project.yaml</code>") and the <code>external-clis</code> skill.</p>
 
       <h2 id="metricas"><span class="n">05</span>Metrics</h2>
       <div class="table-wrap">
@@ -788,7 +788,7 @@ footer.doc-foot {
         </table>
       </div>
       <footer class="doc-foot">
-         <div>File: <code>docs/inicio-rapido.html</code> · type <code>feature</code> · reviewed 2026-09-22</div>
+         <div>File: <code>docs/inicio-rapido.html</code> · type <code>feature</code> · reviewed 2026-09-24</div>
          <div>Next step: run the fixture in <code>evals/fixtures/slice-01</code>.</div>
       </footer>
     </div>

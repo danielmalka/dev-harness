@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
-           <span class="chip">date <b>2026-09-22</b></span>
-          <span class="chip">status <b>0.5.2 · live</b></span>
+           <span class="chip">date <b>2026-09-24</b></span>
+          <span class="chip">status <b>0.6.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -860,7 +860,7 @@ profiles/"] --> B["dh build"]
           <code>.skills/harness-evaluation/SKILL.md</code> rewritten for the native layout.</p>
         <p><strong>Relations:</strong> implements PRD-004 (RF-01 to RF-18). Closes the CLI reviewer coverage that
           PRD-003 (0.4.0) had left only on <code>code</code>, and closes the behavioral evaluation that the
-          0.3.0/PRD-002 card listed as pending — the "PRD-002 behavioral evaluation pending" item below leaves
+          0.3.0/PRD-002 card listed as pending — the "PRD-002 behavioral evaluation pending" item left
           Planned.</p>
         <p><strong>Tested?</strong> First real baseline of the kit:
           <code>evals/baselines/2026-09-22-0.5.0.{json,md}</code> — 13 cases scored, 4 passed
@@ -893,7 +893,8 @@ profiles/"] --> B["dh build"]
           fixes on the case side, where the criterion was unobservable by construction; seven graders became
           mechanical or were rewritten into observable form.</p>
         <p><strong>Relations:</strong> first <code>/dev-harness:improve</code> cycle over 0.5.0. Direct origin of
-          0.5.2 below, which closes two of the findings left open here.</p>
+          0.5.2 below; of the two findings left open here, the over-dispatch closed by measurement against the 0.5.2
+          package and the verdict label closed by measurement in 0.5.4.</p>
         <p><strong>Tested?</strong> Before/after measurement in <code>evals/baselines/2026-09-22-0.5.0.md</code> →
           <code>2026-09-22-0.5.1.md</code>: across three rounds on the four decisive cases, the cycle's real defect
           (<code>external-clis-merge-blocker</code>, each reviewer's individual verdict dissolved in the merge)
@@ -901,8 +902,8 @@ profiles/"] --> B["dh build"]
           single round of the whole set swings between 0.84 and 0.91 with the same assets, so that is the snapshot
           that ships with the package, not the acceptance criterion. Left open, with evidence in the companion
           file: over-dispatch in <code>external-clis-parallel</code> (<code>Agent called 2x</code>) and one round
-          in three that renamed and bolded the verdict label despite the verbatim-reproduction rule — both closed
-          by measurement in 0.5.2, see below.</p>
+          in three that renamed and bolded the verdict label despite the verbatim-reproduction rule — the over-dispatch
+          closed by measurement against the 0.5.2 package and the label in 0.5.4, see below.</p>
       </div>
 
       <div class="card">
@@ -938,8 +939,76 @@ profiles/"] --> B["dh build"]
           containment, unbounded reads), fixed in the same batch by another specialist. The over-dispatch finding
           recorded in the 0.5.1 card (<code>external-clis-parallel</code>, <code>Agent called 2x</code>) no longer
           reproduces: three consecutive runs against the 0.5.2 package scored <code>Agent called 1x</code> —
-          closed by measurement; the finding's history stays recorded in the 0.5.1 card above, not deleted. Still
-          open: one run in three renames or bolds the verdict label despite the verbatim-reproduction rule.</p>
+          closed by measurement; the finding's history stays recorded in the 0.5.1 card above, not deleted. Left
+          open in this release: one run in three renamed or bolded the verdict label despite the verbatim-reproduction rule — closed by measurement in 0.5.4, see below.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.3 · First real review on security and document stages; symlink and unbounded-read fixed</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> first real review on the <code>security</code> and <code>document</code>
+          stages (before only <code>code</code> had been exercised with an external binary) — headless
+          <code>codex</code> in read-only mode produced each stage's exact signal on the first attempt
+          (<code>### MEDIUM:</code> under <code>## Findings</code> and <code>- changes required</code> under
+          <code>## Verdict</code>). That review found two vulnerabilities, which this release fixed, in <code>dh validate</code>:
+          symlink containment decided at the directory level before enumerating any file under it (no symlink
+          component is accepted between the case directory and the target, refuse rather than resolve-and-allow)
+          and unbounded reads (every file goes through one choke point that refuses non-regular files and enforces
+          a 5 MiB ceiling, checked before and after the read). Four silent skips removed (an unreadable
+          <code>case.yaml</code>, grader, <code>prompt.md</code>, or fixture now fails naming the path).
+          <code>dh validate</code> now checks prose counts in documentation against the real count of
+          <code>docs/**</code> and <code>README*</code> — motivated by tutorial 00 telling the reader to expect
+          <code>18/17/19/3</code> from a kit that already shipped <code>19/17/21/4</code>. Documentation updated in
+          bulk (counts, the 0.5.1/0.5.2 roadmap cards, the story/plan/ADR validator card moved to Delivered,
+          <code>plano-produto.html</code> taken out of its "0.1.0, runtime pending" state, a new
+          <code>reviewers:</code> section in both quick starts); documentation becomes a completion condition, not
+          a good intention. The prompt assembled for a CLI reviewer now carries its own
+          <code>cli:&lt;binary&gt;/&lt;slug&gt;</code> tag. Nothing can write to the tree between the freeze and
+          the post-call comparison, the Coordinator included.</p>
+        <p><strong>Relations:</strong> continues the <code>/dev-harness:improve</code> cycle opened in 0.5.1/0.5.2,
+          the first time a real CLI review runs on all three PRD-003 stages. RF-09/AC-10 and RF-13/AC-14 evidence
+          for PRD-004 recorded in <code>docs/prd/PRD-004-evals-executaveis-e-higiene.review.md</code>.</p>
+        <p><strong>Tested?</strong> Both vulnerabilities were demonstrated by the CLI review itself and fixed in
+          the same batch. The 0.5.1 over-dispatch finding (<code>external-clis-parallel</code>) no longer
+          reproduces — <code>Agent called 1x</code> across three consecutive runs against the 0.5.2 package. No new
+          behavioral baseline recorded in this release; the documented-count check runs on every
+          <code>dh validate</code> call.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.4 · Merged verdict label dropping the Coordinator's qualifier</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> measured: in 2 of 12 runs of one case, the report came out as
+          <code>- Merged review status: **request changes**</code> — renamed and bolded — despite the
+          verbatim-reproduction rule existing since 0.5.2. A new clause in <code>.agents/coordinator.md</code>
+          names that exact shape; the deviation did not appear in 18 runs afterward (two batches of 9). Three new
+          traps in <code>harness-evaluation</code>, all about the same point — the grader's body is the judge's
+          prompt: wording that leaves the case's own construction ambiguous makes the judge answer the ambiguity
+          (measured: 3 failures in 12 with the sentence naming the construction, 7 in 9 without it, in a shorter
+          wording — shortening made it worse twice); a comment about the grader itself inside the body becomes part
+          of the question; a criterion asking the judge to compare against a file it cannot read is not
+          answerable.</p>
+        <p><strong>Relations:</strong> continuation of the <code>/dev-harness:improve</code> cycle on CLI review;
+          no code change — the package bumps version because the Coordinator's body changes and the eval cases
+          embed it.</p>
+        <p><strong>Tested?</strong> Eighteen runs after the fix stopped reproducing the deviation (two batches of
+          9) — eighteen runs do not prove zero, they prove that what appeared once every six stopped appearing.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.5 · Claude Code CLI stops being pinned in the evals workflow</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> the runner now records in every result the version it ran under
+          (<code>claudeVersion</code> in the baseline JSON), so comparability comes from what the run recorded, not
+          from a number frozen in a file that ages between releases — the machine was already on 2.1.280 while CI
+          still asked for 2.1.278. The <code>harness-evaluation</code> skill now requires reporting the recorded
+          version alongside the result and treating a version difference between two runs as a stated condition of
+          the comparison, instead of something the pin hid.</p>
+        <p><strong>Relations:</strong> same <code>harness-evaluation</code> thread opened in 0.5.4; sets up the
+          0.6.0 before/after baseline, which runs under CLI 2.1.282, ahead of the 2.1.278 pin of earlier releases,
+          with 2.1.280 already recorded in between.</p>
+        <p><strong>Tested?</strong> Runner and skill contract change; no dedicated behavioral run recorded in this
+          release. <code>go test ./...</code> and <code>dh validate .</code> keep covering the schema.</p>
       </div>
 
       <div class="card">
@@ -985,7 +1054,7 @@ profiles/"] --> B["dh build"]
           neighboring <code>external-clis-*</code> cases (1 run each, CLI 2.1.282, <code>evals/results/</code>,
           git-ignored): mean 0.91, and 0.82 for the same cases on 0.5.1 (CLI 2.1.278) — with one run per case the comparison supports
           neither an improvement nor a regression; three dropped (<code>attribution</code>, <code>only</code>,
-          <code>risk-001</code>) and are left to re-check. Additional known limits for the second batch: the wording of the
+          <code>risk-001</code>) and are left to re-check. Additional known limits, listed in <code>CHANGELOG.md</code> 0.6.0 under the second batch and now planned with no batch assigned (see the second-batch card under Planned): the wording of the
           Coordinator's Procedure item 4 on dispatching <code>repo-scout</code> before assigning roles; the two
           adjacent architecture-audit bullets in <code>repo-scout</code>; and the prompt assembled for a CLI
           reviewer needs to say explicitly that reading files is allowed — one review attempt read the
@@ -1014,31 +1083,6 @@ profiles/"] --> B["dh build"]
 
       <h2 id="planejado"><span class="n">03</span>Planned</h2>
       <p>Items with a PRD or fixed decision, not yet released.</p>
-
-      <div class="card">
-        <h3>PRD-002 behavioral evaluation pending</h3>
-        <p><strong>Description:</strong> run the three cases in <code>evals/cases/doc-validator-*.md</code> against
-          the <code>document-validator</code> role and record the result under <code>evals/baselines/</code>,
-          empty today (only <code>.gitkeep</code>).</p>
-        <p><strong>Acceptance criteria (copied from PRD-002 §5):</strong></p>
-        <ul>
-          <li>AC-01: PRD with a planted gap → validator reports the gap with category and suggestion, verdict
-            <code>changes required</code>.</li>
-          <li>AC-02: PRD with no problems → verdict <code>approved</code> with no findings.</li>
-          <li>AC-03: rejection → Coordinator dispatches a correction for only the listed points; the owner only
-            receives it after <code>approved</code> or the round limit.</li>
-          <li>AC-04: cycle resumed in another session → the persistent report shows what was already applied and
-            rejected.</li>
-        </ul>
-        <p><strong>Status:</strong> done in 0.5.0 — <code>doc-validator-clean</code> and <code>doc-validator-gap</code>
-          ran in the baseline <code>evals/baselines/2026-09-22-0.5.0.json</code> (the first passed, the second
-          failed 2 of 11 graders); <code>doc-validator-round-cap</code> cannot be driven by the native runner and
-          lives in <code>evals/not-run/doc-validator-round-cap/</code> with a <code>REASON.md</code>, never counted
-          as passed. See the 0.5.0 card above.</p>
-        <p><strong>Relations:</strong> PRD-002; depends on 0.3.0 (<code>document-validator</code>, skill
-          <code>document-review</code>) and on PRD-004 (native runner, <code>evals/rubrics/</code> removed — the
-          criterion moved into each <code>graders/*.md</code>).</p>
-      </div>
 
       <div class="card">
         <h3>VS Code extension (danielmalka/dev-harness-vscode)</h3>
@@ -1080,6 +1124,32 @@ profiles/"] --> B["dh build"]
           release since 0.1.0.</p>
       </div>
 
+      <div class="card">
+        <h3>Second batch — critical reviewers, grader 06, neighbours and RISK-001 (IMP-003/PLAN-006)</h3>
+        <p><strong>Description:</strong> continuation of the improvement work from IMP-001/PLAN-005, in planning as
+          IMP-003/PLAN-006: more critical reviewers (<code>code-reviewer</code>, <code>security-reviewer</code>,
+          <code>document-validator</code>) — adversarial stance with mandatory coverage angles, and an approval only
+          with proof of what was checked; recalibration of grader <code>06</code> ("restates the demand first") with
+          a larger sample; a re-check of the three neighbour cases that dropped on a single run
+          (<code>external-clis-attribution</code>, <code>external-clis-only</code>, <code>external-clis-risk-001</code>);
+          and closing RISK-001. Out of this batch, planned with no batch assigned: the wording of the Coordinator's
+          Procedure item 4 on dispatching <code>repo-scout</code> before assigning roles; the two adjacent
+          architecture-audit bullets in <code>repo-scout</code>; the prompt assembled for a CLI reviewer needing to
+          say explicitly that reading files is allowed (one review attempt read the anti-delegation clause as
+          forbidding reads); and a larger <code>timeout_minutes</code> (or lower <code>--reasoning-effort</code>)
+          for the <code>cli:grok/grok-4.7</code> reviewer, which timed out at 15 minutes in more than one review of
+          the 0.6.0 batch.</p>
+        <p><strong>Acceptance criteria:</strong> AC-01 to AC-09 of the internal IMP-003 brief
+          (<code>.harness/tasks/PLAN-006/BRIEF.md</code>, not version-controlled), among them: proof through eval
+          cases with a seeded defect, measured before and after the edit; RISK-001 moves to resolved only when 5 of
+          5 runs of case <code>external-clis-risk-001</code> pass in full within one baseline; a US$ 25 cap on evals
+          for the batch.</p>
+        <p><strong>Status:</strong> in planning since 2026-09-24, with the plan under validation; no release yet.</p>
+        <p><strong>Relations:</strong> PLAN-005/IMP-001 (see the 0.6.0 card above); <code>CHANGELOG.md</code> 0.6.0,
+          "Known limits, for the second batch" section; the grok timeout item is not in the public
+          <code>CHANGELOG.md</code> — recorded in <code>.harness/MEMORY.md</code> during the batch's execution.</p>
+      </div>
+
       <h2 id="ideias"><span class="n">04</span>Discovery ideas</h2>
       <p>No PRD yet. Criteria below are hypotheses, not commitments.</p>
 
@@ -1110,6 +1180,10 @@ flowchart LR
         R040 --> R050["0.5.0"]
         R050 --> R051["0.5.1"]
         R051 --> R052["0.5.2"]
+        R052 --> R053["0.5.3"]
+        R053 --> R054["0.5.4"]
+        R054 --> R055["0.5.5"]
+        R055 --> R060["0.6.0"]
     end
     ADR001["ADR-001
 Go runtime"] --> R020
@@ -1121,6 +1195,8 @@ document validator"] --> R030
 peer review by CLI"] --> R040
     PRD004["PRD-004
 eval runner and hygiene"] --> R050
+    PLAN005["PLAN-005 / IMP-001
+Coordinator intake"] --> R060
 
     R050 --> P1["Done 0.5.0
 PRD-002 behavioral evaluation"]
@@ -1132,6 +1208,8 @@ VS Code extension"]
 Linux/macOS/WSL2 qualification"]
     R010 --> P5["Planned
 native adapters for other AIs"]
+    R060 --> P6["Planned
+IMP-003/PLAN-006 (2nd batch)"]
 
     P2 --> I2["Idea
 this roadmap as a living artifact"]
@@ -1141,7 +1219,12 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.5.2, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.6.0, base for the Delivered section.</li>
+        <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
+          measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
+        <li><code>.harness/MEMORY.md</code> — the owner's record of the second batch (critical reviewers, grader
+          06, dropped neighbors, the grok timeout), cited in the "Second batch" card above because part of it is
+          not in the public <code>CHANGELOG.md</code>.</li>
         <li><code>docs/prd/PRD-004-evals-executaveis-e-higiene.md</code> — scope, RF, AC and risks for the eval
           runner and the 0.4.0 batch hygiene.</li>
         <li><code>evals/baselines/2026-09-22-0.5.0.md</code> and <code>2026-09-22-0.5.1.md</code> — real numbers
