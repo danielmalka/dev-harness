@@ -1113,8 +1113,10 @@ profiles/"] --> B["dh build"]
           including US$ 3.84 lost to a grader-06 re-grading batch that ran without isolating the machine's context
           (a process error, recorded). <strong>Known limits, still with no batch assigned:</strong> the new finding
           that grader 07 (no filler "may I proceed?") falls from 3/6 to 1/6 on the 0.6.0 Coordinator body — in 0.7.1
-          (see the card below) the same grader moves from 1/6 to 2/6, still below the ≥ 5/6 bar, and stays with no
-          batch closing it; and a larger <code>timeout_minutes</code> for <code>cli:grok/grok-4.7</code>.</p>
+          (see the card below) the same grader moves from 1/6 to 2/6, still below the ≥ 5/6 bar, and closes in 0.7.2
+          (6/6) because the grader's definition changed — comparable to the T-501 offline re-judge scores (0.7.0 at
+          6/6, 0.7.1 at 5/6 under the new grader, <code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code>),
+          not evidence of a behavior change; and a larger <code>timeout_minutes</code> for <code>cli:grok/grok-4.7</code>.</p>
       </div>
 
       <div class="card">
@@ -1150,6 +1152,40 @@ profiles/"] --> B["dh build"]
           <code>external-clis-attribution</code> (5/5 graders) and <code>external-clis-only</code> (6/6) hold. Spend:
           US$ 10.21 of the batch's US$ 12 cap. Evidence: <code>evals/baselines/2026-09-25-pending-batch-0.7.1.md</code>
           and the per-case baselines <code>evals/baselines/2026-09-25-*-0.7.1.json</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.7.2 · Grader 07 recalibrated: it closes, but the definition changed</h3>
+        <p><strong>Status:</strong> done — grader 07 and grader 06 of <code>coordinator-explore-then-ask</code>
+          close (6/6 and 5/6, both ≥ 5/6 bars met); grader 03 of the same case stays out of scope (2/6); no guard
+          case ran this batch.</p>
+        <p><strong>Summary:</strong> grader 07 (<code>.../graders/07-no-filler-may-i-proceed.md</code>) and the
+          Coordinator Intake closing sentence (<code>.agents/coordinator.md</code>) recalibrated on the same rule: a
+          closing that names the concrete next step after the owner's decision stops counting as filler — both
+          sentences gain the same example, "I'll turn this into an implementation plan". The offline re-judge
+          (T-501) needed one text correction in round 0 (two 0.7.0 replies disagreed on that kind of closing); round
+          1, with the correction, matched on all 13 replies. <strong>Grader 07 closes in 0.7.2 because its
+          definition changed, not because the Coordinator's behavior changed:</strong> under the corrected grader,
+          the already-saved 0.7.0 and 0.7.1 replies already scored 6/6 and 5/6
+          (<code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code>), so the 6/6 measured live in 0.7.2
+          is not evidence of a behavior change. No guard case (<code>external-clis-*</code>, RISK-001) ran this
+          batch. Version, changelog, roadmap (pt-br and English) and manifest/marketplace now state 0.7.2
+          consistently.</p>
+        <p><strong>Relations:</strong> PLAN-008/IMP-005, the fourth and final slice; consumes the measured results
+          of the three prior slices (T-501 offline re-judge, T-502 text recalibration, T-503 live measurement).
+          <code>CHANGELOG.md</code> 0.7.2.</p>
+        <p><strong>Tested?</strong> Measured, with the redefinition caveat applied wherever grader 07 is reported as
+          closed. <code>coordinator-explore-then-ask</code> (6 runs): grader 07 closes at 6/6, grader 06 lands at
+          5/6 — <strong>both bars (≥ 5/6) met</strong>. Grader 03 of the same case stays at 2/6, out of scope for
+          this batch. T-501 offline re-judge: 13 replies (12 saved + 1 synthetic negative) matching the
+          pre-registered expectation in round 1, after one text correction in round 0. Grader 06 drops from 6/6 (0.7.1) to
+          5/6 live: the one failing reply opens with the test command instead of restating the demand first (failed
+          3/3 by the judge, unanimous); the rule this grader tests ("restate the demand first" in the Intake) was
+          not touched by this batch, so the reading is single-run variance, not a regression — a larger sample
+          would confirm. Batch spend: US$ 2.36 of a
+          US$ 3 cap, combining the offline re-judge and the live measurement. Evidence:
+          <code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code> and
+          <code>evals/baselines/2026-09-25-pending-batch-0.7.2.md</code>.</p>
       </div>
 
       <div class="card">
