@@ -1291,6 +1291,38 @@ profiles/"] --> B["dh build"]
         <p><strong>Relations:</strong> none yet — no discovery open.</p>
       </div>
 
+      <div class="card">
+        <h3>Product agent for market research (or new functions on the existing agent)</h3>
+        <p><strong>Description:</strong> a product agent that does market research, investigates how competitors
+          use a given feature, and helps create the PRD. The owner also named an alternative: specify new
+          functions for the existing agent that creates the PRD, today <code>.agents/product-discovery.md</code>,
+          instead of a new agent. Both options stay open; the owner has not chosen. Requested by the owner on
+          2026-09-25, no PRD yet.</p>
+        <p><strong>Acceptance criteria:</strong> to be defined — depend on which of the two options is chosen.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> <code>.agents/product-discovery.md</code> is the agent that creates the PRD
+          today; either option touches it, whether as a sibling agent feeding it or as an extension of its
+          functions.</p>
+      </div>
+
+      <div class="card">
+        <h3>Specialized diagram skills (Excalidraw and Mermaid) incorporated into documentation</h3>
+        <p><strong>Description:</strong> specialized diagram skills — Excalidraw and Mermaid — incorporated into
+          documentation, plus an edit to the documentation agent (<code>.agents/docs-guide.md</code>) so it uses
+          diagrams whenever useful. Reason given by the owner: they are a very visual person. Requested by the
+          owner on 2026-09-25, no PRD yet.</p>
+        <p><strong>Acceptance criteria:</strong> to be defined.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> today only Mermaid is covered, and only in the <code>doc-template-html</code>
+          skill (<code>.skills/doc-template-html/SKILL.md</code> and
+          <code>.skills/doc-template-html/references/types.md</code>), which already loads Mermaid from a CDN as
+          the only allowed CDN exception in the kit's HTML docs. No kit skill covers Excalidraw today — a search
+          of <code>.skills/</code> for "excalidraw" on 2026-09-25 returned no file. Owner's decision on 2026-09-25:
+          Excalidraw diagrams live as separate <code>.excalidraw</code> files; the <code>.md</code> and
+          <code>.html</code> docs only link to them, with no embedding, no script and no export inside the
+          document. Mermaid keeps its current role.</p>
+      </div>
+
       <h2 id="ideias"><span class="n">04</span>Discovery ideas</h2>
       <p>No PRD yet. Criteria below are hypotheses, not commitments.</p>
 
