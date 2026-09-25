@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: document-validator-scope-overclaim
+context:
+  scaffold_script: scaffold.sh

@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
-           <span class="chip">date <b>2026-09-24</b></span>
-          <span class="chip">status <b>0.6.0 · live</b></span>
+           <span class="chip">date <b>2026-09-25</b></span>
+          <span class="chip">status <b>0.7.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -1054,13 +1054,71 @@ profiles/"] --> B["dh build"]
           neighboring <code>external-clis-*</code> cases (1 run each, CLI 2.1.282, <code>evals/results/</code>,
           git-ignored): mean 0.91, and 0.82 for the same cases on 0.5.1 (CLI 2.1.278) — with one run per case the comparison supports
           neither an improvement nor a regression; three dropped (<code>attribution</code>, <code>only</code>,
-          <code>risk-001</code>) and are left to re-check. Additional known limits, listed in <code>CHANGELOG.md</code> 0.6.0 under the second batch and now planned with no batch assigned (see the second-batch card under Planned): the wording of the
+          <code>risk-001</code>) and were re-checked in 0.7.0 (variance, not a regression; see the 0.7.0 card below). Additional known limits, listed in <code>CHANGELOG.md</code> 0.6.0 under the second batch (delivered in 0.7.0, see the card below) and others still planned with no batch assigned (see "Known limits" in the 0.7.0 card below): the wording of the
           Coordinator's Procedure item 4 on dispatching <code>repo-scout</code> before assigning roles; the two
           adjacent architecture-audit bullets in <code>repo-scout</code>; and the prompt assembled for a CLI
           reviewer needs to say explicitly that reading files is allowed — one review attempt read the
           anti-delegation clause as forbidding reads. Go code: only the version constant in <code>internal/build/build.go</code>; <code>go run ./cmd/dh validate
           --source-only .</code> confirms 0 errors and the agent/command/skill/profile/template counts unchanged
           (19/17/21/4/16).</p>
+      </div>
+
+      <div class="card">
+        <h3>0.7.0 · Critical reviewers, recalibrated grader 06 and re-checked neighbours</h3>
+        <p><strong>Status:</strong> done — no proven detection gain on any of the three edited reviewers; the
+          owner's decision not to describe an unmeasured effect as a gain (the T-207 lesson) is kept.</p>
+        <p><strong>Summary:</strong> <code>code-reviewer</code>, <code>security-reviewer</code> and
+          <code>document-validator</code>, with the <code>code-review</code>, <code>security-review</code> and
+          <code>document-review</code> skills, become adversarial by default: a claim that the change works, or
+          that a document covers what it claims, stays unproven until it is traced. Each role gains mandatory
+          coverage angles or categories (correctness/regression/spec/security surface for the <code>code</code>
+          stage; authentication/object-level authorization/validation/sensitive data/execution surface for the
+          <code>security</code> stage; the six existing categories for the <code>document</code> stage), and an
+          angle that was not actually checked stays uncovered — never approved by omission. Findings now require a
+          concrete scenario. Approval requires proof of what was checked: a new <code>## Coverage</code> section in
+          <code>code</code>, <code>## Not raised</code> becomes a condition for <code>approved</code> in
+          <code>document</code>, and the clean-bill sentence in <code>security</code> only prints once every
+          touched category was traced. An uncovered angle becomes, per stage, a Major finding
+          (<code>code</code>), a <code>gap</code> finding (<code>document</code>), or a Low
+          <code>hypothesis requiring investigation</code> finding (<code>security</code>) — under the Coordinator's
+          merge rule (<code>.agents/coordinator.md:132</code>), the first two block the merged verdict
+          by themselves; <code>security</code>'s needs a resolution (<code>.agents/coordinator.md:85</code>) but
+          does not block by itself, and does not by itself withhold the "verified" label — line 83 only withholds
+          that label facing an unresolved blocker, and a security Low is not a blocker of the merge. No verdict
+          signal line or frontmatter field changed; <code>code-reviewer</code> gained a <code>## Coverage</code> heading.</p>
+        <p><strong>Relations:</strong> PLAN-006/IMP-003, the "second batch" announced in the 0.6.0 card above and
+          previously listed under Planned. <code>CHANGELOG.md</code> 0.7.0.</p>
+        <p><strong>Tested?</strong> Measured, with the limit stated. Three new cases with a seeded defect
+          (<code>code-reviewer-equivalent-form-miss</code>, <code>security-reviewer-object-authz-miss</code>,
+          <code>document-validator-scope-overclaim</code>) compare each role before/after
+          (<code>evals/baselines/2026-09-24-*-reviewer-before.md</code>,
+          <code>evals/baselines/2026-09-25-*-reviewer-after.md</code>). <strong>No measured detection gain</strong>:
+          <code>code</code> and <code>document</code> detect the seeded defect 3/3 before and after, an identical
+          score on both sides (0.78 and 0.67); <code>security</code> stopped discriminating after the single
+          authorized hardening pass (3/3 before and after), so AC-04 for <code>security</code> is
+          <strong>not measured</strong>. The controls for <code>code</code> (grader 03, a double negative) and
+          <code>document</code> (the control grader, which ignores a legitimate source precondition) turned out to
+          be case defects, confirmed by a manual reading of all six replies on each side — recorded for a later
+          fix, not fixed here. Visible, uncontroversial behavior change: <code>code-reviewer</code> now opens every
+          reply with <code>## Coverage</code> in 3/3 runs after, 0/3 before. No regression: <code>security</code>
+          3/3, <code>doc-validator-clean</code> 6/6 graders, <code>doc-validator-gap</code> 11/11 graders. Grader 06
+          recalibrated (<code>evals/results/2026-09-25-grader06-regrade.md</code>): 18/18 judge votes match the
+          manual reading; a larger sample of six runs per side
+          (<code>evals/baselines/2026-09-25-coordinator-restate-larger.md</code>) moves 0/6 → 6/6 on restating the
+          demand first — the first measured evidence for the 0.6.0 rule. Neighbours re-checked
+          (<code>evals/results/2026-09-24-neighbour-recheck.md</code>): <code>attribution</code> and
+          <code>only</code> return to 1.00 (3/3), <code>risk-001</code> lands at 0.96 (3/4, the 5th run did not run
+          because the cost cap was reached) — the three 0.6.0 drops were variance, not a regression. RISK-001 stays
+          <strong>mitigated</strong> (the 5-of-5 rule was not reached). Spend: about US$ 22.5 of the US$ 25 cap,
+          including US$ 3.84 lost to a grader-06 re-grading batch that ran without isolating the machine's context
+          (a process error, recorded). <strong>Known limits, still with no batch assigned:</strong> the new finding
+          that grader 07 (no filler "may I proceed?") falls from 3/6 to 1/6 on the 0.6.0 Coordinator body; the
+          three case-defect graders still to fix (<code>code</code>'s grader 03, <code>document</code>'s control
+          grader, and <code>external-clis-risk-001</code>'s <code>01-clause-verbatim-byte-identical</code> grader,
+          a candidate for a deterministic check); plus the items already carried from 0.6.0 — the wording of the
+          Coordinator's Procedure item 4 on <code>repo-scout</code>, the two architecture-audit bullets in
+          <code>repo-scout</code>, the CLI reviewer prompt needing to say reading is allowed, and a larger
+          <code>timeout_minutes</code> for <code>cli:grok/grok-4.7</code>.</p>
       </div>
 
       <div class="card">
@@ -1124,32 +1182,6 @@ profiles/"] --> B["dh build"]
           release since 0.1.0.</p>
       </div>
 
-      <div class="card">
-        <h3>Second batch — critical reviewers, grader 06, neighbours and RISK-001 (IMP-003/PLAN-006)</h3>
-        <p><strong>Description:</strong> continuation of the improvement work from IMP-001/PLAN-005, in planning as
-          IMP-003/PLAN-006: more critical reviewers (<code>code-reviewer</code>, <code>security-reviewer</code>,
-          <code>document-validator</code>) — adversarial stance with mandatory coverage angles, and an approval only
-          with proof of what was checked; recalibration of grader <code>06</code> ("restates the demand first") with
-          a larger sample; a re-check of the three neighbour cases that dropped on a single run
-          (<code>external-clis-attribution</code>, <code>external-clis-only</code>, <code>external-clis-risk-001</code>);
-          and closing RISK-001. Out of this batch, planned with no batch assigned: the wording of the Coordinator's
-          Procedure item 4 on dispatching <code>repo-scout</code> before assigning roles; the two adjacent
-          architecture-audit bullets in <code>repo-scout</code>; the prompt assembled for a CLI reviewer needing to
-          say explicitly that reading files is allowed (one review attempt read the anti-delegation clause as
-          forbidding reads); and a larger <code>timeout_minutes</code> (or lower <code>--reasoning-effort</code>)
-          for the <code>cli:grok/grok-4.7</code> reviewer, which timed out at 15 minutes in more than one review of
-          the 0.6.0 batch.</p>
-        <p><strong>Acceptance criteria:</strong> AC-01 to AC-09 of the internal IMP-003 brief
-          (<code>.harness/tasks/PLAN-006/BRIEF.md</code>, not version-controlled), among them: proof through eval
-          cases with a seeded defect, measured before and after the edit; RISK-001 moves to resolved only when 5 of
-          5 runs of case <code>external-clis-risk-001</code> pass in full within one baseline; a US$ 25 cap on evals
-          for the batch.</p>
-        <p><strong>Status:</strong> in planning since 2026-09-24, with the plan under validation; no release yet.</p>
-        <p><strong>Relations:</strong> PLAN-005/IMP-001 (see the 0.6.0 card above); <code>CHANGELOG.md</code> 0.6.0,
-          "Known limits, for the second batch" section; the grok timeout item is not in the public
-          <code>CHANGELOG.md</code> — recorded in <code>.harness/MEMORY.md</code> during the batch's execution.</p>
-      </div>
-
       <h2 id="ideias"><span class="n">04</span>Discovery ideas</h2>
       <p>No PRD yet. Criteria below are hypotheses, not commitments.</p>
 
@@ -1184,6 +1216,7 @@ flowchart LR
         R053 --> R054["0.5.4"]
         R054 --> R055["0.5.5"]
         R055 --> R060["0.6.0"]
+        R060 --> R070["0.7.0"]
     end
     ADR001["ADR-001
 Go runtime"] --> R020
@@ -1197,6 +1230,8 @@ peer review by CLI"] --> R040
 eval runner and hygiene"] --> R050
     PLAN005["PLAN-005 / IMP-001
 Coordinator intake"] --> R060
+    PLAN006["PLAN-006 / IMP-003
+Critical reviewers"] --> R070
 
     R050 --> P1["Done 0.5.0
 PRD-002 behavioral evaluation"]
@@ -1208,8 +1243,8 @@ VS Code extension"]
 Linux/macOS/WSL2 qualification"]
     R010 --> P5["Planned
 native adapters for other AIs"]
-    R060 --> P6["Planned
-IMP-003/PLAN-006 (2nd batch)"]
+    R070 --> P6["Planned, no batch
+open findings from the 2nd batch"]
 
     P2 --> I2["Idea
 this roadmap as a living artifact"]
@@ -1219,12 +1254,21 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.6.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.7.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
-        <li><code>.harness/MEMORY.md</code> — the owner's record of the second batch (critical reviewers, grader
-          06, dropped neighbors, the grok timeout), cited in the "Second batch" card above because part of it is
-          not in the public <code>CHANGELOG.md</code>.</li>
+        <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
+          and <code>evals/baselines/2026-09-25-{code-reviewer,security-reviewer,document-validator}-reviewer-after.md</code>
+          — before/after measurement of the three edited reviewers in the 0.7.0 batch (IMP-003/PLAN-006).</li>
+        <li><code>evals/results/2026-09-24-neighbour-recheck.md</code> — the neighbour re-check and the RISK-001
+          result, cited in the 0.7.0 card above.</li>
+        <li><code>evals/results/2026-09-25-grader06-regrade.md</code> and
+          <code>evals/baselines/2026-09-25-coordinator-restate-larger.md</code> — the grader 06 recalibration and
+          the larger sample that measures the 0.6.0 restatement rule.</li>
+        <li><code>.harness/MEMORY.md</code> — the owner's record of second-batch limits still with no batch
+          assigned (the Coordinator Procedure item on <code>repo-scout</code>, the architecture-audit bullets, the
+          CLI reviewer prompt, the grok timeout), cited under "Known limits" in the 0.7.0 card above because part
+          of it is not in the public <code>CHANGELOG.md</code>.</li>
         <li><code>docs/prd/PRD-004-evals-executaveis-e-higiene.md</code> — scope, RF, AC and risks for the eval
           runner and the 0.4.0 batch hygiene.</li>
         <li><code>evals/baselines/2026-09-22-0.5.0.md</code> and <code>2026-09-22-0.5.1.md</code> — real numbers

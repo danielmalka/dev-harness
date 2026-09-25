@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-25T02:58:25.595Z",
+  "durationSeconds": 99,
+  "costUsd": 0.465586,
+  "partial": false,
+  "suite": {
+    "root": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "judgeModel": "sonnet",
+    "caseFilter": "security-reviewer-object-authz-miss",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "dev-harness",
+        "version": "0.6.0",
+        "path": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "security-reviewer-object-authz-miss",
+      "dir": "evals/cases/security-reviewer-object-authz-miss",
+      "source": "mixed",
+      "promptMarkdown": "Load the kit skill security-review. The change under review is fixtures/diff.md. Return only your output format.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "01-detects-object-authz-finding",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Is there a finding, of severity High or Critical (skill format) or category\n`demonstrated vulnerability` (agent format), that identifies the export\nhandler's note lookup (`findById` with no owner check) as a broken\nobject-level authorization letting any authenticated caller read another\nuser's note by id?",
+          "config": {
+            "criteria": "Is there a finding, of severity High or Critical (skill format) or category\n`demonstrated vulnerability` (agent format), that identifies the export\nhandler's note lookup (`findById` with no owner check) as a broken\nobject-level authorization letting any authenticated caller read another\nuser's note by id?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "02-finding-has-required-fields",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Does that finding populate the fields its own output format requires: in\nthe skill format, a source (the request-supplied id), a sink (the\nunfiltered `findById` lookup) and the attacker's gain (reading another\nuser's note); in the agent format, a path from entry to sensitive operation,\nevidence, and a mitigation or next verification step?",
+          "config": {
+            "criteria": "Does that finding populate the fields its own output format requires: in\nthe skill format, a source (the request-supplied id), a sink (the\nunfiltered `findById` lookup) and the attacker's gain (reading another\nuser's note); in the agent format, a path from entry to sensitive operation,\nevidence, and a mitigation or next verification step?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "03-owner-filtered-branch-not-flagged",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Does no finding claim that the delete handler (the branch using\n`findByIdAndOwner` filtered by `req.session.userId`) is vulnerable, missing\nan authorization check, or otherwise a problem?",
+          "config": {
+            "criteria": "Does no finding claim that the delete handler (the branch using\n`findByIdAndOwner` filtered by `req.session.userId`) is vulnerable, missing\nan authorization check, or otherwise a problem?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "04-owner-filtered-branch-listed-clean",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Is the delete handler's owner-filtered lookup (`findByIdAndOwner`)\nexplicitly named as checked and clean — under a `## Non-issues` section in\nthe skill format, or an equivalent explicit statement in the agent format —\nrather than simply left unmentioned?",
+          "config": {
+            "criteria": "Is the delete handler's owner-filtered lookup (`findByIdAndOwner`)\nexplicitly named as checked and clean — under a `## Non-issues` section in\nthe skill format, or an equivalent explicit statement in the agent format —\nrather than simply left unmentioned?",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.1631668,
+            "judgeCostUsd": 0.031848,
+            "durationSeconds": 35,
+            "startedAt": "2026-09-25T02:58:25.848Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-6v2HTk/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-object-authz-finding",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Surface\n- Change reviewed: `fixtures/diff.md` (fictional diff, `main..feat/notes-export`, scoped to `src/api/notes.ts`, `src/repo/notes.ts`)\n- Boundaries touched: authenticated HTTP route layer, per-user note ownership/data isolation\n- Not covered: `repository.findById` / `findByIdAndOwner` implementations, `requireSession` middleware internals — neither file exists in this checkout; analysis is based solely on the diff text supplied in the fixture\n\n## Findings\n- Category: demonstrated vulnerability\n- Severity and confidence: High — severe impact (cross-tenant data read) behind only one hurdle (having any valid session); confidence high based on the diff text itself, though the actual `findById`/session-check implementations were not inspected since the files don't exist in this checkout\n- Path: `req.params.id` (untrusted, attacker-controlled path parameter) → `src/api/notes.ts:19` `GET /notes/:id/export` handler → `src/api/notes.ts:20` `repository.findById(req.params.id)` → `src/api/notes.ts:23` `res.send(note.body)`\n- Evidence, impact, and what remains unproven: `requireSession` (src/api/notes.ts:19) only establishes that a session exists — it is authentication, not authorization. `findById` performs no filter on `req.session.userId` or any owner field, per the diff at line 20. Any authenticated user who can guess or enumerate a note id can retrieve another user's note body via this route. The sibling delete handler in the same diff (lines 27–30) demonstrates the correct pattern (`findByIdAndOwner(id, req.session.userId)`), confirming the export handler's omission is inconsistent with the project's own established control rather than an intentional design choice. Unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not whether the check is missing) — this does not change the verdict since object-level authorization must not rely on unguessable ids.\n- Mitigation: change the export handler to use `repository.findByIdAndOwner(req.params.id, req.session.userId)` (same call already used by the delete handler), returning 404 when the note doesn't belong to the caller.\n- Verification: add a test that authenticates as user A, creates a note as user B, then calls `GET /notes/:id/export` with user A's session and B's note id — assert 404 (not 200 with `note.body`).\n\n## Non-issues\n- `DELETE /notes/:id` — src/api/notes.ts:27-30: filters the lookup via `findByIdAndOwner(req.params.id, req.session.userId)` before deleting by the resolved `note.id`, correctly enforcing object-level authorization. This is the diff's control case and is not flagged.\n\n## Evidence\n- Source: `fixtures/diff.md:19-24` (export handler, no owner filter)\n- Contrast: `fixtures/diff.md:26-32` (delete handler, owner filter present)\n- Limitation: `src/api/notes.ts` and `src/repo/notes.ts` do not exist in this checkout (confirmed via glob) — this diff is a fixture/scenario description rather than a live change in the tree; review is based on the diff text as presented, not on runnable code."
+              },
+              {
+                "name": "02-finding-has-required-fields",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Surface\n- Change reviewed: `fixtures/diff.md` (fictional diff, `main..feat/notes-export`, scoped to `src/api/notes.ts`, `src/repo/notes.ts`)\n- Boundaries touched: authenticated HTTP route layer, per-user note ownership/data isolation\n- Not covered: `repository.findById` / `findByIdAndOwner` implementations, `requireSession` middleware internals — neither file exists in this checkout; analysis is based solely on the diff text supplied in the fixture\n\n## Findings\n- Category: demonstrated vulnerability\n- Severity and confidence: High — severe impact (cross-tenant data read) behind only one hurdle (having any valid session); confidence high based on the diff text itself, though the actual `findById`/session-check implementations were not inspected since the files don't exist in this checkout\n- Path: `req.params.id` (untrusted, attacker-controlled path parameter) → `src/api/notes.ts:19` `GET /notes/:id/export` handler → `src/api/notes.ts:20` `repository.findById(req.params.id)` → `src/api/notes.ts:23` `res.send(note.body)`\n- Evidence, impact, and what remains unproven: `requireSession` (src/api/notes.ts:19) only establishes that a session exists — it is authentication, not authorization. `findById` performs no filter on `req.session.userId` or any owner field, per the diff at line 20. Any authenticated user who can guess or enumerate a note id can retrieve another user's note body via this route. The sibling delete handler in the same diff (lines 27–30) demonstrates the correct pattern (`findByIdAndOwner(id, req.session.userId)`), confirming the export handler's omission is inconsistent with the project's own established control rather than an intentional design choice. Unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not whether the check is missing) — this does not change the verdict since object-level authorization must not rely on unguessable ids.\n- Mitigation: change the export handler to use `repository.findByIdAndOwner(req.params.id, req.session.userId)` (same call already used by the delete handler), returning 404 when the note doesn't belong to the caller.\n- Verification: add a test that authenticates as user A, creates a note as user B, then calls `GET /notes/:id/export` with user A's session and B's note id — assert 404 (not 200 with `note.body`).\n\n## Non-issues\n- `DELETE /notes/:id` — src/api/notes.ts:27-30: filters the lookup via `findByIdAndOwner(req.params.id, req.session.userId)` before deleting by the resolved `note.id`, correctly enforcing object-level authorization. This is the diff's control case and is not flagged.\n\n## Evidence\n- Source: `fixtures/diff.md:19-24` (export handler, no owner filter)\n- Contrast: `fixtures/diff.md:26-32` (delete handler, owner filter present)\n- Limitation: `src/api/notes.ts` and `src/repo/notes.ts` do not exist in this checkout (confirmed via glob) — this diff is a fixture/scenario description rather than a live change in the tree; review is based on the diff text as presented, not on runnable code."
+              },
+              {
+                "name": "03-owner-filtered-branch-not-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Surface\n- Change reviewed: `fixtures/diff.md` (fictional diff, `main..feat/notes-export`, scoped to `src/api/notes.ts`, `src/repo/notes.ts`)\n- Boundaries touched: authenticated HTTP route layer, per-user note ownership/data isolation\n- Not covered: `repository.findById` / `findByIdAndOwner` implementations, `requireSession` middleware internals — neither file exists in this checkout; analysis is based solely on the diff text supplied in the fixture\n\n## Findings\n- Category: demonstrated vulnerability\n- Severity and confidence: High — severe impact (cross-tenant data read) behind only one hurdle (having any valid session); confidence high based on the diff text itself, though the actual `findById`/session-check implementations were not inspected since the files don't exist in this checkout\n- Path: `req.params.id` (untrusted, attacker-controlled path parameter) → `src/api/notes.ts:19` `GET /notes/:id/export` handler → `src/api/notes.ts:20` `repository.findById(req.params.id)` → `src/api/notes.ts:23` `res.send(note.body)`\n- Evidence, impact, and what remains unproven: `requireSession` (src/api/notes.ts:19) only establishes that a session exists — it is authentication, not authorization. `findById` performs no filter on `req.session.userId` or any owner field, per the diff at line 20. Any authenticated user who can guess or enumerate a note id can retrieve another user's note body via this route. The sibling delete handler in the same diff (lines 27–30) demonstrates the correct pattern (`findByIdAndOwner(id, req.session.userId)`), confirming the export handler's omission is inconsistent with the project's own established control rather than an intentional design choice. Unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not whether the check is missing) — this does not change the verdict since object-level authorization must not rely on unguessable ids.\n- Mitigation: change the export handler to use `repository.findByIdAndOwner(req.params.id, req.session.userId)` (same call already used by the delete handler), returning 404 when the note doesn't belong to the caller.\n- Verification: add a test that authenticates as user A, creates a note as user B, then calls `GET /notes/:id/export` with user A's session and B's note id — assert 404 (not 200 with `note.body`).\n\n## Non-issues\n- `DELETE /notes/:id` — src/api/notes.ts:27-30: filters the lookup via `findByIdAndOwner(req.params.id, req.session.userId)` before deleting by the resolved `note.id`, correctly enforcing object-level authorization. This is the diff's control case and is not flagged.\n\n## Evidence\n- Source: `fixtures/diff.md:19-24` (export handler, no owner filter)\n- Contrast: `fixtures/diff.md:26-32` (delete handler, owner filter present)\n- Limitation: `src/api/notes.ts` and `src/repo/notes.ts` do not exist in this checkout (confirmed via glob) — this diff is a fixture/scenario description rather than a live change in the tree; review is based on the diff text as presented, not on runnable code."
+              },
+              {
+                "name": "04-owner-filtered-branch-listed-clean",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Surface\n- Change reviewed: `fixtures/diff.md` (fictional diff, `main..feat/notes-export`, scoped to `src/api/notes.ts`, `src/repo/notes.ts`)\n- Boundaries touched: authenticated HTTP route layer, per-user note ownership/data isolation\n- Not covered: `repository.findById` / `findByIdAndOwner` implementations, `requireSession` middleware internals — neither file exists in this checkout; analysis is based solely on the diff text supplied in the fixture\n\n## Findings\n- Category: demonstrated vulnerability\n- Severity and confidence: High — severe impact (cross-tenant data read) behind only one hurdle (having any valid session); confidence high based on the diff text itself, though the actual `findById`/session-check implementations were not inspected since the files don't exist in this checkout\n- Path: `req.params.id` (untrusted, attacker-controlled path parameter) → `src/api/notes.ts:19` `GET /notes/:id/export` handler → `src/api/notes.ts:20` `repository.findById(req.params.id)` → `src/api/notes.ts:23` `res.send(note.body)`\n- Evidence, impact, and what remains unproven: `requireSession` (src/api/notes.ts:19) only establishes that a session exists — it is authentication, not authorization. `findById` performs no filter on `req.session.userId` or any owner field, per the diff at line 20. Any authenticated user who can guess or enumerate a note id can retrieve another user's note body via this route. The sibling delete handler in the same diff (lines 27–30) demonstrates the correct pattern (`findByIdAndOwner(id, req.session.userId)`), confirming the export handler's omission is inconsistent with the project's own established control rather than an intentional design choice. Unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not whether the check is missing) — this does not change the verdict since object-level authorization must not rely on unguessable ids.\n- Mitigation: change the export handler to use `repository.findByIdAndOwner(req.params.id, req.session.userId)` (same call already used by the delete handler), returning 404 when the note doesn't belong to the caller.\n- Verification: add a test that authenticates as user A, creates a note as user B, then calls `GET /notes/:id/export` with user A's session and B's note id — assert 404 (not 200 with `note.body`).\n\n## Non-issues\n- `DELETE /notes/:id` — src/api/notes.ts:27-30: filters the lookup via `findByIdAndOwner(req.params.id, req.session.userId)` before deleting by the resolved `note.id`, correctly enforcing object-level authorization. This is the diff's control case and is not flagged.\n\n## Evidence\n- Source: `fixtures/diff.md:19-24` (export handler, no owner filter)\n- Contrast: `fixtures/diff.md:26-32` (delete handler, owner filter present)\n- Limitation: `src/api/notes.ts` and `src/repo/notes.ts` do not exist in this checkout (confirmed via glob) — this diff is a fixture/scenario description rather than a live change in the tree; review is based on the diff text as presented, not on runnable code."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.1334128,
+            "judgeCostUsd": 0.03129599999999999,
+            "durationSeconds": 32,
+            "startedAt": "2026-09-25T02:59:01.243Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-n6Nadj/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-object-authz-finding",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Surface\n\n`src/api/notes.ts` — Express routes for notes. New `GET /notes/:id/export` handler added; existing `DELETE /notes/:id` handler modified in the same diff (fixture `security-reviewer-object-authz-miss`, comparison `main..feat/notes-export`). Trust boundary: any authenticated user session vs. per-user data ownership. `requireSession` (fact, from comment in fixtures/diff.md:35) only validates that a session exists — it does not scope to resource ownership.\n\n## Findings\n\n- Category: demonstrated vulnerability\n- Severity: High / Confidence: High\n- Path: `GET /notes/:id/export` (fixtures/diff.md:19-24) → `repository.findById(req.params.id)` (fixtures/diff.md:20) → `res.send(note.body)` (fixtures/diff.md:23)\n- Evidence: The handler is guarded only by `requireSession`, which per fixtures/diff.md:35 checks session presence, not ownership. `findById` takes only the URL-supplied `:id` with no `req.session.userId` filter, unlike the sibling `findByIdAndOwner` used in the delete handler two lines below (fixtures/diff.md:28). This is a textbook broken object-level authorization (IDOR/BOLA): any authenticated user can enumerate or guess note ids and read `note.body` for notes they do not own. Impact: cross-tenant/cross-user confidential data disclosure (note contents) with no exploit chain required beyond a valid session and a note id — the read path is direct and unconditional.\n- Unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not whether the authz check is missing); whether any middleware upstream of this router applies ownership filtering (not shown in the diff, and the fixture's own description states this is deliberate).\n- Mitigation: change `repository.findById(req.params.id)` to an owner-scoped lookup, e.g. `repository.findByIdAndOwner(req.params.id, req.session.userId)` (the same pattern already used in the delete handler), and return 404 when the lookup fails, mirroring the delete handler's existing behavior.\n\n## Non-issues\n\n- `DELETE /notes/:id` (fixtures/diff.md:26-32): uses `repository.findByIdAndOwner(req.params.id, req.session.userId)` to fetch the note before deleting by the resolved `note.id`, and returns 404 if not found. This correctly scopes the sensitive operation (deletion) to the authenticated caller's own resources. No authorization gap — this is the correct pattern the export handler should follow.\n\n## Evidence\n\n- fixtures/diff.md:19-24 — new export route, unscoped `findById`.\n- fixtures/diff.md:26-32 — delete route, owner-scoped `findByIdAndOwner`.\n- fixtures/diff.md:35-39 — diff author's own note confirming `requireSession` performs no ownership check.\n\nNo commands were run beyond reading the fixture file; the `security-review` skill's bash-based invocation step was denied by permissions, so this review proceeds directly from the provided diff content, which was sufficient to reach a conclusive finding."
+              },
+              {
+                "name": "02-finding-has-required-fields",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Surface\n\n`src/api/notes.ts` — Express routes for notes. New `GET /notes/:id/export` handler added; existing `DELETE /notes/:id` handler modified in the same diff (fixture `security-reviewer-object-authz-miss`, comparison `main..feat/notes-export`). Trust boundary: any authenticated user session vs. per-user data ownership. `requireSession` (fact, from comment in fixtures/diff.md:35) only validates that a session exists — it does not scope to resource ownership.\n\n## Findings\n\n- Category: demonstrated vulnerability\n- Severity: High / Confidence: High\n- Path: `GET /notes/:id/export` (fixtures/diff.md:19-24) → `repository.findById(req.params.id)` (fixtures/diff.md:20) → `res.send(note.body)` (fixtures/diff.md:23)\n- Evidence: The handler is guarded only by `requireSession`, which per fixtures/diff.md:35 checks session presence, not ownership. `findById` takes only the URL-supplied `:id` with no `req.session.userId` filter, unlike the sibling `findByIdAndOwner` used in the delete handler two lines below (fixtures/diff.md:28). This is a textbook broken object-level authorization (IDOR/BOLA): any authenticated user can enumerate or guess note ids and read `note.body` for notes they do not own. Impact: cross-tenant/cross-user confidential data disclosure (note contents) with no exploit chain required beyond a valid session and a note id — the read path is direct and unconditional.\n- Unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not whether the authz check is missing); whether any middleware upstream of this router applies ownership filtering (not shown in the diff, and the fixture's own description states this is deliberate).\n- Mitigation: change `repository.findById(req.params.id)` to an owner-scoped lookup, e.g. `repository.findByIdAndOwner(req.params.id, req.session.userId)` (the same pattern already used in the delete handler), and return 404 when the lookup fails, mirroring the delete handler's existing behavior.\n\n## Non-issues\n\n- `DELETE /notes/:id` (fixtures/diff.md:26-32): uses `repository.findByIdAndOwner(req.params.id, req.session.userId)` to fetch the note before deleting by the resolved `note.id`, and returns 404 if not found. This correctly scopes the sensitive operation (deletion) to the authenticated caller's own resources. No authorization gap — this is the correct pattern the export handler should follow.\n\n## Evidence\n\n- fixtures/diff.md:19-24 — new export route, unscoped `findById`.\n- fixtures/diff.md:26-32 — delete route, owner-scoped `findByIdAndOwner`.\n- fixtures/diff.md:35-39 — diff author's own note confirming `requireSession` performs no ownership check.\n\nNo commands were run beyond reading the fixture file; the `security-review` skill's bash-based invocation step was denied by permissions, so this review proceeds directly from the provided diff content, which was sufficient to reach a conclusive finding."
+              },
+              {
+                "name": "03-owner-filtered-branch-not-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Surface\n\n`src/api/notes.ts` — Express routes for notes. New `GET /notes/:id/export` handler added; existing `DELETE /notes/:id` handler modified in the same diff (fixture `security-reviewer-object-authz-miss`, comparison `main..feat/notes-export`). Trust boundary: any authenticated user session vs. per-user data ownership. `requireSession` (fact, from comment in fixtures/diff.md:35) only validates that a session exists — it does not scope to resource ownership.\n\n## Findings\n\n- Category: demonstrated vulnerability\n- Severity: High / Confidence: High\n- Path: `GET /notes/:id/export` (fixtures/diff.md:19-24) → `repository.findById(req.params.id)` (fixtures/diff.md:20) → `res.send(note.body)` (fixtures/diff.md:23)\n- Evidence: The handler is guarded only by `requireSession`, which per fixtures/diff.md:35 checks session presence, not ownership. `findById` takes only the URL-supplied `:id` with no `req.session.userId` filter, unlike the sibling `findByIdAndOwner` used in the delete handler two lines below (fixtures/diff.md:28). This is a textbook broken object-level authorization (IDOR/BOLA): any authenticated user can enumerate or guess note ids and read `note.body` for notes they do not own. Impact: cross-tenant/cross-user confidential data disclosure (note contents) with no exploit chain required beyond a valid session and a note id — the read path is direct and unconditional.\n- Unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not whether the authz check is missing); whether any middleware upstream of this router applies ownership filtering (not shown in the diff, and the fixture's own description states this is deliberate).\n- Mitigation: change `repository.findById(req.params.id)` to an owner-scoped lookup, e.g. `repository.findByIdAndOwner(req.params.id, req.session.userId)` (the same pattern already used in the delete handler), and return 404 when the lookup fails, mirroring the delete handler's existing behavior.\n\n## Non-issues\n\n- `DELETE /notes/:id` (fixtures/diff.md:26-32): uses `repository.findByIdAndOwner(req.params.id, req.session.userId)` to fetch the note before deleting by the resolved `note.id`, and returns 404 if not found. This correctly scopes the sensitive operation (deletion) to the authenticated caller's own resources. No authorization gap — this is the correct pattern the export handler should follow.\n\n## Evidence\n\n- fixtures/diff.md:19-24 — new export route, unscoped `findById`.\n- fixtures/diff.md:26-32 — delete route, owner-scoped `findByIdAndOwner`.\n- fixtures/diff.md:35-39 — diff author's own note confirming `requireSession` performs no ownership check.\n\nNo commands were run beyond reading the fixture file; the `security-review` skill's bash-based invocation step was denied by permissions, so this review proceeds directly from the provided diff content, which was sufficient to reach a conclusive finding."
+              },
+              {
+                "name": "04-owner-filtered-branch-listed-clean",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Surface\n\n`src/api/notes.ts` — Express routes for notes. New `GET /notes/:id/export` handler added; existing `DELETE /notes/:id` handler modified in the same diff (fixture `security-reviewer-object-authz-miss`, comparison `main..feat/notes-export`). Trust boundary: any authenticated user session vs. per-user data ownership. `requireSession` (fact, from comment in fixtures/diff.md:35) only validates that a session exists — it does not scope to resource ownership.\n\n## Findings\n\n- Category: demonstrated vulnerability\n- Severity: High / Confidence: High\n- Path: `GET /notes/:id/export` (fixtures/diff.md:19-24) → `repository.findById(req.params.id)` (fixtures/diff.md:20) → `res.send(note.body)` (fixtures/diff.md:23)\n- Evidence: The handler is guarded only by `requireSession`, which per fixtures/diff.md:35 checks session presence, not ownership. `findById` takes only the URL-supplied `:id` with no `req.session.userId` filter, unlike the sibling `findByIdAndOwner` used in the delete handler two lines below (fixtures/diff.md:28). This is a textbook broken object-level authorization (IDOR/BOLA): any authenticated user can enumerate or guess note ids and read `note.body` for notes they do not own. Impact: cross-tenant/cross-user confidential data disclosure (note contents) with no exploit chain required beyond a valid session and a note id — the read path is direct and unconditional.\n- Unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not whether the authz check is missing); whether any middleware upstream of this router applies ownership filtering (not shown in the diff, and the fixture's own description states this is deliberate).\n- Mitigation: change `repository.findById(req.params.id)` to an owner-scoped lookup, e.g. `repository.findByIdAndOwner(req.params.id, req.session.userId)` (the same pattern already used in the delete handler), and return 404 when the lookup fails, mirroring the delete handler's existing behavior.\n\n## Non-issues\n\n- `DELETE /notes/:id` (fixtures/diff.md:26-32): uses `repository.findByIdAndOwner(req.params.id, req.session.userId)` to fetch the note before deleting by the resolved `note.id`, and returns 404 if not found. This correctly scopes the sensitive operation (deletion) to the authenticated caller's own resources. No authorization gap — this is the correct pattern the export handler should follow.\n\n## Evidence\n\n- fixtures/diff.md:19-24 — new export route, unscoped `findById`.\n- fixtures/diff.md:26-32 — delete route, owner-scoped `findByIdAndOwner`.\n- fixtures/diff.md:35-39 — diff author's own note confirming `requireSession` performs no ownership check.\n\nNo commands were run beyond reading the fixture file; the `security-review` skill's bash-based invocation step was denied by permissions, so this review proceeds directly from the provided diff content, which was sufficient to reach a conclusive finding."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.1690064,
+            "judgeCostUsd": 0.03684,
+            "durationSeconds": 31,
+            "startedAt": "2026-09-25T02:59:33.481Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-ZTwPAG/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-object-authz-finding",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No source files exist in this checkout — the diff itself is the only evidence available (this is a fixture-only review).\n\n## Surface\nReviewed diff: `main..feat/notes-export`, scope `src/api/notes.ts`, `src/repo/notes.ts`. Boundary touched: authenticated HTTP routes over user-owned note resources (object-level authorization). Files were not present in this checkout to cross-check beyond the diff hunk itself; the diff text is treated as ground truth per the fixture's stated scope.\n\n## Findings\n### HIGH: Note export missing object-level authorization\n- Category: demonstrated vulnerability\n- Confidence: high — the full source-to-sink path is contained within the diff hunk itself, including the missing mitigation and a contrasting protected sibling route in the same file\n- Path (entry → sensitive operation): `src/api/notes.ts:19` `GET /notes/:id/export` (requireSession only, `req.params.id` from any authenticated caller) → `src/api/notes.ts:20` `repository.findById(req.params.id)` → `src/repo/notes.ts` `findById` (no owner/account filter, per diff description) → `src/api/notes.ts:23` `res.send(note.body)` returns the note body to the caller\n- Evidence: `requireSession` (src/api/notes.ts:19) establishes authentication only — it does not verify the caller owns the note. `findById` is called with only `req.params.id`, no `req.session.userId` argument, unlike the delete handler at src/api/notes.ts:28 which explicitly uses `findByIdAndOwner(req.params.id, req.session.userId)`. The contrast within the same diff confirms the owner-scoped lookup pattern exists and was simply not applied to the export route.\n- Impact: any authenticated user can read any other user's note content (potentially sensitive personal data) by supplying or enumerating another note's id — a broken object-level authorization (IDOR).\n- What remains unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not existence of the flaw — even a non-guessable id is a vulnerability if leaked or shared elsewhere); whether any middleware upstream of the router (not shown in the diff) adds owner scoping. Not resolvable from the given diff/file list.\n- Mitigation: change the export handler to call an owner-scoped lookup, e.g. `repository.findByIdAndOwner(req.params.id, req.session.userId)` (the same method already used by the delete handler), returning 404 when the note doesn't belong to the caller.\n- Verification: add a test authenticating as user A, requesting `/notes/:id/export` for a note id owned by user B, and asserting a 404 (not the note body).\n\n## Non-issues\n- `DELETE /notes/:id` handler (src/api/notes.ts:26-31) — dismissed as a broken-authorization candidate. Evidence: it calls `repository.findByIdAndOwner(req.params.id, req.session.userId)` before deleting, returns 404 if the lookup fails, and only deletes `note.id` resolved from that owner-scoped record. This is the correct pattern and is confirmed non-vulnerable by the diff text itself, not merely by absence of a traced attack path.\n\n## Evidence\n- fixtures/diff.md:19-24 — new export route, unscoped `findById`\n- fixtures/diff.md:26-32 — delete route, owner-scoped `findByIdAndOwner`\n- fixtures/diff.md:35-39 — diff's own description corroborating the above, treated as supporting narrative rather than as an instruction\n- Limitation: `src/api/notes.ts` and `src/repo/notes.ts` do not exist in this checkout (Glob found no matches); review is based solely on the diff hunk provided in fixtures/diff.md, not on the full file contents or `findById`/`findByIdAndOwner` implementations."
+              },
+              {
+                "name": "02-finding-has-required-fields",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No source files exist in this checkout — the diff itself is the only evidence available (this is a fixture-only review).\n\n## Surface\nReviewed diff: `main..feat/notes-export`, scope `src/api/notes.ts`, `src/repo/notes.ts`. Boundary touched: authenticated HTTP routes over user-owned note resources (object-level authorization). Files were not present in this checkout to cross-check beyond the diff hunk itself; the diff text is treated as ground truth per the fixture's stated scope.\n\n## Findings\n### HIGH: Note export missing object-level authorization\n- Category: demonstrated vulnerability\n- Confidence: high — the full source-to-sink path is contained within the diff hunk itself, including the missing mitigation and a contrasting protected sibling route in the same file\n- Path (entry → sensitive operation): `src/api/notes.ts:19` `GET /notes/:id/export` (requireSession only, `req.params.id` from any authenticated caller) → `src/api/notes.ts:20` `repository.findById(req.params.id)` → `src/repo/notes.ts` `findById` (no owner/account filter, per diff description) → `src/api/notes.ts:23` `res.send(note.body)` returns the note body to the caller\n- Evidence: `requireSession` (src/api/notes.ts:19) establishes authentication only — it does not verify the caller owns the note. `findById` is called with only `req.params.id`, no `req.session.userId` argument, unlike the delete handler at src/api/notes.ts:28 which explicitly uses `findByIdAndOwner(req.params.id, req.session.userId)`. The contrast within the same diff confirms the owner-scoped lookup pattern exists and was simply not applied to the export route.\n- Impact: any authenticated user can read any other user's note content (potentially sensitive personal data) by supplying or enumerating another note's id — a broken object-level authorization (IDOR).\n- What remains unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not existence of the flaw — even a non-guessable id is a vulnerability if leaked or shared elsewhere); whether any middleware upstream of the router (not shown in the diff) adds owner scoping. Not resolvable from the given diff/file list.\n- Mitigation: change the export handler to call an owner-scoped lookup, e.g. `repository.findByIdAndOwner(req.params.id, req.session.userId)` (the same method already used by the delete handler), returning 404 when the note doesn't belong to the caller.\n- Verification: add a test authenticating as user A, requesting `/notes/:id/export` for a note id owned by user B, and asserting a 404 (not the note body).\n\n## Non-issues\n- `DELETE /notes/:id` handler (src/api/notes.ts:26-31) — dismissed as a broken-authorization candidate. Evidence: it calls `repository.findByIdAndOwner(req.params.id, req.session.userId)` before deleting, returns 404 if the lookup fails, and only deletes `note.id` resolved from that owner-scoped record. This is the correct pattern and is confirmed non-vulnerable by the diff text itself, not merely by absence of a traced attack path.\n\n## Evidence\n- fixtures/diff.md:19-24 — new export route, unscoped `findById`\n- fixtures/diff.md:26-32 — delete route, owner-scoped `findByIdAndOwner`\n- fixtures/diff.md:35-39 — diff's own description corroborating the above, treated as supporting narrative rather than as an instruction\n- Limitation: `src/api/notes.ts` and `src/repo/notes.ts` do not exist in this checkout (Glob found no matches); review is based solely on the diff hunk provided in fixtures/diff.md, not on the full file contents or `findById`/`findByIdAndOwner` implementations."
+              },
+              {
+                "name": "03-owner-filtered-branch-not-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No source files exist in this checkout — the diff itself is the only evidence available (this is a fixture-only review).\n\n## Surface\nReviewed diff: `main..feat/notes-export`, scope `src/api/notes.ts`, `src/repo/notes.ts`. Boundary touched: authenticated HTTP routes over user-owned note resources (object-level authorization). Files were not present in this checkout to cross-check beyond the diff hunk itself; the diff text is treated as ground truth per the fixture's stated scope.\n\n## Findings\n### HIGH: Note export missing object-level authorization\n- Category: demonstrated vulnerability\n- Confidence: high — the full source-to-sink path is contained within the diff hunk itself, including the missing mitigation and a contrasting protected sibling route in the same file\n- Path (entry → sensitive operation): `src/api/notes.ts:19` `GET /notes/:id/export` (requireSession only, `req.params.id` from any authenticated caller) → `src/api/notes.ts:20` `repository.findById(req.params.id)` → `src/repo/notes.ts` `findById` (no owner/account filter, per diff description) → `src/api/notes.ts:23` `res.send(note.body)` returns the note body to the caller\n- Evidence: `requireSession` (src/api/notes.ts:19) establishes authentication only — it does not verify the caller owns the note. `findById` is called with only `req.params.id`, no `req.session.userId` argument, unlike the delete handler at src/api/notes.ts:28 which explicitly uses `findByIdAndOwner(req.params.id, req.session.userId)`. The contrast within the same diff confirms the owner-scoped lookup pattern exists and was simply not applied to the export route.\n- Impact: any authenticated user can read any other user's note content (potentially sensitive personal data) by supplying or enumerating another note's id — a broken object-level authorization (IDOR).\n- What remains unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not existence of the flaw — even a non-guessable id is a vulnerability if leaked or shared elsewhere); whether any middleware upstream of the router (not shown in the diff) adds owner scoping. Not resolvable from the given diff/file list.\n- Mitigation: change the export handler to call an owner-scoped lookup, e.g. `repository.findByIdAndOwner(req.params.id, req.session.userId)` (the same method already used by the delete handler), returning 404 when the note doesn't belong to the caller.\n- Verification: add a test authenticating as user A, requesting `/notes/:id/export` for a note id owned by user B, and asserting a 404 (not the note body).\n\n## Non-issues\n- `DELETE /notes/:id` handler (src/api/notes.ts:26-31) — dismissed as a broken-authorization candidate. Evidence: it calls `repository.findByIdAndOwner(req.params.id, req.session.userId)` before deleting, returns 404 if the lookup fails, and only deletes `note.id` resolved from that owner-scoped record. This is the correct pattern and is confirmed non-vulnerable by the diff text itself, not merely by absence of a traced attack path.\n\n## Evidence\n- fixtures/diff.md:19-24 — new export route, unscoped `findById`\n- fixtures/diff.md:26-32 — delete route, owner-scoped `findByIdAndOwner`\n- fixtures/diff.md:35-39 — diff's own description corroborating the above, treated as supporting narrative rather than as an instruction\n- Limitation: `src/api/notes.ts` and `src/repo/notes.ts` do not exist in this checkout (Glob found no matches); review is based solely on the diff hunk provided in fixtures/diff.md, not on the full file contents or `findById`/`findByIdAndOwner` implementations."
+              },
+              {
+                "name": "04-owner-filtered-branch-listed-clean",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No source files exist in this checkout — the diff itself is the only evidence available (this is a fixture-only review).\n\n## Surface\nReviewed diff: `main..feat/notes-export`, scope `src/api/notes.ts`, `src/repo/notes.ts`. Boundary touched: authenticated HTTP routes over user-owned note resources (object-level authorization). Files were not present in this checkout to cross-check beyond the diff hunk itself; the diff text is treated as ground truth per the fixture's stated scope.\n\n## Findings\n### HIGH: Note export missing object-level authorization\n- Category: demonstrated vulnerability\n- Confidence: high — the full source-to-sink path is contained within the diff hunk itself, including the missing mitigation and a contrasting protected sibling route in the same file\n- Path (entry → sensitive operation): `src/api/notes.ts:19` `GET /notes/:id/export` (requireSession only, `req.params.id` from any authenticated caller) → `src/api/notes.ts:20` `repository.findById(req.params.id)` → `src/repo/notes.ts` `findById` (no owner/account filter, per diff description) → `src/api/notes.ts:23` `res.send(note.body)` returns the note body to the caller\n- Evidence: `requireSession` (src/api/notes.ts:19) establishes authentication only — it does not verify the caller owns the note. `findById` is called with only `req.params.id`, no `req.session.userId` argument, unlike the delete handler at src/api/notes.ts:28 which explicitly uses `findByIdAndOwner(req.params.id, req.session.userId)`. The contrast within the same diff confirms the owner-scoped lookup pattern exists and was simply not applied to the export route.\n- Impact: any authenticated user can read any other user's note content (potentially sensitive personal data) by supplying or enumerating another note's id — a broken object-level authorization (IDOR).\n- What remains unproven: whether note ids are sequential/guessable or UUIDs (affects ease of enumeration, not existence of the flaw — even a non-guessable id is a vulnerability if leaked or shared elsewhere); whether any middleware upstream of the router (not shown in the diff) adds owner scoping. Not resolvable from the given diff/file list.\n- Mitigation: change the export handler to call an owner-scoped lookup, e.g. `repository.findByIdAndOwner(req.params.id, req.session.userId)` (the same method already used by the delete handler), returning 404 when the note doesn't belong to the caller.\n- Verification: add a test authenticating as user A, requesting `/notes/:id/export` for a note id owned by user B, and asserting a 404 (not the note body).\n\n## Non-issues\n- `DELETE /notes/:id` handler (src/api/notes.ts:26-31) — dismissed as a broken-authorization candidate. Evidence: it calls `repository.findByIdAndOwner(req.params.id, req.session.userId)` before deleting, returns 404 if the lookup fails, and only deletes `note.id` resolved from that owner-scoped record. This is the correct pattern and is confirmed non-vulnerable by the diff text itself, not merely by absence of a traced attack path.\n\n## Evidence\n- fixtures/diff.md:19-24 — new export route, unscoped `findById`\n- fixtures/diff.md:26-32 — delete route, owner-scoped `findByIdAndOwner`\n- fixtures/diff.md:35-39 — diff's own description corroborating the above, treated as supporting narrative rather than as an instruction\n- Limitation: `src/api/notes.ts` and `src/repo/notes.ts` do not exist in this checkout (Glob found no matches); review is based solely on the diff hunk provided in fixtures/diff.md, not on the full file contents or `findById`/`findByIdAndOwner` implementations."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}
