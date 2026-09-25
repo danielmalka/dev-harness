@@ -1249,6 +1249,48 @@ profiles/"] --> B["dh build"]
           release since 0.1.0.</p>
       </div>
 
+      <div class="card">
+        <h3>Rename the command prefix from <code>dev-harness</code> to <code>dh</code></h3>
+        <p><strong>Description:</strong> today the commands are <code>/dev-harness:&lt;command&gt;</code>; rename
+          the plugin's prefix to <code>dh</code>. Requested by the owner on 2026-09-25, no PRD yet.</p>
+        <p><strong>Acceptance criteria:</strong> to be defined.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> the prefix comes from the plugin's name, <code>"name": "dev-harness"</code>
+          in <code>.claude-plugin/marketplace.json</code> (<code>docs/plano-produto.html</code> §4.5 also describes
+          the prefix as derived from the plugin name); the rename touches every command name in
+          <code>.commands/</code> (17 files cite <code>/dev-harness:</code>) and spreads across other areas —
+          an initial survey via <code>grep -rl "/dev-harness:"</code> on 2026-09-25, excluding <code>dist/</code>,
+          <code>.harness/</code>, <code>.git/</code> and <code>.claude/</code>: <code>.skills/</code> (23 files),
+          <code>.agents/</code> (1), <code>docs/</code> (15), <code>README.md</code> and <code>README.en.md</code>,
+          <code>CHANGELOG.md</code> (historical entries), <code>CLAUDE.md</code>, <code>evals/</code> (20),
+          <code>profiles/</code> (2), <code>adapters/</code> (2), <code>internal/</code> (1) and
+          <code>harness-manifest.json</code> (generated). These counts are a starting survey, not the complete
+          set; the full list is established when the item gets a PRD.</p>
+      </div>
+
+      <div class="card">
+        <h3>End-to-end autonomous run command</h3>
+        <p><strong>Description:</strong> a command that starts from an idea, a PRD or a spec and runs the whole
+          flow autonomously. At the start it asks the owner: whether decisions are taken by the orchestrator or
+          some other way; whether to work in one branch or in isolated branches; whether to commit and push;
+          whether to open a PR; whether a tag is needed. Requested by the owner on 2026-09-25, no PRD yet.</p>
+        <p><strong>Acceptance criteria:</strong> to be defined.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> none yet — no discovery open.</p>
+      </div>
+
+      <div class="card">
+        <h3>Loop planning command</h3>
+        <p><strong>Description:</strong> a command for planning in a loop, with these references: <a
+            href="https://medium.com/@deejay.me/multi-wave-adversarial-orchestration-architecture-for-llm-agents-e705dd433fab">Multi-Wave
+            Adversarial Orchestration Architecture for LLM Agents</a> and <a
+            href="https://mcpmarket.com/tools/skills/wave-orchestration">Wave Orchestration</a>. Requested by the
+          owner on 2026-09-25, no PRD yet.</p>
+        <p><strong>Acceptance criteria:</strong> to be defined.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> none yet — no discovery open.</p>
+      </div>
+
       <h2 id="ideias"><span class="n">04</span>Discovery ideas</h2>
       <p>No PRD yet. Criteria below are hypotheses, not commitments.</p>
 

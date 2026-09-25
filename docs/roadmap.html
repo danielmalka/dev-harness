@@ -1249,6 +1249,48 @@ profiles/"] --> B["dh build"]
           (adaptador nativo hoje, único da v1); listado como fora da release desde 0.1.0.</p>
       </div>
 
+      <div class="card">
+        <h3>Renomear o prefixo de comando de <code>dev-harness</code> para <code>dh</code></h3>
+        <p><strong>Descrição:</strong> hoje os comandos são <code>/dev-harness:&lt;comando&gt;</code>; trocar o
+          prefixo do plugin para <code>dh</code>. Pedido do dono em 25/09/2026, sem PRD ainda.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> o prefixo vem do nome do plugin, <code>"name": "dev-harness"</code> em
+          <code>.claude-plugin/marketplace.json</code> (<code>docs/plano-produto.html</code> §4.5 também descreve o
+          prefixo como derivado do nome do plugin); a renomeação toca todo nome de comando em
+          <code>.commands/</code> (17 arquivos citam <code>/dev-harness:</code>) e se espalha por outras áreas —
+          levantamento inicial por <code>grep -rl "/dev-harness:"</code> em 25/09/2026, excluindo
+          <code>dist/</code>, <code>.harness/</code>, <code>.git/</code> e <code>.claude/</code>: <code>.skills/</code>
+          (23 arquivos), <code>.agents/</code> (1), <code>docs/</code> (15), <code>README.md</code> e
+          <code>README.en.md</code>, <code>CHANGELOG.md</code> (entradas históricas), <code>CLAUDE.md</code>,
+          <code>evals/</code> (20), <code>profiles/</code> (2), <code>adapters/</code> (2), <code>internal/</code>
+          (1) e <code>harness-manifest.json</code> (gerado). Estas contagens são um levantamento inicial, não a
+          lista completa; a lista completa se estabelece quando o item ganhar PRD.</p>
+      </div>
+
+      <div class="card">
+        <h3>Comando de execução autônoma de ponta a ponta</h3>
+        <p><strong>Descrição:</strong> um comando que parte de uma ideia, um PRD ou uma spec e roda o fluxo inteiro
+          de forma autônoma. No início, pergunta ao dono: se as decisões são tomadas pelo orquestrador ou de outra
+          forma; se o trabalho é em uma branch única ou em branches isoladas; se deve commitar e dar push; se deve
+          abrir PR; se é preciso tag. Pedido do dono em 25/09/2026, sem PRD ainda.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> nenhuma ainda — não há discovery aberto.</p>
+      </div>
+
+      <div class="card">
+        <h3>Comando de planejamento em loop</h3>
+        <p><strong>Descrição:</strong> um comando para planejamento em loop, com estas referências: <a
+            href="https://medium.com/@deejay.me/multi-wave-adversarial-orchestration-architecture-for-llm-agents-e705dd433fab">Multi-Wave
+            Adversarial Orchestration Architecture for LLM Agents</a> e <a
+            href="https://mcpmarket.com/tools/skills/wave-orchestration">Wave Orchestration</a>. Pedido do dono em
+          25/09/2026, sem PRD ainda.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> nenhuma ainda — não há discovery aberto.</p>
+      </div>
+
       <h2 id="ideias"><span class="n">04</span>Ideias para discovery</h2>
       <p>Sem PRD ainda. Critérios abaixo são hipóteses, não compromissos.</p>
 
