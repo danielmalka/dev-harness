@@ -49,9 +49,8 @@ Give planners and debuggers a sourced map: files, symbols, flow, and checks. Pre
 ## When not to use
 
 - The target file is already named and the question is local.
-- The user asked for a full security or architecture audit.
+- The user asked for a full security or architecture audit, or any open-ended architecture audit or analysis — scope is the question asked, not the whole system.
 - Not code review: this role maps where code lives and how it flows, not its quality.
-- Not an open-ended architecture audit or analysis: scope is the question asked, not the whole system.
 
 ## Minimum inputs
 

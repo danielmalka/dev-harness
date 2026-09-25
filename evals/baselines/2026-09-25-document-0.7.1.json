@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-25T11:57:22.683Z",
+  "durationSeconds": 212,
+  "costUsd": 0.6249158000000001,
+  "partial": false,
+  "suite": {
+    "root": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "judgeModel": "sonnet",
+    "caseFilter": "document-validator-scope-overclaim",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "dev-harness",
+        "version": "0.7.0",
+        "path": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "document-validator-scope-overclaim",
+      "dir": "evals/cases/document-validator-scope-overclaim",
+      "source": "mixed",
+      "promptMarkdown": "Load the kit skill document-review. Source: fixtures/source-notes.md. Document: fixtures/PRD-scope-claim.md. Return only your output format.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "01-detects-changes-required",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^-\\s*changes required\\b",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "02-blocking-findings-at-least-one",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "Blocking findings:[ \\t]*[1-9]",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "03-finding-cites-contradicted-source-point",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Is there a finding categorized `conflict` that cites the Scope section's\nclaim of covering all four reviewer roles — code, security, document and\ncoordinator — as contradicted by the source notes, which show only three\nnew cases added and the coordinator role's case left untouched with no new\ncase?",
+          "config": {
+            "criteria": "Is there a finding categorized `conflict` that cites the Scope section's\nclaim of covering all four reviewer roles — code, security, document and\ncoordinator — as contradicted by the source notes, which show only three\nnew cases added and the coordinator role's case left untouched with no new\ncase?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "04-correct-claim-not-flagged",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Does every finding in the reply address something other than the exact\nScope section claim that each new case's fixtures are copied into the run\nworkspace by the case's own scaffold script, invoked only when the runner\nis passed `--scaffold`?",
+          "config": {
+            "criteria": "Does every finding in the reply address something other than the exact\nScope section claim that each new case's fixtures are copied into the run\nworkspace by the case's own scaffold script, invoked only when the runner\nis passed `--scaffold`?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "05-correct-claim-under-not-raised",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Does the Scope section's claim that each new case's fixtures are copied\ninto the run workspace by the case's own scaffold script, invoked only when\nthe runner is passed `--scaffold`, appear under a `## Not raised` section\nas checked and found sound?",
+          "config": {
+            "criteria": "Does the Scope section's claim that each new case's fixtures are copied\ninto the run workspace by the case's own scaffold script, invoked only when\nthe runner is passed `--scaffold`, appear under a `## Not raised` section\nas checked and found sound?",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.22468280000000002,
+            "judgeCostUsd": 0.019836000000000006,
+            "durationSeconds": 59,
+            "startedAt": "2026-09-25T11:57:22.900Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-U4GRtQ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-changes-required",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^-\\s*changes required\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-blocking-findings-at-least-one",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched Blocking findings:[ \\t]*[1-9]",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "03-finding-cites-contradicted-source-point",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- changes required\n- Blocking findings: 1\n\n## Findings\n- P1\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md section 2 (Scope, bullet 1), and section 3 (AC-01, AC-02)\n  - Evidence: fixtures/source-notes.md point 4 states the coordinator role's existing case \"was left untouched — no new case was added for it in this batch, and it does not pair a planted defect with a control section the way the three new cases do.\" Point 5 confirms the defect/control pairing applies only to \"each of the three new cases.\" fixtures/PRD-scope-claim.md section 2 claims \"This batch adds one seeded-defect eval case for each of the four reviewer roles — code, security, document and coordinator — pairing each planted defect with a correct control section in the same fixture,\" and AC-01/AC-02 both require behavior for \"each of the four cases.\" This is a scope/count claim the source does not support and directly contradicts.\n  - Suggestion: Change section 2 to state three new cases (code, security, document), explicitly note the coordinator role's case is unchanged and out of scope for this batch, and revise AC-01/AC-02 to read \"Each of the three new cases...\" so a builder does not write a grader for a fourth, nonexistent case.\n\n## Not raised\n- Scope bullet 1's coverage of the code-reviewer case traces to source-notes.md point 1.\n- Scope bullet 1's coverage of the security-reviewer case traces to source-notes.md point 2.\n- Scope bullet 1's coverage of the document-validator case traces to source-notes.md point 3.\n- Scope bullet 2 (fixtures copied by each case's own scaffold.sh, invoked only with `--scaffold`) matches source-notes.md point 6 exactly.\n- AC-01 and AC-02, apart from the \"four cases\" count, state observable pass/fail conditions (positive grader detects the defect; negative grader confirms the control is not flagged) — not weak criteria.\n- No ambiguous sentence found: each requirement admits one reading.\n- Identifiers (AC-01, AC-02) are unique and sequentially numbered; no duplication or misfiled section found.\n\n## Evidence\n- Files read: fixtures/source-notes.md, fixtures/PRD-scope-claim.md.\n- No previous review report found at fixtures/PRD-scope-claim.md.review.md; treated as round 1.\n- All six categories (gaps, ambiguities, conflicts, excesses, weak criteria, organization) were checked against the full source-to-document map; only the conflict above was found."
+              },
+              {
+                "name": "04-correct-claim-not-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- changes required\n- Blocking findings: 1\n\n## Findings\n- P1\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md section 2 (Scope, bullet 1), and section 3 (AC-01, AC-02)\n  - Evidence: fixtures/source-notes.md point 4 states the coordinator role's existing case \"was left untouched — no new case was added for it in this batch, and it does not pair a planted defect with a control section the way the three new cases do.\" Point 5 confirms the defect/control pairing applies only to \"each of the three new cases.\" fixtures/PRD-scope-claim.md section 2 claims \"This batch adds one seeded-defect eval case for each of the four reviewer roles — code, security, document and coordinator — pairing each planted defect with a correct control section in the same fixture,\" and AC-01/AC-02 both require behavior for \"each of the four cases.\" This is a scope/count claim the source does not support and directly contradicts.\n  - Suggestion: Change section 2 to state three new cases (code, security, document), explicitly note the coordinator role's case is unchanged and out of scope for this batch, and revise AC-01/AC-02 to read \"Each of the three new cases...\" so a builder does not write a grader for a fourth, nonexistent case.\n\n## Not raised\n- Scope bullet 1's coverage of the code-reviewer case traces to source-notes.md point 1.\n- Scope bullet 1's coverage of the security-reviewer case traces to source-notes.md point 2.\n- Scope bullet 1's coverage of the document-validator case traces to source-notes.md point 3.\n- Scope bullet 2 (fixtures copied by each case's own scaffold.sh, invoked only with `--scaffold`) matches source-notes.md point 6 exactly.\n- AC-01 and AC-02, apart from the \"four cases\" count, state observable pass/fail conditions (positive grader detects the defect; negative grader confirms the control is not flagged) — not weak criteria.\n- No ambiguous sentence found: each requirement admits one reading.\n- Identifiers (AC-01, AC-02) are unique and sequentially numbered; no duplication or misfiled section found.\n\n## Evidence\n- Files read: fixtures/source-notes.md, fixtures/PRD-scope-claim.md.\n- No previous review report found at fixtures/PRD-scope-claim.md.review.md; treated as round 1.\n- All six categories (gaps, ambiguities, conflicts, excesses, weak criteria, organization) were checked against the full source-to-document map; only the conflict above was found."
+              },
+              {
+                "name": "05-correct-claim-under-not-raised",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- changes required\n- Blocking findings: 1\n\n## Findings\n- P1\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md section 2 (Scope, bullet 1), and section 3 (AC-01, AC-02)\n  - Evidence: fixtures/source-notes.md point 4 states the coordinator role's existing case \"was left untouched — no new case was added for it in this batch, and it does not pair a planted defect with a control section the way the three new cases do.\" Point 5 confirms the defect/control pairing applies only to \"each of the three new cases.\" fixtures/PRD-scope-claim.md section 2 claims \"This batch adds one seeded-defect eval case for each of the four reviewer roles — code, security, document and coordinator — pairing each planted defect with a correct control section in the same fixture,\" and AC-01/AC-02 both require behavior for \"each of the four cases.\" This is a scope/count claim the source does not support and directly contradicts.\n  - Suggestion: Change section 2 to state three new cases (code, security, document), explicitly note the coordinator role's case is unchanged and out of scope for this batch, and revise AC-01/AC-02 to read \"Each of the three new cases...\" so a builder does not write a grader for a fourth, nonexistent case.\n\n## Not raised\n- Scope bullet 1's coverage of the code-reviewer case traces to source-notes.md point 1.\n- Scope bullet 1's coverage of the security-reviewer case traces to source-notes.md point 2.\n- Scope bullet 1's coverage of the document-validator case traces to source-notes.md point 3.\n- Scope bullet 2 (fixtures copied by each case's own scaffold.sh, invoked only with `--scaffold`) matches source-notes.md point 6 exactly.\n- AC-01 and AC-02, apart from the \"four cases\" count, state observable pass/fail conditions (positive grader detects the defect; negative grader confirms the control is not flagged) — not weak criteria.\n- No ambiguous sentence found: each requirement admits one reading.\n- Identifiers (AC-01, AC-02) are unique and sequentially numbered; no duplication or misfiled section found.\n\n## Evidence\n- Files read: fixtures/source-notes.md, fixtures/PRD-scope-claim.md.\n- No previous review report found at fixtures/PRD-scope-claim.md.review.md; treated as round 1.\n- All six categories (gaps, ambiguities, conflicts, excesses, weak criteria, organization) were checked against the full source-to-document map; only the conflict above was found."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.20291920000000005,
+            "judgeCostUsd": 0.02563200000000001,
+            "durationSeconds": 81,
+            "startedAt": "2026-09-25T11:58:22.203Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-WCZILL/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-changes-required",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^-\\s*changes required\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-blocking-findings-at-least-one",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched Blocking findings:[ \\t]*[1-9]",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "03-finding-cites-contradicted-source-point",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- changes required\n- Blocking findings: 1\n\n## Findings\n- P1\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md section 2 (Scope), lines 15–17; propagated into section 3, AC-01 (lines 23–24) and AC-02 (lines 25–26)\n  - Evidence: The document states \"This batch adds one seeded-defect eval case for each of the four reviewer roles — code, security, document and coordinator — pairing each planted defect with a correct control section in the same fixture,\" and both AC-01 and AC-02 require this of \"each of the four cases.\" fixtures/source-notes.md point 4 states the opposite for coordinator: \"The `coordinator` role's existing case (`coordinator-explore-then-ask`) was left untouched — no new case was added for it in this batch, and it does not pair a planted defect with a control section the way the three new cases do.\" The source supports three new cases (code, security, document — points 1–3), not four, and explicitly says the coordinator case has neither a new planted defect nor a control pairing.\n  - Suggestion: Correct Scope to state the batch adds one new seeded-defect eval case for each of the three reviewer roles — code, security and document — each pairing a planted defect with a control section, and separately note that the coordinator role's existing case is left untouched and out of scope for this batch. Rewrite AC-01 and AC-02 to read \"each of the three new cases,\" and drop or replace any acceptance criterion that would require the coordinator's existing case to have a positive/negative grader for a planted defect it does not contain.\n  - Reported by: claude\n\n## Not raised\n- Scope bullet 1's phrase \"pairing each planted defect with a correct control section in the same fixture\" is otherwise sourced to source-notes.md point 5 (\"a keyword-only reviewer risks flagging the control too\"), correct for the three new cases.\n- Scope bullet 2 (lines 18–19), on fixtures being copied by each case's own `scaffold.sh` invoked only with `--scaffold`, traces exactly to source-notes.md point 6.\n- The Goal statement is a faithful generalization of source-notes.md and introduces no unsourced requirement (excess check held).\n- AC-01 and AC-02, apart from the \"four vs three\" count, are each observably pass/fail (grader present/absent, control correctly unflagged) — no weak-criterion defect beyond what P1 already covers.\n- No sentence in the document produced two materially different builder readings (ambiguity check held).\n- Identifiers AC-01 and AC-02 are unique, sequential, and filed under the correct section (organization check held); no duplicate or misplaced identifiers found.\n- Source-notes.md points 1–3 (code-reviewer-form-check, security-reviewer-authz-check, document-validator-overclaim-check) each trace to the \"code, security, document\" portion of Scope bullet 1 — the roles named there, apart from the erroneous inclusion of coordinator, are correct.\n\n## Evidence\n- Files read: fixtures/source-notes.md (source, 11 lines), fixtures/PRD-scope-claim.md (document under review, 31 lines).\n- No previous review report exists at fixtures/PRD-scope-claim.md.review.md; this is treated as round 1.\n- All six categories (gaps, ambiguities, conflicts, excesses, weak criteria, organization) were checked against the full source-to-document map built from source-notes.md points 1–6 and PRD sections 1–4.\n- No project language file was consulted; report written in English per the shared contract's default."
+              },
+              {
+                "name": "04-correct-claim-not-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- changes required\n- Blocking findings: 1\n\n## Findings\n- P1\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md section 2 (Scope), lines 15–17; propagated into section 3, AC-01 (lines 23–24) and AC-02 (lines 25–26)\n  - Evidence: The document states \"This batch adds one seeded-defect eval case for each of the four reviewer roles — code, security, document and coordinator — pairing each planted defect with a correct control section in the same fixture,\" and both AC-01 and AC-02 require this of \"each of the four cases.\" fixtures/source-notes.md point 4 states the opposite for coordinator: \"The `coordinator` role's existing case (`coordinator-explore-then-ask`) was left untouched — no new case was added for it in this batch, and it does not pair a planted defect with a control section the way the three new cases do.\" The source supports three new cases (code, security, document — points 1–3), not four, and explicitly says the coordinator case has neither a new planted defect nor a control pairing.\n  - Suggestion: Correct Scope to state the batch adds one new seeded-defect eval case for each of the three reviewer roles — code, security and document — each pairing a planted defect with a control section, and separately note that the coordinator role's existing case is left untouched and out of scope for this batch. Rewrite AC-01 and AC-02 to read \"each of the three new cases,\" and drop or replace any acceptance criterion that would require the coordinator's existing case to have a positive/negative grader for a planted defect it does not contain.\n  - Reported by: claude\n\n## Not raised\n- Scope bullet 1's phrase \"pairing each planted defect with a correct control section in the same fixture\" is otherwise sourced to source-notes.md point 5 (\"a keyword-only reviewer risks flagging the control too\"), correct for the three new cases.\n- Scope bullet 2 (lines 18–19), on fixtures being copied by each case's own `scaffold.sh` invoked only with `--scaffold`, traces exactly to source-notes.md point 6.\n- The Goal statement is a faithful generalization of source-notes.md and introduces no unsourced requirement (excess check held).\n- AC-01 and AC-02, apart from the \"four vs three\" count, are each observably pass/fail (grader present/absent, control correctly unflagged) — no weak-criterion defect beyond what P1 already covers.\n- No sentence in the document produced two materially different builder readings (ambiguity check held).\n- Identifiers AC-01 and AC-02 are unique, sequential, and filed under the correct section (organization check held); no duplicate or misplaced identifiers found.\n- Source-notes.md points 1–3 (code-reviewer-form-check, security-reviewer-authz-check, document-validator-overclaim-check) each trace to the \"code, security, document\" portion of Scope bullet 1 — the roles named there, apart from the erroneous inclusion of coordinator, are correct.\n\n## Evidence\n- Files read: fixtures/source-notes.md (source, 11 lines), fixtures/PRD-scope-claim.md (document under review, 31 lines).\n- No previous review report exists at fixtures/PRD-scope-claim.md.review.md; this is treated as round 1.\n- All six categories (gaps, ambiguities, conflicts, excesses, weak criteria, organization) were checked against the full source-to-document map built from source-notes.md points 1–6 and PRD sections 1–4.\n- No project language file was consulted; report written in English per the shared contract's default."
+              },
+              {
+                "name": "05-correct-claim-under-not-raised",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- changes required\n- Blocking findings: 1\n\n## Findings\n- P1\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md section 2 (Scope), lines 15–17; propagated into section 3, AC-01 (lines 23–24) and AC-02 (lines 25–26)\n  - Evidence: The document states \"This batch adds one seeded-defect eval case for each of the four reviewer roles — code, security, document and coordinator — pairing each planted defect with a correct control section in the same fixture,\" and both AC-01 and AC-02 require this of \"each of the four cases.\" fixtures/source-notes.md point 4 states the opposite for coordinator: \"The `coordinator` role's existing case (`coordinator-explore-then-ask`) was left untouched — no new case was added for it in this batch, and it does not pair a planted defect with a control section the way the three new cases do.\" The source supports three new cases (code, security, document — points 1–3), not four, and explicitly says the coordinator case has neither a new planted defect nor a control pairing.\n  - Suggestion: Correct Scope to state the batch adds one new seeded-defect eval case for each of the three reviewer roles — code, security and document — each pairing a planted defect with a control section, and separately note that the coordinator role's existing case is left untouched and out of scope for this batch. Rewrite AC-01 and AC-02 to read \"each of the three new cases,\" and drop or replace any acceptance criterion that would require the coordinator's existing case to have a positive/negative grader for a planted defect it does not contain.\n  - Reported by: claude\n\n## Not raised\n- Scope bullet 1's phrase \"pairing each planted defect with a correct control section in the same fixture\" is otherwise sourced to source-notes.md point 5 (\"a keyword-only reviewer risks flagging the control too\"), correct for the three new cases.\n- Scope bullet 2 (lines 18–19), on fixtures being copied by each case's own `scaffold.sh` invoked only with `--scaffold`, traces exactly to source-notes.md point 6.\n- The Goal statement is a faithful generalization of source-notes.md and introduces no unsourced requirement (excess check held).\n- AC-01 and AC-02, apart from the \"four vs three\" count, are each observably pass/fail (grader present/absent, control correctly unflagged) — no weak-criterion defect beyond what P1 already covers.\n- No sentence in the document produced two materially different builder readings (ambiguity check held).\n- Identifiers AC-01 and AC-02 are unique, sequential, and filed under the correct section (organization check held); no duplicate or misplaced identifiers found.\n- Source-notes.md points 1–3 (code-reviewer-form-check, security-reviewer-authz-check, document-validator-overclaim-check) each trace to the \"code, security, document\" portion of Scope bullet 1 — the roles named there, apart from the erroneous inclusion of coordinator, are correct.\n\n## Evidence\n- Files read: fixtures/source-notes.md (source, 11 lines), fixtures/PRD-scope-claim.md (document under review, 31 lines).\n- No previous review report exists at fixtures/PRD-scope-claim.md.review.md; this is treated as round 1.\n- All six categories (gaps, ambiguities, conflicts, excesses, weak criteria, organization) were checked against the full source-to-document map built from source-notes.md points 1–6 and PRD sections 1–4.\n- No project language file was consulted; report written in English per the shared contract's default."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.19731380000000004,
+            "judgeCostUsd": 0.025596,
+            "durationSeconds": 72,
+            "startedAt": "2026-09-25T11:59:43.082Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-dBZxzX/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-changes-required",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^-\\s*changes required\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-blocking-findings-at-least-one",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched Blocking findings:[ \\t]*[1-9]",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "03-finding-cites-contradicted-source-point",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- changes required\n- Blocking findings: 2\n\n## Findings\n- P1\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md, section 2 \"Scope\", first bullet (\"This batch adds one seeded-defect eval case for each of the four reviewer roles — code, security, document and coordinator...\")\n  - Evidence: fixtures/source-notes.md point 4 states the coordinator role's existing case (`coordinator-explore-then-ask`) \"was left untouched — no new case was added for it in this batch, and it does not pair a planted defect with a control section the way the three new cases do.\" Only three seeded-defect cases were added (points 1–3: code, security, document); the coordinator role got no new case at all.\n  - Suggestion: Rewrite the bullet to state that this batch adds one seeded-defect eval case each for the code, security and document reviewer roles, each pairing a planted defect with a correct control section in the same fixture; separately note that the coordinator role's existing case was left untouched and does not have this planted-defect/control-section pairing.\n  - Reported by: claude\n- P2\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md, section 3 \"Acceptance criteria\", AC-01 and AC-02 (\"Each of the four cases has a positive grader that detects the planted defect\" / \"...a negative grader confirming its control section is not wrongly flagged\")\n  - Evidence: fixtures/source-notes.md point 4 establishes the coordinator's existing case has no planted defect and no paired control section, unlike the three new cases (point 5). A builder following AC-01/AC-02 as written would try to build a positive grader detecting a \"planted defect\" and a negative grader for a \"control section\" on the coordinator case, neither of which exists per the source.\n  - Suggestion: Scope AC-01 and AC-02 to the three new cases (`code-reviewer-form-check`, `security-reviewer-authz-check`, `document-validator-overclaim-check`); if the coordinator's existing case needs any verification, state a separate criterion reflecting that it has no planted defect or control-section pairing.\n  - Reported by: claude\n\n## Not raised\n- Scope bullet 2 (fixtures/PRD-scope-claim.md section 2) — \"fixtures copied into the run workspace by the case's own scaffold script, invoked only when the runner is passed `--scaffold`\" — traces exactly to source-notes.md point 6. Sound.\n- Section 1 \"Goal\" is a general framing statement with no count or scope claim beyond what the source supports. Sound.\n- Section 4 \"References\" correctly cites source-notes.md as the origin. Sound.\n- AC-01 and AC-02 identifiers are unique and sequential, no duplicate or misfiled IDs — organization is otherwise sound aside from the content conflict in P2.\n- No ambiguous sentence found: each requirement in the document supports only one reading (the readings are wrong per P1/P2, but not ambiguous).\n- No excess found: nothing in the document requests scope beyond what the source content (three seeded-defect cases plus scaffold gating) would support once corrected.\n\n## Evidence\n- Files read: fixtures/source-notes.md, fixtures/PRD-scope-claim.md.\n- No `fixtures/PRD-scope-claim.md.review.md` found; treated as round 1.\n- All six categories were checked against the source-to-document map built from the six source points and the document's Goal/Scope/Acceptance-criteria/References sections."
+              },
+              {
+                "name": "04-correct-claim-not-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- changes required\n- Blocking findings: 2\n\n## Findings\n- P1\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md, section 2 \"Scope\", first bullet (\"This batch adds one seeded-defect eval case for each of the four reviewer roles — code, security, document and coordinator...\")\n  - Evidence: fixtures/source-notes.md point 4 states the coordinator role's existing case (`coordinator-explore-then-ask`) \"was left untouched — no new case was added for it in this batch, and it does not pair a planted defect with a control section the way the three new cases do.\" Only three seeded-defect cases were added (points 1–3: code, security, document); the coordinator role got no new case at all.\n  - Suggestion: Rewrite the bullet to state that this batch adds one seeded-defect eval case each for the code, security and document reviewer roles, each pairing a planted defect with a correct control section in the same fixture; separately note that the coordinator role's existing case was left untouched and does not have this planted-defect/control-section pairing.\n  - Reported by: claude\n- P2\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md, section 3 \"Acceptance criteria\", AC-01 and AC-02 (\"Each of the four cases has a positive grader that detects the planted defect\" / \"...a negative grader confirming its control section is not wrongly flagged\")\n  - Evidence: fixtures/source-notes.md point 4 establishes the coordinator's existing case has no planted defect and no paired control section, unlike the three new cases (point 5). A builder following AC-01/AC-02 as written would try to build a positive grader detecting a \"planted defect\" and a negative grader for a \"control section\" on the coordinator case, neither of which exists per the source.\n  - Suggestion: Scope AC-01 and AC-02 to the three new cases (`code-reviewer-form-check`, `security-reviewer-authz-check`, `document-validator-overclaim-check`); if the coordinator's existing case needs any verification, state a separate criterion reflecting that it has no planted defect or control-section pairing.\n  - Reported by: claude\n\n## Not raised\n- Scope bullet 2 (fixtures/PRD-scope-claim.md section 2) — \"fixtures copied into the run workspace by the case's own scaffold script, invoked only when the runner is passed `--scaffold`\" — traces exactly to source-notes.md point 6. Sound.\n- Section 1 \"Goal\" is a general framing statement with no count or scope claim beyond what the source supports. Sound.\n- Section 4 \"References\" correctly cites source-notes.md as the origin. Sound.\n- AC-01 and AC-02 identifiers are unique and sequential, no duplicate or misfiled IDs — organization is otherwise sound aside from the content conflict in P2.\n- No ambiguous sentence found: each requirement in the document supports only one reading (the readings are wrong per P1/P2, but not ambiguous).\n- No excess found: nothing in the document requests scope beyond what the source content (three seeded-defect cases plus scaffold gating) would support once corrected.\n\n## Evidence\n- Files read: fixtures/source-notes.md, fixtures/PRD-scope-claim.md.\n- No `fixtures/PRD-scope-claim.md.review.md` found; treated as round 1.\n- All six categories were checked against the source-to-document map built from the six source points and the document's Goal/Scope/Acceptance-criteria/References sections."
+              },
+              {
+                "name": "05-correct-claim-under-not-raised",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- changes required\n- Blocking findings: 2\n\n## Findings\n- P1\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md, section 2 \"Scope\", first bullet (\"This batch adds one seeded-defect eval case for each of the four reviewer roles — code, security, document and coordinator...\")\n  - Evidence: fixtures/source-notes.md point 4 states the coordinator role's existing case (`coordinator-explore-then-ask`) \"was left untouched — no new case was added for it in this batch, and it does not pair a planted defect with a control section the way the three new cases do.\" Only three seeded-defect cases were added (points 1–3: code, security, document); the coordinator role got no new case at all.\n  - Suggestion: Rewrite the bullet to state that this batch adds one seeded-defect eval case each for the code, security and document reviewer roles, each pairing a planted defect with a correct control section in the same fixture; separately note that the coordinator role's existing case was left untouched and does not have this planted-defect/control-section pairing.\n  - Reported by: claude\n- P2\n  - Category: conflict\n  - Severity: blocking\n  - Location: fixtures/PRD-scope-claim.md, section 3 \"Acceptance criteria\", AC-01 and AC-02 (\"Each of the four cases has a positive grader that detects the planted defect\" / \"...a negative grader confirming its control section is not wrongly flagged\")\n  - Evidence: fixtures/source-notes.md point 4 establishes the coordinator's existing case has no planted defect and no paired control section, unlike the three new cases (point 5). A builder following AC-01/AC-02 as written would try to build a positive grader detecting a \"planted defect\" and a negative grader for a \"control section\" on the coordinator case, neither of which exists per the source.\n  - Suggestion: Scope AC-01 and AC-02 to the three new cases (`code-reviewer-form-check`, `security-reviewer-authz-check`, `document-validator-overclaim-check`); if the coordinator's existing case needs any verification, state a separate criterion reflecting that it has no planted defect or control-section pairing.\n  - Reported by: claude\n\n## Not raised\n- Scope bullet 2 (fixtures/PRD-scope-claim.md section 2) — \"fixtures copied into the run workspace by the case's own scaffold script, invoked only when the runner is passed `--scaffold`\" — traces exactly to source-notes.md point 6. Sound.\n- Section 1 \"Goal\" is a general framing statement with no count or scope claim beyond what the source supports. Sound.\n- Section 4 \"References\" correctly cites source-notes.md as the origin. Sound.\n- AC-01 and AC-02 identifiers are unique and sequential, no duplicate or misfiled IDs — organization is otherwise sound aside from the content conflict in P2.\n- No ambiguous sentence found: each requirement in the document supports only one reading (the readings are wrong per P1/P2, but not ambiguous).\n- No excess found: nothing in the document requests scope beyond what the source content (three seeded-defect cases plus scaffold gating) would support once corrected.\n\n## Evidence\n- Files read: fixtures/source-notes.md, fixtures/PRD-scope-claim.md.\n- No `fixtures/PRD-scope-claim.md.review.md` found; treated as round 1.\n- All six categories were checked against the source-to-document map built from the six source points and the document's Goal/Scope/Acceptance-criteria/References sections."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}
