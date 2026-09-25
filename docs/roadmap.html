@@ -1113,8 +1113,10 @@ profiles/"] --> B["dh build"]
           num lote de rejulgamento do grader 06 que rodou sem isolar o contexto da máquina (erro de processo,
           registrado). <strong>Limites conhecidos, ainda sem lote definido:</strong> o achado novo de que o grader
           07 (sem "posso prosseguir?") cai de 3/6 para 1/6 no corpo do Coordenador 0.6.0 — na 0.7.1 (ver card
-          abaixo) o mesmo grader vai de 1/6 para 2/6, ainda abaixo da barra de ≥ 5/6, e segue sem lote que o feche;
-          e o <code>timeout_minutes</code> maior para
+          abaixo) o mesmo grader vai de 1/6 para 2/6, ainda abaixo da barra de ≥ 5/6, e fecha na 0.7.2 (6/6) porque a
+          definição do grader mudou — comparável aos placares do rejulgamento offline da T-501 (0.7.0 em 6/6, 0.7.1
+          em 5/6 sob o grader novo, <code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code>), não
+          evidência de mudança de comportamento; e o <code>timeout_minutes</code> maior para
           <code>cli:grok/grok-4.7</code>.</p>
       </div>
 
@@ -1152,6 +1154,40 @@ profiles/"] --> B["dh build"]
           (6/6) sem queda. Gasto: US$ 10,21 do teto de US$ 12 do lote. Evidência:
           <code>evals/baselines/2026-09-25-pending-batch-0.7.1.md</code> e os baselines por caso
           <code>evals/baselines/2026-09-25-*-0.7.1.json</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.7.2 · Grader 07 recalibrado: fecha, mas a definição mudou</h3>
+        <p><strong>Status:</strong> concluído — grader 07 e grader 06 de <code>coordinator-explore-then-ask</code>
+          fecham (6/6 e 5/6, ambas as barras ≥ 5/6 atingidas); grader 03 do mesmo caso segue fora de escopo (2/6);
+          nenhum caso de guarda rodou neste lote.</p>
+        <p><strong>Resumo:</strong> grader 07 (<code>.../graders/07-no-filler-may-i-proceed.md</code>) e a frase de
+          fechamento do Intake do Coordenador (<code>.agents/coordinator.md</code>) recalibrados na mesma regra: um
+          fechamento que nomeia o próximo passo concreto depois da decisão do dono deixa de contar como enchimento
+          — as duas frases ganham o mesmo exemplo, "I'll turn this into an implementation plan". O rejulgamento
+          offline (T-501) precisou de uma correção de texto na rodada 0 (duas réplicas 0.7.0 discordaram sobre esse
+          tipo de fechamento); a rodada 1, já corrigida, bateu nas 13 réplicas. <strong>O grader 07 fecha na 0.7.2
+          porque a definição dele mudou, não porque o comportamento do Coordenador mudou:</strong> sob o grader
+          corrigido, as réplicas já salvas da 0.7.0 e da 0.7.1 já pontuavam 6/6 e 5/6
+          (<code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code>), de modo que o 6/6 medido ao vivo na
+          0.7.2 não é evidência de mudança de comportamento. Nenhum caso de guarda (<code>external-clis-*</code>,
+          RISK-001) rodou neste lote. Versão, changelog, roadmap (pt-br e inglês) e manifesto/marketplace passam a
+          declarar 0.7.2 de forma consistente.</p>
+        <p><strong>Relações:</strong> PLAN-008/IMP-005, quarta e última fatia; consome os resultados medidos das
+          três fatias anteriores (T-501 rejulgamento offline, T-502 recalibração de texto, T-503 medição ao vivo).
+          <code>CHANGELOG.md</code> 0.7.2.</p>
+        <p><strong>Testado?</strong> Medido, com a ressalva de redefinição aplicada onde o grader 07 é reportado
+          como fechado. <code>coordinator-explore-then-ask</code> (6 execuções): grader 07 fecha em 6/6, grader 06
+          fica em 5/6 — <strong>as duas barras (≥ 5/6) atingidas</strong>. Grader 03 do mesmo caso segue em 2/6,
+          fora de escopo deste lote. Rejulgamento offline da T-501: 13 réplicas (12 salvas + 1 negativo sintético)
+          batendo com a expectativa pré-registrada na rodada 1, após uma correção de texto na rodada 0. Grader 06 cai de 6/6 (0.7.1) para 5/6 ao vivo:
+          a única réplica que falha abre com o comando de teste em vez de reafirmar a demanda primeiro (reprovada
+          3/3 pelo juiz, unânime); a regra que esse grader mede ("reafirmar a demanda primeiro" no Intake) não foi
+          tocada neste lote, então a leitura é variância de execução única, não regressão — uma amostra maior
+          confirmaria. Gasto do
+          lote: US$ 2,36 de um teto de US$ 3, somando o rejulgamento offline e a medição ao vivo. Evidência:
+          <code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code> e
+          <code>evals/baselines/2026-09-25-pending-batch-0.7.2.md</code>.</p>
       </div>
 
       <div class="card">
