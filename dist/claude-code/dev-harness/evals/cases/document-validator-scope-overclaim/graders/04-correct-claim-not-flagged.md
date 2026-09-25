@@ -3,6 +3,7 @@ type: llm
 weight: 1
 focus: last_message
 ---
-Does no finding cite the Scope section's claim that each case's fixtures are
-copied into the run workspace by the case's own scaffold script as a
-problem?
+Does every finding in the reply address something other than the exact
+Scope section claim that each new case's fixtures are copied into the run
+workspace by the case's own scaffold script, invoked only when the runner
+is passed `--scaffold`?

@@ -1054,7 +1054,7 @@ profiles/"] --> B["dh build"]
           <code>external-clis-*</code> (1 execução cada, CLI 2.1.282, <code>evals/results/</code>, fora do controle
           de versão): média 0,91, e 0,82 para os mesmos casos na 0.5.1 (CLI 2.1.278) — com uma execução por caso a comparação não
           sustenta melhora nem piora; três caíram (<code>attribution</code>, <code>only</code>,
-          <code>risk-001</code>) e foram reverificados na 0.7.0 (variância, não regressão; ver card 0.7.0 abaixo). Limites conhecidos adicionais, listados no <code>CHANGELOG.md</code> 0.6.0 como do segundo lote (entregue na 0.7.0, ver card abaixo) e outros que continuam planejados sem lote definido (ver "Limites conhecidos" no card 0.7.0 abaixo): a redação do item 4 do Procedure do
+          <code>risk-001</code>) e foram reverificados na 0.7.0 (variância, não regressão; ver card 0.7.0 abaixo). Limites conhecidos adicionais, listados no <code>CHANGELOG.md</code> 0.6.0 como do segundo lote (entregue na 0.7.0, ver card abaixo) e outros fechados na 0.7.1, cada um pelo próprio critério de aceite (ver card 0.7.1 abaixo): a redação do item 4 do Procedure do
           Coordenador quanto ao despacho de <code>repo-scout</code> antes da atribuição de papéis; os dois bullets
           adjacentes de auditoria de arquitetura em <code>repo-scout</code>; e o prompt montado para um revisor CLI
           precisa dizer explicitamente que ler arquivos é permitido — uma tentativa de revisão leu a cláusula
@@ -1112,14 +1112,46 @@ profiles/"] --> B["dh build"]
           regra de 5/5 não foi alcançada). Gasto: cerca de US$ 22,5 do teto de US$ 25, incluindo US$ 3,84 perdidos
           num lote de rejulgamento do grader 06 que rodou sem isolar o contexto da máquina (erro de processo,
           registrado). <strong>Limites conhecidos, ainda sem lote definido:</strong> o achado novo de que o grader
-          07 (sem "posso prosseguir?") cai de 3/6 para 1/6 no corpo do Coordenador 0.6.0; os três graders com
-          defeito de caso a corrigir (grader 03 de <code>code</code>, o grader do controle de
-          <code>document</code>, e o grader <code>01-clause-verbatim-byte-identical</code> de
-          <code>external-clis-risk-001</code>, candidato a virar checagem determinística); mais os itens já
-          carregados da 0.6.0 — redação do item 4 do Procedure do Coordenador sobre <code>repo-scout</code>, os
-          dois bullets de auditoria de arquitetura em <code>repo-scout</code>, o prompt de revisor CLI precisar
-          dizer que ler é permitido, e o <code>timeout_minutes</code> maior para
+          07 (sem "posso prosseguir?") cai de 3/6 para 1/6 no corpo do Coordenador 0.6.0 — na 0.7.1 (ver card
+          abaixo) o mesmo grader vai de 1/6 para 2/6, ainda abaixo da barra de ≥ 5/6, e segue sem lote que o feche;
+          e o <code>timeout_minutes</code> maior para
           <code>cli:grok/grok-4.7</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.7.1 · Texto de release do lote pendente: seis itens fecham, dois seguem abertos</h3>
+        <p><strong>Status:</strong> concluído — seis dos sete itens do "Limites conhecidos" listados no card 0.7.0
+          acima fecham, cada um pelo próprio critério de aceite; o grader 07 de
+          <code>coordinator-explore-then-ask</code> segue sem fechar (1/6 → 2/6, abaixo da barra de ≥ 5/6); RISK-001
+          continua mitigado (3 de 5 passes completos).</p>
+        <p><strong>Resumo:</strong> grader 03 de <code>code-reviewer-equivalent-form-miss</code> reescrito sem
+          dupla negativa e reconfirmado por rejulgamento offline das 6 réplicas já salvas (6/6 PASS, negativo
+          sintético reprovado 3/3); grader <code>01-clause-verbatim-byte-identical</code> de
+          <code>external-clis-risk-001</code> vira checagem <code>type: regex</code> determinística, casando as 4
+          réplicas salvas, inclusive a que o antigo juiz LLM tinha reprovado; fixture de controle e graders 04/05 de
+          <code>document-validator-scope-overclaim</code> corrigidos (04 vai de 1/3 para 3/3, 05 de 0/3 para 3/3).
+          Item 4 do Procedure do Coordenador, mescla dos bullets de <code>repo-scout</code> em "When not to use" e
+          bloco novo de leitura permitida em <code>.skills/external-clis/SKILL.md</code> fecham cada um pelo próprio
+          critério de aceite. <code>timeout_minutes</code> do grok: fechado sem mudança (nenhum timeout em ~15
+          chamadas <code>cli:grok/grok-4.7</code> desde 2026-09-24) — a frase correspondente no "Limites conhecidos"
+          do card 0.7.0 acima não é removida por este lote. Versão, changelog, roadmap (pt-br e inglês) e
+          manifesto/marketplace passam a declarar 0.7.1 de forma consistente.</p>
+        <p><strong>Relações:</strong> PLAN-007/IMP-004, quarta e última fatia; consome os resultados medidos das
+          três fatias anteriores (T-401 checagens offline, T-402 critérios de aceite, T-403 rodadas pagas).
+          <code>CHANGELOG.md</code> 0.7.1.</p>
+        <p><strong>Testado?</strong> Medido, com a barra que faltou registrada como faltou, não arredondada para
+          fechamento. <code>coordinator-explore-then-ask</code> (6 execuções por lado): grader 06 segue 6/6; grader
+          07 vai de 1/6 (0.7.0) para 2/6 (candidato 0.7.1), abaixo da barra de ≥ 5/6 — <strong>barra não
+          atingida</strong>, item permanece no "Limites conhecidos" do card 0.7.0 acima. Achado adicional, não
+          corrigido neste lote: grader 03 do mesmo caso cai de 2/6 para 0/6 (comportamento já presente na 0.7.0, não
+          endereçado). <code>document-validator-scope-overclaim</code> (3 execuções): barra atingida, detecção
+          (graders 01-03) segue 3/3. <code>external-clis-risk-001</code> (5 execuções): 3 de 5 passes completos —
+          RISK-001 <strong>continua mitigado</strong> (a regra de 5/5 não foi alcançada); as duas falhas, lidas
+          manualmente, apontam para variância do juiz LLM nos graders ainda não determinísticos, sem reclassificar o
+          status. Guardas <code>external-clis-attribution</code> (5/5 graders) e <code>external-clis-only</code>
+          (6/6) sem queda. Gasto: US$ 10,21 do teto de US$ 12 do lote. Evidência:
+          <code>evals/baselines/2026-09-25-pending-batch-0.7.1.md</code> e os baselines por caso
+          <code>evals/baselines/2026-09-25-*-0.7.1.json</code>.</p>
       </div>
 
       <div class="card">
@@ -1253,7 +1285,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.7.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.7.1, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
@@ -1264,10 +1296,10 @@ OTEL e Agent SDK — não planejar"]
         <li><code>evals/results/2026-09-25-grader06-regrade.md</code> e
           <code>evals/baselines/2026-09-25-coordinator-restate-larger.md</code> — recalibração do grader 06 e a
           amostra maior que mede a regra de reafirmação da 0.6.0.</li>
-        <li><code>.harness/MEMORY.md</code> — registro do dono sobre limites do segundo lote que continuam sem
-          lote definido (item do Procedure do Coordenador sobre <code>repo-scout</code>, bullets de auditoria de
-          arquitetura, prompt de revisor CLI, timeout do grok), citados no "Limites conhecidos" do card 0.7.0
-          acima porque parte dele não está no <code>CHANGELOG.md</code> público.</li>
+        <li><code>.harness/MEMORY.md</code> — registro do dono sobre os limites do segundo lote (item do Procedure
+          do Coordenador sobre <code>repo-scout</code>, bullets de auditoria de arquitetura, prompt de revisor CLI,
+          timeout do grok), todos fechados — o timeout do grok sem mudança — na entrada 0.7.1 do
+          <code>CHANGELOG.md</code>.</li>
         <li><code>docs/prd/PRD-004-evals-executaveis-e-higiene.md</code> — escopo, RF, AC e riscos do runner de evals
           e da higiene do lote 0.4.0.</li>
         <li><code>evals/baselines/2026-09-22-0.5.0.md</code> e <code>2026-09-22-0.5.1.md</code> — números reais do

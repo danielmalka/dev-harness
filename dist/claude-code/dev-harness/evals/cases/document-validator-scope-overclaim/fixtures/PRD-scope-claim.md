@@ -15,9 +15,8 @@ Add seeded-defect eval coverage for the reviewer roles.
 - This batch adds one seeded-defect eval case for each of the four reviewer
   roles — code, security, document and coordinator — pairing each planted
   defect with a correct control section in the same fixture.
-- Each case's fixtures are copied into the run workspace before the run by
-  the case's own scaffold script, so no case depends on a shared fixture
-  directory.
+- Each new case's fixtures are copied into the run workspace by the case's
+  own scaffold script, invoked only when the runner is passed `--scaffold`.
 
 ## 3. Acceptance criteria
 

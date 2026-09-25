@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-25T12:15:31.220Z",
+  "durationSeconds": 132,
+  "costUsd": 0.3402442,
+  "partial": false,
+  "suite": {
+    "root": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "judgeModel": "sonnet",
+    "caseFilter": "external-clis-only",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "dev-harness",
+        "version": "0.7.0",
+        "path": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "external-clis-only",
+      "dir": "evals/cases/external-clis-only",
+      "source": "mixed",
+      "promptMarkdown": "Load the kit skill code-review and, for the code stage, the kit skill\nexternal-clis. `.harness/project.yaml` for this run carries\n`reviewers: {code: [\"cli:codex/gpt-5.6-sol\"]}` — no `claude` entry.\nReview fixtures/diff.md.\nFor the `cli:codex/gpt-5.6-sol` call, do not invoke a real binary: resolve\nit as if `command -v codex` succeeded, and read its reply from\nfixtures/cli-output-codex-approve.md instead of running the CLI. Return your own Dispatches section, logging every reviewer of the\nstage, followed by the merged report.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 600,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "01-claude-left-undispatched",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "min": 0,
+            "max": 0,
+            "arm": "both"
+          }
+        },
+        {
+          "name": "02-dispatches-names-only-codex",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "## Dispatches[\\s\\S]{0,800}cli:codex/gpt-5\\.6-sol",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "03-no-real-binary-invoked",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "trace",
+            "pattern": "cli-output-codex-approve\\.md",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "04-merged-solely-from-cli",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "Review status:[ ]*approve",
+            "flags": "mi",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "05-no-fallback-or-error",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Did the run avoid treating the absence of a claude entry as an error, and avoid falling back to a Claude-only flow?",
+          "config": {
+            "criteria": "Did the run avoid treating the absence of a claude entry as an error, and avoid falling back to a Claude-only flow?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "06-no-claude-entry-logged",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Is the Dispatches section free of any `claude` reviewer entry for this stage — no row and no bullet presenting `claude` as a reviewer that ran? Prose explaining that the stage's list names no `claude` entry, so none was dispatched, is not an entry and does not count against this.\n\nJudged rather than matched: the criterion is about what the log presents, and\nthe Dispatches format is prose (a bullet list in `.agents/coordinator.md`'s\nOutput format, a table in some runs), so a pattern anchored to either shape\npasses vacuously on the other. The hard guarantee that no Claude reviewer ran\nis mechanical and lives in `01-claude-left-undispatched` (`Agent` called 0\ntimes); this criterion covers the separate failure of logging a reviewer that\nwas never dispatched.",
+          "config": {
+            "criteria": "Is the Dispatches section free of any `claude` reviewer entry for this stage — no row and no bullet presenting `claude` as a reviewer that ran? Prose explaining that the stage's list names no `claude` entry, so none was dispatched, is not an entry and does not count against this.\n\nJudged rather than matched: the criterion is about what the log presents, and\nthe Dispatches format is prose (a bullet list in `.agents/coordinator.md`'s\nOutput format, a table in some runs), so a pattern anchored to either shape\npasses vacuously on the other. The hard guarantee that no Claude reviewer ran\nis mechanical and lives in `01-claude-left-undispatched` (`Agent` called 0\ntimes); this criterion covers the separate failure of logging a reviewer that\nwas never dispatched.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 8,
+            "costUsd": 0.3402442,
+            "judgeCostUsd": 0.022212,
+            "durationSeconds": 132,
+            "startedAt": "2026-09-25T12:15:31.462Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-LosgrR/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-claude-left-undispatched",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-dispatches-names-only-codex",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ## Dispatches[\\s\\S]{0,800}cli:codex/gpt-5\\.6-sol",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "03-no-real-binary-invoked",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched cli-output-codex-approve\\.md",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "04-merged-solely-from-cli",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched Review status:[ ]*approve",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "05-no-fallback-or-error",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**Demand restated:** Simulate the `code` review stage for `fixtures/diff.md` using the kit's `code-review` + `external-clis` skills, with the stage configured to only one reviewer (`cli:codex/gpt-5.6-sol`, no `claude` entry), resolving the binary and reading its reply from a fixture instead of a live call, then return the Dispatches log and the merged report.\n\n## Dispatches\n\nStage `code` (`.harness/project.yaml` → `reviewers.code: [\"cli:codex/gpt-5.6-sol\"]`, no `claude` entry ⇒ per the External CLI reviewers rule, no Claude agent is dispatched for this stage; the merged report comes only from the CLI verdict).\n\n```\n## CLI reviewer: codex/gpt-5.6-sol\n- Resolved binary: codex (simulated per instruction: `command -v codex` treated as succeeding; no real process was invoked)\n- Verdict: `Review status: approve` (found under `## Verdict` in the fixture reply, matches the `code` stage signal as a line prefix — not a transport failure)\n- Timeout: 15 minutes (default; the reviewers: entry carries no `timeout_minutes` override)\n- Raw output: fixtures/cli-output-codex-approve.md (pre-written fixture substituted for a live reply, per instruction)\n- Workspace check (git status --porcelain -uall + git hash-object): not applicable — no real binary call occurred, so there was nothing to freeze or compare\n```\n\nNo other reviewer is logged: the stage's `reviewers.code` list names exactly one entry and no `claude` entry, so nothing else is not-run — there's simply nothing else to dispatch.\n\n## Merged report\n\n```\n## Review\n- Scope: internal/service/retry.go (fixtures/diff.md)\n- Comparison: main..fix/retry-backoff\n- Requirement source: none available\n- Correctness: traced by cli:codex/gpt-5.6-sol only — no Claude reviewer covered this stage in this run\n- Regression: traced by cli:codex/gpt-5.6-sol only\n- Spec compliance: not covered — no requirement source was supplied to the reviewer\n- Security surface: not applicable — the diff is confined to retry/backoff timing logic, no trust boundary touched\n\n## Correctness and regressions\n### Critical\nNo issues found on this axis.\n### Major\nNo issues found on this axis.\n### Minor (non-blocking)\nNo issues found on this axis.\n- Reported by: cli:codex/gpt-5.6-sol\n\n## Spec compliance\nNo spec available. Axis not run. (cli:codex/gpt-5.6-sol)\n\n## Maintainability notes (non-blocking)\nNone reported.\n\n## Checks observed\n- go test ./... - not-run (codex exec -s read-only sandbox) — reported by cli:codex/gpt-5.6-sol, unverified\n\n## Verdict\n- Review status: incomplete\n- Blocking findings: 0\n- Ready from this review: no\n- Limitations: cli:codex/gpt-5.6-sol's raw reply states `Review status: approve` / `Ready from this review: yes`, but the same reply also states `Requirement source: none available` and `Spec compliance: Axis not run`. The code-review skill's own Inputs table is explicit for exactly this case: \"Run the correctness axis and record the spec axis as not-run with the reason. Mark the review incomplete, not approved.\" The reviewer's self-graded verdict does not follow its own governing rule, so this merged report records the corrected status (`incomplete`) rather than passing the reviewer's `approve` through unexamined; the raw wording is preserved above for the owner to inspect. This is a single-reviewer discrepancy, not a disagreement between two reviewers, so it is flagged rather than resolved by this report. Correctness/regression coverage rests on one CLI reviewer only — the stage's `reviewers.code` list names no `claude` entry, so no second, independent trace of the diff exists for this run. Workspace freeze/compare (git status --porcelain -uall + git hash-object) was not executed because no real `codex` process was invoked in this simulated run.\n```\n\n**Note for the owner:** the merged verdict is `incomplete`, not `approve` — the sole configured reviewer graded itself \"approve\" while its own reply shows the spec-compliance axis untraced, which the review skill it was given treats as disqualifying for approval. Nothing about the diff's correctness was independently confirmed beyond that one reviewer's read; treat this stage as needing either a requirement source (so the spec axis can actually run) or a second reviewer before this diff is called reviewed."
+              },
+              {
+                "name": "06-no-claude-entry-logged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**Demand restated:** Simulate the `code` review stage for `fixtures/diff.md` using the kit's `code-review` + `external-clis` skills, with the stage configured to only one reviewer (`cli:codex/gpt-5.6-sol`, no `claude` entry), resolving the binary and reading its reply from a fixture instead of a live call, then return the Dispatches log and the merged report.\n\n## Dispatches\n\nStage `code` (`.harness/project.yaml` → `reviewers.code: [\"cli:codex/gpt-5.6-sol\"]`, no `claude` entry ⇒ per the External CLI reviewers rule, no Claude agent is dispatched for this stage; the merged report comes only from the CLI verdict).\n\n```\n## CLI reviewer: codex/gpt-5.6-sol\n- Resolved binary: codex (simulated per instruction: `command -v codex` treated as succeeding; no real process was invoked)\n- Verdict: `Review status: approve` (found under `## Verdict` in the fixture reply, matches the `code` stage signal as a line prefix — not a transport failure)\n- Timeout: 15 minutes (default; the reviewers: entry carries no `timeout_minutes` override)\n- Raw output: fixtures/cli-output-codex-approve.md (pre-written fixture substituted for a live reply, per instruction)\n- Workspace check (git status --porcelain -uall + git hash-object): not applicable — no real binary call occurred, so there was nothing to freeze or compare\n```\n\nNo other reviewer is logged: the stage's `reviewers.code` list names exactly one entry and no `claude` entry, so nothing else is not-run — there's simply nothing else to dispatch.\n\n## Merged report\n\n```\n## Review\n- Scope: internal/service/retry.go (fixtures/diff.md)\n- Comparison: main..fix/retry-backoff\n- Requirement source: none available\n- Correctness: traced by cli:codex/gpt-5.6-sol only — no Claude reviewer covered this stage in this run\n- Regression: traced by cli:codex/gpt-5.6-sol only\n- Spec compliance: not covered — no requirement source was supplied to the reviewer\n- Security surface: not applicable — the diff is confined to retry/backoff timing logic, no trust boundary touched\n\n## Correctness and regressions\n### Critical\nNo issues found on this axis.\n### Major\nNo issues found on this axis.\n### Minor (non-blocking)\nNo issues found on this axis.\n- Reported by: cli:codex/gpt-5.6-sol\n\n## Spec compliance\nNo spec available. Axis not run. (cli:codex/gpt-5.6-sol)\n\n## Maintainability notes (non-blocking)\nNone reported.\n\n## Checks observed\n- go test ./... - not-run (codex exec -s read-only sandbox) — reported by cli:codex/gpt-5.6-sol, unverified\n\n## Verdict\n- Review status: incomplete\n- Blocking findings: 0\n- Ready from this review: no\n- Limitations: cli:codex/gpt-5.6-sol's raw reply states `Review status: approve` / `Ready from this review: yes`, but the same reply also states `Requirement source: none available` and `Spec compliance: Axis not run`. The code-review skill's own Inputs table is explicit for exactly this case: \"Run the correctness axis and record the spec axis as not-run with the reason. Mark the review incomplete, not approved.\" The reviewer's self-graded verdict does not follow its own governing rule, so this merged report records the corrected status (`incomplete`) rather than passing the reviewer's `approve` through unexamined; the raw wording is preserved above for the owner to inspect. This is a single-reviewer discrepancy, not a disagreement between two reviewers, so it is flagged rather than resolved by this report. Correctness/regression coverage rests on one CLI reviewer only — the stage's `reviewers.code` list names no `claude` entry, so no second, independent trace of the diff exists for this run. Workspace freeze/compare (git status --porcelain -uall + git hash-object) was not executed because no real `codex` process was invoked in this simulated run.\n```\n\n**Note for the owner:** the merged verdict is `incomplete`, not `approve` — the sole configured reviewer graded itself \"approve\" while its own reply shows the spec-compliance axis untraced, which the review skill it was given treats as disqualifying for approval. Nothing about the diff's correctness was independently confirmed beyond that one reviewer's read; treat this stage as needing either a requirement source (so the spec axis can actually run) or a second reviewer before this diff is called reviewed."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

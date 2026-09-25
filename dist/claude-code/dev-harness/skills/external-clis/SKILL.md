@@ -42,7 +42,7 @@ An external CLI reviewer (`agy`, `codex`, `grok`, `opencode`, `mcode`, `claude`)
 
 1. **Resolve the binary.** `command -v <binary>` first. If that fails, look up `binaries.<binary>` in `.harness/local.yaml` (a bare command on `PATH`, a `~/...` path, or a path relative to the project — see `references/local.yaml.example`). If neither resolves, the reviewer is not-run, reason "binary absent on this machine". Never substitute a different binary for the one configured.
 2. **Pin the model.** Take the slug from the `cli:<binary>/<slug>` entry the Coordinator dispatched. Do not invent a slug; an unmeasured slug is a transport failure at the CLI's own level (unknown model), not something this skill guesses around.
-3. **Assemble the prompt**: the role prompt body, the stage's review skill text, the dispatch context bundle, the reviewer's own tag, the anti-delegation clause below, and the verdict-line contract below, verbatim, in the body of the prompt itself — never only in a frontmatter field or a dispatch instruction the CLI's runtime is trusted to enforce on its own. A CLI reviewer reads the stage's output format as one section among many and will paraphrase its verdict line unless the prompt states the line as a requirement; a measured `codex` run on 2026-09-22 returned a correct blocking verdict written as `- **Request changes**` and no `Review status:` line at all, which the classification in step 6 would have thrown away. State the tag the same way, as one line of the prompt naming the exact string the reviewer must write in every finding's `Reported by:` field, because a reviewer that is never told its own tag invents one: the same measured runs signed `cli:codex/security-review` and `cli:codex/gpt-5`, neither of which is the slug the stage dispatched.
+3. **Assemble the prompt**: the role prompt body, the stage's review skill text, the dispatch context bundle, the reviewer's own tag, the anti-delegation clause below, the reading-is-allowed block below, and the verdict-line contract below, verbatim, in the body of the prompt itself — never only in a frontmatter field or a dispatch instruction the CLI's runtime is trusted to enforce on its own. A CLI reviewer reads the stage's output format as one section among many and will paraphrase its verdict line unless the prompt states the line as a requirement; a measured `codex` run on 2026-09-22 returned a correct blocking verdict written as `- **Request changes**` and no `Review status:` line at all, which the classification in step 6 would have thrown away. State the tag the same way, as one line of the prompt naming the exact string the reviewer must write in every finding's `Reported by:` field, because a reviewer that is never told its own tag invents one: the same measured runs signed `cli:codex/security-review` and `cli:codex/gpt-5`, neither of which is the slug the stage dispatched.
 4. **Write the prompt to disk** when it is longer than one line. Do not stuff a multi-kilobyte prompt into argv when the binary offers `--prompt-file`, stdin, or an attached-file flag; `references/<binary>.md` names which one that binary takes.
 5. **Invoke with the binary's flag order**, from `references/<binary>.md`. Flag order is part of the contract for some binaries (a misplaced flag is read as the prompt itself); do not reorder from what the reference shows. Apply the binary's read-only flag when it has one — see the table below.
 6. **Classify the outcome by the stage's verdict signal**, not by exit code alone — see "Transport failure vs. a real verdict" below. A non-zero exit, a timeout, or exit 0 with no recognizable verdict signal is a transport failure: it is reported not-run with the reason, and it does not count as either an approval or a rejection.
@@ -83,6 +83,18 @@ assumption about what the runtime blocks.
 ```
 
 `commands.test`/`commands.lint` is the only execution this skill permits a CLI reviewer (owner decision, PRD-003 RF-01) — never `commands.build`, which can rewrite versioned artifacts such as `dist/` and trip the reversion in step 7 above. For `codex` under its read-only sandbox, this permission is inert in practice: [references/codex.md](references/codex.md) explains why.
+
+## Reading is allowed
+
+Append this block, verbatim, to every CLI reviewer prompt, alongside the anti-delegation clause above:
+
+```
+Reading any file in this repository is allowed and expected — the clause
+above forbids executing scripts and delegating this review to another
+tool, not reading.
+```
+
+A reviewer that reads the clause above as a ban on opening files has misread it; this block exists because that misreading was observed in practice.
 
 ## The verdict-line contract
 

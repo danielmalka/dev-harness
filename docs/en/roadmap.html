@@ -1054,7 +1054,7 @@ profiles/"] --> B["dh build"]
           neighboring <code>external-clis-*</code> cases (1 run each, CLI 2.1.282, <code>evals/results/</code>,
           git-ignored): mean 0.91, and 0.82 for the same cases on 0.5.1 (CLI 2.1.278) — with one run per case the comparison supports
           neither an improvement nor a regression; three dropped (<code>attribution</code>, <code>only</code>,
-          <code>risk-001</code>) and were re-checked in 0.7.0 (variance, not a regression; see the 0.7.0 card below). Additional known limits, listed in <code>CHANGELOG.md</code> 0.6.0 under the second batch (delivered in 0.7.0, see the card below) and others still planned with no batch assigned (see "Known limits" in the 0.7.0 card below): the wording of the
+          <code>risk-001</code>) and were re-checked in 0.7.0 (variance, not a regression; see the 0.7.0 card below). Additional known limits, listed in <code>CHANGELOG.md</code> 0.6.0 under the second batch (delivered in 0.7.0, see the card below) and others closed in 0.7.1, each on its own acceptance criterion (see the 0.7.1 card below): the wording of the
           Coordinator's Procedure item 4 on dispatching <code>repo-scout</code> before assigning roles; the two
           adjacent architecture-audit bullets in <code>repo-scout</code>; and the prompt assembled for a CLI
           reviewer needs to say explicitly that reading files is allowed — one review attempt read the
@@ -1112,13 +1112,44 @@ profiles/"] --> B["dh build"]
           <strong>mitigated</strong> (the 5-of-5 rule was not reached). Spend: about US$ 22.5 of the US$ 25 cap,
           including US$ 3.84 lost to a grader-06 re-grading batch that ran without isolating the machine's context
           (a process error, recorded). <strong>Known limits, still with no batch assigned:</strong> the new finding
-          that grader 07 (no filler "may I proceed?") falls from 3/6 to 1/6 on the 0.6.0 Coordinator body; the
-          three case-defect graders still to fix (<code>code</code>'s grader 03, <code>document</code>'s control
-          grader, and <code>external-clis-risk-001</code>'s <code>01-clause-verbatim-byte-identical</code> grader,
-          a candidate for a deterministic check); plus the items already carried from 0.6.0 — the wording of the
-          Coordinator's Procedure item 4 on <code>repo-scout</code>, the two architecture-audit bullets in
-          <code>repo-scout</code>, the CLI reviewer prompt needing to say reading is allowed, and a larger
-          <code>timeout_minutes</code> for <code>cli:grok/grok-4.7</code>.</p>
+          that grader 07 (no filler "may I proceed?") falls from 3/6 to 1/6 on the 0.6.0 Coordinator body — in 0.7.1
+          (see the card below) the same grader moves from 1/6 to 2/6, still below the ≥ 5/6 bar, and stays with no
+          batch closing it; and a larger <code>timeout_minutes</code> for <code>cli:grok/grok-4.7</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.7.1 · Release text for the pending batch: six items close, two stay open</h3>
+        <p><strong>Status:</strong> done — six of the seven items on the "Known limits" listed in the 0.7.0 card
+          above close, each on its own acceptance criterion; grader 07 of
+          <code>coordinator-explore-then-ask</code> stays open (1/6 → 2/6, below the ≥ 5/6 bar); RISK-001 stays
+          mitigated (3 of 5 full passes).</p>
+        <p><strong>Summary:</strong> grader 03 of <code>code-reviewer-equivalent-form-miss</code> rewritten without
+          the double negative and reconfirmed by an offline re-judge of the 6 already-saved replies (6/6 PASS, the
+          synthetic negative failed 3/3); grader <code>01-clause-verbatim-byte-identical</code> of
+          <code>external-clis-risk-001</code> becomes a deterministic <code>type: regex</code> check, matching the
+          4 saved replies, including the one the old LLM judge had failed; the control fixture and graders 04/05 of
+          <code>document-validator-scope-overclaim</code> corrected (04 moves from 1/3 to 3/3, 05 from 0/3 to 3/3).
+          Coordinator Procedure item 4, the merge of the <code>repo-scout</code> "When not to use" bullets, and the
+          new reading-is-allowed block in <code>.skills/external-clis/SKILL.md</code> each close on their own
+          acceptance criterion. Grok <code>timeout_minutes</code>: closed without change (no timeout in ~15
+          <code>cli:grok/grok-4.7</code> calls since 2026-09-24) — the matching sentence in the "Known limits" of
+          the 0.7.0 card above is not removed by this batch. Version, changelog, roadmap (pt-br and English) and
+          manifest/marketplace now state 0.7.1 consistently.</p>
+        <p><strong>Relations:</strong> PLAN-007/IMP-004, the fourth and final slice; consumes the measured results
+          of the three prior slices (T-401 offline checks, T-402 acceptance criteria, T-403 paid runs).
+          <code>CHANGELOG.md</code> 0.7.1.</p>
+        <p><strong>Tested?</strong> Measured, with the bar that was missed reported as missed, never rounded up to a
+          close. <code>coordinator-explore-then-ask</code> (6 runs per side): grader 06 stays 6/6; grader 07 moves
+          from 1/6 (0.7.0) to 2/6 (0.7.1 candidate), below the ≥ 5/6 bar — <strong>bar missed</strong>, the item
+          stays on the "Known limits" of the 0.7.0 card above. Additional finding, not fixed in this batch: grader
+          03 of the same case falls from 2/6 to 0/6 (a behavior already present in 0.7.0, not addressed).
+          <code>document-validator-scope-overclaim</code> (3 runs): bar met, detection (graders 01-03) stays 3/3.
+          <code>external-clis-risk-001</code> (5 runs): 3 of 5 full passes — RISK-001 <strong>stays
+          mitigated</strong> (the 5-of-5 rule was not reached); the two failures, read manually, point to LLM-judge
+          variance on the graders that are not yet deterministic, without relabelling the status. Guards
+          <code>external-clis-attribution</code> (5/5 graders) and <code>external-clis-only</code> (6/6) hold. Spend:
+          US$ 10.21 of the batch's US$ 12 cap. Evidence: <code>evals/baselines/2026-09-25-pending-batch-0.7.1.md</code>
+          and the per-case baselines <code>evals/baselines/2026-09-25-*-0.7.1.json</code>.</p>
       </div>
 
       <div class="card">
@@ -1254,7 +1285,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.7.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.7.1, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
@@ -1265,10 +1296,10 @@ OTEL and Agent SDK — not planning"]
         <li><code>evals/results/2026-09-25-grader06-regrade.md</code> and
           <code>evals/baselines/2026-09-25-coordinator-restate-larger.md</code> — the grader 06 recalibration and
           the larger sample that measures the 0.6.0 restatement rule.</li>
-        <li><code>.harness/MEMORY.md</code> — the owner's record of second-batch limits still with no batch
-          assigned (the Coordinator Procedure item on <code>repo-scout</code>, the architecture-audit bullets, the
-          CLI reviewer prompt, the grok timeout), cited under "Known limits" in the 0.7.0 card above because part
-          of it is not in the public <code>CHANGELOG.md</code>.</li>
+        <li><code>.harness/MEMORY.md</code> — the owner's record of the second-batch limits (the Coordinator
+          Procedure item on <code>repo-scout</code>, the architecture-audit bullets, the CLI reviewer prompt, the
+          grok timeout), all closed — the grok timeout without change — in the 0.7.1 <code>CHANGELOG.md</code>
+          entry.</li>
         <li><code>docs/prd/PRD-004-evals-executaveis-e-higiene.md</code> — scope, RF, AC and risks for the eval
           runner and the 0.4.0 batch hygiene.</li>
         <li><code>evals/baselines/2026-09-22-0.5.0.md</code> and <code>2026-09-22-0.5.1.md</code> — real numbers
