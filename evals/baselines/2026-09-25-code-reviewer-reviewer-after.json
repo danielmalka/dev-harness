@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-25T03:27:55.020Z",
+  "durationSeconds": 388,
+  "costUsd": 0.8329866000000001,
+  "partial": false,
+  "suite": {
+    "root": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "judgeModel": "sonnet",
+    "caseFilter": "code-reviewer-equivalent-form-miss",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "dev-harness",
+        "version": "0.6.0",
+        "path": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "code-reviewer-equivalent-form-miss",
+      "dir": "evals/cases/code-reviewer-equivalent-form-miss",
+      "source": "mixed",
+      "promptMarkdown": "Load the kit skill code-review. The change under review is fixtures/diff.md. Return only your output format.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "01-detects-request-changes",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^-\\s*(Review status:[ \\t]*)?[Rr]equest changes\\b",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "02-finding-cites-equivalent-form",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Is there a finding that identifies the `server` workspace's test command,\n`npm run test --workspace=server` (from `scripts/workspaces.config.js`), as\none that `classifyStep` in `scripts/ci-gate.js` misclassifies as `generic`\ninstead of `test` — because `normalizeCommand` only strips a leading\n`cd <dir> &&` prefix and does not recognize the `--workspace=` invocation\nform, so the command never equals the bare `npm test` string `classifyStep`\ncompares against — with a location in `scripts/ci-gate.js` or\n`scripts/workspaces.config.js` and a scenario in which that misclassification\nwould let a real test failure pass the gate for that workspace?",
+          "config": {
+            "criteria": "Is there a finding that identifies the `server` workspace's test command,\n`npm run test --workspace=server` (from `scripts/workspaces.config.js`), as\none that `classifyStep` in `scripts/ci-gate.js` misclassifies as `generic`\ninstead of `test` — because `normalizeCommand` only strips a leading\n`cd <dir> &&` prefix and does not recognize the `--workspace=` invocation\nform, so the command never equals the bare `npm test` string `classifyStep`\ncompares against — with a location in `scripts/ci-gate.js` or\n`scripts/workspaces.config.js` and a scenario in which that misclassification\nwould let a real test failure pass the gate for that workspace?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "03-control-not-wrongly-flagged",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Does no finding claim that `classifyLintStep`, or the lint classification\npath for any workspace (root, server, or worker) in\n`scripts/workspaces.config.js`, is broken, incomplete, or fails to recognize\nits actual lint command form?",
+          "config": {
+            "criteria": "Does no finding claim that `classifyLintStep`, or the lint classification\npath for any workspace (root, server, or worker) in\n`scripts/workspaces.config.js`, is broken, incomplete, or fails to recognize\nits actual lint command form?",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.6666666666666666,
+            "passed": false,
+            "turns": 4,
+            "costUsd": 0.2495184,
+            "judgeCostUsd": 0.027611999999999998,
+            "durationSeconds": 122,
+            "startedAt": "2026-09-25T03:27:55.275Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-Wn1NOW/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-request-changes",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^-\\s*(Review status:[ \\t]*)?[Rr]equest changes\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-finding-cites-equivalent-form",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- request changes\n\n## Coverage\n- Correctness: Traced `classify`/`classifyStep`/`classifyLintStep`/`classifyBuildStep`/`normalizeCommand` in `scripts/ci-gate.js` against all 9 commands defined in `scripts/workspaces.config.js` (root/server/worker × test/lint/build). Verified `normalizeCommand`'s regex (`^cd [^&]+&&\\s*(.+)$`) against each `cd <dir> &&`-prefixed command by hand.\n- Regression: The `scripts/ci-gate.js` hunk is purely additive (every line is `+`, nothing removed), so no visible existing behavior is deleted or altered. Could not verify integration with the rest of the file (only this hunk was provided, not the full file), so downstream consumers of `classify`'s `kind` value are untraced.\n- Spec compliance: The added comment in `scripts/workspaces.config.js` (lines 13-16) states these are \"the exact invocations ... today ... not a normalized or idealized form,\" which sets the implicit requirement that the classifier must correctly recognize each workspace's real, non-uniform invocation. Checked that requirement against the classifier's exact-string-match logic.\n- Security surface: not applicable — change parses static, repo-internal config strings for CI tooling; no auth, external/untrusted input, or execution of attacker-influenced data is involved.\n\n## Findings\n\n- Severity: Major\n- Location: scripts/ci-gate.js:43-52 (`normalizeCommand`, `classifyStep`), combined with scripts/workspaces.config.js:24 (`server.test`)\n- Scenario: `server.test` is `'npm run test --workspace=server'`. `normalizeCommand` only strips a leading `cd <dir> &&`; this command has no such prefix, so it passes through unchanged and is compared to the literal `'npm test'` in `classifyStep`. The comparison fails, so `classify('npm run test --workspace=server')` returns `'generic'` instead of `'test'`. By contrast, `worker.test = 'cd worker && npm test'` (also a non-literal form) *is* correctly stripped and matched to `'test'` — that is a correct control case, not a bug.\n- Impact: Per the comment at scripts/ci-gate.js:86-88, a `'test'`-classified step is meant to get its output parsed for the framework's own pass/fail summary so a real failure hidden behind a passing exit code still blocks the merge, while a `'generic'` step is gated on exit code alone. Server's canonical test command silently loses that stricter treatment purely because of its syntactic form, not because it isn't a test step — this is exactly the \"equivalent form\" the classifier fails to recognize. (Hypothesis, not fact: whether this actually degrades gating depends on downstream code not present in this diff that consumes `kind`; that code was not available to trace.)\n- Recommendation: Normalize `--workspace=<name>` / `npm run test` variants in `normalizeCommand` (or match each workspace's command directly against its own `workspaces.config.js` entry rather than a single hardcoded literal), so `classify` is driven by the canonical config instead of one assumed invocation shape.\n\n- Severity: Minor (non-blocking)\n- Location: scripts/ci-gate.js:82-97 (`runGate`)\n- Scenario: The inline comment at lines 86-88 describes output parsing for test steps (\"a 'test' step's output is also parsed for the framework's own pass/fail summary\"), but `runGate` never executes any command or parses any output — it only builds a static `{workspace, cmd, kind, retriesLeft}` array from config and logs a count summary.\n- Impact: The comment overstates what the current code guarantees; a reader could believe test-failure detection is already wired up when it is not.\n- Recommendation: Scope the comment to what's implemented (classification only) or note explicitly that execution/parsing is future work.\n\n- Severity: Minor (non-blocking)\n- Location: scripts/ci-gate.js:39, 89 (`MAX_RETRIES`, `retriesLeft`)\n- Scenario: `retriesLeft: MAX_RETRIES` is attached to every result but nothing in the shown diff reads or decrements it.\n- Impact: Dead field as far as this diff shows; low cost, but worth confirming it's consumed elsewhere in the untouched part of the file.\n- Recommendation: Confirm a consumer exists outside this diff, or drop the field until it's used.\n\n## Nothing found\n- No issues on the lint/build classification paths for any workspace — all three workspaces' lint and build commands normalize and match correctly, including the `cd <dir> &&`-prefixed ones (server, worker).\n- No regression evidence: the ci-gate.js change is additive only.\n- No security-surface issue: none applicable, this is internal tooling with no untrusted input path.\n\n## Evidence\n- Fact: `scripts/ci-gate.js` lines 34-106 (per diff) are all additions; no `-` lines present in that hunk.\n- Fact: `normalizeCommand`'s regex only strips a `cd <dir> &&` prefix; verified by hand against all 9 config commands.\n- Fact: `server.test = 'npm run test --workspace=server'` (scripts/workspaces.config.js:24) does not match `'npm test'` after normalization, so `classify` returns `'generic'` for it, while `root.test` and `worker.test` return `'test'`.\n- Hypothesis: the practical severity of the misclassification (whether it actually weakens gate enforcement) depends on code outside this diff's scope that was not provided for tracing.\n- Limitation: only the diff hunks in fixtures/diff.md were reviewed; the rest of `scripts/ci-gate.js` (context before line 10 and after the shown insertion) was not available, so downstream use of `classify`'s output and `retriesLeft` could not be fully traced."
+              },
+              {
+                "name": "03-control-not-wrongly-flagged",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "## Verdict\n- request changes\n\n## Coverage\n- Correctness: Traced `classify`/`classifyStep`/`classifyLintStep`/`classifyBuildStep`/`normalizeCommand` in `scripts/ci-gate.js` against all 9 commands defined in `scripts/workspaces.config.js` (root/server/worker × test/lint/build). Verified `normalizeCommand`'s regex (`^cd [^&]+&&\\s*(.+)$`) against each `cd <dir> &&`-prefixed command by hand.\n- Regression: The `scripts/ci-gate.js` hunk is purely additive (every line is `+`, nothing removed), so no visible existing behavior is deleted or altered. Could not verify integration with the rest of the file (only this hunk was provided, not the full file), so downstream consumers of `classify`'s `kind` value are untraced.\n- Spec compliance: The added comment in `scripts/workspaces.config.js` (lines 13-16) states these are \"the exact invocations ... today ... not a normalized or idealized form,\" which sets the implicit requirement that the classifier must correctly recognize each workspace's real, non-uniform invocation. Checked that requirement against the classifier's exact-string-match logic.\n- Security surface: not applicable — change parses static, repo-internal config strings for CI tooling; no auth, external/untrusted input, or execution of attacker-influenced data is involved.\n\n## Findings\n\n- Severity: Major\n- Location: scripts/ci-gate.js:43-52 (`normalizeCommand`, `classifyStep`), combined with scripts/workspaces.config.js:24 (`server.test`)\n- Scenario: `server.test` is `'npm run test --workspace=server'`. `normalizeCommand` only strips a leading `cd <dir> &&`; this command has no such prefix, so it passes through unchanged and is compared to the literal `'npm test'` in `classifyStep`. The comparison fails, so `classify('npm run test --workspace=server')` returns `'generic'` instead of `'test'`. By contrast, `worker.test = 'cd worker && npm test'` (also a non-literal form) *is* correctly stripped and matched to `'test'` — that is a correct control case, not a bug.\n- Impact: Per the comment at scripts/ci-gate.js:86-88, a `'test'`-classified step is meant to get its output parsed for the framework's own pass/fail summary so a real failure hidden behind a passing exit code still blocks the merge, while a `'generic'` step is gated on exit code alone. Server's canonical test command silently loses that stricter treatment purely because of its syntactic form, not because it isn't a test step — this is exactly the \"equivalent form\" the classifier fails to recognize. (Hypothesis, not fact: whether this actually degrades gating depends on downstream code not present in this diff that consumes `kind`; that code was not available to trace.)\n- Recommendation: Normalize `--workspace=<name>` / `npm run test` variants in `normalizeCommand` (or match each workspace's command directly against its own `workspaces.config.js` entry rather than a single hardcoded literal), so `classify` is driven by the canonical config instead of one assumed invocation shape.\n\n- Severity: Minor (non-blocking)\n- Location: scripts/ci-gate.js:82-97 (`runGate`)\n- Scenario: The inline comment at lines 86-88 describes output parsing for test steps (\"a 'test' step's output is also parsed for the framework's own pass/fail summary\"), but `runGate` never executes any command or parses any output — it only builds a static `{workspace, cmd, kind, retriesLeft}` array from config and logs a count summary.\n- Impact: The comment overstates what the current code guarantees; a reader could believe test-failure detection is already wired up when it is not.\n- Recommendation: Scope the comment to what's implemented (classification only) or note explicitly that execution/parsing is future work.\n\n- Severity: Minor (non-blocking)\n- Location: scripts/ci-gate.js:39, 89 (`MAX_RETRIES`, `retriesLeft`)\n- Scenario: `retriesLeft: MAX_RETRIES` is attached to every result but nothing in the shown diff reads or decrements it.\n- Impact: Dead field as far as this diff shows; low cost, but worth confirming it's consumed elsewhere in the untouched part of the file.\n- Recommendation: Confirm a consumer exists outside this diff, or drop the field until it's used.\n\n## Nothing found\n- No issues on the lint/build classification paths for any workspace — all three workspaces' lint and build commands normalize and match correctly, including the `cd <dir> &&`-prefixed ones (server, worker).\n- No regression evidence: the ci-gate.js change is additive only.\n- No security-surface issue: none applicable, this is internal tooling with no untrusted input path.\n\n## Evidence\n- Fact: `scripts/ci-gate.js` lines 34-106 (per diff) are all additions; no `-` lines present in that hunk.\n- Fact: `normalizeCommand`'s regex only strips a `cd <dir> &&` prefix; verified by hand against all 9 config commands.\n- Fact: `server.test = 'npm run test --workspace=server'` (scripts/workspaces.config.js:24) does not match `'npm test'` after normalization, so `classify` returns `'generic'` for it, while `root.test` and `worker.test` return `'test'`.\n- Hypothesis: the practical severity of the misclassification (whether it actually weakens gate enforcement) depends on code outside this diff's scope that was not provided for tracing.\n- Limitation: only the diff hunks in fixtures/diff.md were reviewed; the rest of `scripts/ci-gate.js` (context before line 10 and after the shown insertion) was not available, so downstream use of `classify`'s output and `retriesLeft` could not be fully traced."
+              }
+            ]
+          },
+          {
+            "score": 0.6666666666666666,
+            "passed": false,
+            "turns": 6,
+            "costUsd": 0.3142108,
+            "judgeCostUsd": 0.027828,
+            "durationSeconds": 167,
+            "startedAt": "2026-09-25T03:29:56.939Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-6Yb2yC/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-request-changes",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^-\\s*(Review status:[ \\t]*)?[Rr]equest changes\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-finding-cites-equivalent-form",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- request changes\n\n## Coverage\n- Correctness: Traced `classify()` → `classifyStep`/`classifyLintStep`/`classifyBuildStep` → `normalizeCommand` (fixtures/diff.md:43-70) against every command produced by `workspaces.config.js` for all three workspaces × {test, lint, build} (9 total commands). 8 of 9 classify as expected; `server.test` does not (see Findings).\n- Regression: Traced the hunk as purely additive (all lines in the `ci-gate.js` hunk are `+`; no prior behavior is visibly removed or changed). Noted a limitation: the hunk header (`@@ -10,6 +10,70 @@`, fixtures/diff.md:36) claims 6 original lines at that position, but the diff body shows none of them (no unprefixed context, no `-` lines) — so I cannot confirm what those 6 original lines were or whether they're preserved elsewhere in the file. I also cannot confirm whether the unconditional `module.exports = {...}` (fixtures/diff.md:99-106) coexists safely with any other exports the rest of `ci-gate.js` may define, since the file exists only as this fragment and has no counterpart in the actual repo tree (confirmed via glob — `scripts/ci-gate.js` does not exist on disk). This is a genuine gap in what could be traced, not a claim that a problem exists there.\n- Spec compliance: Compared the implementation against the intent stated in the diff's own artifacts: the comment in `workspaces.config.js` (fixtures/diff.md:13-16) that these are \"the exact invocations ... not a normalized or idealized form,\" and the prose after the diff (fixtures/diff.md:109-115) describing `classify` as dispatching by keyword match \"after `normalizeCommand` strips a leading `cd <dir> &&` prefix.\" That stated normalization only covers the `cd`-prefix variance, not the `npm run test --workspace=X` variance actually present in the config it ships alongside — so the code doesn't fully satisfy the intent implied by its own documentation.\n- Security surface: not applicable. Nothing in this diff handles externally-supplied input, authentication, or execution of untrusted data — the classified commands are static, developer-authored configuration in `workspaces.config.js`, not runtime/user input.\n\n## Findings\n\n- Severity: Critical\n- Location: scripts/ci-gate.js — `classify`/`classifyStep`/`normalizeCommand` (fixtures/diff.md:43-52, 66-70), interacting with scripts/workspaces.config.js:24 (`server.test: 'npm run test --workspace=server'`)\n- Scenario: `classify('npm run test --workspace=server')` checks `.includes('lint')` and `.includes('build')` first (neither matches), then falls to `classifyStep`. `normalizeCommand` only strips a leading `cd <dir> &&` prefix via `/^cd [^&]+&&\\s*(.+)$/`; this command has no such prefix, so it's returned unchanged and compared against the literal string `'npm test'`. Since `'npm run test --workspace=server' !== 'npm test'`, the step is classified as `'generic'` instead of `'test'` — even though it's the workspace's actual, documented test invocation.\n- Impact: Per the comment at fixtures/diff.md:86-88, only `'test'`-kind steps get their output parsed for the test framework's own pass/fail summary; `'generic'` steps are gated on exit code alone. This means a real test failure in the server workspace that a framework reports internally but doesn't reflect in its process exit code — the exact scenario the comment says this classification exists to catch — would silently pass the gate for `server` while the functionally identical `root` and `worker` test steps remain protected. This defeats the stated purpose of the change for one workspace, silently and without any error or warning.\n- Recommendation: Make command recognition tolerant of the equivalent forms actually present in `workspaces.config.js` — e.g., have `normalizeCommand`/`classifyStep` also recognize `npm run test` (with optional trailing flags like `--workspace=...`) as equivalent to `npm test`, or classify by parsing the npm subcommand rather than exact string equality.\n\n- Severity: Minor (non-blocking)\n- Location: scripts/ci-gate.js:39, 89 (`MAX_RETRIES`, `retriesLeft`)\n- Scenario: `runGate` attaches `retriesLeft: MAX_RETRIES` to every result but nothing in the shown code reads or decrements it, or performs any retry.\n- Impact: Dead/inert field within the scope of this diff; readers may assume retry behavior exists here when it doesn't (or lives in unseen code).\n- Recommendation: Either wire `retriesLeft` into actual retry logic or drop it from this diff until that logic exists, since we can't confirm from this scope whether it's consumed elsewhere.\n\n## Nothing found\nNo issues on the other 8 of 9 classify/config pairings: `root.{test,lint,build}`, `worker.{test,lint,build}`, and `server.{lint,build}` (the latter two use the `cd server && ...` form, which `normalizeCommand` correctly strips and matches) — these are appropriately not flagged despite superficially resembling the defective case.\n\n## Evidence\n- fixtures/diff.md:9-107 (full diff content)\n- fixtures/diff.md:24 (`server.test` config value)\n- fixtures/diff.md:43-52, 66-70 (`normalizeCommand`, `classifyStep`, `classify`)\n- fixtures/diff.md:86-88 (comment explaining why `'test'` vs `'generic'` classification matters)\n- Confirmed via Glob that `scripts/ci-gate.js` / `scripts/workspaces.config.js` do not exist in the working tree — this diff is reviewed as a standalone fixture with no fuller file context available, which bounds the regression axis as noted above."
+              },
+              {
+                "name": "03-control-not-wrongly-flagged",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "## Verdict\n- request changes\n\n## Coverage\n- Correctness: Traced `classify()` → `classifyStep`/`classifyLintStep`/`classifyBuildStep` → `normalizeCommand` (fixtures/diff.md:43-70) against every command produced by `workspaces.config.js` for all three workspaces × {test, lint, build} (9 total commands). 8 of 9 classify as expected; `server.test` does not (see Findings).\n- Regression: Traced the hunk as purely additive (all lines in the `ci-gate.js` hunk are `+`; no prior behavior is visibly removed or changed). Noted a limitation: the hunk header (`@@ -10,6 +10,70 @@`, fixtures/diff.md:36) claims 6 original lines at that position, but the diff body shows none of them (no unprefixed context, no `-` lines) — so I cannot confirm what those 6 original lines were or whether they're preserved elsewhere in the file. I also cannot confirm whether the unconditional `module.exports = {...}` (fixtures/diff.md:99-106) coexists safely with any other exports the rest of `ci-gate.js` may define, since the file exists only as this fragment and has no counterpart in the actual repo tree (confirmed via glob — `scripts/ci-gate.js` does not exist on disk). This is a genuine gap in what could be traced, not a claim that a problem exists there.\n- Spec compliance: Compared the implementation against the intent stated in the diff's own artifacts: the comment in `workspaces.config.js` (fixtures/diff.md:13-16) that these are \"the exact invocations ... not a normalized or idealized form,\" and the prose after the diff (fixtures/diff.md:109-115) describing `classify` as dispatching by keyword match \"after `normalizeCommand` strips a leading `cd <dir> &&` prefix.\" That stated normalization only covers the `cd`-prefix variance, not the `npm run test --workspace=X` variance actually present in the config it ships alongside — so the code doesn't fully satisfy the intent implied by its own documentation.\n- Security surface: not applicable. Nothing in this diff handles externally-supplied input, authentication, or execution of untrusted data — the classified commands are static, developer-authored configuration in `workspaces.config.js`, not runtime/user input.\n\n## Findings\n\n- Severity: Critical\n- Location: scripts/ci-gate.js — `classify`/`classifyStep`/`normalizeCommand` (fixtures/diff.md:43-52, 66-70), interacting with scripts/workspaces.config.js:24 (`server.test: 'npm run test --workspace=server'`)\n- Scenario: `classify('npm run test --workspace=server')` checks `.includes('lint')` and `.includes('build')` first (neither matches), then falls to `classifyStep`. `normalizeCommand` only strips a leading `cd <dir> &&` prefix via `/^cd [^&]+&&\\s*(.+)$/`; this command has no such prefix, so it's returned unchanged and compared against the literal string `'npm test'`. Since `'npm run test --workspace=server' !== 'npm test'`, the step is classified as `'generic'` instead of `'test'` — even though it's the workspace's actual, documented test invocation.\n- Impact: Per the comment at fixtures/diff.md:86-88, only `'test'`-kind steps get their output parsed for the test framework's own pass/fail summary; `'generic'` steps are gated on exit code alone. This means a real test failure in the server workspace that a framework reports internally but doesn't reflect in its process exit code — the exact scenario the comment says this classification exists to catch — would silently pass the gate for `server` while the functionally identical `root` and `worker` test steps remain protected. This defeats the stated purpose of the change for one workspace, silently and without any error or warning.\n- Recommendation: Make command recognition tolerant of the equivalent forms actually present in `workspaces.config.js` — e.g., have `normalizeCommand`/`classifyStep` also recognize `npm run test` (with optional trailing flags like `--workspace=...`) as equivalent to `npm test`, or classify by parsing the npm subcommand rather than exact string equality.\n\n- Severity: Minor (non-blocking)\n- Location: scripts/ci-gate.js:39, 89 (`MAX_RETRIES`, `retriesLeft`)\n- Scenario: `runGate` attaches `retriesLeft: MAX_RETRIES` to every result but nothing in the shown code reads or decrements it, or performs any retry.\n- Impact: Dead/inert field within the scope of this diff; readers may assume retry behavior exists here when it doesn't (or lives in unseen code).\n- Recommendation: Either wire `retriesLeft` into actual retry logic or drop it from this diff until that logic exists, since we can't confirm from this scope whether it's consumed elsewhere.\n\n## Nothing found\nNo issues on the other 8 of 9 classify/config pairings: `root.{test,lint,build}`, `worker.{test,lint,build}`, and `server.{lint,build}` (the latter two use the `cd server && ...` form, which `normalizeCommand` correctly strips and matches) — these are appropriately not flagged despite superficially resembling the defective case.\n\n## Evidence\n- fixtures/diff.md:9-107 (full diff content)\n- fixtures/diff.md:24 (`server.test` config value)\n- fixtures/diff.md:43-52, 66-70 (`normalizeCommand`, `classifyStep`, `classify`)\n- fixtures/diff.md:86-88 (comment explaining why `'test'` vs `'generic'` classification matters)\n- Confirmed via Glob that `scripts/ci-gate.js` / `scripts/workspaces.config.js` do not exist in the working tree — this diff is reviewed as a standalone fixture with no fuller file context available, which bounds the regression axis as noted above."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.26925740000000004,
+            "judgeCostUsd": 0.023670000000000017,
+            "durationSeconds": 99,
+            "startedAt": "2026-09-25T03:32:43.824Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-2GLjsg/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-request-changes",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^-\\s*(Review status:[ \\t]*)?[Rr]equest changes\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-finding-cites-equivalent-form",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- request changes\n\n## Coverage\n- Correctness: Traced `normalizeCommand` → `classify` → `classifyStep`/`classifyLintStep`/`classifyBuildStep` against all 9 step invocations produced by `collectSteps()` (test/lint/build × root/server/worker, per `scripts/workspaces.config.js`). Lint and build classify correctly for all three workspaces. Test classification is correct for root (`npm test`) and worker (`cd worker && npm test`, stripped by `normalizeCommand`) but fails for server.\n- Regression: The diff only adds new exports (`classify`, `classifyStep`, `classifyLintStep`, `classifyBuildStep`, `runGate`, `normalizeCommand`) and a new config module; no existing function body is modified or removed in the shown hunk (`@@ -10,6 +10,70 @@` is additive). No pre-existing contract is broken by this change as far as the diff shows. I do not have the pre-change file or any caller of `runGate`/`classify` outside this diff (no repo tree present, fixture-only), so this is traced only to the extent the diff itself reveals — no evidence of removed/altered prior behavior.\n- Spec compliance: Compared implementation against the diff's own trailing description (\"classify dispatches each pipeline step ... compares the command ... against the bare npm invocation for its step kind\"). The description implies every workspace's real command should resolve to its bare kind; the server test command does not, per the trace above.\n- Security surface: Not applicable — no authentication, authorization, or externally-supplied/untrusted input is handled here; `workspaces.config.js` is a static local file and no `child_process`/`exec` call is present in the diff.\n\n## Findings\n\n- Severity: Major\n- Location: scripts/ci-gate.js:43-51 (`normalizeCommand`, `classifyStep`), interacting with scripts/workspaces.config.js:24 (`server.test: 'npm run test --workspace=server'`)\n- Scenario: `classify('npm run test --workspace=server')` is called for the server workspace's test step. `cmd.includes('lint')` and `cmd.includes('build')` are both false, so it falls to `classifyStep`. `normalizeCommand` only strips a leading `cd <dir> &&` prefix (regex `^cd [^&]+&&\\s*(.+)$`); since this command has no `cd` prefix, it is returned unchanged. `classifyStep` then checks `normalized === 'npm test'`, which is false for `'npm run test --workspace=server'`, so the step is classified `'generic'` instead of `'test'`.\n- Impact: Per the comment at scripts/ci-gate.js:86-88, a `'test'`-kind step is meant to have its output parsed for the test framework's own pass/fail summary \"so a real failure buried in passing exit-code noise still blocks the merge,\" while a `'generic'` step is gated by exit code alone. Because the server workspace's test step is the one workspace using an npm-workspaces-style invocation, it silently loses that safety net — the one form most likely to need it (it's the only test command that differs structurally from a bare `npm test`) is the one the classifier misses. This is a genuine equivalent-form miss: `npm run test --workspace=server` and `npm test` are the same operation for gating purposes but are not treated the same.\n- Recommendation: Normalize/compare against the actual configured command per workspace/kind (e.g., derive the expected command from `workspaces.config.js` itself, or extend `normalizeCommand`/`classifyStep` to recognize `npm run test --workspace=<name>` as equivalent to `npm test`) rather than relying on a literal-string comparison to `'npm test'`.\n\n## Nothing found\n- No issues found on the lint/build classification paths (all three workspaces normalize and match correctly).\n- No issues found in `normalizeCommand`'s regex against the `cd <dir> &&` forms actually present in the fixture (`cd server && ...`, `cd worker && ...`); it strips them correctly and is not itself the defect — it's correct but insufficient for the one non-`cd` form.\n- `MAX_RETRIES`/`retriesLeft` is set but unused within this diff — noted only as a non-blocking observation (likely incomplete/future wiring), not a defect, since no spec claims retry behavior is implemented here.\n\n## Evidence\n- fixtures/diff.md:23-27 (`workspaces.config.js` server entry: `test: 'npm run test --workspace=server'`)\n- fixtures/diff.md:43-46 (`normalizeCommand`)\n- fixtures/diff.md:48-52 (`classifyStep`)\n- fixtures/diff.md:66-70 (`classify` dispatch)\n- fixtures/diff.md:86-89 (comment describing the intended `'test'` vs `'generic'` gating distinction)\n- fixtures/diff.md:109-115 (trailing prose description used as the closest available requirement source)"
+              },
+              {
+                "name": "03-control-not-wrongly-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- request changes\n\n## Coverage\n- Correctness: Traced `normalizeCommand` → `classify` → `classifyStep`/`classifyLintStep`/`classifyBuildStep` against all 9 step invocations produced by `collectSteps()` (test/lint/build × root/server/worker, per `scripts/workspaces.config.js`). Lint and build classify correctly for all three workspaces. Test classification is correct for root (`npm test`) and worker (`cd worker && npm test`, stripped by `normalizeCommand`) but fails for server.\n- Regression: The diff only adds new exports (`classify`, `classifyStep`, `classifyLintStep`, `classifyBuildStep`, `runGate`, `normalizeCommand`) and a new config module; no existing function body is modified or removed in the shown hunk (`@@ -10,6 +10,70 @@` is additive). No pre-existing contract is broken by this change as far as the diff shows. I do not have the pre-change file or any caller of `runGate`/`classify` outside this diff (no repo tree present, fixture-only), so this is traced only to the extent the diff itself reveals — no evidence of removed/altered prior behavior.\n- Spec compliance: Compared implementation against the diff's own trailing description (\"classify dispatches each pipeline step ... compares the command ... against the bare npm invocation for its step kind\"). The description implies every workspace's real command should resolve to its bare kind; the server test command does not, per the trace above.\n- Security surface: Not applicable — no authentication, authorization, or externally-supplied/untrusted input is handled here; `workspaces.config.js` is a static local file and no `child_process`/`exec` call is present in the diff.\n\n## Findings\n\n- Severity: Major\n- Location: scripts/ci-gate.js:43-51 (`normalizeCommand`, `classifyStep`), interacting with scripts/workspaces.config.js:24 (`server.test: 'npm run test --workspace=server'`)\n- Scenario: `classify('npm run test --workspace=server')` is called for the server workspace's test step. `cmd.includes('lint')` and `cmd.includes('build')` are both false, so it falls to `classifyStep`. `normalizeCommand` only strips a leading `cd <dir> &&` prefix (regex `^cd [^&]+&&\\s*(.+)$`); since this command has no `cd` prefix, it is returned unchanged. `classifyStep` then checks `normalized === 'npm test'`, which is false for `'npm run test --workspace=server'`, so the step is classified `'generic'` instead of `'test'`.\n- Impact: Per the comment at scripts/ci-gate.js:86-88, a `'test'`-kind step is meant to have its output parsed for the test framework's own pass/fail summary \"so a real failure buried in passing exit-code noise still blocks the merge,\" while a `'generic'` step is gated by exit code alone. Because the server workspace's test step is the one workspace using an npm-workspaces-style invocation, it silently loses that safety net — the one form most likely to need it (it's the only test command that differs structurally from a bare `npm test`) is the one the classifier misses. This is a genuine equivalent-form miss: `npm run test --workspace=server` and `npm test` are the same operation for gating purposes but are not treated the same.\n- Recommendation: Normalize/compare against the actual configured command per workspace/kind (e.g., derive the expected command from `workspaces.config.js` itself, or extend `normalizeCommand`/`classifyStep` to recognize `npm run test --workspace=<name>` as equivalent to `npm test`) rather than relying on a literal-string comparison to `'npm test'`.\n\n## Nothing found\n- No issues found on the lint/build classification paths (all three workspaces normalize and match correctly).\n- No issues found in `normalizeCommand`'s regex against the `cd <dir> &&` forms actually present in the fixture (`cd server && ...`, `cd worker && ...`); it strips them correctly and is not itself the defect — it's correct but insufficient for the one non-`cd` form.\n- `MAX_RETRIES`/`retriesLeft` is set but unused within this diff — noted only as a non-blocking observation (likely incomplete/future wiring), not a defect, since no spec claims retry behavior is implemented here.\n\n## Evidence\n- fixtures/diff.md:23-27 (`workspaces.config.js` server entry: `test: 'npm run test --workspace=server'`)\n- fixtures/diff.md:43-46 (`normalizeCommand`)\n- fixtures/diff.md:48-52 (`classifyStep`)\n- fixtures/diff.md:66-70 (`classify` dispatch)\n- fixtures/diff.md:86-89 (comment describing the intended `'test'` vs `'generic'` gating distinction)\n- fixtures/diff.md:109-115 (trailing prose description used as the closest available requirement source)"
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.7777777777777777,
+        "passRate": 0.3333333333333333
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.7777777777777777,
+    "overallPassRate": 0.3333333333333333
+  }
+}

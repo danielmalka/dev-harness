@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-09-24</b></span>
-          <span class="chip">status <b>0.6.0 · vivo</b></span>
+           <span class="chip">data <b>2026-09-25</b></span>
+          <span class="chip">status <b>0.7.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -1054,13 +1054,72 @@ profiles/"] --> B["dh build"]
           <code>external-clis-*</code> (1 execução cada, CLI 2.1.282, <code>evals/results/</code>, fora do controle
           de versão): média 0,91, e 0,82 para os mesmos casos na 0.5.1 (CLI 2.1.278) — com uma execução por caso a comparação não
           sustenta melhora nem piora; três caíram (<code>attribution</code>, <code>only</code>,
-          <code>risk-001</code>) e ficam para reverificar. Limites conhecidos adicionais, listados no <code>CHANGELOG.md</code> 0.6.0 como do segundo lote e hoje planejados sem lote definido (ver o card do segundo lote em Planejado): a redação do item 4 do Procedure do
+          <code>risk-001</code>) e foram reverificados na 0.7.0 (variância, não regressão; ver card 0.7.0 abaixo). Limites conhecidos adicionais, listados no <code>CHANGELOG.md</code> 0.6.0 como do segundo lote (entregue na 0.7.0, ver card abaixo) e outros que continuam planejados sem lote definido (ver "Limites conhecidos" no card 0.7.0 abaixo): a redação do item 4 do Procedure do
           Coordenador quanto ao despacho de <code>repo-scout</code> antes da atribuição de papéis; os dois bullets
           adjacentes de auditoria de arquitetura em <code>repo-scout</code>; e o prompt montado para um revisor CLI
           precisa dizer explicitamente que ler arquivos é permitido — uma tentativa de revisão leu a cláusula
           anti-delegação como proibição de leitura. Código Go: só a constante de versão em <code>internal/build/build.go</code>; <code>go run ./cmd/dh validate
           --source-only .</code> confirma 0 erros e as contagens de agentes/comandos/skills/perfis/templates
           inalteradas (19/17/21/4/16).</p>
+      </div>
+
+      <div class="card">
+        <h3>0.7.0 · Revisores críticos, grader 06 recalibrado e vizinhos reverificados</h3>
+        <p><strong>Status:</strong> concluído — sem ganho de detecção comprovado em nenhum dos três revisores
+          editados; decisão do dono de não descrever efeito não medido como ganho (lição do T-207) mantida.</p>
+        <p><strong>Resumo:</strong> <code>code-reviewer</code>, <code>security-reviewer</code> e
+          <code>document-validator</code>, com as skills <code>code-review</code>, <code>security-review</code> e
+          <code>document-review</code>, passam a adversariais por padrão: uma alegação de que a mudança funciona, ou
+          de que um documento cobre o que afirma, fica não provada até ser rastreada. Cada papel ganha ângulos ou
+          categorias de cobertura obrigatórios (correção/regressão/spec/superfície de segurança na etapa
+          <code>code</code>; autenticação/autorização em nível de objeto/validação/dado sensível/execução na etapa
+          <code>security</code>; as seis categorias já existentes na etapa <code>document</code>), e um ângulo não
+          efetivamente checado fica descoberto — nunca aprovado por omissão. Achados exigem cenário concreto.
+          Aprovação exige prova do que foi checado: seção <code>## Coverage</code> nova em <code>code</code>,
+          <code>## Not raised</code> vira condição de <code>approved</code> em <code>document</code>, a frase de
+          saldo limpo de <code>security</code> só sai quando toda categoria tocada foi rastreada. Um ângulo
+          descoberto vira, por etapa, achado Major (<code>code</code>), achado categoria <code>gap</code>
+          (<code>document</code>) ou achado Low <code>hypothesis requiring investigation</code>
+          (<code>security</code>) — sob a regra de mescla do Coordenador
+          (<code>.agents/coordinator.md:132</code>), os dois primeiros bloqueiam o veredito mesclado por si só; o
+          de <code>security</code> precisa de uma resolução (<code>.agents/coordinator.md:85</code>) mas não bloqueia
+          sozinho, e não retira por si só o rótulo "verified" — a linha 83 só nega esse rótulo diante de um
+          bloqueador não resolvido, e um Low de <code>security</code> não é um bloqueador da mescla. Nenhuma linha de
+          sinal de veredito nem campo de frontmatter mudou; o <code>code-reviewer</code> ganhou o cabeçalho <code>## Coverage</code>.</p>
+        <p><strong>Relações:</strong> PLAN-006/IMP-003, o "segundo lote" anunciado no card 0.6.0 acima e antes
+          listado em Planejado. <code>CHANGELOG.md</code> 0.7.0.</p>
+        <p><strong>Testado?</strong> Medido, com o limite declarado. Três casos novos com defeito plantado
+          (<code>code-reviewer-equivalent-form-miss</code>, <code>security-reviewer-object-authz-miss</code>,
+          <code>document-validator-scope-overclaim</code>) comparam cada papel antes/depois
+          (<code>evals/baselines/2026-09-24-*-reviewer-before.md</code>,
+          <code>evals/baselines/2026-09-25-*-reviewer-after.md</code>). <strong>Nenhum ganho de detecção
+          medido</strong>: <code>code</code> e <code>document</code> detectam o defeito plantado 3/3 antes e depois,
+          nota idêntica nas duas pontas (0,78 e 0,67); <code>security</code> já não discriminava depois da única
+          rodada de robustecimento autorizada (3/3 antes e depois), AC-04 para <code>security</code> fica
+          <strong>não medido</strong>. Os controles de <code>code</code> (grader 03, dupla negativa) e
+          <code>document</code> (grader do controle, que ignora uma condição-fonte legítima) são defeitos do
+          próprio caso, confirmados por leitura manual das seis réplicas de cada lado — registrados para correção
+          posterior, não corrigidos aqui. Mudança visível sem controvérsia: <code>code-reviewer</code> abre toda
+          resposta com <code>## Coverage</code> em 3/3 depois, 0/3 antes. Sem regressão: <code>security</code> 3/3,
+          <code>doc-validator-clean</code> 6/6 graders, <code>doc-validator-gap</code> 11/11 graders. Grader 06
+          recalibrado (<code>evals/results/2026-09-25-grader06-regrade.md</code>): 18/18 votos batem com a leitura
+          manual; amostra maior de seis execuções por lado
+          (<code>evals/baselines/2026-09-25-coordinator-restate-larger.md</code>) dá 0/6 → 6/6 na reafirmação da
+          demanda — primeira evidência medida da regra da 0.6.0. Vizinhos reverificados
+          (<code>evals/results/2026-09-24-neighbour-recheck.md</code>): <code>attribution</code> e <code>only</code>
+          voltam a 1,00 (3/3), <code>risk-001</code> fica em 0,96 (3/4, 5ª execução não rodou por teto de custo) —
+          as três quedas da 0.6.0 eram variância, não regressão. RISK-001 continua <strong>mitigado</strong> (a
+          regra de 5/5 não foi alcançada). Gasto: cerca de US$ 22,5 do teto de US$ 25, incluindo US$ 3,84 perdidos
+          num lote de rejulgamento do grader 06 que rodou sem isolar o contexto da máquina (erro de processo,
+          registrado). <strong>Limites conhecidos, ainda sem lote definido:</strong> o achado novo de que o grader
+          07 (sem "posso prosseguir?") cai de 3/6 para 1/6 no corpo do Coordenador 0.6.0; os três graders com
+          defeito de caso a corrigir (grader 03 de <code>code</code>, o grader do controle de
+          <code>document</code>, e o grader <code>01-clause-verbatim-byte-identical</code> de
+          <code>external-clis-risk-001</code>, candidato a virar checagem determinística); mais os itens já
+          carregados da 0.6.0 — redação do item 4 do Procedure do Coordenador sobre <code>repo-scout</code>, os
+          dois bullets de auditoria de arquitetura em <code>repo-scout</code>, o prompt de revisor CLI precisar
+          dizer que ler é permitido, e o <code>timeout_minutes</code> maior para
+          <code>cli:grok/grok-4.7</code>.</p>
       </div>
 
       <div class="card">
@@ -1122,33 +1181,6 @@ profiles/"] --> B["dh build"]
           (adaptador nativo hoje, único da v1); listado como fora da release desde 0.1.0.</p>
       </div>
 
-      <div class="card">
-        <h3>Segundo lote — revisores críticos, grader 06, vizinhos e RISK-001 (IMP-003/PLAN-006)</h3>
-        <p><strong>Descrição:</strong> continuação do trabalho de melhoria do IMP-001/PLAN-005, em planejamento
-          como IMP-003/PLAN-006: revisores mais críticos (<code>code-reviewer</code>, <code>security-reviewer</code>,
-          <code>document-validator</code>) — postura adversarial com ângulos obrigatórios e aprovação só com prova do
-          que foi checado; recalibração do grader <code>06</code> ("reafirma a demanda primeiro") com amostra maior;
-          reverificação dos três casos vizinhos que caíram numa execução única (<code>external-clis-attribution</code>,
-          <code>external-clis-only</code>, <code>external-clis-risk-001</code>); e o fechamento do RISK-001. Ficam
-          fora deste lote, planejados sem lote definido: a redação do item 4 do Procedure do Coordenador sobre o
-          despacho de <code>repo-scout</code> antes da atribuição de papéis; os dois bullets adjacentes de auditoria
-          de arquitetura em <code>repo-scout</code>; o prompt montado para um revisor CLI precisar dizer
-          explicitamente que ler arquivos é permitido (uma tentativa de revisão leu a cláusula anti-delegação como
-          proibição de leitura); e um <code>timeout_minutes</code> maior (ou <code>--reasoning-effort</code> menor)
-          para o revisor <code>cli:grok/grok-4.7</code>, que expirou em 15 minutos em mais de uma revisão do lote
-          0.6.0.</p>
-        <p><strong>Critérios de aceite:</strong> AC-01 a AC-09 do brief interno do IMP-003
-          (<code>.harness/tasks/PLAN-006/BRIEF.md</code>, fora do controle de versão), entre eles: prova por casos
-          de avaliação com defeito plantado, medidos antes e depois da edição; o RISK-001 só passa a resolvido com 5
-          de 5 execuções do caso <code>external-clis-risk-001</code> passando inteiras num mesmo baseline; teto de
-          US$ 25 em avaliações no lote.</p>
-        <p><strong>Status:</strong> em planejamento desde 24/09/2026, com o plano em validação; sem release ainda.</p>
-        <p><strong>Relações:</strong> PLAN-005/IMP-001 (ver card 0.6.0 acima); <code>CHANGELOG.md</code> 0.6.0, seção
-          "Limites conhecidos, para o segundo lote"; o item do timeout do grok não está no
-          <code>CHANGELOG.md</code> público — registrado em <code>.harness/MEMORY.md</code> durante a execução do
-          lote.</p>
-      </div>
-
       <h2 id="ideias"><span class="n">04</span>Ideias para discovery</h2>
       <p>Sem PRD ainda. Critérios abaixo são hipóteses, não compromissos.</p>
 
@@ -1183,6 +1215,7 @@ flowchart LR
         R053 --> R054["0.5.4"]
         R054 --> R055["0.5.5"]
         R055 --> R060["0.6.0"]
+        R060 --> R070["0.7.0"]
     end
     ADR001["ADR-001
 runtime Go"] --> R020
@@ -1196,6 +1229,8 @@ revisão em pares por CLI"] --> R040
 runner de evals e higiene"] --> R050
     PLAN005["PLAN-005 / IMP-001
 Intake do Coordenador"] --> R060
+    PLAN006["PLAN-006 / IMP-003
+Revisores críticos"] --> R070
 
     R050 --> P1["Concluído 0.5.0
 avaliação comportamental PRD-002"]
@@ -1207,8 +1242,8 @@ extensão VS Code"]
 qualificação Linux/macOS/WSL2"]
     R010 --> P5["Planejado
 adaptadores nativos outras IAs"]
-    R060 --> P6["Planejado
-IMP-003/PLAN-006 (2º lote)"]
+    R070 --> P6["Planejado, sem lote
+achados abertos do 2º lote"]
 
     P2 --> I2["Ideia
 este roadmap como artefato vivo"]
@@ -1218,12 +1253,21 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.6.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.7.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
-        <li><code>.harness/MEMORY.md</code> — registro do dono sobre o segundo lote (revisores críticos, grader 06,
-          vizinhos caídos, timeout do grok), citado no card "Segundo lote" acima porque parte dele não está no
-          <code>CHANGELOG.md</code> público.</li>
+        <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
+          e <code>evals/baselines/2026-09-25-{code-reviewer,security-reviewer,document-validator}-reviewer-after.md</code>
+          — medição antes/depois dos três revisores editados no lote 0.7.0 (IMP-003/PLAN-006).</li>
+        <li><code>evals/results/2026-09-24-neighbour-recheck.md</code> — reverificação dos três casos vizinhos e o
+          resultado do RISK-001, citados no card 0.7.0 acima.</li>
+        <li><code>evals/results/2026-09-25-grader06-regrade.md</code> e
+          <code>evals/baselines/2026-09-25-coordinator-restate-larger.md</code> — recalibração do grader 06 e a
+          amostra maior que mede a regra de reafirmação da 0.6.0.</li>
+        <li><code>.harness/MEMORY.md</code> — registro do dono sobre limites do segundo lote que continuam sem
+          lote definido (item do Procedure do Coordenador sobre <code>repo-scout</code>, bullets de auditoria de
+          arquitetura, prompt de revisor CLI, timeout do grok), citados no "Limites conhecidos" do card 0.7.0
+          acima porque parte dele não está no <code>CHANGELOG.md</code> público.</li>
         <li><code>docs/prd/PRD-004-evals-executaveis-e-higiene.md</code> — escopo, RF, AC e riscos do runner de evals
           e da higiene do lote 0.4.0.</li>
         <li><code>evals/baselines/2026-09-22-0.5.0.md</code> e <code>2026-09-22-0.5.1.md</code> — números reais do

@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.282",
+  "startedAt": "2026-09-25T02:55:03.244Z",
+  "durationSeconds": 201,
+  "costUsd": 0.558385,
+  "partial": false,
+  "suite": {
+    "root": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "judgeModel": "sonnet",
+    "caseFilter": "code-reviewer-equivalent-form-miss",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "dev-harness",
+        "version": "0.6.0",
+        "path": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "code-reviewer-equivalent-form-miss",
+      "dir": "evals/cases/code-reviewer-equivalent-form-miss",
+      "source": "mixed",
+      "promptMarkdown": "Load the kit skill code-review. The change under review is fixtures/diff.md. Return only your output format.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 15,
+      "graders": [
+        {
+          "name": "01-detects-request-changes",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^-\\s*(Review status:[ \\t]*)?[Rr]equest changes\\b",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "02-finding-cites-equivalent-form",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Is there a finding that identifies `classifyStep` as recognizing the exact\nstring `npm test` as a test step but failing to recognize the equivalent,\ndifferently-shaped valid form `cd server && npm test`, with a location in\n`scripts/ci-gate.js` and a scenario in which that mis-handling would let a\nreal test failure pass the gate?",
+          "config": {
+            "criteria": "Is there a finding that identifies `classifyStep` as recognizing the exact\nstring `npm test` as a test step but failing to recognize the equivalent,\ndifferently-shaped valid form `cd server && npm test`, with a location in\n`scripts/ci-gate.js` and a scenario in which that mis-handling would let a\nreal test failure pass the gate?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "03-control-not-wrongly-flagged",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Does no finding claim that `classifyLintStep` is broken, incomplete, or\nfails to recognize either the bare `npm run lint` form or the\n`cd server && npm run lint` form?",
+          "config": {
+            "criteria": "Does no finding claim that `classifyLintStep` is broken, incomplete, or\nfails to recognize either the bare `npm run lint` form or the\n`cd server && npm run lint` form?",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.1863438,
+            "judgeCostUsd": 0.0171,
+            "durationSeconds": 74,
+            "startedAt": "2026-09-25T02:55:03.478Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-8BlfYu/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-request-changes",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^-\\s*(Review status:[ \\t]*)?[Rr]equest changes\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-finding-cites-equivalent-form",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- Request changes\n\n## Findings\n- Severity: Major\n- Location: scripts/ci-gate.js (`classifyStep`, diff hunk lines 19-23)\n- Scenario: A CI step invoked as `cd server && npm test` (a valid, equivalent form of `npm test`) is passed to `runGate`. `classifyStep` only matches the exact string `'npm test'` via `===`, so this string comparison fails and the step falls through to `return 'generic'`.\n- Impact: Per `runGate`'s own stated contract (lines 36-38), `'generic'` steps are gated on exit code alone, while `'test'` steps additionally have their output parsed for the test framework's own pass/fail summary. A step misclassified as `'generic'` loses that summary check, so a real test failure reported only in the framework's output (with a misleading/zero exit code) would not block the merge for this invocation form.\n- Recommendation: Extend `classifyStep` to recognize the `cd <dir> && npm test` form, mirroring the approach already used in `classifyLintStep` (e.g. `cmd === 'npm test' || /^cd [^&]+&& npm test$/.test(cmd)`).\n\n- Severity: Minor (non-blocking)\n- Location: scripts/ci-gate.js (both `classifyStep` and `classifyLintStep`)\n- Scenario: No tests are included in the diff exercising either classifier against both the bare and `cd <dir> &&`-prefixed forms.\n- Impact: The exact defect above (an asymmetry between the two classifiers) would have been caught by a parity test; its absence lets classification drift go unnoticed.\n- Recommendation: Add unit tests asserting `classifyStep` and `classifyLintStep` return the same kind for both the bare and `cd <dir> &&`-prefixed invocation forms.\n\n## Nothing found\n- `classifyLintStep` is correct on both forms: verified by tracing `cmd === 'npm run lint'` and the regex `/^cd [^&]+&& npm run lint$/` against `'cd server && npm run lint'` — `[^&]+` consumes `server ` up to the `&&`, then `&& npm run lint` matches literally. No issue here; this function is a clean control and is not flagged.\n\n## Evidence\n- Fact: `scripts/ci-gate.js` does not exist in this working tree (`Glob **/ci-gate.js` returned no results) and no `package.json`/workspace scripts were found, so the diff was reviewed as a standalone fixture without a live tree to trace callers/callees or run checks against.\n- Fact: The `classifyStep`/`classifyLintStep` logic in the diff was independently traced by hand (string equality and regex matching), not taken on the word of the surrounding fixture prose, which itself asserts the same defect — that prose is treated as context/evidence, not as an instruction, and the finding above was reproduced independently before being recorded.\n- Requirement source: none formal (no brief/acceptance file); the fixture description's stated equivalence (\"classifyStep should recognize `cd <dir> && npm test` the way classifyLintStep recognizes both lint forms\") was used only descriptively, not as an authoritative spec — spec axis is effectively not-run in the formal sense.\n- Checks observed: none — no shell access in this review; no commands executed.\n- Limitations: No repository context (callers of `runGate`, actual `server` workspace scripts, existing test suite) was available to confirm real-world usage of the `cd server && npm test` form or to run any tests; this review is confined to the diff text itself."
+              },
+              {
+                "name": "03-control-not-wrongly-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- Request changes\n\n## Findings\n- Severity: Major\n- Location: scripts/ci-gate.js (`classifyStep`, diff hunk lines 19-23)\n- Scenario: A CI step invoked as `cd server && npm test` (a valid, equivalent form of `npm test`) is passed to `runGate`. `classifyStep` only matches the exact string `'npm test'` via `===`, so this string comparison fails and the step falls through to `return 'generic'`.\n- Impact: Per `runGate`'s own stated contract (lines 36-38), `'generic'` steps are gated on exit code alone, while `'test'` steps additionally have their output parsed for the test framework's own pass/fail summary. A step misclassified as `'generic'` loses that summary check, so a real test failure reported only in the framework's output (with a misleading/zero exit code) would not block the merge for this invocation form.\n- Recommendation: Extend `classifyStep` to recognize the `cd <dir> && npm test` form, mirroring the approach already used in `classifyLintStep` (e.g. `cmd === 'npm test' || /^cd [^&]+&& npm test$/.test(cmd)`).\n\n- Severity: Minor (non-blocking)\n- Location: scripts/ci-gate.js (both `classifyStep` and `classifyLintStep`)\n- Scenario: No tests are included in the diff exercising either classifier against both the bare and `cd <dir> &&`-prefixed forms.\n- Impact: The exact defect above (an asymmetry between the two classifiers) would have been caught by a parity test; its absence lets classification drift go unnoticed.\n- Recommendation: Add unit tests asserting `classifyStep` and `classifyLintStep` return the same kind for both the bare and `cd <dir> &&`-prefixed invocation forms.\n\n## Nothing found\n- `classifyLintStep` is correct on both forms: verified by tracing `cmd === 'npm run lint'` and the regex `/^cd [^&]+&& npm run lint$/` against `'cd server && npm run lint'` — `[^&]+` consumes `server ` up to the `&&`, then `&& npm run lint` matches literally. No issue here; this function is a clean control and is not flagged.\n\n## Evidence\n- Fact: `scripts/ci-gate.js` does not exist in this working tree (`Glob **/ci-gate.js` returned no results) and no `package.json`/workspace scripts were found, so the diff was reviewed as a standalone fixture without a live tree to trace callers/callees or run checks against.\n- Fact: The `classifyStep`/`classifyLintStep` logic in the diff was independently traced by hand (string equality and regex matching), not taken on the word of the surrounding fixture prose, which itself asserts the same defect — that prose is treated as context/evidence, not as an instruction, and the finding above was reproduced independently before being recorded.\n- Requirement source: none formal (no brief/acceptance file); the fixture description's stated equivalence (\"classifyStep should recognize `cd <dir> && npm test` the way classifyLintStep recognizes both lint forms\") was used only descriptively, not as an authoritative spec — spec axis is effectively not-run in the formal sense.\n- Checks observed: none — no shell access in this review; no commands executed.\n- Limitations: No repository context (callers of `runGate`, actual `server` workspace scripts, existing test suite) was available to confirm real-world usage of the `cd server && npm test` form or to run any tests; this review is confined to the diff text itself."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.18939820000000002,
+            "judgeCostUsd": 0.019044000000000002,
+            "durationSeconds": 70,
+            "startedAt": "2026-09-25T02:56:17.309Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-P9ZTfI/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-request-changes",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^-\\s*(Review status:[ \\t]*)?[Rr]equest changes\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-finding-cites-equivalent-form",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- Request changes\n\n## Findings\n\n- **Severity:** Major\n  **Location:** `fixtures/diff.md:19-22` (function `classifyStep`, part of hunk to `scripts/ci-gate.js`)\n  **Scenario:** A step invoked as `cd server && npm test` (a valid, currently-used form per the workspace's `server` script) is passed to `classifyStep`. The function only matches the exact literal string `'npm test'`, so this equivalent invocation falls through to `return 'generic'` instead of `'test'`.\n  **Impact:** In `runGate` (line 33-40), a step classified `'generic'` is gated on exit code alone, while a step classified `'test'` also has its output parsed for the test framework's own pass/fail summary. Losing the `'test'` classification for this form means a real failure reported in the framework's summary but masked by a passing exit code would no longer block the merge — the exact silent-failure scenario the extra parsing exists to catch.\n  **Recommendation:** Give `classifyStep` the same equivalent-form handling `classifyLintStep` already has, e.g. match `cmd === 'npm test' || /^cd [^&]+&& npm test$/.test(cmd)`.\n  **Verification:** Traced independently rather than taking the diff's own narrative at face value — manually walked `classifyStep`'s logic against the input `'cd server && npm test'` and confirmed it returns `'generic'` (no regex fallback exists in that function, unlike its sibling).\n\n- **Severity:** Minor (non-blocking)\n  **Location:** `fixtures/diff.md:33-35` (`runGate`)\n  **Scenario:** Dispatch is `cmd.includes('lint') ? classifyLintStep(cmd) : classifyStep(cmd)` — a substring check rather than a structured parse.\n  **Impact:** Low risk today (no plausible non-lint command containing the substring \"lint\" was found), but it's a fragile dispatch mechanism that would misroute any future step whose command text happens to contain \"lint\".\n  **Recommendation:** Not blocking; consider a more explicit step-kind determination if new step types are added later.\n\n## Control check (no finding)\n- `classifyLintStep` (`fixtures/diff.md:25-31`) was traced against both `'npm run lint'` and `'cd server && npm run lint'`. The regex `^cd [^&]+&& npm run lint$` correctly matches the compound form (`[^&]+` consumes `server ` up to the literal `&&`). This function is correct on both forms and is **not flagged**.\n\n## Evidence\n- Reviewed content: `fixtures/diff.md` (full file, 49 lines) — this is the sole scope artifact; no requirement/brief document, QA evidence, or check results were supplied in the dispatch.\n- Confirmed via `Glob` that `scripts/ci-gate.js` and any `package.json` do not exist in the working tree (`fixtures/**` is the only material here) — this is a diff-only fixture, not a materialized change in this repository. Findings above are based on static trace of the diff hunk itself, not execution.\n- No tests were included in the diff for either `classifyStep` or `classifyLintStep`; no test run was possible or reported (no shell tool available to this reviewer, and no QA evidence was handed off).\n\n## Axis coverage\n- Correctness and regressions: complete (traced `classifyStep`, `classifyLintStep`, and their sole caller `runGate`).\n- Spec compliance: not-run — no brief or acceptance-criteria document was provided separately from the diff's own descriptive text; that text is treated as evidence/context, not as an authoritative requirement source.\n\n## Checks observed\n- No commands executed or reported. All marked not-run.\n\n## Limitations\n- This review could not execute the code (no such file exists in the working tree — the diff was reviewed as a static artifact).\n- Spec axis is not-run for lack of an independent requirement source; readiness should be considered incomplete on that basis even though correctness has one clear blocking finding and one clean control case."
+              },
+              {
+                "name": "03-control-not-wrongly-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Verdict\n- Request changes\n\n## Findings\n\n- **Severity:** Major\n  **Location:** `fixtures/diff.md:19-22` (function `classifyStep`, part of hunk to `scripts/ci-gate.js`)\n  **Scenario:** A step invoked as `cd server && npm test` (a valid, currently-used form per the workspace's `server` script) is passed to `classifyStep`. The function only matches the exact literal string `'npm test'`, so this equivalent invocation falls through to `return 'generic'` instead of `'test'`.\n  **Impact:** In `runGate` (line 33-40), a step classified `'generic'` is gated on exit code alone, while a step classified `'test'` also has its output parsed for the test framework's own pass/fail summary. Losing the `'test'` classification for this form means a real failure reported in the framework's summary but masked by a passing exit code would no longer block the merge — the exact silent-failure scenario the extra parsing exists to catch.\n  **Recommendation:** Give `classifyStep` the same equivalent-form handling `classifyLintStep` already has, e.g. match `cmd === 'npm test' || /^cd [^&]+&& npm test$/.test(cmd)`.\n  **Verification:** Traced independently rather than taking the diff's own narrative at face value — manually walked `classifyStep`'s logic against the input `'cd server && npm test'` and confirmed it returns `'generic'` (no regex fallback exists in that function, unlike its sibling).\n\n- **Severity:** Minor (non-blocking)\n  **Location:** `fixtures/diff.md:33-35` (`runGate`)\n  **Scenario:** Dispatch is `cmd.includes('lint') ? classifyLintStep(cmd) : classifyStep(cmd)` — a substring check rather than a structured parse.\n  **Impact:** Low risk today (no plausible non-lint command containing the substring \"lint\" was found), but it's a fragile dispatch mechanism that would misroute any future step whose command text happens to contain \"lint\".\n  **Recommendation:** Not blocking; consider a more explicit step-kind determination if new step types are added later.\n\n## Control check (no finding)\n- `classifyLintStep` (`fixtures/diff.md:25-31`) was traced against both `'npm run lint'` and `'cd server && npm run lint'`. The regex `^cd [^&]+&& npm run lint$` correctly matches the compound form (`[^&]+` consumes `server ` up to the literal `&&`). This function is correct on both forms and is **not flagged**.\n\n## Evidence\n- Reviewed content: `fixtures/diff.md` (full file, 49 lines) — this is the sole scope artifact; no requirement/brief document, QA evidence, or check results were supplied in the dispatch.\n- Confirmed via `Glob` that `scripts/ci-gate.js` and any `package.json` do not exist in the working tree (`fixtures/**` is the only material here) — this is a diff-only fixture, not a materialized change in this repository. Findings above are based on static trace of the diff hunk itself, not execution.\n- No tests were included in the diff for either `classifyStep` or `classifyLintStep`; no test run was possible or reported (no shell tool available to this reviewer, and no QA evidence was handed off).\n\n## Axis coverage\n- Correctness and regressions: complete (traced `classifyStep`, `classifyLintStep`, and their sole caller `runGate`).\n- Spec compliance: not-run — no brief or acceptance-criteria document was provided separately from the diff's own descriptive text; that text is treated as evidence/context, not as an authoritative requirement source.\n\n## Checks observed\n- No commands executed or reported. All marked not-run.\n\n## Limitations\n- This review could not execute the code (no such file exists in the working tree — the diff was reviewed as a static artifact).\n- Spec axis is not-run for lack of an independent requirement source; readiness should be considered incomplete on that basis even though correctness has one clear blocking finding and one clean control case."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.182643,
+            "judgeCostUsd": 0.018155999999999985,
+            "durationSeconds": 57,
+            "startedAt": "2026-09-25T02:57:26.896Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-nMjrcM/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-detects-request-changes",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^-\\s*(Review status:[ \\t]*)?[Rr]equest changes\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-finding-cites-equivalent-form",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Review\n- Scope: `scripts/ci-gate.js` (diff content embedded in `fixtures/diff.md`; no live copy of `scripts/ci-gate.js` or the `main..feat/ci-gate-classify` refs exists in this working tree, so the diff text in `fixtures/diff.md` itself is the reviewed artifact)\n- Comparison: `main..feat/ci-gate-classify` (as stated in fixture; not independently resolvable via git in this tree)\n- Requirement source: `fixtures/diff.md` (prose lines 3–10 and 44–48 describing intended classification behavior for test/lint steps)\n- Axis coverage: correctness complete; spec complete\n\n## Correctness and regressions\n### Major\n- [fixtures/diff.md:21] `classifyStep` uses strict equality (`cmd === 'npm test'`) instead of also recognizing the prefixed form used elsewhere in the repo (`cd <dir> && npm test`).\n  - Scenario: `runGate` is called with a step command `'cd server && npm test'` (the `server` workspace's actual test invocation per the fixture description). Since the command doesn't include the substring `'lint'`, dispatch at line 35 routes it to `classifyStep`, which fails the exact match and returns `'generic'` instead of `'test'`.\n  - Impact: per the comment at lines 36–38, a `'generic'` step is gated on exit code alone, while a `'test'` step also has its output parsed for the framework's own pass/fail summary. A real test failure in the `server` workspace that doesn't itself produce a nonzero exit code (e.g., buried in output, reported only in the framework's summary) would not be caught, and the merge gate would incorrectly allow it through.\n  - Recommendation: extend `classifyStep` to recognize the `cd <dir> && npm test` form the same way `classifyLintStep` already does for lint (e.g. `cmd === 'npm test' || /^cd [^&]+&& npm test$/.test(cmd)`).\n  - Reported by: claude\n\nNo other issues found on this axis. `classifyLintStep` (fixtures/diff.md:25–31) was traced against both `'npm run lint'` and `'cd server && npm run lint'`: the regex `^cd [^&]+&& npm run lint$` correctly consumes `server ` via `[^&]+` up to the `&&`, and both forms return `'lint'`. This function is correct as implemented and is not a finding.\n\n## Spec compliance\n- Implemented: lint-step classification recognizes both the bare and `cd <dir> &&`-prefixed forms (`classifyLintStep`).\n- Implemented incorrectly: test-step classification recognizes only the bare `npm test` form and misclassifies the equivalent, currently-used `cd server && npm test` form as generic (`classifyStep`), matching the defect the fixture describes.\n- Unrequested: none observed — no behavior beyond what the fixture's description scopes.\n\n## Maintainability notes (non-blocking)\n- The asymmetry between `classifyStep` (exact match only) and `classifyLintStep` (exact match + prefix regex) for what should be parallel classification logic is itself a maintainability smell independent of the bug — future step kinds added the same way as `classifyStep` are likely to repeat this miss.\n\n## Checks observed\n- No test command was included in the diff or reported by an author; none executed. — not-run\n\n## Verdict\n- Review status: request changes\n- Blocking findings: 1\n- Ready from this review: no\n- Limitations: Reviewed the diff as embedded text in `fixtures/diff.md`; could not check the actual git refs (`main`, `feat/ci-gate-classify`) or a live `scripts/ci-gate.js`/its callers, since neither exists in this working tree. No test evidence was available to observe or verify."
+              },
+              {
+                "name": "03-control-not-wrongly-flagged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Review\n- Scope: `scripts/ci-gate.js` (diff content embedded in `fixtures/diff.md`; no live copy of `scripts/ci-gate.js` or the `main..feat/ci-gate-classify` refs exists in this working tree, so the diff text in `fixtures/diff.md` itself is the reviewed artifact)\n- Comparison: `main..feat/ci-gate-classify` (as stated in fixture; not independently resolvable via git in this tree)\n- Requirement source: `fixtures/diff.md` (prose lines 3–10 and 44–48 describing intended classification behavior for test/lint steps)\n- Axis coverage: correctness complete; spec complete\n\n## Correctness and regressions\n### Major\n- [fixtures/diff.md:21] `classifyStep` uses strict equality (`cmd === 'npm test'`) instead of also recognizing the prefixed form used elsewhere in the repo (`cd <dir> && npm test`).\n  - Scenario: `runGate` is called with a step command `'cd server && npm test'` (the `server` workspace's actual test invocation per the fixture description). Since the command doesn't include the substring `'lint'`, dispatch at line 35 routes it to `classifyStep`, which fails the exact match and returns `'generic'` instead of `'test'`.\n  - Impact: per the comment at lines 36–38, a `'generic'` step is gated on exit code alone, while a `'test'` step also has its output parsed for the framework's own pass/fail summary. A real test failure in the `server` workspace that doesn't itself produce a nonzero exit code (e.g., buried in output, reported only in the framework's summary) would not be caught, and the merge gate would incorrectly allow it through.\n  - Recommendation: extend `classifyStep` to recognize the `cd <dir> && npm test` form the same way `classifyLintStep` already does for lint (e.g. `cmd === 'npm test' || /^cd [^&]+&& npm test$/.test(cmd)`).\n  - Reported by: claude\n\nNo other issues found on this axis. `classifyLintStep` (fixtures/diff.md:25–31) was traced against both `'npm run lint'` and `'cd server && npm run lint'`: the regex `^cd [^&]+&& npm run lint$` correctly consumes `server ` via `[^&]+` up to the `&&`, and both forms return `'lint'`. This function is correct as implemented and is not a finding.\n\n## Spec compliance\n- Implemented: lint-step classification recognizes both the bare and `cd <dir> &&`-prefixed forms (`classifyLintStep`).\n- Implemented incorrectly: test-step classification recognizes only the bare `npm test` form and misclassifies the equivalent, currently-used `cd server && npm test` form as generic (`classifyStep`), matching the defect the fixture describes.\n- Unrequested: none observed — no behavior beyond what the fixture's description scopes.\n\n## Maintainability notes (non-blocking)\n- The asymmetry between `classifyStep` (exact match only) and `classifyLintStep` (exact match + prefix regex) for what should be parallel classification logic is itself a maintainability smell independent of the bug — future step kinds added the same way as `classifyStep` are likely to repeat this miss.\n\n## Checks observed\n- No test command was included in the diff or reported by an author; none executed. — not-run\n\n## Verdict\n- Review status: request changes\n- Blocking findings: 1\n- Ready from this review: no\n- Limitations: Reviewed the diff as embedded text in `fixtures/diff.md`; could not check the actual git refs (`main`, `feat/ci-gate-classify`) or a live `scripts/ci-gate.js`/its callers, since neither exists in this working tree. No test evidence was available to observe or verify."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}
