@@ -137,3 +137,12 @@ Workspace freeze: identical after all calls.
 - **G6** [non-blocking] Section 9 omits E1–E6. — claude, grok. Accepted.
 
 Round cap reached with H1/H2 open. The Coordinator applies H1, H2 and G6 as dispositioned, with no seventh validation round, and hands the PRD to the owner. The report states that these three edits were not re-validated by the panel.
+
+## Post-approval check of the branch-per-slice cut — 2026-09-26
+
+The owner approved PRD-006 and cut branch-per-slice from v1. The cut went through a scoped, single-reviewer check (claude, document-validator), per the proportionality rule: changes required, 1 blocking, 2 non-blocking.
+- The section 8 bullet tied the tag to `e` instead of `f`. Fixed: the tag happens "só com `f`, depois do merge autorizado por `e`".
+- The AC-43 leftover "(em qualquer estratégia de branch)" was removed.
+- The header update date is now 2026-09-26.
+
+The Coordinator applied these three one-phrase fixes directly, as a trivial edit.
