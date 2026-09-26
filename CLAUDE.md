@@ -29,9 +29,9 @@ Kit portátil de desenvolvimento assistido por IA. Plano de produto em `docs/pla
   - (1) Mudança mecânica ou de documentação: checagem determinística (build, `validate`, grep) mais um revisor Claude. O painel de 3 revisores fica para contrato novo, lógica, segurança ou texto que muda o comportamento dos agentes.
   - (2) Eval paga só quando o lote muda o comportamento que o caso mede. Caso de revisor (`external-clis-*`) roda só quando o lote muda como revisores são despachados ou mesclados, ou o texto do próprio revisor. Redação ou número no Coordenador não conta.
   - (3) O teto de 6 rodadas é limite, não meta: plano de lote mecânico passa por um revisor, e achado menor não abre rodada nova. PRD e plano de feature nova mantêm o painel completo.
-  - Implementação pendente no texto do Coordenador (lote do comando autônomo).
+  - Implementado na 0.9.0, no texto do Coordenador. Onde conflita com a revisão enxuta abaixo, vale a revisão enxuta.
 - Revisão enxuta (decisão do dono em 26/09/2026, depois do PRD-006 levar 6 rodadas: "estamos avaliando demais coisas que poderiam ser mais simples"). Substitui, onde conflita, o item (3) acima e o teto de 6 para documentos:
   - (1) Documento (PRD, plano, story, ADR): um validador Claude, até 2 rodadas. O painel de 3 só entra quando o dono pede ou quando o documento toca segurança.
   - (2) Código: painel de 3 só para contrato novo, lógica ou segurança; o resto fica com checagem determinística mais 1 revisor Claude.
   - (3) Eval paga: só o mínimo que a mudança exige, com `--runs 1` por padrão; repetições só depois de uma barra perdida.
-  - O teto de 6 continua valendo para build/QA e revisão de código. Implementação no lote da 0.9.0 (PLAN-010).
+  - O teto de 6 continua valendo para build/QA e revisão de código. Implementado na 0.9.0 (PLAN-010).

@@ -17,6 +17,8 @@ Pelo marketplace do próprio repositório, sem clonar, dentro de uma sessão do 
 
 A versão vem da tag fixada em `.claude-plugin/marketplace.json`. Para um time, o projeto pode declarar o marketplace em `extraKnownMarketplaces` e o plugin em `enabledPlugins` no `.claude/settings.json`, e o Claude instala para quem confiar na pasta.
 
+**Versão atual: 0.9.0** (tag `v0.9.0`). `/dh:auto` encadeia discover, plan e build numa branch só, com um questionário. A revisão de documento fica em até duas rodadas; o painel de três revisores entra quando você pede ou quando o documento toca segurança. Roadmap: [`docs/roadmap.html`](docs/roadmap.html). Notas: [`CHANGELOG.md`](CHANGELOG.md).
+
 **Migrando de uma instalação anterior à 0.8.0:** o id do plugin mudou de `dev-harness@dev-harness` para `dh@dev-harness` e os comandos de `/dev-harness:<comando>` para `/dh:<comando>`. Rode `/plugin uninstall dev-harness@dev-harness` e depois `/plugin install dh@dev-harness`; troque `/dev-harness:` por `/dh:` em scripts e anotações próprias. Nome do marketplace, repositório, binário Go `dh` e caminho de snapshot não mudam. Ver `CHANGELOG.md` 0.8.0.
 
 ## Carregar a partir do clone (desenvolvimento)
