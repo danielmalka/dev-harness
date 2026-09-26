@@ -17,7 +17,7 @@ The templates live in `templates/pt-br/` and `templates/en/` in the kit, in mirr
 | `EPOCHAL.md` | Raw history of previous memories | Coordinator only | During the first `consolidate-memory` | Never closes; only receives batches |
 | `RISKS.md` | Serious incidents and prevention | Coordinator only | During project initialization | Never closes; resolved incidents remain |
 
-The PRD passes through `document-validator` before it reaches the owner: the Coordinator runs the write then validate cycle until `approved` or six rounds, and the report lives in `<document>.review.md` next to the PRD.
+The PRD passes through `document-validator` before it reaches the owner: the Coordinator runs the write then validate cycle until `approved` or two rounds, and the report lives in `<document>.review.md` next to the PRD.
 
 ## Rules that apply to all
 

@@ -17,7 +17,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/kit"
 )
 
-const defaultVersion = "0.8.0"
+const defaultVersion = "0.9.0"
 
 type Target struct {
 	OS   string
