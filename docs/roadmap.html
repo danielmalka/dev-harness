@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-09-25</b></span>
-          <span class="chip">status <b>0.8.0 · vivo</b></span>
+          <span class="chip">status <b>0.9.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -674,7 +674,7 @@ footer.doc-foot {
   internal/               pacotes do binário: snapshot, validate, build, doctor
   .agents/                19 papéis — fonte canônica
   .skills/                21 skills — fonte canônica
-  .commands/              17 comandos — fonte canônica
+  .commands/              18 comandos — fonte canônica
   templates/{en,pt-br}/   8 templates espelhados por idioma — fonte canônica
   profiles/               4 perfis de stack — fonte canônica
   dist/                   pacote gerado por `dh build` — não se edita à mão
@@ -682,7 +682,7 @@ footer.doc-foot {
   evals/                  cases, baselines, rubrics, fixtures de avaliação
   adapters/               guias de uso manual por outras IAs (generic) e o pacote Claude Code (claude-code)</code></pre>
       </div>
-      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 17 comandos, 21 skills, 4 perfis, 16 templates
+      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 18 comandos, 21 skills, 4 perfis, 16 templates
         (8 en + 8 pt-br), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
       <pre class="mermaid">
 flowchart LR
@@ -1191,6 +1191,21 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>0.9.0 · Comando autônomo <code>/dh:auto</code> e proporcionalidade de revisão</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> <code>/dh:auto</code> encadeia discover, plan e build, com <code>secure</code> por
+          fatia, uma revisão do lote e o release, a partir de uma ideia, de um PRD aprovado ou de um
+          <code>PLAN.md</code> aprovado. O questionário tem sete itens; a v1 usa uma branch só. Branch por slice
+          (AC-24, AC-40, AC-41, AC-47, AC-48, AC-51) fica adiado, decisão do dono em 26/09/2026. A revisão enxuta
+          troca o teto de documento de seis para duas rodadas e o painel de três revisores passa a ser opt-in
+          (pedido do dono ou toque de segurança; no código, também contrato novo ou lógica).</p>
+        <p><strong>Relações:</strong> PRD-006; PLAN-010. <code>CHANGELOG.md</code> 0.9.0.</p>
+        <p><strong>Testado?</strong> <code>go run ./cmd/dh validate --source-only .</code> e a revisão de texto de
+          <code>.commands/auto.md</code> (Grok e Codex, approve na rodada 2). As execuções pagas de eval não rodaram:
+          a CLI do Claude está no limite semanal. O dono autorizou a tag com essa medição estimada, não medida.</p>
+      </div>
+
+      <div class="card">
         <h3>0.8.0 · Prefixo de comando renomeado de <code>dev-harness</code> para <code>dh</code>, teto de correção em seis rodadas e regra de documentação dentro do PR</h3>
         <p><strong>Status:</strong> concluído.</p>
         <p><strong>Resumo:</strong> o prefixo de comando, que era <code>/dev-harness:&lt;comando&gt;</code>, passa a
@@ -1279,17 +1294,6 @@ profiles/"] --> B["dh build"]
         <p><strong>Status:</strong> planejado, sem PRD.</p>
         <p><strong>Relações:</strong> <code>adapters/generic/</code> (guia manual atual); <code>adapters/claude-code/</code>
           (adaptador nativo hoje, único da v1); listado como fora da release desde 0.1.0.</p>
-      </div>
-
-      <div class="card">
-        <h3>Comando de execução autônoma de ponta a ponta</h3>
-        <p><strong>Descrição:</strong> um comando que parte de uma ideia, um PRD ou uma spec e roda o fluxo inteiro
-          de forma autônoma. No início, pergunta ao dono: se as decisões são tomadas pelo orquestrador ou de outra
-          forma; se o trabalho é em uma branch única ou em branches isoladas; se deve commitar e dar push; se deve
-          abrir PR; se é preciso tag. Pedido do dono em 25/09/2026, sem PRD ainda.</p>
-        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
-        <p><strong>Status:</strong> planejado, sem PRD.</p>
-        <p><strong>Relações:</strong> nenhuma ainda — não há discovery aberto.</p>
       </div>
 
       <div class="card">

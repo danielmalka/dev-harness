@@ -677,7 +677,7 @@ footer.doc-foot {
       </div>
 
       <h2 id="promessa"><span class="n">02</span>Promise</h2>
-       <p>When finished, Claude Code finds the 17 commands and 19 roles from the package at <code>dist/claude-code/dev-harness</code>, the mechanical diagnostic passes, and deactivating the plugin leaves the work files intact.</p>
+       <p>When finished, Claude Code finds the 18 commands and 19 roles from the package at <code>dist/claude-code/dev-harness</code>, the mechanical diagnostic passes, and deactivating the plugin leaves the work files intact.</p>
        <span class="tag">Outcome · plugin discovered</span>
 
       <h2 id="escopo"><span class="n">03</span>Scope</h2>
@@ -717,7 +717,7 @@ footer.doc-foot {
            If the runtime requires the qualified name, use <code>--agent dh:coordinator</code>.</li>
           <li><strong>Diagnose.</strong> In the session: <code>/dh:doctor</code>. Outside the session, in the clone:
            <div class="table-wrap"><pre><code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code></pre></div>
-            The binary does not install anything. To validate the package, use <code>bin/dh validate</code>. Expected: 19 agents, 17 commands, 21 skills, 4 profiles, 16 templates, <code>status: passed</code>.</li>
+            The binary does not install anything. To validate the package, use <code>bin/dh validate</code>. Expected: 19 agents, 18 commands, 21 skills, 4 profiles, 16 templates, <code>status: passed</code>.</li>
          <li><strong>Deactivate.</strong> End the session without <code>--plugin-dir</code>, or remove the project binding. The files in <code>.harness/</code> of the target project, if they exist, remain. The kit does not delete the consumer’s work.</li>
       </ol>
 
