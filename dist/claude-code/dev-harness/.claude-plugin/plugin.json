@@ -11,6 +11,6 @@
     "review"
   ],
   "license": "MIT",
-  "name": "dev-harness",
-  "version": "0.7.2"
+  "name": "dh",
+  "version": "0.8.0"
 }

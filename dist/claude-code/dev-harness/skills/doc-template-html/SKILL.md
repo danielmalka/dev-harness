@@ -1,6 +1,6 @@
 ---
 name: doc-template-html
-description: Use when the user asks for a plan, feature, bug, improvement, catalog or report as a standalone internal HTML file, or runs `/dev-harness:document`, or wants an HTML deliverable opened in the browser. Not for Markdown-only chat replies.
+description: Use when the user asks for a plan, feature, bug, improvement, catalog or report as a standalone internal HTML file, or runs `/dh:document`, or wants an HTML deliverable opened in the browser. Not for Markdown-only chat replies.
 author: malka
 metadata:
   provenance: adapted
@@ -130,7 +130,7 @@ One standalone `.html` at the agreed path. In chat: that path relative to the pr
 
 ## Related
 
-Roles: docs-guide (author), coordinator or devops-engineer (runs the stamp script when a shell is needed). Command: `/dev-harness:document`. Skills: context-handoff, delivery-readiness.
+Roles: docs-guide (author), coordinator or devops-engineer (runs the stamp script when a shell is needed). Command: `/dh:document`. Skills: context-handoff, delivery-readiness.
 
 ## Proof case
 

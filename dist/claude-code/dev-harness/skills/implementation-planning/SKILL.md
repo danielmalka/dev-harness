@@ -56,7 +56,7 @@ Split authorized work into slices that can each be finished and proven on their 
 
 8. **Name the interface each slice publishes and consumes.** The builder of slice four sees only slice four. Exact names and types of what earlier slices produced, and what later slices will rely on, are the only way the seams line up. Contract drift between slices is the most common failure of multi-slice plans.
 
-9. **Give each slice its own check line and its own risk line.** Which check proves this slice, how it is invoked, and what result counts. Status stays `not-run` in a plan, because planning runs nothing. The risk line names what could go wrong here and the cheapest early signal that it did, remembering that a slice gets at most two correction rounds for the same issue before it is reported blocked or partial and replanned. For a slice that changes `internal/build`, `internal/kit`, or any `dist/` content, the check line's order is fixed: apply the code change, then `go run ./cmd/dh build`, then `go test ./...` / `go run ./cmd/dh validate .` — never the reverse, because the reproducibility test compares the committed `dist/` against a fresh rebuild and fails by construction if the rebuild has not run yet.
+9. **Give each slice its own check line and its own risk line.** Which check proves this slice, how it is invoked, and what result counts. Status stays `not-run` in a plan, because planning runs nothing. The risk line names what could go wrong here and the cheapest early signal that it did, remembering that a slice gets at most six correction rounds for the same issue before it is reported blocked or partial and replanned. For a slice that changes `internal/build`, `internal/kit`, or any `dist/` content, the check line's order is fixed: apply the code change, then `go run ./cmd/dh build`, then `go test ./...` / `go run ./cmd/dh validate .` — never the reverse, because the reproducibility test compares the committed `dist/` against a fresh rebuild and fails by construction if the rebuild has not run yet.
 
 10. **Self-review the finished plan against the brief.** Three passes, inline, fixing as you go. Coverage: point at the slice that satisfies each acceptance item and list any gap. Readiness: executable slices have concrete checks and no unresolved prerequisite; unknown commands or interfaces leave only the affected slices provisional. Do not invent values to remove placeholders. Consistency: the name a later slice consumes matches the name the earlier slice produces, exactly.
 
@@ -171,7 +171,7 @@ Brief: expired invites must be refused. Map: three files and one test file. Boun
 
 ## Related
 
-Roles: implementation-planner, coordinator, solution-architect, backend-builder, qa-verifier. Command: `/dev-harness:plan`. Skills: requirements-discovery supplies the acceptance, repository-mapping supplies the candidate files, architecture-decisions settles a boundary before slicing, incremental-implementation executes a slice, regression-testing turns the check lines into real checks, context-handoff carries an unfinished plan to the next session.
+Roles: implementation-planner, coordinator, solution-architect, backend-builder, qa-verifier. Command: `/dh:plan`. Skills: requirements-discovery supplies the acceptance, repository-mapping supplies the candidate files, architecture-decisions settles a boundary before slicing, incremental-implementation executes a slice, regression-testing turns the check lines into real checks, context-handoff carries an unfinished plan to the next session.
 
 ## Proof case
 

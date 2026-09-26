@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-09-25</b></span>
-          <span class="chip">status <b>0.7.0 · live</b></span>
+          <span class="chip">status <b>0.8.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -758,7 +758,7 @@ profiles/"] --> B["dh build"]
         <p><strong>Summary:</strong> every agent gains the <code>Skill</code> tool in its <code>tools</code> list;
           role <code>document-validator</code> (read-only, Opus); skill <code>document-review</code> with six
           categories and the severity rule; persistent report <code>&lt;document&gt;.review.md</code>; a
-          creation → validation cycle embedded in <code>/dev-harness:discover</code>, capped at two rounds;
+          creation → validation cycle embedded in <code>/dh:discover</code>, capped at two rounds;
           evaluation cases and a PRD fixture under <code>evals/</code>.</p>
         <p><strong>Relations:</strong> implements PRD-002 RF-01 to RF-05 (RF-06, extending to story/plan/ADR, comes
           later — see Planned). Produces <code>.agents/document-validator.md</code>,
@@ -867,7 +867,7 @@ profiles/"] --> B["dh build"]
           (<code>doc-validator-clean</code>, <code>external-clis-document-merge-blocker</code>,
           <code>external-clis-document-only</code>, <code>external-clis-security-only</code>), overall score 0.74,
           cost 4.81 USD; the 9 failed cases are behavioral findings for a future
-          <code>/dev-harness:improve</code> cycle, not runner defects. <code>external-clis-risk-001</code>: the
+          <code>/dh:improve</code> cycle, not runner defects. <code>external-clis-risk-001</code>: the
           anti-delegation graders passed, only <code>06-no-paraphrasing</code> failed — RISK-001 stays
           <em>mitigated</em>, not <em>resolved</em>. Two runner lessons found during this run and already folded
           into <code>.skills/harness-evaluation/SKILL.md</code>: <code>context.add_dirs</code> does not materialize
@@ -879,7 +879,7 @@ profiles/"] --> B["dh build"]
       <div class="card">
         <h3>0.5.1 · Coordinator rules for CLI reviewers and prompt-drift check</h3>
         <p><strong>Status:</strong> done.</p>
-        <p><strong>Summary:</strong> first real <code>/dev-harness:improve</code> cycle over the kit itself, guided
+        <p><strong>Summary:</strong> first real <code>/dh:improve</code> cycle over the kit itself, guided
           by the 0.5.0 baseline. Two new Coordinator rules: only a reviewer that was actually dispatched gets
           logged as one (an entry that was never called becomes not-run with a reason, and the Coordinator's own
           reading never takes a reviewer's place), and the merged report now records each reviewer's own verdict
@@ -892,7 +892,7 @@ profiles/"] --> B["dh build"]
           when the copy has drifted from the original — the Coordinator body's eleven copies were re-synced. Eight
           fixes on the case side, where the criterion was unobservable by construction; seven graders became
           mechanical or were rewritten into observable form.</p>
-        <p><strong>Relations:</strong> first <code>/dev-harness:improve</code> cycle over 0.5.0. Direct origin of
+        <p><strong>Relations:</strong> first <code>/dh:improve</code> cycle over 0.5.0. Direct origin of
           0.5.2 below; of the two findings left open here, the over-dispatch closed by measurement against the 0.5.2
           package and the verdict label closed by measurement in 0.5.4.</p>
         <p><strong>Tested?</strong> Before/after measurement in <code>evals/baselines/2026-09-22-0.5.0.md</code> →
@@ -928,7 +928,7 @@ profiles/"] --> B["dh build"]
           and opening line) and a new eight-case test. A negative assertion restored in
           <code>evals/cases/external-clis-only</code> — a finding from the external CLI reviewer itself, which
           neither the Claude reviewer nor the Coordinator had caught.</p>
-        <p><strong>Relations:</strong> second <code>/dev-harness:improve</code> cycle, over 0.5.1 — the first time
+        <p><strong>Relations:</strong> second <code>/dh:improve</code> cycle, over 0.5.1 — the first time
           a real (non-fixture) CLI review runs against the kit itself.</p>
         <p><strong>Tested?</strong> The real review is itself the proof: two kit findings came out of that call.
           Measured after this release, not recorded in any document before this one: the <code>security</code> and
@@ -965,7 +965,7 @@ profiles/"] --> B["dh build"]
           a good intention. The prompt assembled for a CLI reviewer now carries its own
           <code>cli:&lt;binary&gt;/&lt;slug&gt;</code> tag. Nothing can write to the tree between the freeze and
           the post-call comparison, the Coordinator included.</p>
-        <p><strong>Relations:</strong> continues the <code>/dev-harness:improve</code> cycle opened in 0.5.1/0.5.2,
+        <p><strong>Relations:</strong> continues the <code>/dh:improve</code> cycle opened in 0.5.1/0.5.2,
           the first time a real CLI review runs on all three PRD-003 stages. RF-09/AC-10 and RF-13/AC-14 evidence
           for PRD-004 recorded in <code>docs/prd/PRD-004-evals-executaveis-e-higiene.review.md</code>.</p>
         <p><strong>Tested?</strong> Both vulnerabilities were demonstrated by the CLI review itself and fixed in
@@ -988,7 +988,7 @@ profiles/"] --> B["dh build"]
           wording — shortening made it worse twice); a comment about the grader itself inside the body becomes part
           of the question; a criterion asking the judge to compare against a file it cannot read is not
           answerable.</p>
-        <p><strong>Relations:</strong> continuation of the <code>/dev-harness:improve</code> cycle on CLI review;
+        <p><strong>Relations:</strong> continuation of the <code>/dh:improve</code> cycle on CLI review;
           no code change — the package bumps version because the Coordinator's body changes and the eval cases
           embed it.</p>
         <p><strong>Tested?</strong> Eighteen runs after the fix stopped reproducing the deviation (two batches of
@@ -1040,7 +1040,7 @@ profiles/"] --> B["dh build"]
           <code>evals/cases/coordinator-explore-then-ask</code> (9 graders) and baselines
           <code>evals/baselines/2026-09-24-0.5.5-{before,after}.{json,md}</code>.</p>
         <p><strong>Relations:</strong> PLAN-005 (AC-01 through AC-16, brief IMP-001); third
-          <code>/dev-harness:improve</code> cycle over the kit itself, this time over the Coordinator and the
+          <code>/dh:improve</code> cycle over the kit itself, this time over the Coordinator and the
           discovery/mapping/planning roles — the earlier cycles (0.5.1, 0.5.2) touched external CLI review.
           Reviewer criticality (<code>code-reviewer</code>, <code>security-reviewer</code>,
           <code>document-validator</code>) is out of this batch by owner decision, for the second batch.</p>
@@ -1189,6 +1189,37 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>0.8.0 · Command prefix renamed from <code>dev-harness</code> to <code>dh</code>, six-round correction cap, and the docs-inside-PR rule</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> the command prefix, which was <code>/dev-harness:&lt;command&gt;</code>, becomes
+          <code>/dh:&lt;command&gt;</code>; the agent qualifier becomes <code>dh:coordinator</code>; the install id
+          becomes <code>dh@dev-harness</code>. Marketplace name (<code>dev-harness</code>), repository, the Go
+          binary <code>dh</code>, and the snapshot path (<code>~/.claude/dev-harness/sessions/</code>) are
+          unchanged. Mechanical rename across the whole kit — <code>.commands/</code> (17 files),
+          <code>.skills/</code> (23), <code>.agents/</code> (1), <code>docs/</code>, README.md/README.en.md,
+          <code>evals/</code> (20), <code>profiles/</code> (2), <code>adapters/</code> (2), <code>internal/</code>
+          (1), and the generated <code>plugin.json</code>/<code>harness-manifest.json</code>. In the same batch: the
+          kit-wide correction cap rises from two to six rounds; the docs-inside-PR rule (opens with the PRD/brief and
+          decisions, closes with the project documentation kept current, never a documentation-only PR) is encoded
+          in the Coordinator and in the release/document surfaces; the Coordinator's merge rule is clarified for
+          equivalent findings from several reviewers; and the <code>external-clis-risk-001/02</code> grader becomes a
+          deterministic check.</p>
+        <p><strong>Relations:</strong> PLAN-009 (slices 1-5); requested by the owner on 2026-09-25.
+          <code>CHANGELOG.md</code> 0.8.0.</p>
+        <p><strong>Tested?</strong> The <code>claude plugin eval</code> smoke check confirmed the renamed package
+          loads under <code>dh</code>. T-604's four paid runs (<code>coordinator-explore-then-ask</code>,
+          <code>external-clis-only</code>, <code>external-clis-attribution</code>, <code>external-clis-risk-001</code>)
+          each resolved their case id under the new name, proving case discovery. Measured:
+          <code>coordinator-explore-then-ask</code> (6 runs) closes grader 06 and grader 07 at 5/6 each, both bars
+          (≥ 5/6) met; grader 03 stays at 1/6, out of scope. <code>external-clis-only</code> 6/6 in one run.
+          <code>external-clis-attribution</code>: the 1st run failed on a duplicate entry; after the merge-rule
+          clarification, 3 runs close at 5/5 each. <code>external-clis-risk-001</code>: grader 01 4/4, grader 02
+          (now a regex) matches the 3 re-run cases, grader 03 lands at 2/3; RISK-001 stays "mitigated". Batch spend:
+          US$ 10.71 of a US$ 15 cap (raised from US$ 10 by the owner). CI evals still skip without
+          <code>ANTHROPIC_API_KEY</code>, owner decision.</p>
+      </div>
+
+      <div class="card">
         <h3>Validator extended to story, plan and ADR</h3>
         <p><strong>Status:</strong> done in 0.5.0.</p>
         <p><strong>Summary:</strong> PRD-002 RF-06 recorded the general premise — "every document that becomes a
@@ -1213,7 +1244,7 @@ profiles/"] --> B["dh build"]
         <h3>VS Code extension (danielmalka/dev-harness-vscode)</h3>
         <p><strong>Description:</strong> viewer and launcher only; reads disk snapshots written by
           <code>statusLine</code>/<code>subagentStatusLine</code> and by the plugin's hooks; opens a session with
-          the plugin and inserts <code>/dev-harness:&lt;command&gt;</code>; never becomes a runtime or orchestrates
+          the plugin and inserts <code>/dh:&lt;command&gt;</code>; never becomes a runtime or orchestrates
           pipelines; not a fork of <code>context-kit-extension</code> (that one stays archived as a code donor by
           copy).</p>
         <p><strong>Acceptance criteria:</strong> to be defined — PRD-001 excludes the extension itself from scope
@@ -1247,25 +1278,6 @@ profiles/"] --> B["dh build"]
         <p><strong>Relations:</strong> <code>adapters/generic/</code> (current manual guide);
           <code>adapters/claude-code/</code> (native adapter today, the only one in v1); listed as out of the
           release since 0.1.0.</p>
-      </div>
-
-      <div class="card">
-        <h3>Rename the command prefix from <code>dev-harness</code> to <code>dh</code></h3>
-        <p><strong>Description:</strong> today the commands are <code>/dev-harness:&lt;command&gt;</code>; rename
-          the plugin's prefix to <code>dh</code>. Requested by the owner on 2026-09-25, no PRD yet.</p>
-        <p><strong>Acceptance criteria:</strong> to be defined.</p>
-        <p><strong>Status:</strong> planned, no PRD.</p>
-        <p><strong>Relations:</strong> the prefix comes from the plugin's name, <code>"name": "dev-harness"</code>
-          in <code>.claude-plugin/marketplace.json</code> (<code>docs/plano-produto.html</code> §4.5 also describes
-          the prefix as derived from the plugin name); the rename touches every command name in
-          <code>.commands/</code> (17 files cite <code>/dev-harness:</code>) and spreads across other areas —
-          an initial survey via <code>grep -rl "/dev-harness:"</code> on 2026-09-25, excluding <code>dist/</code>,
-          <code>.harness/</code>, <code>.git/</code> and <code>.claude/</code>: <code>.skills/</code> (23 files),
-          <code>.agents/</code> (1), <code>docs/</code> (15), <code>README.md</code> and <code>README.en.md</code>,
-          <code>CHANGELOG.md</code> (historical entries), <code>CLAUDE.md</code>, <code>evals/</code> (20),
-          <code>profiles/</code> (2), <code>adapters/</code> (2), <code>internal/</code> (1) and
-          <code>harness-manifest.json</code> (generated). These counts are a starting survey, not the complete
-          set; the full list is established when the item gets a PRD.</p>
       </div>
 
       <div class="card">
@@ -1414,7 +1426,7 @@ OTEL and Agent SDK — not planning"]
           runner and the 0.4.0 batch hygiene.</li>
         <li><code>evals/baselines/2026-09-22-0.5.0.md</code> and <code>2026-09-22-0.5.1.md</code> — real numbers
           from the first executed baseline and the before/after measurement of the first
-          <code>/dev-harness:improve</code> cycle.</li>
+          <code>/dh:improve</code> cycle.</li>
         <li><code>docs/prd/PRD-001-etapa-1.md</code> — scope, RF, AC and risks of phase 1.</li>
         <li><code>docs/prd/PRD-002-validador-de-documentos.md</code> — scope, RF, AC and status of the document
           validator.</li>

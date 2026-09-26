@@ -29,4 +29,4 @@ The `systematic-debugging` report: status, symptom, reproduction before and afte
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:verify` to widen the acceptance matrix, or `/dev-harness:release` when the fix is the deliverable.
+`/dh:verify` to widen the acceptance matrix, or `/dh:release` when the fix is the deliverable.

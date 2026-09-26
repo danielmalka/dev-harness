@@ -20,7 +20,7 @@ esac
 platform="${os}_${arch}"
 binary="$dir/$platform/dh"
 if [ ! -x "$binary" ]; then
-  printf 'dev-harness: no dh binary for %s; run dh doctor\n' "$platform" >&2
+  printf 'dh: no dh binary for %s; run dh doctor\n' "$platform" >&2
   exit 0
 fi
 

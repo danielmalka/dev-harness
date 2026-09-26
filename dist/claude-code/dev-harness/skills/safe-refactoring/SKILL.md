@@ -169,7 +169,7 @@ The one cent divergence is frozen by a test and escalated, not corrected inside 
 
 ## Related
 
-Roles: refactorer, qa-verifier, code-reviewer, coordinator, backend-builder. Commands: `/dev-harness:refactor`. Skills: regression-testing, incremental-implementation, systematic-debugging, architecture-decisions, api-contracts.
+Roles: refactorer, qa-verifier, code-reviewer, coordinator, backend-builder. Commands: `/dh:refactor`. Skills: regression-testing, incremental-implementation, systematic-debugging, architecture-decisions, api-contracts.
 
 ## Proof case
 

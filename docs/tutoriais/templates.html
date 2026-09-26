@@ -691,7 +691,7 @@ footer.doc-foot {
 
       <h2 id="prd"><span class="n">02</span>PRD</h2>
       <span class="tag">Produto · por quê e o quê</span>
-      <p>Responde por que fazer e o que entregar, sem dizer como. Um PRD bom pode ser atendido por três desenhos técnicos diferentes. Escreve o dono do produto, com o papel <code>product-discovery</code> via <code>/dev-harness:discover</code>. Fecha quando requisitos e aceite estão aprovados e as stories foram derivadas. Modelo: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+      <p>Responde por que fazer e o que entregar, sem dizer como. Um PRD bom pode ser atendido por três desenhos técnicos diferentes. Escreve o dono do produto, com o papel <code>product-discovery</code> via <code>/dh:discover</code>. Fecha quando requisitos e aceite estão aprovados e as stories foram derivadas. Modelo: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>Entra</h3>
@@ -753,7 +753,7 @@ footer.doc-foot {
           <h3>Fica de fora</h3>
           <ul>
             <li>Comportamento inventado quando há decisão aberta. Parar e reportar.</li>
-            <li>Mais de duas rodadas de correção sem sucesso. Devolver ao Coordenador com evidência.</li>
+            <li>Mais de seis rodadas de correção sem sucesso. Devolver ao Coordenador com evidência.</li>
             <li>Fechar bug sem reprodução. Fica inconclusivo com a lacuna declarada.</li>
             <li>Commit, push ou deploy sem autorização explícita.</li>
           </ul>
@@ -808,7 +808,7 @@ footer.doc-foot {
 
       <h2 id="memoria"><span class="n">07</span>Memória: MEMORY, EPOCHAL e RISKS</h2>
       <span class="tag">Estado · só o Coordenador escreve</span>
-      <p>Três arquivos do projeto consumidor, inicializados por <code>/dev-harness:setup</code> a partir de <code>templates/</code>. Nenhum fecha. <code>MEMORY.md</code> guarda a execução vigente e é enxugado por <code>/dev-harness:consolidate-memory</code>. <code>EPOCHAL.md</code> recebe a cópia integral de cada memória anterior. <code>RISKS.md</code> guarda incidentes graves e prevenção; incidentes resolvidos permanecem.</p>
+      <p>Três arquivos do projeto consumidor, inicializados por <code>/dh:setup</code> a partir de <code>templates/</code>. Nenhum fecha. <code>MEMORY.md</code> guarda a execução vigente e é enxugado por <code>/dh:consolidate-memory</code>. <code>EPOCHAL.md</code> recebe a cópia integral de cada memória anterior. <code>RISKS.md</code> guarda incidentes graves e prevenção; incidentes resolvidos permanecem.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>Entra</h3>
@@ -838,32 +838,32 @@ footer.doc-foot {
         <li><strong>Plan</strong> o planejador fatia; o arquiteto entra se houver decisão cara de reverter e escreve o ADR. O Coordenador consulta MEMORY e, em área de risco, RISKS.</li>
         <li><strong>Tasks</strong> uma por fatia, com ambiente, testes e aceite.</li>
         <li><strong>Build</strong> o implementador entrega a fatia com checks executados.</li>
-        <li><strong>Verify e review</strong> QA e revisor avaliam o estado estabilizado. Até duas rodadas de correção; depois, replanejar.</li>
+        <li><strong>Verify e review</strong> QA e revisor avaliam o estado estabilizado. Até seis rodadas de correção; depois, replanejar.</li>
         <li><strong>Release e handoff</strong> prontidão sem publicar; estado transportável para a próxima sessão.</li>
       </ol>
       <div class="card">
         <h3>Diagrama do fluxo</h3>
         <pre class="mermaid">
 flowchart TB
-    ideia([Pedido ou dor]) --> discover["/dev-harness:discover<br/>product-discovery"]
+    ideia([Pedido ou dor]) --> discover["/dh:discover<br/>product-discovery"]
     discover --> prd[/PRD.md/]
     prd --> stories[/STORY.md por requisito/]
-    stories --> understand["/dev-harness:understand<br/>repo-scout"]
-    understand --> plan["/dev-harness:plan<br/>implementation-planner<br/>+ solution-architect se preciso"]
+    stories --> understand["/dh:understand<br/>repo-scout"]
+    understand --> plan["/dh:plan<br/>implementation-planner<br/>+ solution-architect se preciso"]
     plan --> decisao{Decisão cara<br/>de reverter?}
     decisao -->|sim| adr[/ADR.md/]
     decisao -->|não| tasks
     adr --> tasks[/TASK.md por fatia/]
-    tasks --> build["/dev-harness:build<br/>backend-builder / frontend-builder"]
-    build --> verify["/dev-harness:verify<br/>qa-verifier"]
-    build --> review["/dev-harness:review<br/>code-reviewer"]
+    tasks --> build["/dh:build<br/>backend-builder / frontend-builder"]
+    build --> verify["/dh:verify<br/>qa-verifier"]
+    build --> review["/dh:review<br/>code-reviewer"]
     verify --> ok{Aceite e revisão<br/>aprovados?}
     review --> ok
-    ok -->|não, até 2 rodadas| build
-    ok -->|sim| release["/dev-harness:release<br/>release-manager"]
-    release --> handoff["/dev-harness:handoff<br/>Coordenador"]
+    ok -->|não, até 6 rodadas| build
+    ok -->|sim| release["/dh:release<br/>release-manager"]
+    release --> handoff["/dh:handoff<br/>Coordenador"]
 
-    bug([Defeito reportado]) --> fix["/dev-harness:fix<br/>debugger"]
+    bug([Defeito reportado]) --> fix["/dh:fix<br/>debugger"]
     fix --> bugtask[/TASK.md tipo bug/]
     bugtask --> verify
 
@@ -961,14 +961,14 @@ flowchart LR
             <li>Manter ou descartar o RFC como template de primeira linha.</li>
             <li>Modelo separado de “plano”, “evidência”, “revisão” e “handoff”: a fatia usa <code>TASK.md</code>; evidência
               fica em <code>.harness/tasks/&lt;id&gt;/evidence/</code>; handoff é o comando
-              <code>/dev-harness:handoff</code>. Perfis de stack existem em <code>profiles/</code> (inglês).</li>
+              <code>/dh:handoff</code>. Perfis de stack existem em <code>profiles/</code> (inglês).</li>
           </ul>
         </div>
       </div>
 
       <footer class="doc-foot">
         <div>Arquivo: <code>docs/tutoriais/templates.html</code> · tipo <code>catalogo</code></div>
-        <div>Próximo passo: usar os templates via <code>/dev-harness:setup</code> na fixture slice-01.</div>
+        <div>Próximo passo: usar os templates via <code>/dh:setup</code> na fixture slice-01.</div>
       </footer>
     </div>
   </div>

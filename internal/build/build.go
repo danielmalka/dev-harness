@@ -17,7 +17,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/kit"
 )
 
-const defaultVersion = "0.7.2"
+const defaultVersion = "0.8.0"
 
 type Target struct {
 	OS   string
@@ -171,7 +171,7 @@ func Build(root string, options Options, out io.Writer) error {
 		Runtime: runtimeInfo{
 			Primary:        "claude-code",
 			Load:           "claude --plugin-dir dist/claude-code/dev-harness --agent coordinator",
-			CommandPrefix:  "/dev-harness:",
+			CommandPrefix:  "/dh:",
 			MinimumVersion: "unverified",
 		},
 		Inventory: inventoryFor(pkg),
@@ -186,7 +186,7 @@ func Build(root string, options Options, out io.Writer) error {
 		return err
 	}
 	plugin := map[string]any{
-		"name":        "dev-harness",
+		"name":        "dh",
 		"version":     version,
 		"description": "Portable AI-assisted development kit: coordinator plus specialist agents, skills and work commands with owner-authorized delivery.",
 		"author":      map[string]string{"name": "malka"},

@@ -48,7 +48,7 @@ This procedure turns acceptance criteria into executed checks and returns a matr
 7. **Run the checks and read the output.** Full command, full output, exit status, failure count. Do not extrapolate from a partial run or present a result from an earlier state as current-state verification. Historical failure evidence remains labeled with its original state.
 8. **Build the acceptance matrix.** One row per criterion with the exact command, the literal result, and the evidence path. Identify required checks from the acceptance and task context; do not silently downgrade them. Criteria you could not verify keep a not-run row with the blocking reason. Use verified only when all required checks pass on the current stable state; otherwise report partial or blocked. QA's result does not replace independent code review.
 9. **Report defects, do not fix them.** For each defect give reproduction, expected, actual, the criterion it violates, and a severity. Hand it to the implementer through the Coordinator.
-10. **Stop your own loop at three.** If your test code fails three times for reasons inside the test rather than the product, stop and report the blocker instead of grinding. This cap applies to your own test code only. The correction loop between implementer and QA still stops at two rounds and returns to the Coordinator.
+10. **Stop your own loop at three.** If your test code fails three times for reasons inside the test rather than the product, stop and report the blocker instead of grinding. This cap applies to your own test code only. The correction loop between implementer and QA still stops at six rounds and returns to the Coordinator.
 11. **Report, do not record.** Results, defects, and any incident go to the Coordinator, the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`. Detailed evidence belongs under `.harness/tasks/<id>/`.
 
 ## Output format
@@ -165,7 +165,7 @@ AC-3 stays not-run with its reason. The race is a defect report, not a fix by QA
 
 ## Related
 
-Roles: qa-verifier, backend-builder, frontend-builder, code-reviewer, coordinator. Commands: `/dev-harness:verify`, and used inside `/dev-harness:build`, `/dev-harness:fix`, `/dev-harness:refactor`. Skills: incremental-implementation, ui-verification, systematic-debugging, safe-refactoring, delivery-readiness.
+Roles: qa-verifier, backend-builder, frontend-builder, code-reviewer, coordinator. Commands: `/dh:verify`, and used inside `/dh:build`, `/dh:fix`, `/dh:refactor`. Skills: incremental-implementation, ui-verification, systematic-debugging, safe-refactoring, delivery-readiness.
 
 ## Proof case
 

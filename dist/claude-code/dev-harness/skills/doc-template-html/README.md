@@ -6,7 +6,7 @@ The stamp is portable: it inlines CSS/JS from its own skill folder, wherever the
 
 ## Ask the agent
 
-In chat: `/dev-harness:document` or “gera o plano/feature/bug/melhoria/catálogo/report em HTML interno”.
+In chat: `/dh:document` or “gera o plano/feature/bug/melhoria/catálogo/report em HTML interno”.
 
 The agent reads `SKILL.md`, picks the type in `references/types.md`, runs the stamp and fills.
 

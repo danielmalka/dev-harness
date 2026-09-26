@@ -51,7 +51,7 @@ This procedure produces an explained failure: a reproduction and a root cause su
 9. **Fix only within existing authorization.** For diagnose-only work, skip fix and protection edits and report the cause or hypothesis with evidence and the proposed next step. When a fix and tests are authorized, use or add a regression test that fails for the defect before applying the smallest root-cause change. No bundled cleanup. Then run the test and surrounding checks. If the required test or check cannot run, report partial or blocked rather than a verified fix.
 10. **Add layered validation only within the authorized fix.** If other entry points can bypass the fix, add only the validation needed for those real paths and covered by the write set. Report additional changes for the Coordinator to scope. Layers where no real path exists are noise.
 11. **Inconclusive path.** When reproduction fails, deliver: the symptom, every attempt with its result, what is ruled out and by which evidence, the specific gap that blocks reproduction, and the data or access that would close it. Status stays inconclusive. Propose observability rather than a speculative change.
-12. **Cap the attempts.** Three failed fixes on the same defect means the design, not the hypothesis, is wrong, especially when each fix exposes a new problem elsewhere. Stop and report for replanning. Independently, two correction rounds rejected by review or QA return the task to the Coordinator with evidence.
+12. **Cap the attempts.** Three failed fixes on the same defect means the design, not the hypothesis, is wrong, especially when each fix exposes a new problem elsewhere. Stop and report for replanning. Independently, six correction rounds rejected by review or QA return the task to the Coordinator with evidence.
 13. **Clean up and report.** Remove temporary instrumentation, or state exactly what remains and why. Keep secrets out of every artifact. Hand the incident to the Coordinator with the fields below; the Coordinator is the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`.
 
 ## Output format
@@ -167,7 +167,7 @@ The fix sits at the origin, so the bulk path is covered without a second edit.
 
 ## Related
 
-Roles: debugger, qa-verifier, coordinator, backend-builder, code-reviewer. Commands: `/dev-harness:fix`. Skills: regression-testing, incremental-implementation, repository-mapping, safe-refactoring.
+Roles: debugger, qa-verifier, coordinator, backend-builder, code-reviewer. Commands: `/dh:fix`. Skills: regression-testing, incremental-implementation, repository-mapping, safe-refactoring.
 
 ## Proof case
 

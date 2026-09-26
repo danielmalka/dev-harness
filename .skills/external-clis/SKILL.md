@@ -197,7 +197,7 @@ A `code` stage lists `["claude", "cli:codex/<slug>"]`. For the `codex` entry: re
 
 ## Related
 
-Roles: coordinator, document-validator, code-reviewer, security-reviewer. Commands: `/dev-harness:review`, `/dev-harness:discover`, `/dev-harness:secure`. Skills: code-review, document-review, security-review (own the verdict formats this skill reads), project-onboarding (`.harness/local.yaml` is written on first CLI reviewer invocation, not by setup).
+Roles: coordinator, document-validator, code-reviewer, security-reviewer. Commands: `/dh:review`, `/dh:discover`, `/dh:secure`. Skills: code-review, document-review, security-review (own the verdict formats this skill reads), project-onboarding (`.harness/local.yaml` is written on first CLI reviewer invocation, not by setup).
 
 ## Proof case
 

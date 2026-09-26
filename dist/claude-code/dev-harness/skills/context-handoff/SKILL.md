@@ -211,7 +211,7 @@ Archive tail shows batch 2026-04-02-1, delimiters present, end marker present.
 
 ## Related
 
-Roles: coordinator, docs-guide, repo-scout. Commands: `/dev-harness:handoff`, `/dev-harness:resume`, `/dev-harness:consolidate-memory`, `/dev-harness:document`. Skills: delivery-readiness, project-onboarding, repository-mapping. Templates: the `templates/` folder bundled with the kit (`templates/<lang>/MEMORY.md`, `templates/<lang>/EPOCHAL.md`, `templates/<lang>/RISKS.md`).
+Roles: coordinator, docs-guide, repo-scout. Commands: `/dh:handoff`, `/dh:resume`, `/dh:consolidate-memory`, `/dh:document`. Skills: delivery-readiness, project-onboarding, repository-mapping. Templates: the `templates/` folder bundled with the kit (`templates/<lang>/MEMORY.md`, `templates/<lang>/EPOCHAL.md`, `templates/<lang>/RISKS.md`).
 
 ## Proof case
 

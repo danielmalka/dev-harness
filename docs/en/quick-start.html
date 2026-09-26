@@ -661,7 +661,7 @@ footer.doc-foot {
       <header class="hero">
         <div class="eyebrow">Guide · first use</div>
         <h1>Quick start</h1>
-        <p class="lead">From the clone to /dev-harness:doctor and the slice-01 fixture.</p>
+        <p class="lead">From the clone to /dh:doctor and the slice-01 fixture.</p>
         <div class="chips">
           <span class="chip">date <b>2026-09-20</b></span>
           <span class="chip">status <b>internal</b></span>
@@ -687,7 +687,7 @@ footer.doc-foot {
           <ul>
              <li>Marketplace installation in the target project.</li>
              <li>Loading from the clone, for development, with <code>--plugin-dir</code>.</li>
-             <li><code>/dev-harness:doctor</code> and <code>/dev-harness:setup</code>.</li>
+             <li><code>/dh:doctor</code> and <code>/dh:setup</code>.</li>
              <li>Fixture <code>evals/fixtures/slice-01</code> (Python 3, unittest, one red acceptance criterion).</li>
           </ul>
         </div>
@@ -705,18 +705,20 @@ footer.doc-foot {
       <ol class="steps">
          <li><strong>Install from the marketplace.</strong> In the target project, in a Claude Code session:
            <div class="table-wrap"><pre><code>/plugin marketplace add danielmalka/dev-harness
-/plugin install dev-harness@dev-harness</code></pre></div>
-           The version comes from the tag pinned in <code>.claude-plugin/marketplace.json</code>. For development, use the clone-based loading path below. Deactivation details: <a href="tutorials/00-first-machine.html">tutorial 00</a>.</li>
+/plugin install dh@dev-harness</code></pre></div>
+           The version comes from the tag pinned in <code>.claude-plugin/marketplace.json</code>. For development, use the clone-based loading path below. Deactivation details: <a href="tutorials/00-first-machine.html">tutorial 00</a>.
+           <div class="callout">Migrating from a pre-0.8.0 install: <code>/plugin uninstall dev-harness@dev-harness</code>, then <code>/plugin install dh@dev-harness</code>; replace <code>/dev-harness:</code> with <code>/dh:</code> in your own scripts and notes. Marketplace name, repository, the <code>dh</code> binary and the snapshot path are unchanged.</div>
+         </li>
          <li><strong>Open Claude in the fixture directory, loading from the clone for development.</strong>
           <div class="table-wrap"><pre><code>cd evals/fixtures/slice-01
  claude --plugin-dir "/absolute/path/to/clone/dist/claude-code/dev-harness" --agent coordinator</code></pre></div>
        <div class="callout stop">Inside quotes, <code>~</code> does not expand: <code>"~/projetos/..."</code> does not exist, Claude silently ignores the plugin, and <code>--agent coordinator</code> fails with “not found”. Use <code>$HOME/...</code> or the full path.</div>
         </li>
-         <li><strong>Diagnostics.</strong> <code>/dev-harness:doctor</code>. Without Claude, in the clone: <code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code>.</li>
-         <li><strong>Setup.</strong> <code>/dev-harness:setup</code> with authorization to write <code>.harness/</code> only if the files do not already exist. Expected profile: <code>none, custom</code> with <code>base</code> conventions (the fixture is Python, and Python is not a v1 profile).</li>
+         <li><strong>Diagnostics.</strong> <code>/dh:doctor</code>. Without Claude, in the clone: <code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code>.</li>
+         <li><strong>Setup.</strong> <code>/dh:setup</code> with authorization to write <code>.harness/</code> only if the files do not already exist. Expected profile: <code>none, custom</code> with <code>base</code> conventions (the fixture is Python, and Python is not a v1 profile).</li>
          <li><strong>Check the red state.</strong> <code>python3 -m unittest test_greet.py</code>. AC-02 fails intentionally. Read <code>BRIEF.md</code>.</li>
-         <li><strong>Slice.</strong> <code>/dev-harness:plan</code> with the brief, then <code>/dev-harness:build</code>, <code>/dev-harness:verify</code>, <code>/dev-harness:review</code>. Do not copy <code>expected/greet.py</code> instead. Compare the unittest output with <code>expected/unittest.txt</code>.</li>
-        <li><strong>Handoff.</strong> <code>/dev-harness:handoff</code>. Only the Coordinator writes memory.</li>
+         <li><strong>Slice.</strong> <code>/dh:plan</code> with the brief, then <code>/dh:build</code>, <code>/dh:verify</code>, <code>/dh:review</code>. Do not copy <code>expected/greet.py</code> instead. Compare the unittest output with <code>expected/unittest.txt</code>.</li>
+        <li><strong>Handoff.</strong> <code>/dh:handoff</code>. Only the Coordinator writes memory.</li>
       </ol>
       <p><strong>External CLI review (optional).</strong> After setup, <code>.harness/project.yaml</code> accepts an optional <code>reviewers:</code> field per stage (<code>document</code>, <code>code</code>, <code>security</code>) to add an external CLI reviewer (<code>codex</code>, <code>agy</code>, <code>grok</code>, …) alongside Claude, or in its place:</p>
       <div class="table-wrap"><pre><code>reviewers:

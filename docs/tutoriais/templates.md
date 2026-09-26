@@ -17,7 +17,7 @@ Os modelos ficam em `templates/pt-br/` e `templates/en/` no kit, em versões esp
 | `EPOCHAL.md` | Histórico bruto das memórias anteriores | Só o Coordenador | No primeiro `consolidate-memory` | Nunca fecha; só recebe lotes |
 | `RISKS.md` | Incidentes graves e prevenção | Só o Coordenador | Na inicialização do projeto | Nunca fecha; incidentes resolvidos permanecem |
 
-O PRD passa pelo `document-validator` antes de chegar ao dono: o Coordenador roda criação → validação até `approved` ou duas rodadas, e o relatório fica em `<documento>.review.md` ao lado do PRD.
+O PRD passa pelo `document-validator` antes de chegar ao dono: o Coordenador roda criação → validação até `approved` ou seis rodadas, e o relatório fica em `<documento>.review.md` ao lado do PRD.
 
 ## Regras que valem para todos
 
@@ -48,25 +48,25 @@ Exemplo com os comandos do kit. Nem toda tarefa passa por todas as etapas: um bu
 
 ```mermaid
 flowchart TB
-    ideia([Pedido ou dor]) --> discover["/dev-harness:discover<br/>product-discovery"]
+    ideia([Pedido ou dor]) --> discover["/dh:discover<br/>product-discovery"]
     discover --> prd[/PRD.md/]
     prd --> stories[/STORY.md por requisito/]
-    stories --> understand["/dev-harness:understand<br/>repo-scout"]
-    understand --> plan["/dev-harness:plan<br/>implementation-planner<br/>+ solution-architect se preciso"]
+    stories --> understand["/dh:understand<br/>repo-scout"]
+    understand --> plan["/dh:plan<br/>implementation-planner<br/>+ solution-architect se preciso"]
     plan --> decisao{Decisão cara<br/>de reverter?}
     decisao -->|sim| adr[/ADR.md/]
     decisao -->|não| tasks
     adr --> tasks[/TASK.md por fatia/]
-    tasks --> build["/dev-harness:build<br/>backend-builder / frontend-builder"]
-    build --> verify["/dev-harness:verify<br/>qa-verifier"]
-    build --> review["/dev-harness:review<br/>code-reviewer"]
+    tasks --> build["/dh:build<br/>backend-builder / frontend-builder"]
+    build --> verify["/dh:verify<br/>qa-verifier"]
+    build --> review["/dh:review<br/>code-reviewer"]
     verify --> ok{Aceite e revisão<br/>aprovados?}
     review --> ok
-    ok -->|não, até 2 rodadas| build
-    ok -->|sim| release["/dev-harness:release<br/>release-manager"]
-    release --> handoff["/dev-harness:handoff<br/>Coordenador"]
+    ok -->|não, até 6 rodadas| build
+    ok -->|sim| release["/dh:release<br/>release-manager"]
+    release --> handoff["/dh:handoff<br/>Coordenador"]
 
-    bug([Defeito reportado]) --> fix["/dev-harness:fix<br/>debugger"]
+    bug([Defeito reportado]) --> fix["/dh:fix<br/>debugger"]
     fix --> bugtask[/TASK.md tipo bug/]
     bugtask --> verify
 

@@ -1022,13 +1022,13 @@
       </ol>
       <p>Exemplo de invocação a documentar e testar na implementação, executado dentro do projeto alvo:</p>
       <div class="table-wrap">
-        <pre><code>claude --plugin-dir "/caminho/do/clone/dist/claude-code/dev-harness" --agent dev-harness:coordinator
-/dev-harness:doctor
-/dev-harness:setup
-/dev-harness:plan "Adicionar uma validação no exercício guiado"</code></pre>
+        <pre><code>claude --plugin-dir "/caminho/do/clone/dist/claude-code/dev-harness" --agent dh:coordinator
+/dh:doctor
+/dh:setup
+/dh:plan "Adicionar uma validação no exercício guiado"</code></pre>
       </div>
       <p>O caminho acima é um marcador didático a substituir no computador de destino. Os 17 arquivos em
-        <code>.commands/</code> existem; o prefixo <code>/dev-harness:</code> depende do Claude Code descobrir o plugin.
+        <code>.commands/</code> existem; o prefixo <code>/dh:</code> depende do Claude Code descobrir o plugin.
         Essa descoberta ainda não foi executada numa sessão real. O guia <code>docs/inicio-rapido.html</code> e o
         tutorial 00 mostram carga, diagnóstico e desativação. Arquivos de trabalho do consumidor permanecem intactos ao
         desativar o plugin.
@@ -1084,7 +1084,7 @@
       <p>São famílias explícitas do Claude Code, não IDs de versão fixos nem equivalências com outros provedores. Por
         despacho, o Coordenador registra padrão, modelo solicitado, justificativa da alteração e modelo efetivo quando
         observável; se não for observável, registra não verificado. Troca por chamada não altera o arquivo nem reinicia
-        o limite de duas rodadas de correção. Respeitar orçamento, disponibilidade e escolhas anteriores do dono.</p>
+        o limite de seis rodadas de correção. Respeitar orçamento, disponibilidade e escolhas anteriores do dono.</p>
       <p>O runtime documenta seleção de modelo por invocação com precedência sobre o frontmatter; configurações forçadas
         ou restrições de disponibilidade podem interferir. O Coordenador deve informar divergências e não assumir custo
         ou modelo efetivo sem evidência. <a href="https://code.claude.com/docs/en/sub-agents#choose-a-model">Referência
@@ -1106,7 +1106,7 @@
           acidental como especialista retorna ao principal. Conclusão de implementação exige critérios obrigatórios
           passando e revisão independente sem bloqueador pendente no estado atual. Falha ou check obrigatório não
           executado mantém status parcial/bloqueado. Aprovação de plano não autoriza publicação; autorização explícita
-          já dada deve ser preservada. Duas rodadas de correção sem solução exigem replanejamento.</p>
+          já dada deve ser preservada. Seis rodadas de correção sem solução exigem replanejamento.</p>
         <p><strong>Referência e avaliação:</strong> agent-organizer + context-manager. Caso de prova: retomar tarefa
           interrompida sem perder uma restrição nem repetir alteração concluída.</p>
       </div>
@@ -1393,7 +1393,7 @@
           href="https://code.claude.com/docs/en/skills">Referência oficial de skills</a>.</p>
 
       <h3 id="comandos">4.5 · Comandos de trabalho</h3>
-      <p>Prefixo no Claude Code: <code>/dev-harness:</code>, derivado do nome do plugin. Arquivo canônico:
+      <p>Prefixo no Claude Code: <code>/dh:</code>, derivado do nome do plugin. Arquivo canônico:
         <code>.commands/&lt;nome&gt;.md</code>. Os 17 arquivos existem. Todos recebem contexto suficiente, reportam
         pré-requisitos ausentes e indicam a próxima ação. Cada entrada contém somente roteamento, parâmetros e contrato;
         o método fica na skill correspondente. A descoberta desses nomes pelo runtime ainda não foi exercida numa sessão
@@ -1583,7 +1583,7 @@
         encontrar incidente relevante, o Coordenador leva sua prevenção ao plano, aos critérios e ao especialista.
         Mudanças rotineiras fora desses gatilhos não carregam RISKS.md. Consolidação não remove incidentes resolvidos
         nem transfere este registro para EPOCHAL.md.</p>
-      <h3>Contrato do novo comando: /dev-harness:consolidate-memory</h3>
+      <h3>Contrato do novo comando: /dh:consolidate-memory</h3>
       <ol class="steps">
         <li><strong>Preparar:</strong> executar na sessão principal, sob responsabilidade do Coordenador, com os
           registros sem outro escritor. Ler MEMORY.md e identificar o estado que precisa permanecer. Memória sem
@@ -1606,7 +1606,7 @@
       </ol>
       <p><strong>Estado desta entrega:</strong> templates em <code>templates/MEMORY.md</code>,
         <code>templates/EPOCHAL.md</code> e <code>templates/RISKS.md</code>. Procedimento no prompt do Coordenador e
-        comando <code>/dev-harness:consolidate-memory</code> em <code>.commands/consolidate-memory.md</code>. Avaliação
+        comando <code>/dh:consolidate-memory</code> em <code>.commands/consolidate-memory.md</code>. Avaliação
         comportamental do comando ainda não rodou. Não foi consolidada nenhuma memória real de consumidor.
       </p>
 

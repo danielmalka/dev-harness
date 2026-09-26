@@ -85,7 +85,7 @@ func TestPackageCoverageChecksContent(t *testing.T) {
 	copyFixtureTree(t, filepath.Join(root, ".skills"), filepath.Join(packageRoot, "skills"))
 	copyFixtureTree(t, filepath.Join(root, "templates"), filepath.Join(packageRoot, "templates"))
 	copyFixtureTree(t, filepath.Join(root, "profiles"), filepath.Join(packageRoot, "profiles"))
-	writeFixture(t, filepath.Join(packageRoot, ".claude-plugin", "plugin.json"), `{"name":"dev-harness","license":"MIT","version":"0.1.0"}`)
+	writeFixture(t, filepath.Join(packageRoot, ".claude-plugin", "plugin.json"), `{"name":"dh","license":"MIT","version":"0.1.0"}`)
 	writeFixture(t, filepath.Join(packageRoot, "settings.json"), "{}")
 	writeFixture(t, filepath.Join(packageRoot, "hooks", "hooks.json"), "{}")
 	writeFixture(t, filepath.Join(packageRoot, "harness-manifest.json"), `{"binaries":[]}`)
@@ -156,7 +156,7 @@ func TestCoverageEvalsExclusions(t *testing.T) {
 
 func writePackageFixtures(t *testing.T, packageRoot string) {
 	t.Helper()
-	writeFixture(t, filepath.Join(packageRoot, ".claude-plugin", "plugin.json"), `{"name":"dev-harness","license":"MIT","version":"0.1.0"}`)
+	writeFixture(t, filepath.Join(packageRoot, ".claude-plugin", "plugin.json"), `{"name":"dh","license":"MIT","version":"0.1.0"}`)
 	writeFixture(t, filepath.Join(packageRoot, "settings.json"), "{}")
 	writeFixture(t, filepath.Join(packageRoot, "hooks", "hooks.json"), "{}")
 	writeFixture(t, filepath.Join(packageRoot, "harness-manifest.json"), `{"binaries":[]}`)

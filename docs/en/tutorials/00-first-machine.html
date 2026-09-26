@@ -688,7 +688,7 @@ footer.doc-foot {
               <li>Install from the marketplace, without a clone.</li>
               <li>Check the prerequisites and generated package.</li>
               <li>Load from the clone, for development, with <code>--plugin-dir</code>.</li>
-              <li>Run <code>/dev-harness:doctor</code> and <code>bin/dh doctor</code>.</li>
+              <li>Run <code>/dh:doctor</code> and <code>bin/dh doctor</code>.</li>
              <li>Deactivate the plugin.</li>
           </ul>
         </div>
@@ -707,15 +707,15 @@ footer.doc-foot {
       <ol class="steps">
           <li><strong>Obtain.</strong> In the target project, in a Claude Code session, add and install the marketplace:
            <div class="table-wrap"><pre><code>/plugin marketplace add danielmalka/dev-harness
-/plugin install dev-harness@dev-harness</code></pre></div>
+/plugin install dh@dev-harness</code></pre></div>
            The version comes from the tag pinned in <code>.claude-plugin/marketplace.json</code>. For development, clone the repository or extract a release archive into a directory without spaces first. Then, if you want, copy the package to a path with spaces and run the doctor again. Do not use another person’s source-machine path.</li>
           <li><strong>Check prerequisites.</strong> Git, authenticated Claude Code, and access to a model. No interpreter is needed: the package ships the <code>dh</code> binary. Python 3 is required only for the <code>slice-01</code> fixture; Go 1.22+ only for kit maintainers.</li>
           <li><strong>Locate the package.</strong> In the development clone: <code>dist/claude-code/dev-harness</code>. Confirm <code>GENERATED.txt</code> and <code>.claude-plugin/plugin.json</code>. The package also includes <code>settings.json</code>, with <code>subagentStatusLine</code> showing each subagent's name, model, tokens, and state, and <code>hooks/hooks.json</code>, with six hooks writing per-session snapshots to <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, local files only and pruned after 7 days.</li>
           <li><strong>Load.</strong> In the target project (which may be an empty folder or <code>evals/fixtures/slice-01</code>), the marketplace installation is already active. For development, use the clone:
           <div class="table-wrap"><pre><code>claude --plugin-dir "/absolute/path/to/clone/dist/claude-code/dev-harness" --agent coordinator</code></pre></div>
        <div class="callout stop">Inside quotes, <code>~</code> does not expand: <code>"~/projetos/..."</code> does not exist, Claude silently ignores the plugin, and <code>--agent coordinator</code> fails with “not found.” Use <code>$HOME/...</code> or the full path.</div>
-           If the runtime requires the qualified name, use <code>--agent dev-harness:coordinator</code>.</li>
-          <li><strong>Diagnose.</strong> In the session: <code>/dev-harness:doctor</code>. Outside the session, in the clone:
+           If the runtime requires the qualified name, use <code>--agent dh:coordinator</code>.</li>
+          <li><strong>Diagnose.</strong> In the session: <code>/dh:doctor</code>. Outside the session, in the clone:
            <div class="table-wrap"><pre><code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code></pre></div>
             The binary does not install anything. To validate the package, use <code>bin/dh validate</code>. Expected: 19 agents, 17 commands, 21 skills, 4 profiles, 16 templates, <code>status: passed</code>.</li>
          <li><strong>Deactivate.</strong> End the session without <code>--plugin-dir</code>, or remove the project binding. The files in <code>.harness/</code> of the target project, if they exist, remain. The kit does not delete the consumer’s work.</li>
@@ -735,7 +735,7 @@ footer.doc-foot {
             </tr>
             <tr>
                <td>Discovery in Claude</td>
-               <td>The session lists <code>/dev-harness:doctor</code> and the coordinator agent</td>
+               <td>The session lists <code>/dh:doctor</code> and the coordinator agent</td>
                <td>Commands and roles found without the author’s global skills</td>
             </tr>
             <tr>

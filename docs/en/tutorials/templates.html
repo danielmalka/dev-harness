@@ -691,7 +691,7 @@ footer.doc-foot {
 
       <h2 id="prd"><span class="n">02</span>PRD</h2>
        <span class="tag">Product · why and what</span>
-       <p>It answers why to do something and what to deliver, without saying how. A good PRD can be satisfied by three different technical designs. The product owner writes it, with the <code>product-discovery</code> role through <code>/dev-harness:discover</code>. It closes when the requirements and acceptance criteria are approved and the stories have been derived. Template: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+       <p>It answers why to do something and what to deliver, without saying how. A good PRD can be satisfied by three different technical designs. The product owner writes it, with the <code>product-discovery</code> role through <code>/dh:discover</code>. It closes when the requirements and acceptance criteria are approved and the stories have been derived. Template: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
@@ -753,7 +753,7 @@ footer.doc-foot {
           <h3>Out of scope</h3>
           <ul>
              <li>Invented behavior when a decision is open. Stop and report it.</li>
-             <li>More than two unsuccessful correction rounds. Return it to the Coordinator with evidence.</li>
+             <li>More than six unsuccessful correction rounds. Return it to the Coordinator with evidence.</li>
              <li>Closing a bug without reproduction. Leave it inconclusive and state the gap.</li>
             <li>Commit, push, or deploy without explicit authorization.</li>
           </ul>
@@ -808,7 +808,7 @@ footer.doc-foot {
 
       <h2 id="memoria"><span class="n">07</span>Memory: MEMORY, EPOCHAL, and RISKS</h2>
        <span class="tag">State · Coordinator only</span>
-       <p>Three files in the consumer project, initialized by <code>/dev-harness:setup</code> from <code>templates/</code>. None of them closes. <code>MEMORY.md</code> stores the current execution state and is trimmed by <code>/dev-harness:consolidate-memory</code>. <code>EPOCHAL.md</code> receives the complete copy of each previous memory. <code>RISKS.md</code> stores serious incidents and prevention; resolved incidents remain.</p>
+       <p>Three files in the consumer project, initialized by <code>/dh:setup</code> from <code>templates/</code>. None of them closes. <code>MEMORY.md</code> stores the current execution state and is trimmed by <code>/dh:consolidate-memory</code>. <code>EPOCHAL.md</code> receives the complete copy of each previous memory. <code>RISKS.md</code> stores serious incidents and prevention; resolved incidents remain.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
@@ -838,32 +838,32 @@ footer.doc-foot {
          <li><strong>Plan</strong> the planner splits the work; the architect joins if there is a decision that is expensive to reverse and writes the ADR. The Coordinator consults MEMORY and, in a risk area, RISKS.</li>
          <li><strong>Tasks</strong> one per slice, with environment, tests, and acceptance criteria.</li>
          <li><strong>Build</strong> the implementer delivers the slice with checks run.</li>
-         <li><strong>Verify and review</strong> QA and the reviewer assess the stabilized state. Up to two correction rounds; then replan.</li>
+         <li><strong>Verify and review</strong> QA and the reviewer assess the stabilized state. Up to six correction rounds; then replan.</li>
          <li><strong>Release and handoff</strong> readiness without publishing; state that can be carried into the next session.</li>
       </ol>
       <div class="card">
          <h3>Flow diagram</h3>
         <pre class="mermaid">
 flowchart TB
-     ideia([Request or pain]) --> discover["/dev-harness:discover<br/>product-discovery"]
+     ideia([Request or pain]) --> discover["/dh:discover<br/>product-discovery"]
     discover --> prd[/PRD.md/]
      prd --> stories[/STORY.md per requirement/]
-    stories --> understand["/dev-harness:understand<br/>repo-scout"]
-     understand --> plan["/dev-harness:plan<br/>implementation-planner<br/>+ solution-architect if needed"]
+    stories --> understand["/dh:understand<br/>repo-scout"]
+     understand --> plan["/dh:plan<br/>implementation-planner<br/>+ solution-architect if needed"]
      plan --> decisao{Decision expensive<br/>to reverse?}
      decisao -->|yes| adr[/ADR.md/]
      decisao -->|no| tasks
      adr --> tasks[/TASK.md per slice/]
-    tasks --> build["/dev-harness:build<br/>backend-builder / frontend-builder"]
-    build --> verify["/dev-harness:verify<br/>qa-verifier"]
-    build --> review["/dev-harness:review<br/>code-reviewer"]
+    tasks --> build["/dh:build<br/>backend-builder / frontend-builder"]
+    build --> verify["/dh:verify<br/>qa-verifier"]
+    build --> review["/dh:review<br/>code-reviewer"]
      verify --> ok{Acceptance and review<br/>approved?}
     review --> ok
-     ok -->|no, up to 2 rounds| build
-     ok -->|yes| release["/dev-harness:release<br/>release-manager"]
-     release --> handoff["/dev-harness:handoff<br/>Coordinator"]
+     ok -->|no, up to 6 rounds| build
+     ok -->|yes| release["/dh:release<br/>release-manager"]
+     release --> handoff["/dh:handoff<br/>Coordinator"]
 
-     bug([Reported defect]) --> fix["/dev-harness:fix<br/>debugger"]
+     bug([Reported defect]) --> fix["/dh:fix<br/>debugger"]
      fix --> bugtask[/TASK.md bug type/]
     bugtask --> verify
 
@@ -961,14 +961,14 @@ flowchart LR
              <li>Whether to keep or discard the RFC as a first-line template.</li>
              <li>Separate templates for plan, evidence, review, and handoff: a slice uses <code>TASK.md</code>; evidence
                goes in <code>.harness/tasks/&lt;id&gt;/evidence/</code>; handoff is the
-               <code>/dev-harness:handoff</code> command. Stack profiles exist in <code>profiles/</code> (English).</li>
+               <code>/dh:handoff</code> command. Stack profiles exist in <code>profiles/</code> (English).</li>
           </ul>
         </div>
       </div>
 
       <footer class="doc-foot">
          <div>File: <code>docs/tutoriais/templates.html</code> · type <code>catalogo</code></div>
-         <div>Next step: use the templates through <code>/dev-harness:setup</code> in the slice-01 fixture.</div>
+         <div>Next step: use the templates through <code>/dh:setup</code> in the slice-01 fixture.</div>
       </footer>
     </div>
   </div>

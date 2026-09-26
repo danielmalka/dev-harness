@@ -176,7 +176,7 @@ Input: a diff adding an endpoint that returns an invoice by identifier.
 
 ## Related
 
-Roles: security-reviewer, coordinator, backend-builder, data-engineer. Command: `/dev-harness:secure`, and proportional use inside `/dev-harness:build`. Skills: code-review for correctness and regressions, api-contracts when the fix changes an exposed contract, regression-testing to turn a mitigation into a check, data-migrations when the exposure is in the schema.
+Roles: security-reviewer, coordinator, backend-builder, data-engineer. Command: `/dh:secure`, and proportional use inside `/dh:build`. Skills: code-review for correctness and regressions, api-contracts when the fix changes an exposed contract, regression-testing to turn a mitigation into a check, data-migrations when the exposure is in the schema.
 
 ## Proof case
 

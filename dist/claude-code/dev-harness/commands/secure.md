@@ -30,4 +30,4 @@ The `security-review` report: scope and boundaries touched, findings each classi
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:fix` for a demonstrated vulnerability or confirmed exposure, then re-run this command on the new state.
+`/dh:fix` for a demonstrated vulnerability or confirmed exposure, then re-run this command on the new state.

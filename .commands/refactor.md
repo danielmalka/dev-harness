@@ -21,7 +21,7 @@ The named structural problem and the evidence of its cost; without one there is 
 The `safe-refactoring` report: status, problem, behavior boundary split into contracted and incidental, the baseline table of before against after, steps applied with the checks after each, reduction achieved, characterization tests added, evidence that contracted behavior is unchanged, remaining risks and the revert path per step. Record the boundary decision, the baseline evidence and the revert path in `.harness/MEMORY.md`.
 
 ## Limits
-- No contract change and no new feature; this command only moves structure, and a request for new behavior goes to `/dev-harness:plan`.
+- No contract change and no new feature; this command only moves structure, and a request for new behavior goes to `/dh:plan`.
 - Any observable difference between before and after is a defect, not an improvement, however much better the code reads.
 - Each step must be small enough to revert on its own, with checks between steps rather than only at the end.
 - A required failed or not-run check leaves the work partial or blocked, never verified.
@@ -29,4 +29,4 @@ The `safe-refactoring` report: status, problem, behavior boundary split into con
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:verify` for a wider acceptance matrix, or `/dev-harness:build` to resume the feature work the refactor unblocked.
+`/dh:verify` for a wider acceptance matrix, or `/dh:build` to resume the feature work the refactor unblocked.

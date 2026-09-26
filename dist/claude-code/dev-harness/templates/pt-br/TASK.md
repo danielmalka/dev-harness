@@ -88,7 +88,7 @@ Verificação manual / navegador: <fluxo> ou "não se aplica"
 
 - Risco: <o que pode quebrar> · mitigação: <ação>
 - Ao encontrar decisão aberta: parar e reportar; não inventar comportamento.
-- Após 2 rodadas de correção sem sucesso: devolver ao Coordenador com evidência.
+- Após 6 rodadas de correção sem sucesso: devolver ao Coordenador com evidência.
 
 ## 9. Resultado
 
