@@ -1,4 +1,4 @@
-# Example of a consumer .harness/project.yaml produced by /dev-harness:setup.
+# Example of a consumer .harness/project.yaml produced by /dh:setup.
 # Copy is not automatic: setup writes this file only when it is absent and writing is authorized.
 # This example is documentation. It is not a stack profile.
 

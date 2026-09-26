@@ -27,4 +27,4 @@ The `repository-mapping` report: question, scope, file map with symbols and how 
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:plan` when the work is understood, or `/dev-harness:discover` when the behavior itself is still undecided.
+`/dh:plan` when the work is understood, or `/dh:discover` when the behavior itself is still undecided.

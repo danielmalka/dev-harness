@@ -209,7 +209,7 @@ This kit's current cases, old single-file id to new location (10 migrated, 4 add
 | --- | --- |
 | doc-validator-clean | `evals/cases/doc-validator-clean/` |
 | doc-validator-gap | `evals/cases/doc-validator-gap/` |
-| doc-validator-round-cap | `evals/not-run/doc-validator-round-cap/` — the two-round rejection needs a real, non-deterministic first-draft failure; no self-contained prompt can script it |
+| doc-validator-round-cap | `evals/not-run/doc-validator-round-cap/` — the six-round rejection needs a real, non-deterministic first-draft failure; no self-contained prompt can script it |
 | external-clis-attribution | `evals/cases/external-clis-attribution/` |
 | external-clis-merge-blocker | `evals/cases/external-clis-merge-blocker/` |
 | external-clis-missing-binary | `evals/cases/external-clis-missing-binary/` |
@@ -273,7 +273,7 @@ Limitations: one fixture, one runtime, one model. No claim beyond these cases.
 
 ## Related
 
-Roles: harness-maintainer, qa-verifier, coordinator. Command: `/dev-harness:improve`. Skills: harness-authoring, regression-testing, code-review. Directories: `evals/cases/<id>/graders/`, `evals/not-run/`, `evals/fixtures/` (shared fixtures only, `slice-01`), `evals/baselines/`, `evals/results/` (gitignored). CI: `.github/workflows/evals.yml`.
+Roles: harness-maintainer, qa-verifier, coordinator. Command: `/dh:improve`. Skills: harness-authoring, regression-testing, code-review. Directories: `evals/cases/<id>/graders/`, `evals/not-run/`, `evals/fixtures/` (shared fixtures only, `slice-01`), `evals/baselines/`, `evals/results/` (gitignored). CI: `.github/workflows/evals.yml`.
 
 ## Proof case
 

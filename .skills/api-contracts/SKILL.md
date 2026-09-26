@@ -181,7 +181,7 @@ Idempotency is present because the worker retries. Pagination is skipped with a 
 
 ## Related
 
-Roles: api-designer, solution-architect, backend-builder, frontend-builder, qa-verifier. Commands: used inside `/dev-harness:plan`. Skills: architecture-decisions, implementation-planning, incremental-implementation, regression-testing.
+Roles: api-designer, solution-architect, backend-builder, frontend-builder, qa-verifier. Commands: used inside `/dh:plan`. Skills: architecture-decisions, implementation-planning, incremental-implementation, regression-testing.
 
 ## Proof case
 

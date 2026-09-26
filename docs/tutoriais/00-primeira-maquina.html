@@ -688,7 +688,7 @@ footer.doc-foot {
              <li>Instalar pelo marketplace, sem clone.</li>
              <li>Conferir pré-requisitos e o pacote gerado.</li>
              <li>Carregar a partir do clone, para desenvolvimento, com <code>--plugin-dir</code>.</li>
-             <li>Rodar <code>/dev-harness:doctor</code> e <code>bin/dh doctor</code>.</li>
+             <li>Rodar <code>/dh:doctor</code> e <code>bin/dh doctor</code>.</li>
             <li>Desativar o plugin.</li>
           </ul>
         </div>
@@ -707,15 +707,15 @@ footer.doc-foot {
       <ol class="steps">
          <li><strong>Obter.</strong> No projeto alvo, em uma sessão Claude Code, adicione e instale o marketplace:
            <div class="table-wrap"><pre><code>/plugin marketplace add danielmalka/dev-harness
-/plugin install dev-harness@dev-harness</code></pre></div>
+/plugin install dh@dev-harness</code></pre></div>
            A versão vem da tag fixada em <code>.claude-plugin/marketplace.json</code>. Para desenvolvimento, clone ou extraia a release para um diretório sem espaços primeiro. Depois, se quiser, copie o pacote para um caminho com espaços e repita o doctor. Não use um caminho da máquina de origem de outra pessoa.</li>
          <li><strong>Conferir pré-requisitos.</strong> Git, Claude Code autenticado e acesso a um modelo. Nenhum interpretador é necessário: o pacote traz o binário <code>dh</code>. Python 3 só é necessário para a fixture <code>slice-01</code>; Go 1.22+ só para mantenedores do kit.</li>
          <li><strong>Localizar o pacote.</strong> No clone de desenvolvimento: <code>dist/claude-code/dev-harness</code>. Confirme <code>GENERATED.txt</code> e <code>.claude-plugin/plugin.json</code>. O pacote também inclui <code>settings.json</code>, com <code>subagentStatusLine</code> para nome, modelo, tokens e estado de cada subagente, e <code>hooks/hooks.json</code>, com seis hooks que gravam snapshots por sessão em <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, apenas em arquivos locais e podados após 7 dias.</li>
          <li><strong>Carregar.</strong> No projeto alvo (pode ser uma pasta vazia ou <code>evals/fixtures/slice-01</code>), a instalação do marketplace já está pronta. Para desenvolvimento, use o clone:
           <div class="table-wrap"><pre><code>claude --plugin-dir "/caminho/absoluto/do/clone/dist/claude-code/dev-harness" --agent coordinator</code></pre></div>
       <div class="callout stop">Dentro de aspas o <code>~</code> não expande: <code>"~/projetos/..."</code> não existe, o Claude ignora o plugin em silêncio e <code>--agent coordinator</code> falha com “not found”. Use <code>$HOME/...</code> ou o caminho completo.</div>
-          Se o runtime exigir o nome qualificado, use <code>--agent dev-harness:coordinator</code>.</li>
-         <li><strong>Diagnosticar.</strong> Na sessão: <code>/dev-harness:doctor</code>. Fora da sessão, no clone:
+          Se o runtime exigir o nome qualificado, use <code>--agent dh:coordinator</code>.</li>
+         <li><strong>Diagnosticar.</strong> Na sessão: <code>/dh:doctor</code>. Fora da sessão, no clone:
            <div class="table-wrap"><pre><code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code></pre></div>
            O binário não instala nada. Para validar o pacote, use <code>bin/dh validate</code>. Esperado: 19 agentes, 17 comandos, 21 skills, 4 perfis, 16 templates, <code>status: passed</code>.</li>
         <li><strong>Desativar.</strong> Encerre a sessão sem o <code>--plugin-dir</code>, ou remova a vinculação do projeto. Os arquivos em <code>.harness/</code> do projeto alvo, se existirem, permanecem. O kit não apaga trabalho do consumidor.</li>
@@ -735,7 +735,7 @@ footer.doc-foot {
             </tr>
             <tr>
               <td>Descoberta no Claude</td>
-              <td>A sessão lista <code>/dev-harness:doctor</code> e o agente coordinator</td>
+              <td>A sessão lista <code>/dh:doctor</code> e o agente coordinator</td>
               <td>Comandos e papéis encontrados sem skills globais do autor</td>
             </tr>
             <tr>

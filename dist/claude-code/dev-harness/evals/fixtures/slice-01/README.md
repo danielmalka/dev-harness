@@ -17,9 +17,9 @@ The starting tree is intentionally incomplete: `greet("  ")` should raise `Value
 ## Completion
 
 1. Load the kit against this directory (`docs/inicio-rapido.html`).
-2. `/dev-harness:setup` then `/dev-harness:plan` using `BRIEF.md`.
-3. `/dev-harness:build` the single slice, then `/dev-harness:verify` and `/dev-harness:review`.
+2. `/dh:setup` then `/dh:plan` using `BRIEF.md`.
+3. `/dh:build` the single slice, then `/dh:verify` and `/dh:review`.
 4. `python3 -m unittest test_greet.py` matches `expected/unittest.txt`.
-5. `/dev-harness:handoff`.
+5. `/dh:handoff`.
 
 Python 3 is required only by this fixture. The kit itself ships the `dh` binary and needs no interpreter; the fixture stays in Python so a clean machine does not need Node, Go or a browser.

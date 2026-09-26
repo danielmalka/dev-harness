@@ -174,7 +174,7 @@ Compatibility: no identifier changed, trigger narrowed. Proposal: patch version.
 
 ## Related
 
-Roles: harness-maintainer, coordinator, qa-verifier. Command: `/dev-harness:improve`. Skills: harness-evaluation, context-handoff, delivery-readiness. Templates: the `templates/` folder bundled with the kit (`templates/<lang>/MEMORY.md`).
+Roles: harness-maintainer, coordinator, qa-verifier. Command: `/dh:improve`. Skills: harness-evaluation, context-handoff, delivery-readiness. Templates: the `templates/` folder bundled with the kit (`templates/<lang>/MEMORY.md`).
 
 ## Proof case
 

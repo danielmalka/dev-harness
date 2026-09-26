@@ -17,7 +17,7 @@ Review a bounded change against a diff that is not moving, on two independent ax
 
 - A slice of work is finished and stabilized, and the author is not the one who should judge it.
 - Before merging, before handing off, or before preparing a release.
-- After two failed correction rounds the Coordinator reports blocked or partial and replans with the owner; this review may be requested as part of that replan, not as a third automatic round.
+- After six failed correction rounds the Coordinator reports blocked or partial and replans with the owner; this review may be requested as part of that replan, not as a seventh automatic round.
 - When the author must answer findings from a human or automated reviewer.
 
 ## When not to use
@@ -201,7 +201,7 @@ Input: a diff that adds pagination to a list endpoint, with the brief "return at
 
 ## Related
 
-Roles: code-reviewer, coordinator, qa-verifier, backend-builder, frontend-builder. Command: `/dev-harness:review`, used inside `/dev-harness:build` and `/dev-harness:refactor`. Skills: security-review for trust boundaries, regression-testing for turning a finding into a failing test, safe-refactoring when the fix is structural, incremental-implementation for the author applying the fixes.
+Roles: code-reviewer, coordinator, qa-verifier, backend-builder, frontend-builder. Command: `/dh:review`, used inside `/dh:build` and `/dh:refactor`. Skills: security-review for trust boundaries, regression-testing for turning a finding into a failing test, safe-refactoring when the fix is structural, incremental-implementation for the author applying the fixes.
 
 ## Proof case
 

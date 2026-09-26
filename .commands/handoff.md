@@ -28,4 +28,4 @@ The `context-handoff` record: objective and authorization, constraints carried f
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:resume` in the next session, or `/dev-harness:consolidate-memory` when the memory record has grown past what execution needs.
+`/dh:resume` in the next session, or `/dh:consolidate-memory` when the memory record has grown past what execution needs.

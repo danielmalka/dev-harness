@@ -29,4 +29,4 @@ A batch appended to `.harness/EPOCHAL.md`: a clearly delimited, verbatim copy of
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:resume` to continue the remaining authorized work from the trimmed memory.
+`/dh:resume` to continue the remaining authorized work from the trimmed memory.

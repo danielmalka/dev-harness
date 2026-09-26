@@ -23,8 +23,8 @@ The `project-onboarding` diagnosis report: kit inventory (commands, roles, skill
 ## Limits
 - Never install, upgrade or configure anything; report only what was observed.
 - Never report a layer as present without the observed output that shows it; unknown stays unknown.
-- Do not create `.harness/` or any record here; `/dev-harness:setup` owns that.
+- Do not create `.harness/` or any record here; `/dh:setup` owns that.
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:setup` when `.harness/` or the project profile is missing; otherwise the work command for the task at hand.
+`/dh:setup` when `.harness/` or the project profile is missing; otherwise the work command for the task at hand.

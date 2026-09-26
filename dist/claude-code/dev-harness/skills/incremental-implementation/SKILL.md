@@ -50,7 +50,7 @@ This procedure turns one planned slice into code, tests, and evidence, without s
 9. **Verify the surface you changed.** For a user interface, exercise the real flow when a browser is available, including keyboard traversal and at least two widths, and cover loading, error, and empty states when the flow can reach them. Without a browser, mark visual and interaction verification as not-run and say what is pending. For a server interface, exercise the operation end to end against the contract examples.
 10. **Stabilize before handing over.** No half-applied edit, no debug output, no unexplained failing check. QA and review evaluate a stabilized state; handing over a moving target wastes both.
 11. **Report in the fixed shape** below and hand facts, evidence, limitations, and any incident to the Coordinator, who is the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`. Detailed artifacts belong under `.harness/tasks/<id>/` when that path is inside your write set; otherwise return them in the reply to the Coordinator.
-12. **Cap the correction loop.** After two correction rounds that fail to reach a passing state, stop. Return to planning with the evidence of what was tried. A third blind attempt on the same approach is churn, not progress.
+12. **Cap the correction loop.** After six correction rounds that fail to reach a passing state, stop. Return to planning with the evidence of what was tried. A seventh blind attempt on the same approach is churn, not progress.
 
 ## Output format
 
@@ -116,7 +116,7 @@ Slice completion checklist, all of it or the slice is not done.
 | Treating typecheck or build as proof of the feature | Compilable code that does the wrong thing passes both | Behavior test plus exercised flow |
 | Adding options nobody consumes yet | Every unused parameter becomes a maintenance and compatibility obligation | Build for the consumer that exists |
 | Handing an unstable state to QA | Review effort gets spent on a state that no longer exists | Stabilize, then hand over |
-| Looping on the same failing approach | Rounds three and beyond rarely converge; the failure is structural | Stop at two rounds, return to planning with evidence |
+| Looping on the same failing approach | Rounds seven and beyond rarely converge; the failure is structural | Stop at six rounds, return to planning with evidence |
 | Approving your own delivery | The builder cannot be the independent check on the builder | Review and QA are separate roles |
 | Installing a dependency without recorded authorization | A new dependency is a permanent cost decided inside a local task | Use what the project already has; report the need and stop |
 
@@ -154,7 +154,7 @@ The race condition is reported rather than fixed, because the migration lives ou
 
 ## Related
 
-Roles: backend-builder, frontend-builder, coordinator, qa-verifier, code-reviewer. Commands: `/dev-harness:build`. Skills: implementation-planning, api-contracts, regression-testing, ui-verification, code-review, safe-refactoring.
+Roles: backend-builder, frontend-builder, coordinator, qa-verifier, code-reviewer. Commands: `/dh:build`. Skills: implementation-planning, api-contracts, regression-testing, ui-verification, code-review, safe-refactoring.
 
 ## Proof case
 

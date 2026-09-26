@@ -177,7 +177,7 @@ Input: an invite form with the criteria "an invalid address shows an inline erro
 
 ## Related
 
-Roles: frontend-builder, qa-verifier, coordinator, docs-guide. Command: `/dev-harness:verify`, and the verification step inside `/dev-harness:build`. Skills: regression-testing for turning a failed row into an automated check, code-review for the diff behind the surface, api-contracts when the failure is in the data the surface receives, delivery-readiness for what a release needs before the decision.
+Roles: frontend-builder, qa-verifier, coordinator, docs-guide. Command: `/dh:verify`, and the verification step inside `/dh:build`. Skills: regression-testing for turning a failed row into an automated check, code-review for the diff behind the surface, api-contracts when the failure is in the data the surface receives, delivery-readiness for what a release needs before the decision.
 
 ## Proof case
 

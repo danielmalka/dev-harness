@@ -88,7 +88,7 @@ Manual / browser verification: <flow> or "not applicable"
 
 - Risk: <what may break> · mitigation: <action>
 - When encountering an open decision: stop and report; do not invent behavior.
-- After 2 unsuccessful correction rounds: return to the Coordinator with evidence.
+- After 6 unsuccessful correction rounds: return to the Coordinator with evidence.
 
 ## 9. Result
 

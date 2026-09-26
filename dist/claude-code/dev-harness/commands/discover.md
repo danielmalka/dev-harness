@@ -13,7 +13,7 @@ Act as the kit `coordinator` in this session (read the bundled `coordinator` age
 
 ## Routing
 Idea or pain: $ARGUMENTS. Dispatch `product-discovery` with the Agent tool, model `sonnet`, and require it to load the kit skill `requirements-discovery`. Instruct it to search the existing product docs and any prior brief in the project before asking anything, and to raise one blocking question at a time through you.
-Once the PRD is written, dispatch `document-validator`, model `opus`, requiring the kit skill `document-review`, only when `reviewers.document` is absent from `.harness/project.yaml` or contains `claude`; with the PRD path, the discovery notes or the owner's request, and the previous review report when it exists. Entries of the form `cli:...` in `reviewers.document` follow the `external-clis` procedure described in `.agents/coordinator.md` ("External CLI reviewers"); both the Claude dispatch and any `cli:...` entry count against the two-specialist concurrency cap. Persist the report body it returns as `<document>.review.md`; the validator is read-only. On `changes required`, re-dispatch `product-discovery` with only the listed blocking points and validate again. Cap: two correction rounds.
+Once the PRD is written, dispatch `document-validator`, model `opus`, requiring the kit skill `document-review`, only when `reviewers.document` is absent from `.harness/project.yaml` or contains `claude`; with the PRD path, the discovery notes or the owner's request, and the previous review report when it exists. Entries of the form `cli:...` in `reviewers.document` follow the `external-clis` procedure described in `.agents/coordinator.md` ("External CLI reviewers"); both the Claude dispatch and any `cli:...` entry count against the two-specialist concurrency cap. Persist the report body it returns as `<document>.review.md`; the validator is read-only. On `changes required`, re-dispatch `product-discovery` with only the listed blocking points and validate again. Cap: six correction rounds.
 
 ## Prerequisites
 The stated goal in the owner's words. If $ARGUMENTS carries no goal, ask the owner what should become possible that is not possible now, then dispatch. Constraints, deadline and stack that cannot be sourced are recorded as unknown, never invented.
@@ -28,4 +28,4 @@ The `requirements-discovery` brief: problem, users affected, desired behavior, o
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:plan` once acceptance is agreed and the open decisions that block scope are answered.
+`/dh:plan` once acceptance is agreed and the open decisions that block scope are answered.

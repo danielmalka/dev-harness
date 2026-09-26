@@ -8,7 +8,7 @@ Load path documented for v1:
 claude --plugin-dir "/absolute/path/to/clone/dist/claude-code/dev-harness" --agent coordinator
 ```
 
-When the plugin is loaded by name, qualify the agent as `dev-harness:coordinator` if the runtime requires it. Commands appear as `/dev-harness:<name>`.
+When the plugin is loaded by name, qualify the agent as `dh:coordinator` if the runtime requires it. Commands appear as `/dh:<name>`.
 
 Do not present `.agents/`, `.commands/` or `.skills/` as directories Claude discovers by itself.
 
@@ -17,14 +17,14 @@ Do not present `.agents/`, `.commands/` or `.skills/` as directories Claude disc
 | Canonical source | Package path | Runtime discovery |
 | --- | --- | --- |
 | `.agents/<id>.md` | `agents/<id>.md` | Subagent. Frontmatter `name`, `description`, `model`, `tools`, `color`. |
-| `.commands/<id>.md` | `commands/<id>.md` | Slash command `/dev-harness:<id>`. Frontmatter `description`, optional `argument-hint`. |
+| `.commands/<id>.md` | `commands/<id>.md` | Slash command `/dh:<id>`. Frontmatter `description`, optional `argument-hint`. |
 | `.skills/<id>/` | `skills/<id>/` | Skill. `SKILL.md` `name` must equal the folder name. |
 | `templates/` | `templates/` | Not auto-discovered. Referenced by agents, skills and setup. |
 | `profiles/` | `profiles/` | Not auto-discovered. Referenced by project-onboarding. |
-| `cmd/dh`, `internal/` (Go) | `bin/<os>_<arch>/dh` plus `bin/dh` wrapper | Mechanical diagnosis, validation, build and session snapshots. `/dev-harness:doctor` runs `bin/dh doctor` from the plugin directory. |
+| `cmd/dh`, `internal/` (Go) | `bin/<os>_<arch>/dh` plus `bin/dh` wrapper | Mechanical diagnosis, validation, build and session snapshots. `/dh:doctor` runs `bin/dh doctor` from the plugin directory. |
 | `adapters/claude-code/plugin/settings.json` | `settings.json` | `subagentStatusLine` calling `bin/dh snapshot subagents`. |
 | `adapters/claude-code/plugin/hooks/hooks.json` | `hooks/hooks.json` | Session and subagent hooks calling `bin/dh snapshot event`. |
-| generated | `.claude-plugin/plugin.json` | Plugin identity. `name` is `dev-harness`, `license` is `MIT`. |
+| generated | `.claude-plugin/plugin.json` | Plugin identity. `name` is `dh`, `license` is `MIT`. |
 | generated | `harness-manifest.json` | Inventory derived from sources at build time. |
 | generated | `GENERATED.txt` | Marker that this tree is not a source. |
 

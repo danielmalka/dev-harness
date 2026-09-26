@@ -197,7 +197,7 @@ Question: invite delivery crosses from the request path to an external mail prov
 
 ## Related
 
-Roles: solution-architect, coordinator, implementation-planner, api-designer, data-engineer, security-reviewer. Used inside `/dev-harness:plan`. Skills: repository-mapping supplies the affected area, implementation-planning consumes the chosen shape and its contracts, api-contracts for the interface itself, data-migrations when the choice changes stored data, security-review when the decision moves a trust boundary.
+Roles: solution-architect, coordinator, implementation-planner, api-designer, data-engineer, security-reviewer. Used inside `/dh:plan`. Skills: repository-mapping supplies the affected area, implementation-planning consumes the chosen shape and its contracts, api-contracts for the interface itself, data-migrations when the choice changes stored data, security-review when the decision moves a trust boundary.
 
 ## Proof case
 

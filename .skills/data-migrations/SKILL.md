@@ -183,7 +183,7 @@ Phase 6 (release C): stop writing full_name, then drop it.
 
 ## Related
 
-Roles: data-engineer, backend-builder, coordinator, qa-verifier, devops-engineer, release-manager. Commands: used inside `/dev-harness:plan` and `/dev-harness:build`. Skills: architecture-decisions when the shape is a durable decision, api-contracts when the schema change reaches an exposed contract, regression-testing for the checks that protect the invariant, security-review when the data is sensitive, delivery-readiness for the rollout decision.
+Roles: data-engineer, backend-builder, coordinator, qa-verifier, devops-engineer, release-manager. Commands: used inside `/dh:plan` and `/dh:build`. Skills: architecture-decisions when the shape is a durable decision, api-contracts when the schema change reaches an exposed contract, regression-testing for the checks that protect the invariant, security-review when the data is sensitive, delivery-readiness for the rollout decision.
 
 ## Proof case
 

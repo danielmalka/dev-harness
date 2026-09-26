@@ -28,4 +28,4 @@ The `project-onboarding` report with the proposed profile written to `.harness/p
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:understand` to map the first area, or `/dev-harness:discover` when the request is still an idea.
+`/dh:understand` to map the first area, or `/dh:discover` when the request is still an idea.

@@ -29,4 +29,4 @@ The `harness-authoring` asset-change report (case, owning asset, smallest edit, 
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dev-harness:doctor` to confirm the kit still resolves, then re-run the failing case to confirm the fix.
+`/dh:doctor` to confirm the kit still resolves, then re-run the failing case to confirm the fix.

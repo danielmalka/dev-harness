@@ -168,7 +168,7 @@ Input: "people forget to follow up after demos".
 
 ## Related
 
-Roles: product-discovery, coordinator, implementation-planner, qa-verifier. Command: `/dev-harness:discover`. Skills: implementation-planning consumes this brief, architecture-decisions when a constraint here forces a durable choice, regression-testing turns the acceptance items into checks, repository-mapping when a claim about current behavior needs evidence.
+Roles: product-discovery, coordinator, implementation-planner, qa-verifier. Command: `/dh:discover`. Skills: implementation-planning consumes this brief, architecture-decisions when a constraint here forces a durable choice, regression-testing turns the acceptance items into checks, repository-mapping when a claim about current behavior needs evidence.
 
 ## Proof case
 

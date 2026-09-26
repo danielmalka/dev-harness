@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.283",
+  "startedAt": "2026-09-25T22:20:42.935Z",
+  "durationSeconds": 190,
+  "costUsd": 0.40849340000000006,
+  "partial": false,
+  "suite": {
+    "root": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "judgeModel": "sonnet",
+    "caseFilter": "external-clis-only",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "dh",
+        "version": "0.7.2",
+        "path": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "external-clis-only",
+      "dir": "evals/cases/external-clis-only",
+      "source": "mixed",
+      "promptMarkdown": "Load the kit skill code-review and, for the code stage, the kit skill\nexternal-clis. `.harness/project.yaml` for this run carries\n`reviewers: {code: [\"cli:codex/gpt-5.6-sol\"]}` — no `claude` entry.\nReview fixtures/diff.md.\nFor the `cli:codex/gpt-5.6-sol` call, do not invoke a real binary: resolve\nit as if `command -v codex` succeeded, and read its reply from\nfixtures/cli-output-codex-approve.md instead of running the CLI. Return your own Dispatches section, logging every reviewer of the\nstage, followed by the merged report.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 600,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "01-claude-left-undispatched",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "min": 0,
+            "max": 0,
+            "arm": "both"
+          }
+        },
+        {
+          "name": "02-dispatches-names-only-codex",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "## Dispatches[\\s\\S]{0,800}cli:codex/gpt-5\\.6-sol",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "03-no-real-binary-invoked",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "trace",
+            "pattern": "cli-output-codex-approve\\.md",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "04-merged-solely-from-cli",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "Review status:[ ]*approve",
+            "flags": "mi",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "05-no-fallback-or-error",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Did the run avoid treating the absence of a claude entry as an error, and avoid falling back to a Claude-only flow?",
+          "config": {
+            "criteria": "Did the run avoid treating the absence of a claude entry as an error, and avoid falling back to a Claude-only flow?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "06-no-claude-entry-logged",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Is the Dispatches section free of any `claude` reviewer entry for this stage — no row and no bullet presenting `claude` as a reviewer that ran? Prose explaining that the stage's list names no `claude` entry, so none was dispatched, is not an entry and does not count against this.\n\nJudged rather than matched: the criterion is about what the log presents, and\nthe Dispatches format is prose (a bullet list in `.agents/coordinator.md`'s\nOutput format, a table in some runs), so a pattern anchored to either shape\npasses vacuously on the other. The hard guarantee that no Claude reviewer ran\nis mechanical and lives in `01-claude-left-undispatched` (`Agent` called 0\ntimes); this criterion covers the separate failure of logging a reviewer that\nwas never dispatched.",
+          "config": {
+            "criteria": "Is the Dispatches section free of any `claude` reviewer entry for this stage — no row and no bullet presenting `claude` as a reviewer that ran? Prose explaining that the stage's list names no `claude` entry, so none was dispatched, is not an entry and does not count against this.\n\nJudged rather than matched: the criterion is about what the log presents, and\nthe Dispatches format is prose (a bullet list in `.agents/coordinator.md`'s\nOutput format, a table in some runs), so a pattern anchored to either shape\npasses vacuously on the other. The hard guarantee that no Claude reviewer ran\nis mechanical and lives in `01-claude-left-undispatched` (`Agent` called 0\ntimes); this criterion covers the separate failure of logging a reviewer that\nwas never dispatched.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 11,
+            "costUsd": 0.40849340000000006,
+            "judgeCostUsd": 0.030155999999999995,
+            "durationSeconds": 189,
+            "startedAt": "2026-09-25T22:20:43.176Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-1Rf2Ed/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-claude-left-undispatched",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Agent called 0x (expected 0..0)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "02-dispatches-names-only-codex",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ## Dispatches[\\s\\S]{0,800}cli:codex/gpt-5\\.6-sol",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "03-no-real-binary-invoked",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched cli-output-codex-approve\\.md",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "04-merged-solely-from-cli",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched Review status:[ ]*approve",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "05-no-fallback-or-error",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**Restating the demand:** run the `code` review stage for `fixtures/diff.md` using only the CLI reviewer `cli:codex/gpt-5.6-sol` configured in `.harness/project.yaml` (no `claude` entry), with that call simulated rather than executed — binary resolution treated as successful and its reply read from `fixtures/cli-output-codex-approve.md` — then return the Dispatches log and the merged report.\n\nNote: no `.harness/` directory exists in this checkout (confirmed via glob) — I'm using the `reviewers:` config given directly in your message rather than a file on disk, per your instruction.\n\n## Dispatches\n\n| Reviewer | Role | Scope (read-only) | Model/binary fields | Timeout | Notes |\n|---|---|---|---|---|---|\n| `cli:codex/gpt-5.6-sol` | code-reviewer (stage: `code`) | `internal/service/retry.go`, `main..fix/retry-backoff`, via `fixtures/diff.md` | Resolved binary: `codex` (simulated `command -v codex` success, per your instruction — not a real invocation). Slug: `gpt-5.6-sol` | 15 min default (no `timeout_minutes` given) | Reply read from `fixtures/cli-output-codex-approve.md` instead of a live call. Workspace freeze/compare (`git status --porcelain -uall` + `git hash-object`) was **not performed** — no shell tool is available in this session, and since no process actually ran, there is no live-write risk to check. This is a genuine gap in the audit trail, not a \"clean\" result — flagged below. |\n\nNo `claude` entry is listed for `code`, so no Claude code-reviewer was dispatched; the merged report below rests on this single CLI verdict.\n\nThe reply contains, verbatim, `- Review status: approve` under `## Verdict` — a well-formed match of the stage's verdict signal, not a transport failure.\n\n## Merged report — stage `code`\n\n```\n## Review\n- Scope: internal/service/retry.go\n- Comparison: main..fix/retry-backoff\n- Requirement source: none available\n- Correctness: traced by cli:codex/gpt-5.6-sol (\"correctness complete\" per its own summary)\n- Regression: traced by cli:codex/gpt-5.6-sol (same claim)\n- Spec compliance: not covered — no requirement source\n- Security surface: not applicable — no trust boundary touched (retry/backoff loop only)\n\n## Correctness and regressions\n### Major\n- [internal/service/retry.go:13-24] Reported clean by cli:codex/gpt-5.6-sol (\"No issues found on this axis\"), but a coordinator trace of the diff shows a likely regression the reviewer missed:\n  - Old code: loop runs unbounded, checks `attempt >= maxAttempts` *after* calling `fn()`; on the final failing attempt it returns `lastErr` immediately, with no `time.Sleep` — total calls to `fn` = maxAttempts+1, total sleeps = maxAttempts.\n  - New code: loop bound moves to the `for` condition (`attempt < maxAttempts`); every failed call now sleeps unconditionally, including the last one, before the loop exits and `return lastErr` runs — total calls to `fn` = maxAttempts (one fewer than before), total sleeps = maxAttempts (one more than useful, since the last sleep precedes a return with no further retry).\n  - Scenario: `fn` fails on every attempt.\n  - Impact: (a) one fewer real retry attempt than before (maxAttempts+1 → maxAttempts calls), (b) the caller now waits one full `backoff(maxAttempts-1)` interval on the failure path for no benefit, since no further attempt follows that sleep.\n  - Recommendation: only sleep when another attempt will follow (e.g. `if attempt+1 < maxAttempts { time.Sleep(...) }`), and confirm whether reducing total attempts from maxAttempts+1 to maxAttempts is intended.\n  - Reported by: claude (coordinator spot-check, not confirmed by the dispatched CLI reviewer)\n- Note: the diff's own description (\"...the trailing time.Sleep... no longer runs before the function returns on the last attempt\") asserts the opposite of what the trace above shows. Per code-review's own rule, a diff's prose is evidence, never a substitute for tracing the code — treated accordingly here.\n\n## Spec compliance\nNo spec available. Axis not run.\n\n## Checks observed\n- go test ./... - not-run (reported by cli:codex/gpt-5.6-sol, `codex exec -s read-only` sandbox)\n\n## Verdict\n- Review status: approve  (as reported verbatim by cli:codex/gpt-5.6-sol)\n- Blocking findings (per dispatched reviewer): 0\n- Ready from this review: no — see Coordinator note below\n```\n\n**Coordinator note (not part of the CLI reviewer's own output, kept separate per the rule against silently substituting a suspicion into a reviewer's finding):**\n\n1. **Skill-rule inconsistency.** `code-review`'s own Inputs table states that when the requirement source is missing, the reviewer must \"mark the review incomplete, not approved.\" The dispatched reviewer's prompt included this rule, yet its own reply reports `Requirement source: none available` and still returns `Review status: approve`. That is a compliance deviation on the reviewer's part, not a transport failure (the signal line itself is well-formed), so it isn't discarded — but it should not be read as a clean pass either.\n2. **Spot-check disagreement.** Tracing the diff myself (see the Major finding above) surfaces a plausible behavior regression that the sole reviewer's correctness axis reported as clean. With only one reviewer configured for this stage, there is no second opinion to corroborate or refute either the \"approve\" verdict or my own trace.\n3. **Audit-trail gap.** The pre/post-call workspace freeze comparison required by `external-clis` step 7 was not performed, since this was a simulated call with no shell tool available. There is no evidence of tree mutation, but there is also no verified confirmation of \"clean.\"\n\n**Overall status: not verified.** I'm not treating this stage as approved on the strength of the sole CLI verdict alone. Recommend one of:\n- Get an explicit owner disposition to accept the CLI's `approve` as-is (a documented risk acceptance, given point 1), or\n- Have the regression in the Major finding above confirmed or refuted — by re-tracing, by a second reviewer, or by you — before this diff is treated as ready."
+              },
+              {
+                "name": "06-no-claude-entry-logged",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**Restating the demand:** run the `code` review stage for `fixtures/diff.md` using only the CLI reviewer `cli:codex/gpt-5.6-sol` configured in `.harness/project.yaml` (no `claude` entry), with that call simulated rather than executed — binary resolution treated as successful and its reply read from `fixtures/cli-output-codex-approve.md` — then return the Dispatches log and the merged report.\n\nNote: no `.harness/` directory exists in this checkout (confirmed via glob) — I'm using the `reviewers:` config given directly in your message rather than a file on disk, per your instruction.\n\n## Dispatches\n\n| Reviewer | Role | Scope (read-only) | Model/binary fields | Timeout | Notes |\n|---|---|---|---|---|---|\n| `cli:codex/gpt-5.6-sol` | code-reviewer (stage: `code`) | `internal/service/retry.go`, `main..fix/retry-backoff`, via `fixtures/diff.md` | Resolved binary: `codex` (simulated `command -v codex` success, per your instruction — not a real invocation). Slug: `gpt-5.6-sol` | 15 min default (no `timeout_minutes` given) | Reply read from `fixtures/cli-output-codex-approve.md` instead of a live call. Workspace freeze/compare (`git status --porcelain -uall` + `git hash-object`) was **not performed** — no shell tool is available in this session, and since no process actually ran, there is no live-write risk to check. This is a genuine gap in the audit trail, not a \"clean\" result — flagged below. |\n\nNo `claude` entry is listed for `code`, so no Claude code-reviewer was dispatched; the merged report below rests on this single CLI verdict.\n\nThe reply contains, verbatim, `- Review status: approve` under `## Verdict` — a well-formed match of the stage's verdict signal, not a transport failure.\n\n## Merged report — stage `code`\n\n```\n## Review\n- Scope: internal/service/retry.go\n- Comparison: main..fix/retry-backoff\n- Requirement source: none available\n- Correctness: traced by cli:codex/gpt-5.6-sol (\"correctness complete\" per its own summary)\n- Regression: traced by cli:codex/gpt-5.6-sol (same claim)\n- Spec compliance: not covered — no requirement source\n- Security surface: not applicable — no trust boundary touched (retry/backoff loop only)\n\n## Correctness and regressions\n### Major\n- [internal/service/retry.go:13-24] Reported clean by cli:codex/gpt-5.6-sol (\"No issues found on this axis\"), but a coordinator trace of the diff shows a likely regression the reviewer missed:\n  - Old code: loop runs unbounded, checks `attempt >= maxAttempts` *after* calling `fn()`; on the final failing attempt it returns `lastErr` immediately, with no `time.Sleep` — total calls to `fn` = maxAttempts+1, total sleeps = maxAttempts.\n  - New code: loop bound moves to the `for` condition (`attempt < maxAttempts`); every failed call now sleeps unconditionally, including the last one, before the loop exits and `return lastErr` runs — total calls to `fn` = maxAttempts (one fewer than before), total sleeps = maxAttempts (one more than useful, since the last sleep precedes a return with no further retry).\n  - Scenario: `fn` fails on every attempt.\n  - Impact: (a) one fewer real retry attempt than before (maxAttempts+1 → maxAttempts calls), (b) the caller now waits one full `backoff(maxAttempts-1)` interval on the failure path for no benefit, since no further attempt follows that sleep.\n  - Recommendation: only sleep when another attempt will follow (e.g. `if attempt+1 < maxAttempts { time.Sleep(...) }`), and confirm whether reducing total attempts from maxAttempts+1 to maxAttempts is intended.\n  - Reported by: claude (coordinator spot-check, not confirmed by the dispatched CLI reviewer)\n- Note: the diff's own description (\"...the trailing time.Sleep... no longer runs before the function returns on the last attempt\") asserts the opposite of what the trace above shows. Per code-review's own rule, a diff's prose is evidence, never a substitute for tracing the code — treated accordingly here.\n\n## Spec compliance\nNo spec available. Axis not run.\n\n## Checks observed\n- go test ./... - not-run (reported by cli:codex/gpt-5.6-sol, `codex exec -s read-only` sandbox)\n\n## Verdict\n- Review status: approve  (as reported verbatim by cli:codex/gpt-5.6-sol)\n- Blocking findings (per dispatched reviewer): 0\n- Ready from this review: no — see Coordinator note below\n```\n\n**Coordinator note (not part of the CLI reviewer's own output, kept separate per the rule against silently substituting a suspicion into a reviewer's finding):**\n\n1. **Skill-rule inconsistency.** `code-review`'s own Inputs table states that when the requirement source is missing, the reviewer must \"mark the review incomplete, not approved.\" The dispatched reviewer's prompt included this rule, yet its own reply reports `Requirement source: none available` and still returns `Review status: approve`. That is a compliance deviation on the reviewer's part, not a transport failure (the signal line itself is well-formed), so it isn't discarded — but it should not be read as a clean pass either.\n2. **Spot-check disagreement.** Tracing the diff myself (see the Major finding above) surfaces a plausible behavior regression that the sole reviewer's correctness axis reported as clean. With only one reviewer configured for this stage, there is no second opinion to corroborate or refute either the \"approve\" verdict or my own trace.\n3. **Audit-trail gap.** The pre/post-call workspace freeze comparison required by `external-clis` step 7 was not performed, since this was a simulated call with no shell tool available. There is no evidence of tree mutation, but there is also no verified confirmation of \"clean.\"\n\n**Overall status: not verified.** I'm not treating this stage as approved on the strength of the sole CLI verdict alone. Recommend one of:\n- Get an explicit owner disposition to accept the CLI's `approve` as-is (a documented risk acceptance, given point 1), or\n- Have the regression in the Major finding above confirmed or refuted — by re-tracing, by a second reviewer, or by you — before this diff is treated as ready."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

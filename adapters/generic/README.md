@@ -15,7 +15,7 @@ How to use this kit with an AI runtime that is not Claude Code. There is no nati
 
 ## What does not transfer
 
-- `/dev-harness:*` command names.
+- `/dh:*` command names.
 - `--plugin-dir` and `plugin.json`.
 - Claude `model` families as a guarantee of which model will run.
 - The Agent tool. Sequential specialist turns replace parallel dispatch. Keep the Coordinator as the only writer of MEMORY, EPOCHAL and RISKS.

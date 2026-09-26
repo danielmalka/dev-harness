@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.8.0 — 2026-09-25
+
+- **Teto de correção do kit inteiro sobe de duas para seis rodadas** (`.agents/coordinator.md`; comandos `/dh:discover`, `/dh:document`, `/dh:plan`, `/dh:build`; skills `code-review`, `document-review`, `implementation-planning`, `incremental-implementation`, `regression-testing`, `systematic-debugging`, `harness-evaluation`; `templates/en/TASK.md` e `templates/pt-br/TASK.md`): toda citação normativa do teto de correção passa de duas para seis rodadas. O teto de dois especialistas em paralelo e os autolaços de três rodadas (o próprio código de teste do QA, as próprias tentativas de correção do debugger) não mudam — são tetos distintos, sem relação com o de correção.
+- **Regra de documentação dentro do PR**, codificada em `.agents/coordinator.md`, `.skills/delivery-readiness/SKILL.md`, `.commands/release.md` e `.commands/document.md`: um PR de entrega abre com o PRD ou o brief, as decisões e qualquer ADR, e fecha com a documentação do projeto em dia; nunca um PR só de documentação; o Coordenador despacha `docs-guide` no fim de todo lote.
+- **Prefixo de comando renomeado de `dev-harness` para `dh`**: os comandos passam a `/dh:<comando>` (eram `/dev-harness:<comando>`), o qualificador de agente vira `dh:coordinator`, o id de instalação vira `dh@dev-harness`. Nome do marketplace (`dev-harness`), repositório, binário Go `dh` e caminho de snapshot (`~/.claude/dev-harness/sessions/`) não mudam.
+- **Regra de mescla do Coordenador esclarecida**: achados equivalentes reportados por vários revisores formam uma única entrada, com todo relator atribuído — duas entradas para o mesmo local é erro de mescla, não achado novo.
+- **Grader `external-clis-risk-001/02` vira checagem determinística** (era julgado por LLM e lia mal cerca de código aninhada). Lacuna residual documentada: uma cláusula citada fora do prompt, seguida mais tarde de qualquer linha de cerca solta, ainda passaria.
+
+**Migração:** `/plugin uninstall dev-harness@dev-harness` (ou o equivalente do runtime), depois `/plugin install dh@dev-harness`; troque `/dev-harness:` por `/dh:` em scripts e anotações; `--agent dh:coordinator`. Marketplace, repositório, binário `dh` e caminho de snapshot ficam como estavam.
+
+**Medição ao vivo** (local, `claude plugin eval`, modelo e juiz sonnet, 2026-09-25):
+- `coordinator-explore-then-ask` (6 execuções): grader 06 (reafirma a demanda primeiro) 5/6, grader 07 (sem "posso prosseguir?" de enchimento) 5/6 — as duas barras (≥ 5/6) atingidas; grader 03 (uma pergunta bloqueante) segue em 1/6, item conhecido em aberto, fora de escopo deste lote.
+- `external-clis-only`: 1 execução, 6/6.
+- `external-clis-attribution`: a 1ª execução reprovou os graders 02/03 (entrada duplicada); depois do esclarecimento da regra de mescla acima, 3 execuções novas fecham em 5/5 cada.
+- `external-clis-risk-001`: 1ª execução mais 3 execuções, todas ainda sob o grader 02 antigo (julgado por LLM) — o conserto do grader veio depois, não entre elas; grader 01 (cláusula byte a byte) 4/4 nas quatro; o grader 02 antigo passou em só 1 das 4, por ler mal cerca de código aninhada nas outras três; grader 03 fica em 2/3 nas 3 execuções novas. Depois, o grader 02 vira checagem determinística (regex), conferida offline sem execução paga nova: bate nas 13 réplicas reais salvas da 0.7.0 à 0.8.0, incluindo as 3 execuções novas, e rejeita os 2 negativos sintéticos. RISK-001 segue "mitigado".
+- **Gasto do lote: US$ 10,71**, dentro do teto de US$ 15 (elevado de US$ 10 pelo dono).
+- **CI dos evals segue sem `ANTHROPIC_API_KEY`** — decisão do dono, por custo; o job continua pulando por desenho, as avaliações rodam localmente antes do merge.
+- Código Go: `internal/build/build.go` (constante de versão `0.8.0`; `CommandPrefix` `/dh:`; `name` `dh` no `plugin.json` gerado); `internal/kit/validate.go` (`checkPlugin` passa a exigir `name == "dh"`); `.claude-plugin/marketplace.json` (`plugins[0].name` `dh`, `version` `0.8.0`, `source.ref` `v0.8.0`).
+
 ## 0.7.2 — 2026-09-25
 
 - **Grader 07 de `coordinator-explore-then-ask` (`.../graders/07-no-filler-may-i-proceed.md`) e a frase de fechamento do Intake do Coordenador (`.agents/coordinator.md`) recalibrados na mesma regra:** um fechamento que nomeia o próximo passo concreto depois da decisão do dono deixa de contar como enchimento — as duas frases ganham o mesmo exemplo, "I'll turn this into an implementation plan". O rejulgamento offline (T-501) precisou de uma correção de texto na rodada 0: duas réplicas 0.7.0 (execuções 3 e 4) discordaram sobre se esse tipo de fechamento nomeava um passo concreto; a rodada 1, já com o exemplo acrescentado, bateu nas 13 réplicas (12 salvas + 1 negativo sintético). Sob o grader corrigido, as réplicas já salvas pontuam 0.7.0 em 6/6 e 0.7.1 em 5/6 (`evals/baselines/2026-09-25-grader07-offline-rejudge.md`).

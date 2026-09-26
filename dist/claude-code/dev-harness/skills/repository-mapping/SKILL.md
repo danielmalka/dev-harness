@@ -164,7 +164,7 @@ Question: where does an expired invite get rejected?
 
 ## Related
 
-Roles: repo-scout, coordinator, implementation-planner, debugger. Command: `/dev-harness:understand`. Skills: project-onboarding when the environment itself is unknown, implementation-planning consumes this map, systematic-debugging narrows the same slice around a failure, architecture-decisions when the map shows the boundary is the real problem.
+Roles: repo-scout, coordinator, implementation-planner, debugger. Command: `/dh:understand`. Skills: project-onboarding when the environment itself is unknown, implementation-planning consumes this map, systematic-debugging narrows the same slice around a failure, architecture-decisions when the map shows the boundary is the real problem.
 
 ## Proof case
 

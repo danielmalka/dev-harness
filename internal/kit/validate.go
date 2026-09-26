@@ -587,8 +587,8 @@ func checkPlugin(packageRoot string, errors *[]string) map[string]any {
 		*errors = append(*errors, fmt.Sprintf("%s: invalid JSON: %v", path, err))
 		return nil
 	}
-	if data["name"] != "dev-harness" {
-		*errors = append(*errors, "plugin.json name must be dev-harness")
+	if data["name"] != "dh" {
+		*errors = append(*errors, "plugin.json name must be dh")
 	}
 	if data["license"] != "MIT" {
 		*errors = append(*errors, "plugin.json license must be MIT")

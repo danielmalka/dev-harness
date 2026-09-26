@@ -174,7 +174,7 @@ Input: main-session Coordinator loads the kit in a small service repository, mod
 
 ## Related
 
-Roles: coordinator, repo-scout (may contribute only the kit-inventory portion, steps 1-2; environment probes and any write require a role with shell and an authorized write set), devops-engineer. Commands: `/dev-harness:doctor`, `/dev-harness:setup`. Skills: repository-mapping for the code layout once the environment is known, context-handoff for carrying the diagnosis into another session, delivery-readiness when the same gaps decide whether a release can be prepared.
+Roles: coordinator, repo-scout (may contribute only the kit-inventory portion, steps 1-2; environment probes and any write require a role with shell and an authorized write set), devops-engineer. Commands: `/dh:doctor`, `/dh:setup`. Skills: repository-mapping for the code layout once the environment is known, context-handoff for carrying the diagnosis into another session, delivery-readiness when the same gaps decide whether a release can be prepared.
 
 ## Proof case
 
