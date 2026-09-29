@@ -1,5 +1,75 @@
 # Changelog
 
+## 0.10.0 — 2026-09-28
+
+- **Comando `/dh:plan-loop`** (`.commands/plan-loop.md`, PRD-005): loop em waves entre o `implementation-planner`
+  (Claude) e uma rotação de CLIs externas despachadas, pela primeira vez, como planejadoras — não só como
+  revisoras. Checagem de disponibilidade e rotação: dos binários de `reviewers.document`, excluídos `claude` e todo
+  `cli:claude/<slug>` (enquanto o kit rodar sobre o Claude Code, AA1), sobram só os com modo somente-leitura
+  documentado **e** medido (hoje só `codex`; `mcode` pendente de medição; `grok`, `agy` e `opencode` nunca
+  planejam); a rotação percorre essa lista em ordem, uma vez por wave. Julgamento de wave: o painel **completo** de
+  `reviewers.document`, exceção explícita ao padrão de um revisor só da revisão enxuta. Parada nesta ordem, a
+  primeira que valer: convergência (todo revisor que rodou aprova sem achado bloqueante, com pelo menos um voto
+  elegível — fora de `claude`/`cli:claude/<slug>` e do autor do candidato vencedor) → teto de waves (padrão 6,
+  `plan_loop.wave_cap`) → teto de despachos (padrão 48, `plan_loop.dispatch_cap`). No teto sem convergência, a
+  entrega exclui primeiro qualquer candidato com conflito de candidato não confiável em aberto, depois escolhe por
+  menos achados bloqueantes → menos achados totais → wave mais recente. Sem CLI elegível (k = 0), o comando cai
+  inline no `/dh:plan` de hoje, sem `wave-N/`. Persistência por wave em `.harness/tasks/<id>/wave-N/`; ao final, o
+  vencedor recebe `PLAN.md`/`TASK.md`/`PLAN.review.md`/`LOOP-REPORT.md` como o `/dh:plan` já grava.
+- **Reconciliação com a revisão enxuta**, em duas frases explícitas no texto do comando e do Coordenador: o
+  fallback sem CLI usa o teto de correção real de hoje do `/dh:plan` (duas rodadas), não o número literal do PRD; e
+  o julgamento de wave é uma exceção explícita ao padrão de um revisor só da revisão enxuta — o painel completo
+  sempre roda em cada wave.
+- **Contrato de CLI planejadora** (T-801): `.agents/coordinator.md` ("External CLI planners") e
+  `.skills/external-clis/SKILL.md` ("The planning call"): só um binário com modo somente-leitura documentado **e**
+  medido planeja (hoje só `codex`; `mcode` pendente); a resposta da CLI é dado não confiável (embrulhada, nunca
+  executada; diretivas e `Checks:` fora da allowlist são conflito); a allowlist de `Checks:` é o valor `commands:`
+  byte a byte de `.harness/project.yaml`; o congelamento do passo 7 passa a comparar bytes também de `.harness/`,
+  `.git/hooks/` e `.git/config` e de `.claude/settings*.json`, com reversão por bytes, `git checkout` só para
+  arquivo rastreado limpo, nunca seguindo symlink. ADR-002 (`docs/adr/ADR-002-cli-planejadora.md`), com a emenda de
+  28/09/2026.
+- **Risco aceito pelo dono, RISK-002**: CLI sem flag de somente-leitura (`grok`) continua como revisora na árvore
+  viva; o conserto planejado é um lote de isolamento por `git worktree` descartável, previsto como o próximo lote
+  depois deste.
+- **Medição paga.** `plan-loop-no-cli-fallback`: 6/6
+  (`evals/baselines/2026-09-28-plan-loop-no-cli-fallback.md`). `external-clis-distinct-findings`: 5/5
+  (`evals/baselines/2026-09-28-external-clis-distinct-findings.md`). Medição adiada da 0.9.0, fechada neste lote
+  (`evals/baselines/2026-09-28-auto-cases-0.9.0.md`): `auto-hard-stop-recorded-state` 6/6;
+  `auto-questionnaire-before-action` 4/5 na rodada final, grader 01 em variância de juiz (2-1), leitura manual do
+  Coordenador confirma o conteúdo correto — corrigido para determinístico neste mesmo lote (item (i) abaixo).
+  Reexecuções adiadas de `external-clis-*`
+  (`evals/baselines/2026-09-28-external-clis-reruns-0.10.0.md`): `external-clis-document-merge-blocker` e
+  `external-clis-parallel` passam em cheio; `external-clis-document-only` reprova um grader por um comportamento
+  pré-existente do Coordenador — um parágrafo de "meu spot-check" ao lado do veredito único da CLI, já presente na
+  0.8.0 e não introduzido por este lote — registrado como débito (esclarecer a regra de spot-check para veredito de
+  revisor único), não corrigido aqui.
+- **Débitos pequenos fechados (T-804)**: (a) fixture `evals/not-run/external-clis-risk-001-grader-02-known-gap/`
+  documentando, sem rodar, a lacuna já conhecida do grader 02 de `external-clis-risk-001`; (b) caso de eval novo
+  `evals/cases/external-clis-distinct-findings/` provando que dois achados de dois revisores em locais realmente
+  diferentes ficam como duas entradas; (c) `.skills/delivery-readiness/SKILL.md`: rótulo vazio
+  `- Planned but not implemented:` ganha o mesmo formato `<valor> | motivo` dos vizinhos; (e)
+  `.skills/harness-evaluation/SKILL.md`: a chave `match:` do frontmatter de grader documentada; (f)
+  `evals/cases/external-clis-risk-001/graders/01-clause-verbatim-byte-identical.md`: citação de linha do comentário
+  corrigida de "72-83" para "74-84" (o trecho mudou de lugar depois das edições deste lote na skill). Também fechados no mesmo lote, fora desta lista: (h) `.commands/resume.md`
+  ganha o terceiro caso do Prerequisites — `AUTO-<n>/BRIEF.md` existe mas sem linha `Stage:` — sem reescrever as
+  duas frases já existentes; (i) o grader 01 de `auto-questionnaire-before-action` convertido de julgamento por LLM
+  para `type: regex`, mais cinco graders irmãos novos, um por item do questionário.
+- **Contagem de comandos** de 18 para 19 nas linhas ancoradas do roadmap e do tutorial de primeira máquina, e na
+  prosa vizinha que ainda dizia 18.
+- **Operacional**: `.harness/project.yaml` ganhou `commands.validate`/`commands.validate_sources` (local, não
+  versionado) — declare os comandos de checagem sob `commands:` para alimentar a allowlist de `Checks:` de uma CLI
+  planejadora ou revisora.
+- Código-fonte do kit tocado: `.commands/plan-loop.md` (novo); `.agents/coordinator.md`;
+  `.skills/external-clis/SKILL.md`; `.skills/implementation-planning/SKILL.md`; `.skills/delivery-readiness/SKILL.md`;
+  `.skills/harness-evaluation/SKILL.md`; `evals/cases/plan-loop-no-cli-fallback/` (novo);
+  `evals/cases/external-clis-distinct-findings/` (novo);
+  `evals/not-run/external-clis-risk-001-grader-02-known-gap/` (novo);
+  `evals/cases/external-clis-risk-001/graders/01-clause-verbatim-byte-identical.md`; `.commands/resume.md`;
+  `evals/cases/auto-questionnaire-before-action/graders/` (grader 01 convertido, cinco novos); `docs/adr/ADR-002-cli-planejadora.md`
+  (novo); `.claude-plugin/marketplace.json` (`metadata.description` com 19 comandos de trabalho — os campos de
+  versão ficam para a próxima release). Versão do binário Go e `marketplace.json`/`plugin.json` (`version`,
+  `source.ref`) ficam pendentes desta mesma tag, fora do escopo deste fechamento de documentação.
+
 ## 0.9.0 — 2026-09-26
 
 - **Comando `/dh:auto`** (`.commands/auto.md`): um comando encadeia discover, plan e build, com `secure` por fatia, uma revisão do lote e o release inline. A entrada é uma ideia, um PRD com status aprovado, ou um `PLAN.md` cuja última rodada de `PLAN.review.md` é `approved`. O questionário, uma vez, tem sete itens: etapa inicial, modo de decisão, commit+push, pull request, merge, tag e teto de eval em US$. A v1 usa uma branch só para o lote. Branch por slice fica adiado (AC-24, AC-40, AC-41, AC-47, AC-48, AC-51).

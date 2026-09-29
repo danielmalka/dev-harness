@@ -45,5 +45,4 @@ Refresh slugs on this machine: `agy models`; record the result in
 Require a `VERDICT:` / `INDEPENDENCE:` / `FINDINGS:` / `SCENARIO CHECK:`
 block. Help text or a missing `VERDICT` is a transport failure — it does
 not spend a review round. `agy` has no documented read-only flag; the
-guarantee that it did not edit the workspace comes from the post-call
-`git status` check the parent skill describes (SKILL.md step 7).
+guarantee that it did not edit the workspace comes from the post-call step-7 comparison (path list, per-path hashes and byte snapshot) the parent skill describes (SKILL.md step 7).

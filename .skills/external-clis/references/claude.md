@@ -37,5 +37,5 @@ kit's own review skills; inside the kit, the stage's own verdict signal
 (SKILL.md, "Transport failure vs. a real verdict") is what the Coordinator
 reads. A long run that never emits either is a transport failure. `claude`
 has no documented read-only flag as a CLI process; the guarantee that it
-did not edit the workspace comes from the post-call `git status` check
+did not edit the workspace comes from the post-call step-7 comparison (path list, per-path hashes and byte snapshot)
 the parent skill describes (SKILL.md step 7).

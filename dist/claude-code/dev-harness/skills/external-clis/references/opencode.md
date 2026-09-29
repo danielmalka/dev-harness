@@ -50,7 +50,7 @@ agent, not an in-process subagent (`task` inside opencode) — the
 anti-delegation clause still applies to what that primary agent may do.
 
 `opencode` has no documented read-only flag; the guarantee that it did
-not edit the workspace comes from the post-call `git status` check the
+not edit the workspace comes from the post-call step-7 comparison (path list, per-path hashes and byte snapshot) the
 parent skill describes (SKILL.md step 7).
 
 **Do not run two `opencode run` calls concurrently.** Two simultaneous
