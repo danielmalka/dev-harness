@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-09-25</b></span>
-          <span class="chip">status <b>0.9.0 · vivo</b></span>
+           <span class="chip">data <b>2026-09-29</b></span>
+          <span class="chip">status <b>0.11.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -675,15 +675,15 @@ footer.doc-foot {
   .agents/                19 papéis — fonte canônica
   .skills/                21 skills — fonte canônica
   .commands/              19 comandos — fonte canônica
-  templates/{en,pt-br}/   8 templates espelhados por idioma — fonte canônica
+  templates/{en,pt-br}/   7 templates espelhados por idioma — fonte canônica
   profiles/               4 perfis de stack — fonte canônica
   dist/                   pacote gerado por `dh build` — não se edita à mão
   docs/                   PRDs, ADRs, tutoriais, plano de produto, este roadmap
   evals/                  cases, baselines, rubrics, fixtures de avaliação
   adapters/               guias de uso manual por outras IAs (generic) e o pacote Claude Code (claude-code)</code></pre>
       </div>
-      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 19 comandos, 21 skills, 4 perfis, 16 templates
-        (8 en + 8 pt-br), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
+      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 19 comandos, 21 skills, 4 perfis, 14 templates
+        (7 en + 7 pt-br), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
       <pre class="mermaid">
 flowchart LR
     A["Fontes canônicas
@@ -1214,6 +1214,28 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>0.11.0 · Novo fluxo de PRD e tickets</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-007 entregue em nove fatias (T-901 a T-909). O PRD tem quatro seções (Problema,
+          Solução, Regras, Docs) mais apêndice opcional, e o Status ganha "entregue". O STORY sai; o
+          <code>TASK.md</code> é o ticket (Lane, Story, Fluxo, Regras em cópia literal, Docs, Pronto quando,
+          Resultado, Riscos e limites), com sete lanes; ticket de bug dobra em Fluxo e Pronto quando. O
+          <code>/dh:plan</code> cobra cobertura de regra (toda <code>R&lt;n&gt;</code> observável citada por um
+          ticket de teste; cabeçalho <code>### Slice &lt;n&gt; (&lt;id&gt;): &lt;nome&gt;</code>). O
+          <code>/dh:build</code> roteia por Lane: <code>infra</code> vai ao <code>devops-engineer</code> e lanes de
+          teste só passam por <code>qa-verifier</code>. <code>/dh:review feature PRD-&lt;n&gt;</code> roda a revisão
+          final (QA e passeio de cliente com Playwright, revisão das costuras, aderência ao PRD pelo
+          <code>product-discovery</code>) com desfecho FEATURE APROVADA, REPROVADA ou BLOQUEADA. O Coordenador ganha
+          RF-07 (o ticket de implementação espera o de teste), RF-14 (seção "Resumo executado" e Status entregue) e
+          RF-16 (emenda de PRD no meio da execução, com restauração se rejeitada). Templates: 14 (7 por idioma).</p>
+        <p><strong>Relações:</strong> PRD-007 (<code>docs/prd/PRD-007-fluxo-prd-e-tickets.md</code>); proposta em
+          <code>docs/novo-fluxo-prd.md</code>; <code>CHANGELOG.md</code> 0.11.0.</p>
+        <p><strong>Testado?</strong> Por fatia: checagens determinísticas (<code>validate --source-only</code>,
+          <code>go test</code>, <code>validate</code>) e revisão de código registrada em
+          <code>.harness/tasks/T-90*/CODE.review.md</code>. Nenhuma eval paga foi medida neste lote.</p>
+      </div>
+
+      <div class="card">
         <h3>0.10.0 · <code>/dh:plan-loop</code> e o planejador CLI</h3>
         <p><strong>Status:</strong> concluído.</p>
         <p><strong>Resumo:</strong> PRD-005 entregue em seis fatias (T-801 a T-806). Fatia 1 estende o contrato de
@@ -1315,6 +1337,41 @@ profiles/"] --> B["dh build"]
 
       <h2 id="planejado"><span class="n">03</span>Planejado</h2>
       <p>Itens com PRD ou decisão fixada, sem release ainda.</p>
+
+      <div class="card">
+        <h3><code>/dh:review</code>: exemplo <code>feature PRD-7</code> contra pastas <code>PRD-007</code></h3>
+        <p><strong>Descrição:</strong> O exemplo de uso do <code>/dh:review</code> mostra <code>feature PRD-7</code>, mas os diretórios levam zeros à esquerda (<code>PRD-007</code>); alinhar exemplo e validação.</p>
+        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
+        <p><strong>Relações:</strong> PRD-007; <code>.commands/review.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>Bloqueio aberto do <code>/dh:secure</code> fora da lista de skip do <code>product-discovery</code></h3>
+        <p><strong>Descrição:</strong> O bloqueio aberto do <code>/dh:secure</code> não consta da lista de skip do ramo de revisão final do <code>product-discovery</code>.</p>
+        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
+        <p><strong>Relações:</strong> PRD-007; <code>.agents/product-discovery.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>Tutoriais simplificam a condição de "entregue"</h3>
+        <p><strong>Descrição:</strong> Os tutoriais descrevem a condição de PRD entregue de forma mais simples que o RF-14.</p>
+        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
+        <p><strong>Relações:</strong> PRD-007; <code>docs/</code> (tutoriais).</p>
+      </div>
+
+      <div class="card">
+        <h3>Nó t3 do excalidraw ainda diz "Escopo e AC"</h3>
+        <p><strong>Descrição:</strong> O nó t3 do diagrama excalidraw dos tutoriais mantém o rótulo antigo "Escopo e AC".</p>
+        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
+        <p><strong>Relações:</strong> PRD-007; arquivo <code>.excalidraw</code> dos tutoriais.</p>
+      </div>
+
+      <div class="card">
+        <h3>Diagramas dos tutoriais omitem a revisão final</h3>
+        <p><strong>Descrição:</strong> Os diagramas dos tutoriais não mostram a etapa de revisão final da feature.</p>
+        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
+        <p><strong>Relações:</strong> PRD-007; <code>docs/</code> (tutoriais).</p>
+      </div>
 
       <div class="card">
         <h3>Isolamento por <code>git worktree</code> para CLIs sem modo somente-leitura</h3>

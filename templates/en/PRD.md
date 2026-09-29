@@ -6,67 +6,43 @@ Fact, hypothesis, and decision are marked as such. No secrets. -->
 
 | Field | Value |
 |---|---|
-| Status | draft / in review / approved / canceled |
+| Status | draft / in review / approved / delivered on <date> / canceled |
 | Owner | <who decides the scope> |
 | Created / updated | YYYY-MM-DD / YYYY-MM-DD |
-| Stories | ST-000, ST-000 |
+| Tickets | T-000, T-000 |
 
 ## 1. Problem
 
-<!-- Current situation, who suffers from it, how often, and what it costs. One piece of evidence (log, metric, account) is worth more than an adjective. -->
+<!-- Who suffers, what does not work, in what situation, what the impact is, what needs to change. One piece of evidence (log, metric, account) is worth more than an adjective. One capability per PRD: two independent capabilities become two PRDs before the first ticket. -->
 
-## 2. Expected outcome
+## 2. Solution
 
-<!-- What changes for the user when it is ready. How we will know: 1 to 3 observable signals, with a baseline if one exists. -->
+<!-- What becomes true after delivery: observable behavior, outcome for the user, expected flow, system response. Not an architecture description. -->
 
-- Signal 1: <metric or behavior> · today: <value> · target: <value>
+## 3. Rules
 
-## 3. Users and scenarios
+<!-- Non-negotiable constraints, numbered R1, R2, R3... Each rule must pass this test: it is a mandatory condition or an explicit prohibition, and it is verifiable. Generic text, a preference, or an intention is not a rule. -->
 
-| User | Scenario | Today | After |
-|---|---|---|---|
-| <profile> | <what they try to do> | <what happens> | <what will happen> |
+- R1 <mandatory condition or explicit prohibition, verifiable>
+- R2 <mandatory condition or explicit prohibition, verifiable>
 
-## 4. Scope
+## 4. Docs
 
-**In scope**
-- RF-01 <verifiable behavior in one sentence>
-- RF-02
+<!-- Paths of already-documented flows this feature touches, one per line. If the feature touches no documented flow, delete the example line below and write exactly the line: "No documented flow affected." An empty section does not count — document-validator reports it as a gap. -->
 
-**Out of scope** (and why, when it is not obvious)
-- <item>
+- <path/to/flow.md>
 
-## 5. Acceptance criteria
+## Appendix (optional)
 
-<!-- One per requirement. Format: When <condition>, then <observable result>. -->
+<!-- Only when the author judges it necessary. The absence of this appendix does not block turning the PRD into tickets, the same way the Docs section already works when it has no real items (the "No documented flow affected." line). -->
 
-- AC-01 (RF-01) When <X>, then <Y>.
-- AC-02 (RF-02) When <X>, then <Y>.
-
-## 6. Constraints and technical impact
-
-<!-- Only what constrains the solution. Leave blank what does not apply. -->
-
-- Data: <new/changed entities, migration, retention, LGPD>
-- Contracts: <affected APIs, events, or integrations; required compatibility>
-- Security: <authentication, authorization, sensitive data>
-- Operations: <environments, feature flag, rollout, observability>
-- Stack and dependencies: <new lib, minimum version, removal>
-- Timeline / cost: <if any>
-
-## 7. Discarded alternatives
+### Discarded alternatives
 
 | Alternative | Why not |
 |---|---|
 | <option> | <cost, risk, or limitation> |
 
-## 8. Risks and pending decisions
-
-<!-- Known risk = what may go wrong + mitigation. Pending decision = question whose answer changes the scope + who answers + by when. Consult .harness/RISKS.md if the area has a recorded incident. -->
+### Risks and pending decisions
 
 - Risk: <description> · mitigation: <action>
-- Pending decision: <question> · answered by: <who> · blocks: <RF/ST>
-
-## 9. References
-
-- <relative path or link: research, prototype, incident, ADR>
+- Pending decision: <question> · answered by: <who> · blocks: <RF/ticket>

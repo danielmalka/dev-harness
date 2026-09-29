@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.11.0 — 2026-09-29
+
+- **Novo fluxo de PRD e tickets** (PRD-007, `docs/prd/PRD-007-fluxo-prd-e-tickets.md`; proposta em
+  `docs/novo-fluxo-prd.md`). O template de PRD (`templates/<lang>/PRD.md`) passa a ter quatro seções — Problema,
+  Solução, Regras (`R<n>`, cada uma observável) e Docs — mais um apêndice opcional para alternativas e riscos; o
+  campo `Status` do cabeçalho ganha o valor "entregue". PRDs antigos ficam como estão.
+- **STORY removido; o `TASK.md` é o ticket** (`templates/<lang>/TASK.md`): Lane, Story, Fluxo, Regras (cópia
+  literal do PRD), Docs, Pronto quando, Resultado e Riscos e limites. Sete lanes: `backend`, `frontend`, `dados`,
+  `infra` e três de teste (unitário, integração, unitário e integração). Ticket de bug dobra em Fluxo (passos de
+  reprodução, observado × esperado) e Pronto quando (teste de regressão verde), sem seção própria. Contagem de
+  templates: 14 (7 por idioma).
+- **`/dh:plan` cobra cobertura de regra** (`.skills/implementation-planning/SKILL.md` passos 5 e 10,
+  `.commands/plan.md`, `.agents/implementation-planner.md`): toda `R<n>` observável é citada por ao menos um ticket
+  de lane de teste; o cabeçalho de fatia é `### Slice <n> (<id>): <name>`.
+- **`/dh:build` roteia por Lane** (`.commands/build.md`): `infra` vai para `devops-engineer`; lanes de teste só
+  passam por `qa-verifier`, sem `code-reviewer`; ticket sem Lane segue o roteamento de antes.
+- **`/dh:review feature PRD-<n>`** (`.commands/review.md`): revisão final da feature — QA e o passeio de cliente com
+  Playwright headless, depois revisão de código escopada às costuras entre tickets, depois a aderência ao PRD lida
+  pelo `product-discovery` (só leitura). Desfechos: FEATURE APROVADA, REPROVADA ou BLOQUEADA.
+- **Coordenador** (`.agents/coordinator.md`): RF-07 (o ticket de implementação espera o ticket de teste dependente
+  antes de fechar), RF-14 (seção "Resumo executado" no PRD e Status entregue) e RF-16 (emenda de PRD no meio da
+  execução, com restauração se a emenda for rejeitada). O `product-discovery` ganha os ramos de revisão final e de
+  emenda (`.agents/product-discovery.md`).
+- **Débitos conhecidos, não corrigidos aqui**: o exemplo `feature PRD-7` do `/dh:review` contra pastas `PRD-007`
+  com zeros; o bloqueio aberto do `/dh:secure` fora da lista de skip do `product-discovery`; os tutoriais
+  simplificam a condição de "entregue"; o nó t3 do excalidraw ainda diz "Escopo e AC"; os diagramas dos
+  tutoriais omitem a revisão final.
+- Código-fonte do kit tocado: `templates/pt-br/` e `templates/en/` (`PRD.md`, `TASK.md`; `STORY.md` removido);
+  `.commands/build.md`, `.commands/plan.md`, `.commands/review.md`, `.commands/discover.md`,
+  `.commands/document.md`; `.agents/coordinator.md`, `.agents/implementation-planner.md`,
+  `.agents/product-discovery.md`; `.skills/implementation-planning/SKILL.md`, `.skills/document-review/SKILL.md`.
+  Versão do binário Go, `marketplace.json` e `plugin.json` em `0.11.0` (`source.ref` `v0.11.0`).
+
 ## 0.10.0 — 2026-09-28
 
 - **Comando `/dh:plan-loop`** (`.commands/plan-loop.md`, PRD-005): loop em waves entre o `implementation-planner`

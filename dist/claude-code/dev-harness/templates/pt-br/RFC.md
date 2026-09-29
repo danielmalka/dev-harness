@@ -2,7 +2,7 @@
 
 <!-- Local sugerido: .harness/rfc/RFC-000.md
 Um RFC propõe uma mudança relevante e coleta objeções ANTES de construir.
-Quando aprovado, a decisão durável vira ADR; o trabalho vira stories/tasks.
+Quando aprovado, a decisão durável vira ADR; o trabalho vira tickets.
 Mantenha curto: quem lê deve conseguir objetar em uma passada. -->
 
 | Campo | Valor |
@@ -10,8 +10,8 @@ Mantenha curto: quem lê deve conseguir objetar em uma passada. -->
 | Status | rascunho / em discussão / aprovado / rejeitado / retirado |
 | Autor | <quem propõe> |
 | Revisores | <quem precisa opinar> · prazo: AAAA-MM-DD |
-| Origem | PRD-000 / ST-000 / incidente RISKS.md#id / dívida técnica |
-| Resultado | ADR-000 / ST-000 (preenchido ao fechar) |
+| Origem | PRD-000 / T-000 / incidente RISKS.md#id / dívida técnica |
+| Resultado | ADR-000 / T-000 (preenchido ao fechar) |
 | Criado / atualizado | AAAA-MM-DD / AAAA-MM-DD |
 
 ## 1. Resumo
@@ -73,4 +73,4 @@ Mantenha curto: quem lê deve conseguir objetar em uma passada. -->
 
 - Resultado: aprovado / rejeitado / retirado · data: AAAA-MM-DD · por: <quem>
 - Motivo: <uma frase>
-- Desdobramentos: ADR-000, ST-000
+- Desdobramentos: ADR-000, T-000

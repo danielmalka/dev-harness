@@ -17,7 +17,7 @@ Pelo marketplace do próprio repositório, sem clonar, dentro de uma sessão do 
 
 A versão vem da tag fixada em `.claude-plugin/marketplace.json`. Para um time, o projeto pode declarar o marketplace em `extraKnownMarketplaces` e o plugin em `enabledPlugins` no `.claude/settings.json`, e o Claude instala para quem confiar na pasta.
 
-**Versão atual: 0.10.0** (tag `v0.10.0`). `/dh:plan-loop` põe o planner Claude para disputar com uma CLI externa somente-leitura (hoje o codex), em ondas julgadas pelo painel completo; sem CLI disponível, segue o fluxo do `/dh:plan`. `/dh:auto` encadeia discover, plan e build numa branch só, com um questionário. A revisão de documento fica em até duas rodadas; o painel de três revisores entra quando você pede ou quando o documento toca segurança. Roadmap: [`docs/roadmap.html`](docs/roadmap.html). Notas: [`CHANGELOG.md`](CHANGELOG.md).
+**Versão atual: 0.11.0** (tag `v0.11.0`). O PRD passa a ter quatro seções (Problema, Solução, Regras, Docs) e o ticket único (`TASK.md`) substitui a story, com lane por ticket; `/dh:review feature PRD-<n>` faz a revisão final da feature. `/dh:plan-loop` põe o planner Claude para disputar com uma CLI externa somente-leitura (hoje o codex), em ondas julgadas pelo painel completo; sem CLI disponível, segue o fluxo do `/dh:plan`. `/dh:auto` encadeia discover, plan e build numa branch só, com um questionário. A revisão de documento fica em até duas rodadas; o painel de três revisores entra quando você pede ou quando o documento toca segurança. Roadmap: [`docs/roadmap.html`](docs/roadmap.html). Notas: [`CHANGELOG.md`](CHANGELOG.md).
 
 **Migrando de uma instalação anterior à 0.8.0:** o id do plugin mudou de `dev-harness@dev-harness` para `dh@dev-harness` e os comandos de `/dev-harness:<comando>` para `/dh:<comando>`. Rode `/plugin uninstall dev-harness@dev-harness` e depois `/plugin install dh@dev-harness`; troque `/dev-harness:` por `/dh:` em scripts e anotações próprias. Nome do marketplace, repositório, binário Go `dh` e caminho de snapshot não mudam. Ver `CHANGELOG.md` 0.8.0.
 
@@ -58,14 +58,14 @@ Tutorial 00: [`docs/tutoriais/00-primeira-maquina.html`](docs/tutoriais/00-prime
 | `adapters/claude-code/` | Mapeamento para o Claude Code |
 | `adapters/generic/` | Uso manual em outra IA, sem paridade |
 
-Templates de trabalho em `templates/en/` e `templates/pt-br/` (versões espelhadas): PRD, Story, Task/Bug, ADR e RFC, além dos três registros de memória (MEMORY, EPOCHAL, RISKS). O `setup` grava `language` em `.harness/project.yaml` e escolhe a pasta. Quando usar cada um: [`docs/tutoriais/templates.html`](docs/tutoriais/templates.html).
+Templates de trabalho em `templates/en/` e `templates/pt-br/` (versões espelhadas): PRD, Task/Bug (o ticket), ADR e RFC, além dos três registros de memória (MEMORY, EPOCHAL, RISKS). O `setup` grava `language` em `.harness/project.yaml` e escolhe a pasta. Quando usar cada um: [`docs/tutoriais/templates.html`](docs/tutoriais/templates.html).
 
 Perfis (`base`, `go-api`, `typescript-web`, `php`) estão em inglês em `profiles/`.
 
 ## Idioma
 
 - O Coordenador responde no idioma em que você escreve. Inglês é o padrão quando não há sinal; escreva em português e ele responde em português.
-- No primeiro `/dh:setup`, o idioma da sessão é gravado em `.harness/project.yaml` como `language: en` ou `language: pt-br`. Esse campo escolhe `templates/<lang>/` para os registros de memória e os artefatos de trabalho (PRD, story, task, ADR, RFC). Para trocar, edite o campo ou peça ao Coordenador; registros já escritos não são traduzidos.
+- No primeiro `/dh:setup`, o idioma da sessão é gravado em `.harness/project.yaml` como `language: en` ou `language: pt-br`. Esse campo escolhe `templates/<lang>/` para os registros de memória e os artefatos de trabalho (PRD, task, ADR, RFC). Para trocar, edite o campo ou peça ao Coordenador; registros já escritos não são traduzidos.
 - Entre agentes tudo é inglês: despachos, respostas dos especialistas, código, commits e casos de eval. `project.yaml` e perfis também.
 - Documentos HTML gerados pela skill `doc-template-html` seguem o mesmo campo: `bash .skills/doc-template-html/scripts/stamp.sh --lang en ...` (padrão `pt-br`).
 - Documentação do kit: pt-br em `docs/` e inglês em `docs/en/`; cada página tem link para a outra versão. Este README tem versão em [`README.en.md`](README.en.md). O plano de produto é interno e existe só em pt-br.

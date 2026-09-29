@@ -2,7 +2,7 @@
 
 <!-- Suggested location: .harness/rfc/RFC-000.md
 An RFC proposes a significant change and collects objections BEFORE building.
-When approved, the durable decision becomes an ADR; the work becomes stories/tasks.
+When approved, the durable decision becomes an ADR; the work becomes tickets.
 Keep it short: a reader should be able to object in one pass. -->
 
 | Field | Value |
@@ -10,8 +10,8 @@ Keep it short: a reader should be able to object in one pass. -->
 | Status | draft / under discussion / approved / rejected / withdrawn |
 | Author | <who proposes> |
 | Reviewers | <who needs to weigh in> · deadline: YYYY-MM-DD |
-| Origin | PRD-000 / ST-000 / incident RISKS.md#id / technical debt |
-| Outcome | ADR-000 / ST-000 (filled in when closing) |
+| Origin | PRD-000 / T-000 / incident RISKS.md#id / technical debt |
+| Outcome | ADR-000 / T-000 (filled in when closing) |
 | Created / updated | YYYY-MM-DD / YYYY-MM-DD |
 
 ## 1. Summary
@@ -73,4 +73,4 @@ Keep it short: a reader should be able to object in one pass. -->
 
 - Outcome: approved / rejected / withdrawn · date: YYYY-MM-DD · by: <who>
 - Reason: <one sentence>
-- Follow-ups: ADR-000, ST-000
+- Follow-ups: ADR-000, T-000

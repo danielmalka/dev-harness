@@ -647,7 +647,7 @@ footer.doc-foot {
       <nav>
          <a href="#posicionamento"><b>01</b>Positioning</a>
         <a href="#prd"><b>02</b>PRD</a>
-        <a href="#story"><b>03</b>Story</a>
+        <a href="#fluxo"><b>03</b>New flow</a>
          <a href="#task"><b>04</b>Task and Bug</a>
         <a href="#adr"><b>05</b>ADR</a>
         <a href="#rfc"><b>06</b>RFC</a>
@@ -664,7 +664,7 @@ footer.doc-foot {
       <header class="hero">
          <div class="eyebrow">Catalog · draft</div>
         <h1>Templates: when to use each</h1>
-         <p class="lead">Guide to the kit's eight templates: what each one answers, who writes it, when to open and close it, and how they relate.</p>
+         <p class="lead">Guide to the kit's seven templates: what each one answers, who writes it, when to open and close it, and how they relate.</p>
         <div class="chips">
           <span class="chip">date <b>2026-09-20</b></span>
           <span class="chip">status <b>draft</b></span>
@@ -674,7 +674,7 @@ footer.doc-foot {
       </header>
 
       <div class="strip">
-         <a href="#prd"><span>Anchor</span><strong>Product</strong>PRD and Story</a>
+         <a href="#prd"><span>Anchor</span><strong>Product</strong>PRD and new flow</a>
          <a href="#task"><span>Execution</span><strong>Task and Bug</strong>Agent dispatch</a>
          <a href="#adr"><span>Decision</span><strong>ADR and RFC</strong>Technical record</a>
          <a href="#memoria"><span>State</span><strong>Memory</strong>Coordinator only</a>
@@ -683,7 +683,7 @@ footer.doc-foot {
       <h2 id="posicionamento"><span class="n">01</span>Positioning</h2>
       <div class="card">
          <h3>What this is</h3>
-         <p>The templates live in <code>templates/pt-br/</code> and <code>templates/en/</code> in the kit, in mirrored versions; <code>setup</code> writes <code>language</code> to <code>.harness/project.yaml</code> and selects the folder. In the consumer project, each one is copied to <code>.harness/</code> and filled in. Five describe work (PRD, Story, Task/Bug, ADR, RFC); three preserve state (MEMORY, EPOCHAL, RISKS). This guide explains which one to use, who writes it, and when to open and close it.</p>
+         <p>The templates live in <code>templates/pt-br/</code> and <code>templates/en/</code> in the kit, in mirrored versions; <code>setup</code> writes <code>language</code> to <code>.harness/project.yaml</code> and selects the folder. In the consumer project, each one is copied to <code>.harness/</code> and filled in. Four describe work (PRD, Task/Bug, ADR, RFC); three preserve state (MEMORY, EPOCHAL, RISKS). This guide explains which one to use, who writes it, and when to open and close it.</p>
       </div>
        <div class="callout gold">Facts, hypotheses, and decisions are marked as such. Paths are relative to the project. No secrets. Every acceptance criterion is “When X, then Y” and points to the scenario or test that proves it. Evidence exists only with an explicit state: passed, failed, or not-run. Typechecking does not prove behavior.</div>
        <div class="callout stop">The three memory records are written only by the Coordinator. All other roles report facts, evidence, and incidents; they do not edit <code>MEMORY.md</code>, <code>EPOCHAL.md</code>, or <code>RISKS.md</code>.</div>
@@ -691,62 +691,43 @@ footer.doc-foot {
 
       <h2 id="prd"><span class="n">02</span>PRD</h2>
        <span class="tag">Product · why and what</span>
-       <p>It answers why to do something and what to deliver, without saying how. A good PRD can be satisfied by three different technical designs. The product owner writes it, with the <code>product-discovery</code> role through <code>/dh:discover</code>. It closes when the requirements and acceptance criteria are approved and the stories have been derived. Template: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+       <p>It answers why to do something and what to deliver, without saying how. A good PRD can be satisfied by three different technical designs. The product owner writes it, with the <code>product-discovery</code> role through <code>/dh:discover</code>. It closes when the rules and acceptance are approved and, when the batch ends, its status becomes <code>delivered on &lt;date&gt;</code>. It has four sections (Problem, Solution, Rules, Docs) and an optional appendix. Template: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
              <li>Pain or opportunity without clear scope and acceptance criteria.</li>
              <li>Problem with evidence, users, and scenarios; an outcome with a measurable signal.</li>
-             <li>Numbered requirements (RF), acceptance criteria for each requirement, and constraints that limit the solution.</li>
-             <li>Discarded alternatives, risks, and pending decisions with an owner.</li>
+             <li>Numbered, verifiable rules (R1, R2, ...) that limit the solution, and the documented flows the feature touches.</li>
+             <li>Optional appendix: discarded alternatives, risks, and pending decisions with an owner.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Out of scope</h3>
           <ul>
              <li>Architecture, a library, or an internal flow. That belongs in an ADR or a plan.</li>
-             <li>Scope that is already clear and fits in one story: skip the PRD and open the story with its origin linked.</li>
+             <li>Scope that is already clear and fits in one ticket: skip the PRD and open the ticket with the story and rules written in it.</li>
             <li>Estimation and priority. Keep them in the profile or project kanban.</li>
           </ul>
         </div>
       </div>
 
-      <h2 id="story"><span class="n">03</span>Story</h2>
-       <span class="tag">Product · what behavior</span>
-       <p>A deliverable, end-to-end testable behavior. It is written by <code>product-discovery</code> or <code>implementation-planner</code>. The Given / When / Then scenarios become tests; the technical impact table supports decomposition into tasks and role selection. It closes when every acceptance criterion has evidence that it passed. Template: <code>templates/&lt;lang&gt;/STORY.md</code>.</p>
-      <div class="grid-2">
-        <div class="card in">
-          <h3>In scope</h3>
-          <ul>
-             <li>A PRD requirement that needs to become something verifiable.</li>
-             <li>Happy path, relevant error, and empty or boundary case.</li>
-             <li>Impact on data, contracts, interfaces, integrations, dependencies, and security.</li>
-             <li>Verification strategy beyond the task tests.</li>
-          </ul>
-        </div>
-        <div class="card out">
-          <h3>Out of scope</h3>
-          <ul>
-             <li>Behavior that does not fit in a few tasks. Split it before planning.</li>
-             <li>Implementation steps and files. That belongs in the task.</li>
-             <li>More than one story in the same file.</li>
-          </ul>
-        </div>
-      </div>
+      <h2 id="fluxo"><span class="n">03</span>New flow: from PRD to ticket</h2>
+       <span class="tag">Product · no STORY.md</span>
+       <p><code>STORY.md</code> no longer exists: the story is one sentence inside the ticket. The PRD is born in <code>/dh:discover</code> and goes through <code>document-validator</code> (one validator, up to two rounds) before it reaches the owner. Once approved, <code>/dh:plan</code> splits it into tickets by lane, and every observable rule <code>R&lt;n&gt;</code> must be cited by a test ticket. <code>/dh:build</code> routes each ticket by lane; an implementation ticket goes through <code>qa-verifier</code> and one Claude reviewer, and a test ticket only through <code>qa-verifier</code>. With every ticket approved, <code>/dh:review feature PRD-&lt;n&gt;</code> runs the final feature review (integration and adherence to the PRD) and ends in <code>FEATURE APROVADA</code>, <code>FEATURE REPROVADA</code>, or <code>FEATURE BLOQUEADA</code> (approved, rejected, or blocked). When the batch closes, the Coordinator writes the "Resumo executado" (executed summary) section at the end of the PRD and sets the status to <code>delivered on &lt;date&gt;</code>. Details: <a href="../new-prd-flow.md">docs/en/new-prd-flow.md</a> and <a href="../../prd/PRD-007-fluxo-prd-e-tickets.md">docs/prd/PRD-007-fluxo-prd-e-tickets.md</a> (pt-br).</p>
 
       <h2 id="task"><span class="n">04</span>Task and Bug</h2>
        <span class="tag">Execution · how to execute a slice</span>
-       <p>The dispatch an agent receives. Everything it needs to start without asking is in the file or linked. Tasks and bugs use the same template: the task fills in the scope section; the bug fills in the defect section. It is written by <code>implementation-planner</code> (task) or <code>debugger</code> (bug). It lives in <code>.harness/tasks/&lt;id&gt;/TASK.md</code>. Template: <code>templates/&lt;lang&gt;/TASK.md</code>.</p>
+       <p>The ticket an agent receives. Everything it needs to start without asking is in the file, without reading the whole PRD. After the header come Lane, Story, Flow, Rules (a literal copy of the PRD <code>R&lt;n&gt;</code>), Docs, Done when, Result, and Risks and limits. The lane is <code>backend</code>, <code>frontend</code>, <code>dados</code> (data), <code>infra</code>, <code>teste (unitário)</code> (unit test), <code>teste (integração)</code> (integration test), or <code>teste (unitário e integração)</code>, and <code>/dh:build</code> routes by it. Tasks and bugs use the same template; in a bug the reproduction goes into Flow and the green regression test goes into Done when. It is written by <code>implementation-planner</code> (task) or <code>debugger</code> (bug). It lives in <code>.harness/tasks/&lt;id&gt;/TASK.md</code>. Template: <code>templates/&lt;lang&gt;/TASK.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
           <ul>
-             <li>One-sentence objective, with the out-of-scope boundary stated explicitly.</li>
-             <li>Technical context: candidate files, local pattern to follow, contracts, decisions, and incidents.</li>
-             <li>Environment changes: library to install, update, or remove; environment variable; reversible migration; configuration.</li>
-             <li>Step-by-step plan with checks, a test table covering every acceptance criterion, and a result of passed / failed / not-run.</li>
-             <li>Bug: literal symptom, reproduction, expected versus observed behavior, cause marked as hypothesized or confirmed, and severity.</li>
+             <li>Lane, a one-sentence story, and Flow as observable "When X, then Y" steps.</li>
+             <li>Rules copied literally from the PRD, with no link and no paraphrase.</li>
+             <li>Docs to update (or the "none" line) and Done when: the flow happened, rules have evidence, tests are green.</li>
+             <li>Result with passed / failed / not-run, plus risks and limits.</li>
+             <li>Bug: reproduction in Flow ending in observed versus expected, and the green regression test in Done when.</li>
           </ul>
         </div>
         <div class="card out">
@@ -785,7 +766,7 @@ footer.doc-foot {
 
       <h2 id="rfc"><span class="n">06</span>RFC</h2>
        <span class="tag">Decision · proposal before building · optional</span>
-       <p>It proposes a broad technical change and collects objections before building. Once approved, it generates an ADR for the durable decision and stories for the work. In solo development with agents, the function of collecting objections barely exists; an ADR with proposed status is usually enough. Template: <code>templates/&lt;lang&gt;/RFC.md</code>.</p>
+       <p>It proposes a broad technical change and collects objections before building. Once approved, it generates an ADR for the durable decision and tickets for the work. In solo development with agents, the function of collecting objections barely exists; an ADR with proposed status is usually enough. Template: <code>templates/&lt;lang&gt;/RFC.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
@@ -832,13 +813,13 @@ footer.doc-foot {
       <h2 id="jornada"><span class="n">08</span>Journey</h2>
        <p>Engineering flow using the kit commands. Not every task goes through every stage: a bug goes directly to <code>fix</code>; a small edit goes directly to <code>build</code> with a task.</p>
       <ol class="steps">
-         <li><strong>Discover</strong> a request or pain point becomes a PRD with requirements and acceptance criteria.</li>
-         <li><strong>Stories</strong> one per requirement, with scenarios and technical impact.</li>
+         <li><strong>Discover</strong> a request or pain point becomes a PRD with problem, solution, rules, and docs; the validator reviews it before the owner.</li>
          <li><strong>Understand</strong> the scout maps the affected area without requiring an index.</li>
          <li><strong>Plan</strong> the planner splits the work; the architect joins if there is a decision that is expensive to reverse and writes the ADR. The Coordinator consults MEMORY and, in a risk area, RISKS.</li>
-         <li><strong>Tasks</strong> one per slice, with environment, tests, and acceptance criteria.</li>
+         <li><strong>Tickets</strong> one per slice, each with its lane; every observable rule is cited by a test ticket.</li>
          <li><strong>Build</strong> the implementer delivers the slice with checks run.</li>
          <li><strong>Verify and review</strong> QA and the reviewer assess the stabilized state. Up to six correction rounds; then replan.</li>
+         <li><strong>Final review</strong> <code>/dh:review feature PRD-&lt;n&gt;</code> judges integration and adherence to the PRD; on close, the Coordinator writes the "Resumo executado" into the PRD.</li>
          <li><strong>Release and handoff</strong> readiness without publishing; state that can be carried into the next session.</li>
       </ol>
       <div class="card">
@@ -847,8 +828,7 @@ footer.doc-foot {
 flowchart TB
      ideia([Request or pain]) --> discover["/dh:discover<br/>product-discovery"]
     discover --> prd[/PRD.md/]
-     prd --> stories[/STORY.md per requirement/]
-    stories --> understand["/dh:understand<br/>repo-scout"]
+     prd --> understand["/dh:understand<br/>repo-scout"]
      understand --> plan["/dh:plan<br/>implementation-planner<br/>+ solution-architect if needed"]
      plan --> decisao{Decision expensive<br/>to reverse?}
      decisao -->|yes| adr[/ADR.md/]
@@ -868,7 +848,7 @@ flowchart TB
     bugtask --> verify
 
      rfc[/RFC.md optional/] -.->|approved| adr
-     rfc -.->|approved| stories
+     rfc -.->|approved| tasks
 
      memoria[(MEMORY.md)] <-.->|Coordinator| plan
     memoria <-.-> handoff
@@ -876,7 +856,7 @@ flowchart TB
 
     classDef doc fill:#18201B,stroke:#3EE8A0,color:#E6EFE9
     classDef mem fill:#121814,stroke:#C5E8D4,color:#E6EFE9
-    class prd,stories,adr,tasks,bugtask,rfc doc
+    class prd,adr,tasks,bugtask,rfc doc
     class memoria,risks mem
 </pre>
       </div>
@@ -888,12 +868,11 @@ flowchart TB
            <tr><th>Template</th><th>Answers</th><th>Who writes it</th><th>Open when</th><th>Close when</th></tr>
           </thead>
           <tbody>
-             <tr><td><code>PRD.md</code></td><td>Why and what</td><td>Product owner, with product-discovery</td><td>Pain without clear scope and acceptance</td><td>Requirements and acceptance approved; stories derived</td></tr>
-             <tr><td><code>STORY.md</code></td><td>What behavior</td><td>product-discovery or implementation-planner</td><td>Requirement needs to become something testable</td><td>All AC have evidence that they passed</td></tr>
-             <tr><td><code>TASK.md</code> (task)</td><td>How to execute a slice</td><td>implementation-planner; builder executes it</td><td>Story decomposed into slices</td><td>Checks passed, review completed, result filled in</td></tr>
-             <tr><td><code>TASK.md</code> (bug)</td><td>What fails and why</td><td>debugger</td><td>Defect reported or observed</td><td>Before-and-after reproduction and regression, or inconclusive with a stated gap</td></tr>
+             <tr><td><code>PRD.md</code></td><td>Why and what</td><td>Product owner, with product-discovery</td><td>Pain without clear scope and acceptance</td><td>Rules and acceptance approved; status delivered on &lt;date&gt; when the batch closes</td></tr>
+             <tr><td><code>TASK.md</code> (ticket)</td><td>How to execute a slice</td><td>implementation-planner; builder executes it</td><td>PRD approved</td><td>Checks passed, review completed, result filled in</td></tr>
+             <tr><td><code>TASK.md</code> (bug)</td><td>What fails and why</td><td>debugger</td><td>Defect reported or observed</td><td>Reproduction in Flow and green regression in Done when, or inconclusive with a stated gap</td></tr>
              <tr><td><code>ADR.md</code></td><td>Which durable decision</td><td>solution-architect; owner approves it</td><td>Choice expensive to reverse</td><td>Accepted status; reviewed under the review condition</td></tr>
-             <tr><td><code>RFC.md</code></td><td>Which technical change is proposed</td><td>Engineering</td><td>Broad change without a PRD, with impact beyond the author</td><td>Approved (generates ADR and stories), rejected, or withdrawn</td></tr>
+             <tr><td><code>RFC.md</code></td><td>Which technical change is proposed</td><td>Engineering</td><td>Broad change without a PRD, with impact beyond the author</td><td>Approved (generates ADR and tickets), rejected, or withdrawn</td></tr>
              <tr><td><code>MEMORY.md</code></td><td>Current state</td><td>Coordinator only</td><td>Project setup</td><td>Never; trimmed by consolidate-memory</td></tr>
              <tr><td><code>EPOCHAL.md</code></td><td>Raw history</td><td>Coordinator only</td><td>First consolidate-memory</td><td>Never; only receives batches</td></tr>
              <tr><td><code>RISKS.md</code></td><td>Incidents and prevention</td><td>Coordinator only</td><td>Project setup</td><td>Never; resolved incidents remain</td></tr>
@@ -902,22 +881,20 @@ flowchart TB
       </div>
 
        <h2 id="pacotes"><span class="n">10</span>Composed packages: how the files connect</h2>
-       <p>A PRD generates several stories, one per requirement. A story generates several tasks covering its acceptance criteria. An ADR constrains tasks and originates from a PRD, story, RFC, or incident. A task delivers its result and evidence to the Coordinator, who writes it to MEMORY; a serious incident goes to RISKS, and prevention from RISKS flows back to stories and tasks. A solid line means derivation or writing; a dotted line means reference or consultation.</p>
+       <p>A PRD generates several tickets, one per requirement (or more, when a rule needs more than one). An ADR constrains tickets and originates from a PRD, RFC, or incident. A ticket delivers its result and evidence to the Coordinator, who writes it to MEMORY; a serious incident goes to RISKS, and prevention from RISKS flows back to tickets. A solid line means derivation or writing; a dotted line means reference or consultation.</p>
       <div class="card">
         <h3>Relationship diagram</h3>
         <pre class="mermaid">
 flowchart LR
      subgraph produto[Product and planning]
-         PRD[PRD.md] -->|"1 → n (RF)"| STORY[STORY.md]
-         STORY -->|"1 → n (AC)"| TASK[TASK.md<br/>task or bug]
+         PRD[PRD.md] -->|"1 → n (R)"| TASK[TASK.md<br/>ticket or bug]
     end
 
      subgraph decisao[Technical decision]
          RFC[RFC.md<br/>optional] -->|approved generates| ADR[ADR.md]
-         RFC -.->|approved generates| STORY
+         RFC -.->|approved generates| TASK
          ADR -->|constrains| TASK
          PRD -.->|origin| ADR
-         STORY -.->|origin| ADR
     end
 
      subgraph memoria["Project memory, Coordinator only"]
@@ -927,20 +904,19 @@ flowchart LR
 
      TASK -->|result and evidence| MEMORY
      TASK -.->|serious incident| RISKS
-     RISKS -.->|prevention| STORY
      RISKS -.->|prevention| TASK
      RISKS -.->|origin| ADR
      RISKS -.->|origin| RFC
 
     classDef doc fill:#18201B,stroke:#3EE8A0,color:#E6EFE9
     classDef mem fill:#121814,stroke:#C5E8D4,color:#E6EFE9
-    class PRD,STORY,TASK,ADR,RFC doc
+    class PRD,TASK,ADR,RFC doc
     class MEMORY,EPOCHAL,RISKS mem
 </pre>
       </div>
       <div class="card">
         <h3>Suggested locations in the consumer project</h3>
-         <p><code>.harness/project.yaml</code> · <code>.harness/MEMORY.md</code> · <code>.harness/EPOCHAL.md</code> · <code>.harness/RISKS.md</code> · <code>.harness/prd/PRD-001.md</code> · <code>.harness/stories/ST-001.md</code> · <code>.harness/adr/ADR-001.md</code> · <code>.harness/rfc/RFC-001.md</code> · <code>.harness/tasks/T-001/TASK.md</code> · <code>.harness/tasks/BUG-001/TASK.md</code></p>
+         <p><code>.harness/project.yaml</code> · <code>.harness/MEMORY.md</code> · <code>.harness/EPOCHAL.md</code> · <code>.harness/RISKS.md</code> · <code>.harness/prd/PRD-001.md</code> · <code>.harness/adr/ADR-001.md</code> · <code>.harness/rfc/RFC-001.md</code> · <code>.harness/tasks/T-001/TASK.md</code> · <code>.harness/tasks/BUG-001/TASK.md</code></p>
       </div>
 
        <h2 id="aberto"><span class="n">11</span>Mapped vs. open</h2>
@@ -948,7 +924,7 @@ flowchart LR
         <div class="card in">
           <h3>Mapped</h3>
           <ul>
-             <li>Eight templates per language in <code>templates/pt-br/</code> and <code>templates/en/</code>,
+             <li>Seven templates per language in <code>templates/pt-br/</code> and <code>templates/en/</code>,
               mirrored versions.</li>
              <li><code>.harness/tasks/&lt;id&gt;/</code> and the three memory records defined by the product plan.</li>
              <li>Task result format matches the response format for skills.</li>
@@ -957,7 +933,7 @@ flowchart LR
         <div class="card out">
           <h3>Open</h3>
           <ul>
-             <li>Directories <code>prd/</code>, <code>stories/</code>, <code>adr/</code>, and <code>rfc/</code> are a suggested convention, not a decision in the plan.</li>
+             <li>Directories <code>prd/</code>, <code>adr/</code>, and <code>rfc/</code> are a suggested convention, not a decision in the plan.</li>
              <li>Whether to keep or discard the RFC as a first-line template.</li>
              <li>Separate templates for plan, evidence, review, and handoff: a slice uses <code>TASK.md</code>; evidence
                goes in <code>.harness/tasks/&lt;id&gt;/evidence/</code>; handoff is the
