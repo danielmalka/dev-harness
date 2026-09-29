@@ -6,67 +6,43 @@ Fato, hipótese e decisão ficam marcados como tal. Sem segredos. -->
 
 | Campo | Valor |
 |---|---|
-| Status | rascunho / em revisão / aprovado / cancelado |
+| Status | rascunho / em revisão / aprovado / entregue em <data> / cancelado |
 | Dono | <quem decide o escopo> |
 | Criado / atualizado | AAAA-MM-DD / AAAA-MM-DD |
-| Stories | ST-000, ST-000 |
+| Tickets | T-000, T-000 |
 
 ## 1. Problema
 
-<!-- Situação atual, quem sofre com ela, com que frequência e qual o custo. Uma evidência (log, métrica, relato) vale mais que um adjetivo. -->
+<!-- Quem sofre, o que não funciona, em qual situação, qual o impacto, o que precisa mudar. Uma evidência (log, métrica, relato) vale mais que um adjetivo. Uma capability por PRD: duas capabilities independentes viram dois PRDs antes do primeiro ticket. -->
 
-## 2. Resultado esperado
+## 2. Solução
 
-<!-- O que muda para o usuário quando estiver pronto. Como saberemos: 1 a 3 sinais observáveis, com baseline se existir. -->
+<!-- O que passa a ser verdade depois da entrega: comportamento observável, resultado para o usuário, fluxo esperado, resposta do sistema. Não é descrição de arquitetura. -->
 
-- Sinal 1: <métrica ou comportamento> · hoje: <valor> · alvo: <valor>
+## 3. Regras
 
-## 3. Usuários e cenários
+<!-- Constraints inegociáveis, numeradas R1, R2, R3... Cada regra precisa passar neste teste: é uma condição obrigatória ou uma proibição explícita, e é verificável. Texto genérico, de preferência ou de intenção não é regra. -->
 
-| Usuário | Cenário | Hoje | Depois |
-|---|---|---|---|
-| <perfil> | <o que tenta fazer> | <o que acontece> | <o que passa a acontecer> |
+- R1 <condição obrigatória ou proibição explícita, verificável>
+- R2 <condição obrigatória ou proibição explícita, verificável>
 
-## 4. Escopo
+## 4. Docs
 
-**Entra**
-- RF-01 <comportamento em uma frase, verificável>
-- RF-02
+<!-- Paths dos fluxos já documentados que esta feature toca, um por linha. Se a feature não toca nenhum fluxo documentado, apague a linha de exemplo abaixo e escreva exatamente a linha: "Nenhum fluxo documentado afetado." Seção vazia não vale — document-validator reporta gap. -->
 
-**Não entra** (e por quê, quando não for óbvio)
-- <item>
+- <caminho/do/fluxo.md>
 
-## 5. Critérios de aceite
+## Apêndice (opcional)
 
-<!-- Um por requisito. Formato: Quando <condição>, então <resultado observável>. -->
+<!-- Só quando o autor achar necessário. A ausência deste apêndice não impede a virada em ticket, do mesmo jeito que a seção Docs já funciona quando vazia de itens reais (linha "Nenhum fluxo documentado afetado."). -->
 
-- AC-01 (RF-01) Quando <X>, então <Y>.
-- AC-02 (RF-02) Quando <X>, então <Y>.
-
-## 6. Restrições e impacto técnico
-
-<!-- Só o que restringe a solução. Deixe em branco o que não se aplica. -->
-
-- Dados: <entidades novas/alteradas, migração, retenção, LGPD>
-- Contratos: <APIs, eventos ou integrações afetadas; compatibilidade exigida>
-- Segurança: <autenticação, autorização, dados sensíveis>
-- Operação: <ambientes, feature flag, rollout, observabilidade>
-- Stack e dependências: <lib nova, versão mínima, remoção>
-- Prazo / custo: <se existir>
-
-## 7. Alternativas descartadas
+### Alternativas descartadas
 
 | Alternativa | Por que não |
 |---|---|
 | <opção> | <custo, risco ou limite> |
 
-## 8. Riscos e decisões pendentes
-
-<!-- Risco conhecido = o que pode dar errado + mitigação. Decisão pendente = pergunta cuja resposta muda o escopo + quem responde + até quando. Consultar .harness/RISKS.md se a área tem incidente registrado. -->
+### Riscos e decisões pendentes
 
 - Risco: <descrição> · mitigação: <ação>
-- Decisão pendente: <pergunta> · responde: <quem> · bloqueia: <RF/ST>
-
-## 9. Referências
-
-- <caminho relativo ou link: pesquisa, protótipo, incidente, ADR>
+- Decisão pendente: <pergunta> · responde: <quem> · bloqueia: <RF/ticket>

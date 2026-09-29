@@ -6,7 +6,7 @@ argument-hint: "[idea, pain or request]"
 metadata:
   roles: [coordinator, product-discovery, document-validator]
   skills: [requirements-discovery, document-review, external-clis]
-  writes: .harness/prd/ and .harness/stories/ when authorized
+  writes: .harness/prd/ when authorized
 ---
 ## Role
 Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.

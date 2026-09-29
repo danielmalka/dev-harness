@@ -1,96 +1,89 @@
 # T-000 · <short title>
 
-<!-- Location: .harness/tasks/T-000/TASK.md (or BUG-000 for a defect).
-This is the dispatch an agent receives. Everything it needs to start
-without asking is here or linked. Delete the comments when finished.
-For a bug, fill in section 2B and ignore 2A. -->
+<!-- Location: .harness/tasks/T-000/TASK.md
+This is the single file a builder agent receives: it already carries the
+story, the expected flow, and a literal copy of the rules it must honor.
+It does not read the whole PRD. Fluxo/Flow (section 3) plus Pronto
+quando/Done when (section 6) are the only acceptance source for this
+ticket — there is no separate "Acceptance criteria" section.
+
+For Tipo/Type: bug, there is no dedicated defect section: the Flow
+section carries the reproduction (numbered steps ending in the
+observed-vs-expected pair) and the Done when section gains the
+regression-test item. See the comments in those two sections below.
+
+Delete the comments when finished. -->
 
 | Field | Value |
 |---|---|
 | Type | task / bug |
 | Status | ready / in progress / blocked / in review / done |
-| Story / PRD | ST-000 (AC-01) / PRD-000 |
-| Suggested role | backend-builder / frontend-builder / data-engineer / debugger / ... |
+| PRD (RF-<n>) | PRD-000 (RF-01) |
+| Suggested role | backend-builder / frontend-builder / data-engineer / devops-engineer / qa-verifier / ... |
 | Depends on | T-000, <contract, decision, migration> |
 | Blocks | T-000 |
 | Authorization | <what may be written; commit/push/deploy require explicit authorization> |
 | Created / updated | YYYY-MM-DD / YYYY-MM-DD |
 
-## 1. Objective
+## 1. Lane
 
-<!-- One sentence with the verifiable result. Then why, in one line. -->
+<!-- One value per ticket, closed list. A story that needs an API and a
+screen with independent responsibilities becomes two tickets, one per
+lane; "and test it too" at the end of this ticket does not by itself
+create a test ticket. -->
 
-## 2A. Scope (task)
+Lane: backend / frontend / dados / infra / teste (unitário) / teste (integração) / teste (unitário e integração)
 
-**In scope**
-- <concrete change>
+## 2. Story
 
-**Out of scope**
-- <what the agent must NOT touch, even if it seems useful>
+<!-- One sentence, always in this shape. -->
 
-## 2B. Defect (bug)
+As a <actor>, I want <action>, so that <result>.
 
-- Symptom: <literal error text, sanitized log, or observed behavior>
-- Expected: <what should happen>
-- Reproduction: <steps or command; if not reproducible, record attempts>
-- Environment: <version, platform, config, data>
-- Since when / recent change: <commit, release, or unknown>
-- Cause: <hypothesis> · confirmed: yes / no · evidence: <...>
-- Severity: <actual impact> · incident in RISKS.md: <id or none>
+## 3. Flow
 
-## 3. Technical context
+<!-- Numbered, observable steps, "When X, then Y" — actor is user, system,
+or test. This block, together with Done when (section 6), is the only
+acceptance source for the ticket.
 
-<!-- The minimum needed to avoid reinventing: where the code is, which pattern to follow, which contract to respect. Relative paths. -->
+For Type: bug, this field carries the defect's reproduction: the same
+numbered "When X, then Y" steps end in the observed-vs-expected pair —
+what happens today (the defective behavior) and what should happen
+instead. Do not create a separate section for this. -->
 
-- Candidate files / modules: `<path>`
-- Local pattern to follow: <existing example in `<path>`>
-- Contracts to respect: <API, event, schema, interface>
-- Decisions already made: <ADR or PRD/story decision>
-- Critical rules / previous incidents: <RISKS.md#id or none>
+1. When <action>, then <observable result>.
+2. When <action>, then <observable result>.
 
-## 4. Environment changes
+## 4. Rules
 
-<!-- Everything that changes the environment beyond code. Empty = none. -->
+<!-- Literal copy, no paraphrase and no summary, only of the R<n> rules
+from the PRD this ticket must honor. No link. A rule that does not fit
+here does not enter. -->
 
-| Type | Item | Action | Reason |
-|---|---|---|---|
-| lib | <name@version> | install / update / remove | <why> |
-| env var | <NAME> | create / change | <purpose; value does not go here> |
-| migration | <file> | create / apply | <reversible? yes / no; rollback plan> |
-| config / infra | <file or service> | change | <...> |
+- R1 <literal copy of the matching PRD rule>
 
-## 5. Execution plan
+## 5. Docs
 
-<!-- Small, verifiable steps. Each step ends with a check. -->
+<!-- Paths to update in this ticket, inherited and refined from the PRD's
+Docs section, or the exact line "none". -->
 
-1. <step> → check: <command or observation>
-2. <step> → check:
-3. <step> → check:
+- <path/to/doc.md>
 
-## 6. Tests
+## 6. Done when
 
-<!-- Each acceptance criterion has at least one test. Real project command. Typecheck does not prove behavior. -->
+<!-- The ticket's minimum content: the flow in section 3 happened; each
+rule copied in section 4 has evidence; the relevant tests are green; the
+documentation listed in section 5 was updated.
 
-| Scenario | Type | File / command | Covers |
-|---|---|---|---|
-| <happy path> | unit / integration / e2e | `<command>` | AC-01 |
-| <relevant error> | | | AC-02 |
-| <bug regression> | | | 2B |
+For Type: bug, this field gains one more item: a regression test for
+this defect is green. -->
 
-Manual / browser verification: <flow> or "not applicable"
+- the flow described in section 3 happened
+- the rules copied in section 4 have evidence
+- the relevant tests are green
+- the documentation listed in section 5 was updated (or the section says "none")
 
-## 7. Acceptance criteria
-
-- AC-01 When <X>, then <Y>.
-- AC-02 When <X>, then <Y>.
-
-## 8. Risks and limits
-
-- Risk: <what may break> · mitigation: <action>
-- When encountering an open decision: stop and report; do not invent behavior.
-- After 6 unsuccessful correction rounds: return to the Coordinator with evidence.
-
-## 9. Result
+## 7. Result
 
 <!-- Filled in by the executor on delivery. Only what was done and executed. -->
 
@@ -100,3 +93,9 @@ Manual / browser verification: <flow> or "not applicable"
 - Limitations: <what was not verified or remains pending>
 - Pending items for the Coordinator: <decision, incident, memory update>
 - Next step: <concrete action> · authorization required: <which>
+
+## 8. Risks and limits
+
+- Risk: <what may break> · mitigation: <action>
+- When encountering an open decision: stop and report; do not invent behavior.
+- After 6 unsuccessful correction rounds: return to the Coordinator with evidence.

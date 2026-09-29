@@ -10,7 +10,7 @@ um ano entender por que foi assim e quando deve ser revisto. -->
 | Status | proposto / aceito / substituído por ADR-000 / revogado |
 | Data | AAAA-MM-DD |
 | Decisor | <quem aprovou> |
-| Origem | PRD-000 / ST-000 / RFC-000 / incidente RISKS.md#id |
+| Origem | PRD-000 / T-000 / RFC-000 / incidente RISKS.md#id |
 | Reversibilidade | barata e local / cara ou com muitos dependentes |
 
 ## 1. Contexto

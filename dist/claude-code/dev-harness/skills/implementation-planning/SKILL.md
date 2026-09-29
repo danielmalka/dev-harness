@@ -48,7 +48,7 @@ Split authorized work into slices that can each be finished and proven on their 
 
 4. **Draw the file structure before drawing the slices.** List what gets created and what gets modified, and what each file is responsible for. Files that change together belong together. Split by responsibility, not by technical layer for its own sake. In an existing codebase, follow the local pattern instead of importing a preferred one.
 
-5. **Cut slices by independently verifiable behavior.** A slice is the smallest unit that carries its own check cycle and could be accepted or rejected on its own merits. Fold setup, configuration, fixtures and documentation into the slice whose deliverable needs them. Split only where a reviewer could sensibly approve one slice and reject its neighbor. Two to five behaviors per slice is a working range; a slice nobody can finish in one focused pass is too big.
+5. **Cut slices by independently verifiable behavior.** A slice is the smallest unit that carries its own check cycle and could be accepted or rejected on its own merits. Fold setup, configuration, fixtures and documentation into the slice whose deliverable needs them. The test that proves a PRD rule `R<n>` is the exception: it MUST live in its own test-lane ticket that cites the id, not folded into the ticket that implements the rule. Tests that prove nothing tied to a PRD rule still fold into their slice. Split only where a reviewer could sensibly approve one slice and reject its neighbor. Two to five behaviors per slice is a working range; a slice nobody can finish in one focused pass is too big.
 
 6. **Order by dependency and list dependencies completely.** Foundation before the things that stand on it. Slice five naming slice four is not enough when it also needs something from slice two. No slice may depend on a later one; if two slices need each other, the cut is wrong. Mark which slices could run side by side, bounded by the ceiling of two specialists working concurrently.
 
@@ -58,7 +58,7 @@ Split authorized work into slices that can each be finished and proven on their 
 
 9. **Give each slice its own check line and its own risk line.** Which check proves this slice, how it is invoked, and what result counts. Status stays `not-run` in a plan, because planning runs nothing. The risk line names what could go wrong here and the cheapest early signal that it did, remembering that a slice gets at most six correction rounds for the same issue before it is reported blocked or partial and replanned. For a slice that changes `internal/build`, `internal/kit`, or any `dist/` content, the check line's order is fixed: apply the code change, then `go run ./cmd/dh build`, then `go test ./...` / `go run ./cmd/dh validate .` — never the reverse, because the reproducibility test compares the committed `dist/` against a fresh rebuild and fails by construction if the rebuild has not run yet.
 
-10. **Self-review the finished plan against the brief.** Three passes, inline, fixing as you go. Coverage: point at the slice that satisfies each acceptance item and list any gap. Readiness: executable slices have concrete checks and no unresolved prerequisite; unknown commands or interfaces leave only the affected slices provisional. Do not invent values to remove placeholders. Consistency: the name a later slice consumes matches the name the earlier slice produces, exactly.
+10. **Self-review the finished plan against the brief.** Four passes, inline, fixing as you go. Coverage: point at the slice that satisfies each acceptance item and list any gap. Readiness: executable slices have concrete checks and no unresolved prerequisite; unknown commands or interfaces leave only the affected slices provisional. Do not invent values to remove placeholders. Consistency: the name a later slice consumes matches the name the earlier slice produces, exactly. Rule coverage: every observable rule `R<n>` of the source PRD is cited by id in at least one test-lane ticket; list any uncited `R<n>` as a `gap` (the existing category, no new one).
 
 11. **Deliver the plan and the decisions it needs.** Do not implement. Do not widen scope to make a slice tidier. Report facts, open decisions and any incident to the Coordinator for the memory records.
 
@@ -82,7 +82,7 @@ Split authorized work into slices that can each be finished and proven on their 
 | File (relative) | Create or modify | Responsibility |
 |---|---|---|
 
-### Slice <n>: <name>
+### Slice <n> (<id>): <name>
 - Goal:
 - Inputs: <artifacts, prior slices, data>
 - Outputs: <observable result>
@@ -104,13 +104,14 @@ Split authorized work into slices that can each be finished and proven on their 
 
 ## Self-review
 - Coverage: <acceptance item -> slice, or gap>
+- Rule coverage: <R<n> -> test-lane ticket id, or gap>
 - Unresolved prerequisites: none | <affected slices and what must be resolved>
 - Interface consistency: checked
 
 ## Evidence
 ```
 
-When persisted, each slice becomes `.harness/tasks/<id>/TASK.md` from the kit template `templates/<lang>/TASK.md`.
+When persisted, each slice becomes `.harness/tasks/<id>/TASK.md` from the kit template `templates/<lang>/TASK.md`. The `<id>` in the slice heading is that same ticket id: one path segment, no `/` or `..`.
 
 ## Quick reference
 
@@ -153,7 +154,7 @@ Brief: expired invites must be refused. Map: three files and one test file. Boun
 ## Global constraints
 - Response for an expired invite: 410, body unchanged from the existing error shape.
 
-## Slice 1: expiry rule in the domain
+### Slice 1 (T-1): expiry rule in the domain
 - Outputs: Invite exposes isExpired against an injected clock
 - Candidate files: src/domain/invite.<ext>, tests/invite_expiry.<ext>
 - Produces: Invite.isExpired(now: Timestamp) -> bool
@@ -162,7 +163,7 @@ Brief: expired invites must be refused. Map: three files and one test file. Boun
 - Done when: an invite past its timestamp reports expired and one before it does not, with the clock injected, not read globally
 - Risks: a global clock read makes the test flaky near midnight; the injected clock is the signal
 
-## Slice 2: refusal at the redeem entry point
+### Slice 2 (T-2): refusal at the redeem entry point
 - Consumes: Invite.isExpired(now: Timestamp) -> bool
 - Candidate files: src/http/invites.<ext>, tests/invite_redeem.<ext>
 - Dependencies: slice 1
@@ -173,7 +174,7 @@ Brief: expired invites must be refused. Map: three files and one test file. Boun
 
 Roles: implementation-planner, coordinator, solution-architect, backend-builder, qa-verifier. Commands: `/dh:plan`, `/dh:plan-loop`. Skills: requirements-discovery supplies the acceptance, repository-mapping supplies the candidate files, architecture-decisions settles a boundary before slicing, incremental-implementation executes a slice, regression-testing turns the check lines into real checks, context-handoff carries an unfinished plan to the next session, external-clis dispatches a CLI planner against this skill's own output format (see external-clis "The planning call").
 
-When a CLI is dispatched as a planner by `/dh:plan-loop`, its reply is expected to follow this skill's own output format in full — `## Plan`, `### Slice N` and the rest. `external-clis`' transport-failure test for a planning call (see `external-clis` "The planning call") checks only the minimum recognizer — a `## Plan` heading (or `### Slice N` headings) naming a goal and one slice — not a verbatim-format gate: a reply that passes that minimum but is otherwise incomplete is not discarded, it is judged by the wave's reviewers like any other candidate.
+When a CLI is dispatched as a planner by `/dh:plan-loop`, its reply is expected to follow this skill's own output format in full — `## Plan`, `### Slice <n> (<id>): <name>` and the rest. `external-clis`' transport-failure test for a planning call (see `external-clis` "The planning call") checks only the minimum recognizer — a `## Plan` heading (or `### Slice N` headings) naming a goal and one slice — not a verbatim-format gate: a reply that passes that minimum but is otherwise incomplete is not discarded, it is judged by the wave's reviewers like any other candidate.
 
 ## Proof case
 

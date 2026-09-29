@@ -139,11 +139,11 @@ States are `pending`, `applied` and `rejected`. A finding is never deleted from 
 | Category | What it is | Blocks | Example |
 | --- | --- | --- | --- |
 | Gap | A source point that became no requirement | Yes | Discovery says an admin can revoke a pending invite; no requirement mentions revoking |
-| Conflict | Two statements that cannot both hold, including a quantitative or scope claim the source does not support | Yes | RF-02 says invites expire in 7 days, AC-03 tests a 30-day invite; or the document claims "this covers all four changed agents" when the source names only one |
+| Conflict | Two statements that cannot both hold, including a quantitative or scope claim the source does not support | Yes | R2 says invites expire in 7 days, but Solution describes a 30-day invite; or the document claims "this covers all four changed agents" when the source names only one |
 | Weak criterion | Acceptance nobody can observe as passed or failed | Yes | "The signup form must be fast" |
 | Ambiguity | Two builders implement it differently | Only when the two readings differ in behavior | "The invite is sent to the user" with no statement of which address or when |
 | Excess | A requirement nothing in the source asked for | No, unless it contradicts a source constraint | A referral bonus appears in scope with no source point behind it |
-| Organization | Duplicates, inconsistent identifiers, wrong section | No | Two requirements numbered RF-03; a data constraint filed under Users and scenarios |
+| Organization | Duplicates, inconsistent identifiers, wrong section | No | Two rules numbered R3; a data constraint filed under Solution instead of Rules |
 
 | Verdict | Condition |
 | --- | --- |
@@ -179,22 +179,22 @@ Input: `PRD-gap.md` written from `discovery-notes.md`, which raised five points.
 - P1
   - Category: gap
   - Severity: blocking
-  - Location: PRD-gap.md section 4, In scope
-  - Evidence: discovery-notes.md point 4 states an admin can revoke a pending invite before it is redeemed; no requirement in section 4 covers revocation and no acceptance criterion mentions it
-  - Suggestion: add "RF-05 An admin revokes a pending invite, and a revoked invite cannot be redeemed" with an acceptance criterion asserting the redemption is refused after revocation
+  - Location: PRD-gap.md section 2, Solution
+  - Evidence: discovery-notes.md point 4 states an admin can revoke a pending invite before it is redeemed; neither the Solution nor any rule in section 3 covers revocation
+  - Suggestion: add to Solution that a pending invite can be revoked, and add "R5 A revoked invite cannot be redeemed" to section 3
   - Reported by: claude
 - P2
   - Category: weak criterion
   - Severity: blocking
-  - Location: PRD-gap.md section 5, AC-04
-  - Evidence: "the form must be fast" states no measurable threshold, so no check can pass or fail it
-  - Suggestion: state the observable threshold, for example "When the admin submits the invite form, then the confirmation appears in under 2 seconds at the 95th percentile"
+  - Location: PRD-gap.md section 3, R2
+  - Evidence: "R2 The invite form must be fast" is a preference, not a mandatory condition or explicit prohibition, so no check can pass or fail it
+  - Suggestion: state the verifiable condition, for example "R2 The invite form shows a confirmation in under 2 seconds at the 95th percentile"
   - Reported by: claude
 
 ## Not raised
-- Expiry: discovery point 3 maps to RF-03 with AC-03 asserting refusal after 7 days.
-- Identifiers RF-01 to RF-04 and AC-01 to AC-04 are unique and sequential.
-- No requirement in section 4 lacks a source point in discovery-notes.md.
+- Expiry: discovery point 3 maps to Solution and R3, asserting a pending invite expires after 7 days.
+- Rules R1 to R4 are unique, and each is a verifiable mandatory condition or prohibition.
+- No requirement in Solution or Rules lacks a source point in discovery-notes.md.
 ```
 
 ## Related

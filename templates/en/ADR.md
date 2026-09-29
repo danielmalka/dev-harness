@@ -10,7 +10,7 @@ understand why it was done this way and when it should be reviewed. -->
 | Status | proposed / accepted / superseded by ADR-000 / revoked |
 | Date | YYYY-MM-DD |
 | Decision maker | <who approved> |
-| Origin | PRD-000 / ST-000 / RFC-000 / incident RISKS.md#id |
+| Origin | PRD-000 / T-000 / RFC-000 / incident RISKS.md#id |
 | Reversibility | cheap and local / expensive or many dependents |
 
 ## 1. Context

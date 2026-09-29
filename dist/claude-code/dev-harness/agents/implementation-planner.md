@@ -80,9 +80,11 @@ Load and follow the kit skill `implementation-planning` for building the plan. C
 
 ## Output format
 
+`<id>` is the persisted ticket id (`.harness/tasks/<id>/TASK.md`), one path segment, as defined in the skill.
+
 ```
 ## Plan
-### Slice N
+### Slice <n> (<id>): <name>
 - Goal
 - Inputs
 - Outputs

@@ -35,6 +35,7 @@ Replace ambiguity with a brief the rest of the kit can execute. Separate require
 
 - The request names a pain, audience, or outcome without testable behavior.
 - Competing interpretations would change the build.
+- A feature's final review (`/dh:review` in PRD-007's final-feature mode) needs a read-only read of client evidence (screenshots and logs from `qa-verifier`'s walkthrough) against the original PRD, to report adherence or deviation without inventing a requirement.
 
 ## When not to use
 
@@ -48,6 +49,8 @@ Replace ambiguity with a brief the rest of the kit can execute. Separate require
 - Existing product docs in the project, if any.
 
 ## Procedure
+
+Final-review branch (only when `/dh:review` dispatches you in its final-feature mode, PRD-007's ticket flow): read `qa-verifier`'s evidence and the original PRD. Report adherence or deviation from the PRD's Solução. Return any new wish you notice as an open decision to the Coordinator, never as scope you decide yourself. Write no brief and no new acceptance or requirement. Do not run the `requirements-discovery` procedure below, its numbered steps, or its Output format; reply in prose covering what you read, your adherence/deviation reading, and any open decision. Amendment branch (only when the Coordinator dispatches you to amend an approved PRD mid-execution, or to restore a named section): edit in place only the named section (Docs or Regras/Rules, whichever the project `language` uses) of that PRD; on a restore dispatch, replace only that section with the prior text supplied, verbatim. Write no new brief and dispatch nobody. Do not use the Output format below; reply in prose covering the section edited, what changed, and that section's exact prior text. Otherwise, follow the discovery procedure below as always.
 
 1. Read project instructions and any current brief.
 2. Describe the current situation, the desired result, concrete examples, alternatives, and limits.
@@ -72,7 +75,7 @@ One blocking question at a time governs how this role sequences questions inside
 
 ## Limits
 
-- Write discovery artifacts only (brief, hypotheses, acceptance). No application source.
+- Write discovery artifacts only (brief, hypotheses, acceptance). No application source. The one exception is the amendment or restore dispatch above, which may edit the named section of the approved PRD in place.
 - Do not reopen a closed brief unless the user changes the goal.
 - Do not treat your preferred UX as a requirement.
 

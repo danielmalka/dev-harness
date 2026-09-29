@@ -1,96 +1,86 @@
 # T-000 · <título curto>
 
-<!-- Local: .harness/tasks/T-000/TASK.md (ou BUG-000 para defeito).
-Este é o despacho que um agente recebe. Tudo que ele precisa para começar
-sem perguntar está aqui ou está linkado. Apague os comentários ao finalizar.
-Para bug, preencha a seção 2B e ignore a 2A. -->
+<!-- Local: .harness/tasks/T-000/TASK.md
+Este é o único arquivo que um agente builder recebe: já carrega a story, o
+fluxo esperado e a cópia literal das regras que ele precisa honrar. Não lê
+o PRD inteiro. Fluxo (seção 3) + Pronto quando (seção 6) são a única fonte
+de aceite deste ticket — não existe seção "Critérios de aceite" separada.
+
+Para Tipo: bug, não há seção própria de defeito: a seção Fluxo carrega a
+reprodução (passos numerados terminando no par observado-vs-esperado) e a
+seção Pronto quando ganha o item do teste de regressão verde. Ver os
+comentários dessas duas seções abaixo.
+
+Apague os comentários ao finalizar. -->
 
 | Campo | Valor |
 |---|---|
 | Tipo | task / bug |
 | Status | pronta / em andamento / bloqueada / em revisão / concluída |
-| Story / PRD | ST-000 (AC-01) / PRD-000 |
-| Papel sugerido | backend-builder / frontend-builder / data-engineer / debugger / ... |
+| PRD (RF-<n>) | PRD-000 (RF-01) |
+| Papel sugerido | backend-builder / frontend-builder / data-engineer / devops-engineer / qa-verifier / ... |
 | Depende de | T-000, <contrato, decisão, migração> |
 | Bloqueia | T-000 |
 | Autorização | <o que pode ser escrito; commit/push/deploy exigem autorização explícita> |
 | Criado / atualizado | AAAA-MM-DD / AAAA-MM-DD |
 
-## 1. Objetivo
+## 1. Lane
 
-<!-- Uma frase com o resultado verificável. Depois o porquê, em uma linha. -->
+<!-- Um valor por ticket, lista fechada. Uma story que precisa de API e de
+tela com responsabilidades independentes vira dois tickets, um por lane;
+"e testa também" ao final deste ticket não gera sozinho um ticket de teste. -->
 
-## 2A. Escopo (task)
+Lane: backend / frontend / dados / infra / teste (unitário) / teste (integração) / teste (unitário e integração)
 
-**Entra**
-- <mudança concreta>
+## 2. Story
 
-**Não entra**
-- <o que o agente NÃO deve tocar, mesmo que pareça útil>
+<!-- Uma frase, sempre neste formato. -->
 
-## 2B. Defeito (bug)
+Como <ator>, quero <ação>, para <resultado>.
 
-- Sintoma: <texto literal do erro, log sanitizado ou comportamento observado>
-- Esperado: <o que deveria acontecer>
-- Reprodução: <passos ou comando; se não reproduz, registrar tentativas>
-- Ambiente: <versão, plataforma, config, dados>
-- Desde quando / mudança recente: <commit, release ou desconhecido>
-- Causa: <hipótese> · confirmada: sim / não · evidência: <...>
-- Gravidade: <impacto real> · incidente em RISKS.md: <id ou nenhum>
+## 3. Fluxo
 
-## 3. Contexto técnico
+<!-- Passos numerados, observáveis, "Quando X, então Y" — ator usuário,
+sistema ou teste. Este bloco, junto com Pronto quando (seção 6), é a única
+fonte de aceite do ticket.
 
-<!-- O mínimo para não reinventar: onde está o código, que padrão seguir, que contrato respeitar. Caminhos relativos. -->
+Para Tipo: bug, este campo carrega a reprodução do defeito: os mesmos
+passos numerados "Quando X, então Y" terminam no par observado-vs-esperado
+— o que acontece hoje (o comportamento com defeito) e o que deveria
+acontecer em vez disso. Não crie uma seção separada para isso. -->
 
-- Arquivos / módulos candidatos: `<caminho>`
-- Padrão local a seguir: <exemplo existente em `<caminho>`>
-- Contratos a respeitar: <API, evento, schema, interface>
-- Decisões já tomadas: <ADR ou decisão do PRD/story>
-- Regras críticas / incidentes anteriores: <RISKS.md#id ou nenhum>
+1. Quando <ação>, então <resultado observável>.
+2. Quando <ação>, então <resultado observável>.
 
-## 4. Mudanças de ambiente
+## 4. Regras
 
-<!-- Tudo que altera o ambiente além do código. Vazio = nenhuma. -->
+<!-- Cópia literal, sem paráfrase e sem resumo, só das regras R<n> do PRD
+que este ticket precisa honrar. Sem link. Regra que não cabe aqui não entra. -->
 
-| Tipo | Item | Ação | Motivo |
-|---|---|---|---|
-| lib | <nome@versão> | instalar / atualizar / remover | <por quê> |
-| env var | <NOME> | criar / alterar | <finalidade; valor não vai aqui> |
-| migração | <arquivo> | criar / aplicar | <reversível? sim / não; plano de retorno> |
-| config / infra | <arquivo ou serviço> | alterar | <...> |
+- R1 <cópia literal da regra correspondente do PRD>
 
-## 5. Plano de execução
+## 5. Docs
 
-<!-- Passos pequenos e verificáveis. Cada passo termina com um check. -->
+<!-- Paths a atualizar neste ticket, herdados e refinados da seção Docs do
+PRD, ou a linha exata "nenhum". -->
 
-1. <passo> → check: <comando ou observação>
-2. <passo> → check:
-3. <passo> → check:
+- <caminho/do/doc.md>
 
-## 6. Testes
+## 6. Pronto quando
 
-<!-- Cada critério de aceite tem pelo menos um teste. Comando real do projeto. Typecheck não prova comportamento. -->
+<!-- O conteúdo mínimo do ticket: o fluxo da seção 3 aconteceu; cada regra
+copiada na seção 4 tem evidência; os testes relevantes estão verdes; a
+documentação listada na seção 5 foi atualizada.
 
-| Cenário | Tipo | Arquivo / comando | Cobre |
-|---|---|---|---|
-| <caminho feliz> | unit / integração / e2e | `<comando>` | AC-01 |
-| <erro relevante> | | | AC-02 |
-| <regressão do bug> | | | 2B |
+Para Tipo: bug, este campo ganha mais um item: o teste de regressão deste
+defeito está verde. -->
 
-Verificação manual / navegador: <fluxo> ou "não se aplica"
+- o fluxo descrito na seção 3 aconteceu
+- as regras copiadas na seção 4 têm evidência
+- os testes relevantes estão verdes
+- a documentação listada na seção 5 foi atualizada (ou a seção diz "nenhum")
 
-## 7. Critérios de aceite
-
-- AC-01 Quando <X>, então <Y>.
-- AC-02 Quando <X>, então <Y>.
-
-## 8. Riscos e limites
-
-- Risco: <o que pode quebrar> · mitigação: <ação>
-- Ao encontrar decisão aberta: parar e reportar; não inventar comportamento.
-- Após 6 rodadas de correção sem sucesso: devolver ao Coordenador com evidência.
-
-## 9. Resultado
+## 7. Resultado
 
 <!-- Preenchido pelo executor ao entregar. Só o que foi feito e executado. -->
 
@@ -100,3 +90,9 @@ Verificação manual / navegador: <fluxo> ou "não se aplica"
 - Limitações: <o que não foi verificado ou ficou pendente>
 - Pendências para o Coordenador: <decisão, incidente, atualização de memória>
 - Próximo passo: <ação concreta> · autorização necessária: <qual>
+
+## 8. Riscos e limites
+
+- Risco: <o que pode quebrar> · mitigação: <ação>
+- Ao encontrar decisão aberta: parar e reportar; não inventar comportamento.
+- Após 6 rodadas de correção sem sucesso: devolver ao Coordenador com evidência.

@@ -647,7 +647,7 @@ footer.doc-foot {
       <nav>
         <a href="#posicionamento"><b>01</b>Posicionamento</a>
         <a href="#prd"><b>02</b>PRD</a>
-        <a href="#story"><b>03</b>Story</a>
+        <a href="#fluxo"><b>03</b>Fluxo novo</a>
         <a href="#task"><b>04</b>Task e Bug</a>
         <a href="#adr"><b>05</b>ADR</a>
         <a href="#rfc"><b>06</b>RFC</a>
@@ -664,7 +664,7 @@ footer.doc-foot {
       <header class="hero">
         <div class="eyebrow">Catálogo · rascunho</div>
         <h1>Templates: quando usar cada um</h1>
-        <p class="lead">Guia dos oito modelos do kit: o que cada um responde, quem escreve, quando abrir e fechar, e como se relacionam.</p>
+        <p class="lead">Guia dos sete modelos do kit: o que cada um responde, quem escreve, quando abrir e fechar, e como se relacionam.</p>
         <div class="chips">
           <span class="chip">data <b>2026-09-20</b></span>
           <span class="chip">status <b>rascunho</b></span>
@@ -674,7 +674,7 @@ footer.doc-foot {
       </header>
 
       <div class="strip">
-        <a href="#prd"><span>Âncora</span><strong>Produto</strong>PRD e Story</a>
+        <a href="#prd"><span>Âncora</span><strong>Produto</strong>PRD e fluxo novo</a>
         <a href="#task"><span>Execução</span><strong>Task e Bug</strong>Despacho ao agente</a>
         <a href="#adr"><span>Decisão</span><strong>ADR e RFC</strong>Registro técnico</a>
         <a href="#memoria"><span>Estado</span><strong>Memória</strong>Só o Coordenador</a>
@@ -683,7 +683,7 @@ footer.doc-foot {
       <h2 id="posicionamento"><span class="n">01</span>Posicionamento</h2>
       <div class="card">
         <h3>O que isto é</h3>
-        <p>Os modelos vivem em <code>templates/pt-br/</code> e <code>templates/en/</code> no kit, em versões espelhadas; o <code>setup</code> grava <code>language</code> em <code>.harness/project.yaml</code> e escolhe a pasta. No projeto consumidor, cada um é copiado para <code>.harness/</code> e preenchido. Cinco descrevem trabalho (PRD, Story, Task/Bug, ADR, RFC); três guardam estado (MEMORY, EPOCHAL, RISKS). Este guia diz qual usar, quem escreve, quando abrir e quando fechar.</p>
+        <p>Os modelos vivem em <code>templates/pt-br/</code> e <code>templates/en/</code> no kit, em versões espelhadas; o <code>setup</code> grava <code>language</code> em <code>.harness/project.yaml</code> e escolhe a pasta. No projeto consumidor, cada um é copiado para <code>.harness/</code> e preenchido. Quatro descrevem trabalho (PRD, Task/Bug, ADR, RFC); três guardam estado (MEMORY, EPOCHAL, RISKS). Este guia diz qual usar, quem escreve, quando abrir e quando fechar.</p>
       </div>
       <div class="callout gold">Fato, hipótese e decisão ficam marcados como tal. Caminhos relativos ao projeto. Sem segredos. Cada critério de aceite é “quando X, então Y” e aponta o cenário ou teste que o prova. Evidência só existe com estado explícito: passou, falhou ou não executado. Typecheck não prova comportamento.</div>
       <div class="callout stop">Os três registros de memória são escritos apenas pelo Coordenador. Os demais papéis reportam fatos, evidências e incidentes; não editam <code>MEMORY.md</code>, <code>EPOCHAL.md</code> nem <code>RISKS.md</code>.</div>
@@ -691,62 +691,43 @@ footer.doc-foot {
 
       <h2 id="prd"><span class="n">02</span>PRD</h2>
       <span class="tag">Produto · por quê e o quê</span>
-      <p>Responde por que fazer e o que entregar, sem dizer como. Um PRD bom pode ser atendido por três desenhos técnicos diferentes. Escreve o dono do produto, com o papel <code>product-discovery</code> via <code>/dh:discover</code>. Fecha quando requisitos e aceite estão aprovados e as stories foram derivadas. Modelo: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+      <p>Responde por que fazer e o que entregar, sem dizer como. Um PRD bom pode ser atendido por três desenhos técnicos diferentes. Escreve o dono do produto, com o papel <code>product-discovery</code> via <code>/dh:discover</code>. Fecha quando as regras e o aceite estão aprovados e, ao fim do lote, o status vira <code>entregue em &lt;data&gt;</code>. Tem quatro seções (Problema, Solução, Regras, Docs) e um apêndice opcional. Modelo: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>Entra</h3>
           <ul>
             <li>Dor ou oportunidade sem escopo e aceite claros.</li>
             <li>Problema com evidência, usuários e cenários, resultado com sinal mensurável.</li>
-            <li>Requisitos numerados (RF), aceite por requisito, restrições que limitam a solução.</li>
-            <li>Alternativas descartadas, riscos e decisões pendentes com dono.</li>
+            <li>Regras numeradas (R1, R2, ...), verificáveis, que limitam a solução, e os fluxos documentados que a feature toca.</li>
+            <li>Apêndice opcional: alternativas descartadas, riscos e decisões pendentes com dono.</li>
           </ul>
         </div>
         <div class="card out">
           <h3>Fica de fora</h3>
           <ul>
             <li>Arquitetura, lib ou fluxo interno. Isso é ADR ou plano.</li>
-            <li>Escopo já claro que cabe em uma story: pule o PRD e abra a story apontando a origem.</li>
+            <li>Escopo já claro que cabe em um ticket: pule o PRD e abra o ticket com a story e as regras escritas nele.</li>
             <li>Estimativa e prioridade. Ficam no perfil ou no kanban do projeto.</li>
           </ul>
         </div>
       </div>
 
-      <h2 id="story"><span class="n">03</span>Story</h2>
-      <span class="tag">Produto · qual comportamento</span>
-      <p>Um comportamento entregável e testável de ponta a ponta. Escreve <code>product-discovery</code> ou <code>implementation-planner</code>. Os cenários em Dado / Quando / Então viram testes; a tabela de impacto técnico serve para decompor em tasks e escolher os papéis. Fecha quando todos os critérios de aceite têm evidência de passou. Modelo: <code>templates/&lt;lang&gt;/STORY.md</code>.</p>
-      <div class="grid-2">
-        <div class="card in">
-          <h3>Entra</h3>
-          <ul>
-            <li>Um requisito do PRD que precisa virar algo verificável.</li>
-            <li>Caminho feliz, erro relevante e caso vazio ou limite.</li>
-            <li>Impacto em dados, contrato, interface, integrações, dependências e segurança.</li>
-            <li>Estratégia de verificação além dos testes das tasks.</li>
-          </ul>
-        </div>
-        <div class="card out">
-          <h3>Fica de fora</h3>
-          <ul>
-            <li>Comportamento que não cabe em poucas tasks. Divida antes de planejar.</li>
-            <li>Passos de implementação e arquivos. Isso é a task.</li>
-            <li>Mais de uma story no mesmo arquivo.</li>
-          </ul>
-        </div>
-      </div>
+      <h2 id="fluxo"><span class="n">03</span>Fluxo novo: do PRD ao ticket</h2>
+      <span class="tag">Produto · sem STORY.md</span>
+      <p>Não existe mais <code>STORY.md</code>: a story é uma frase dentro do ticket. O PRD nasce no <code>/dh:discover</code> e passa pelo <code>document-validator</code> (um validador, até duas rodadas) antes de chegar ao dono. Aprovado, o <code>/dh:plan</code> o quebra em tickets por lane, e cada regra observável <code>R&lt;n&gt;</code> precisa ser citada por um ticket de teste. O <code>/dh:build</code> roteia cada ticket pela lane; o ticket de implementação passa por <code>qa-verifier</code> e um revisor Claude, e o de teste só por <code>qa-verifier</code>. Com todos aprovados, <code>/dh:review feature PRD-&lt;n&gt;</code> faz a revisão final da feature (integração e aderência ao PRD) e termina em <code>FEATURE APROVADA</code>, <code>FEATURE REPROVADA</code> ou <code>FEATURE BLOQUEADA</code>. Ao fechar o lote, o Coordenador escreve a seção "Resumo executado" no fim do PRD e muda o status para <code>entregue em &lt;data&gt;</code>. Detalhes: <a href="../novo-fluxo-prd.md">docs/novo-fluxo-prd.md</a> e <a href="../prd/PRD-007-fluxo-prd-e-tickets.md">docs/prd/PRD-007-fluxo-prd-e-tickets.md</a>.</p>
 
       <h2 id="task"><span class="n">04</span>Task e Bug</h2>
       <span class="tag">Execução · como executar uma fatia</span>
-      <p>O despacho que um agente recebe. Tudo que ele precisa para começar sem perguntar está no arquivo ou linkado. Task e bug usam o mesmo modelo: a task preenche a seção de escopo; o bug preenche a seção de defeito. Escreve <code>implementation-planner</code> (task) ou <code>debugger</code> (bug). Vive em <code>.harness/tasks/&lt;id&gt;/TASK.md</code>. Modelo: <code>templates/&lt;lang&gt;/TASK.md</code>.</p>
+      <p>O ticket que um agente recebe. Tudo que ele precisa para começar sem perguntar está no arquivo, sem ler o PRD inteiro. Depois do cabeçalho vêm Lane, Story, Fluxo, Regras (cópia literal das <code>R&lt;n&gt;</code> do PRD), Docs, Pronto quando, Resultado e Riscos e limites. A lane é <code>backend</code>, <code>frontend</code>, <code>dados</code>, <code>infra</code>, <code>teste (unitário)</code>, <code>teste (integração)</code> ou <code>teste (unitário e integração)</code>, e o <code>/dh:build</code> roteia por ela. Task e bug usam o mesmo modelo; no bug a reprodução entra no Fluxo e o teste de regressão verde entra no Pronto quando. Escreve <code>implementation-planner</code> (task) ou <code>debugger</code> (bug). Vive em <code>.harness/tasks/&lt;id&gt;/TASK.md</code>. Modelo: <code>templates/&lt;lang&gt;/TASK.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>Entra</h3>
           <ul>
-            <li>Objetivo em uma frase, escopo com “não entra” explícito.</li>
-            <li>Contexto técnico: arquivos candidatos, padrão local a seguir, contratos, decisões, incidentes.</li>
-            <li>Mudanças de ambiente: lib instalar / atualizar / remover, env var, migração com reversibilidade, config.</li>
-            <li>Plano em passos com check, tabela de testes cobrindo cada aceite, resultado com passou / falhou / não executado.</li>
-            <li>Bug: sintoma literal, reprodução, esperado vs. observado, causa marcada como hipótese ou confirmada, gravidade.</li>
+            <li>Lane, story em uma frase e Fluxo em passos observáveis “Quando X, então Y”.</li>
+            <li>Regras copiadas literalmente do PRD, sem link nem paráfrase.</li>
+            <li>Docs a atualizar (ou a linha “nenhum”) e Pronto quando: fluxo aconteceu, regras com evidência, testes verdes.</li>
+            <li>Resultado com passou / falhou / não executado, riscos e limites.</li>
+            <li>Bug: reprodução no Fluxo terminando em observado vs. esperado, e o teste de regressão verde no Pronto quando.</li>
           </ul>
         </div>
         <div class="card out">
@@ -785,7 +766,7 @@ footer.doc-foot {
 
       <h2 id="rfc"><span class="n">06</span>RFC</h2>
       <span class="tag">Decisão · proposta antes de construir · opcional</span>
-      <p>Propõe uma mudança técnica ampla e coleta objeções antes de construir. Aprovado, gera ADR para a decisão durável e stories para o trabalho. Em desenvolvimento solo com agentes a função de coletar objeções quase não existe; um ADR com status proposto costuma bastar. Modelo: <code>templates/&lt;lang&gt;/RFC.md</code>.</p>
+      <p>Propõe uma mudança técnica ampla e coleta objeções antes de construir. Aprovado, gera ADR para a decisão durável e tickets para o trabalho. Em desenvolvimento solo com agentes a função de coletar objeções quase não existe; um ADR com status proposto costuma bastar. Modelo: <code>templates/&lt;lang&gt;/RFC.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>Entra</h3>
@@ -832,13 +813,13 @@ footer.doc-foot {
       <h2 id="jornada"><span class="n">08</span>Jornada</h2>
       <p>Fluxo de engenharia com os comandos do kit. Nem toda tarefa passa por todas as etapas: um bug entra direto em <code>fix</code>; uma edição pequena entra direto em <code>build</code> com uma task.</p>
       <ol class="steps">
-        <li><strong>Discover</strong> pedido ou dor vira PRD com requisitos e aceite.</li>
-        <li><strong>Stories</strong> uma por requisito, com cenários e impacto técnico.</li>
+        <li><strong>Discover</strong> pedido ou dor vira PRD com problema, solução, regras e docs; o validador o revisa antes do dono.</li>
         <li><strong>Understand</strong> o scout mapeia a área afetada, sem exigir índice.</li>
         <li><strong>Plan</strong> o planejador fatia; o arquiteto entra se houver decisão cara de reverter e escreve o ADR. O Coordenador consulta MEMORY e, em área de risco, RISKS.</li>
-        <li><strong>Tasks</strong> uma por fatia, com ambiente, testes e aceite.</li>
+        <li><strong>Tickets</strong> um por fatia, cada um com sua lane; toda regra observável é citada por um ticket de teste.</li>
         <li><strong>Build</strong> o implementador entrega a fatia com checks executados.</li>
         <li><strong>Verify e review</strong> QA e revisor avaliam o estado estabilizado. Até seis rodadas de correção; depois, replanejar.</li>
+        <li><strong>Revisão final</strong> <code>/dh:review feature PRD-&lt;n&gt;</code> julga integração e aderência ao PRD; ao fechar, o Coordenador escreve o "Resumo executado" no PRD.</li>
         <li><strong>Release e handoff</strong> prontidão sem publicar; estado transportável para a próxima sessão.</li>
       </ol>
       <div class="card">
@@ -847,8 +828,7 @@ footer.doc-foot {
 flowchart TB
     ideia([Pedido ou dor]) --> discover["/dh:discover<br/>product-discovery"]
     discover --> prd[/PRD.md/]
-    prd --> stories[/STORY.md por requisito/]
-    stories --> understand["/dh:understand<br/>repo-scout"]
+    prd --> understand["/dh:understand<br/>repo-scout"]
     understand --> plan["/dh:plan<br/>implementation-planner<br/>+ solution-architect se preciso"]
     plan --> decisao{Decisão cara<br/>de reverter?}
     decisao -->|sim| adr[/ADR.md/]
@@ -868,7 +848,7 @@ flowchart TB
     bugtask --> verify
 
     rfc[/RFC.md opcional/] -.->|aprovado| adr
-    rfc -.->|aprovado| stories
+    rfc -.->|aprovado| tasks
 
     memoria[(MEMORY.md)] <-.->|Coordenador| plan
     memoria <-.-> handoff
@@ -876,7 +856,7 @@ flowchart TB
 
     classDef doc fill:#18201B,stroke:#3EE8A0,color:#E6EFE9
     classDef mem fill:#121814,stroke:#C5E8D4,color:#E6EFE9
-    class prd,stories,adr,tasks,bugtask,rfc doc
+    class prd,adr,tasks,bugtask,rfc doc
     class memoria,risks mem
 </pre>
       </div>
@@ -888,12 +868,11 @@ flowchart TB
             <tr><th>Template</th><th>Responde</th><th>Quem escreve</th><th>Abrir quando</th><th>Fechar quando</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>PRD.md</code></td><td>Por quê e o quê</td><td>Dono do produto, com product-discovery</td><td>Dor sem escopo e aceite claros</td><td>Requisitos e aceite aprovados; stories derivadas</td></tr>
-            <tr><td><code>STORY.md</code></td><td>Qual comportamento</td><td>product-discovery ou implementation-planner</td><td>Requisito precisa virar algo testável</td><td>Todos os AC com evidência de passou</td></tr>
-            <tr><td><code>TASK.md</code> (task)</td><td>Como executar uma fatia</td><td>implementation-planner; executa o builder</td><td>Story decomposta em fatias</td><td>Checks passaram, revisão feita, resultado preenchido</td></tr>
-            <tr><td><code>TASK.md</code> (bug)</td><td>O que falha e por quê</td><td>debugger</td><td>Defeito reportado ou observado</td><td>Reprodução antes/depois e regressão, ou inconclusivo com lacuna</td></tr>
+            <tr><td><code>PRD.md</code></td><td>Por quê e o quê</td><td>Dono do produto, com product-discovery</td><td>Dor sem escopo e aceite claros</td><td>Regras e aceite aprovados; status entregue em &lt;data&gt; ao fechar o lote</td></tr>
+            <tr><td><code>TASK.md</code> (ticket)</td><td>Como executar uma fatia</td><td>implementation-planner; executa o builder</td><td>PRD aprovado</td><td>Checks passaram, revisão feita, resultado preenchido</td></tr>
+            <tr><td><code>TASK.md</code> (bug)</td><td>O que falha e por quê</td><td>debugger</td><td>Defeito reportado ou observado</td><td>Reprodução no Fluxo e regressão verde no Pronto quando, ou inconclusivo com lacuna</td></tr>
             <tr><td><code>ADR.md</code></td><td>Qual decisão durável</td><td>solution-architect; aprova o dono</td><td>Escolha cara de reverter</td><td>Status aceito; revisto na condição de revisão</td></tr>
-            <tr><td><code>RFC.md</code></td><td>Qual mudança técnica se propõe</td><td>Engenharia</td><td>Mudança ampla sem PRD, impacto além do autor</td><td>Aprovado (gera ADR e stories), rejeitado ou retirado</td></tr>
+            <tr><td><code>RFC.md</code></td><td>Qual mudança técnica se propõe</td><td>Engenharia</td><td>Mudança ampla sem PRD, impacto além do autor</td><td>Aprovado (gera ADR e tickets), rejeitado ou retirado</td></tr>
             <tr><td><code>MEMORY.md</code></td><td>Estado vigente</td><td>Só o Coordenador</td><td>setup do projeto</td><td>Nunca; enxugado por consolidate-memory</td></tr>
             <tr><td><code>EPOCHAL.md</code></td><td>Histórico bruto</td><td>Só o Coordenador</td><td>Primeiro consolidate-memory</td><td>Nunca; só recebe lotes</td></tr>
             <tr><td><code>RISKS.md</code></td><td>Incidentes e prevenção</td><td>Só o Coordenador</td><td>setup do projeto</td><td>Nunca; incidentes resolvidos permanecem</td></tr>
@@ -902,22 +881,20 @@ flowchart TB
       </div>
 
       <h2 id="pacotes"><span class="n">10</span>Pacotes compostos: como os arquivos se ligam</h2>
-      <p>Um PRD gera várias stories, uma por requisito. Uma story gera várias tasks, cobrindo seus critérios de aceite. ADR restringe tasks e tem origem em PRD, story, RFC ou incidente. Task entrega resultado e evidência ao Coordenador, que escreve em MEMORY; incidente grave vai para RISKS, e a prevenção de RISKS volta para stories e tasks. Linha cheia é derivação ou escrita; pontilhada é referência ou consulta.</p>
+      <p>Um PRD gera vários tickets, um por requisito (ou mais, quando uma regra precisa de mais de um). ADR restringe tickets e tem origem em PRD, RFC ou incidente. O ticket entrega resultado e evidência ao Coordenador, que escreve em MEMORY; incidente grave vai para RISKS, e a prevenção de RISKS volta para os tickets. Linha cheia é derivação ou escrita; pontilhada é referência ou consulta.</p>
       <div class="card">
         <h3>Diagrama de relação</h3>
         <pre class="mermaid">
 flowchart LR
     subgraph produto[Produto e planejamento]
-        PRD[PRD.md] -->|"1 → n (RF)"| STORY[STORY.md]
-        STORY -->|"1 → n (AC)"| TASK[TASK.md<br/>task ou bug]
+        PRD[PRD.md] -->|"1 → n (R)"| TASK[TASK.md<br/>ticket ou bug]
     end
 
     subgraph decisao[Decisão técnica]
         RFC[RFC.md<br/>opcional] -->|aprovado gera| ADR[ADR.md]
-        RFC -.->|aprovado gera| STORY
+        RFC -.->|aprovado gera| TASK
         ADR -->|restringe| TASK
         PRD -.->|origem| ADR
-        STORY -.->|origem| ADR
     end
 
     subgraph memoria["Memória do projeto, só o Coordenador escreve"]
@@ -927,20 +904,19 @@ flowchart LR
 
     TASK -->|resultado e evidência| MEMORY
     TASK -.->|incidente grave| RISKS
-    RISKS -.->|prevenção| STORY
     RISKS -.->|prevenção| TASK
     RISKS -.->|origem| ADR
     RISKS -.->|origem| RFC
 
     classDef doc fill:#18201B,stroke:#3EE8A0,color:#E6EFE9
     classDef mem fill:#121814,stroke:#C5E8D4,color:#E6EFE9
-    class PRD,STORY,TASK,ADR,RFC doc
+    class PRD,TASK,ADR,RFC doc
     class MEMORY,EPOCHAL,RISKS mem
 </pre>
       </div>
       <div class="card">
         <h3>Locais sugeridos no projeto consumidor</h3>
-        <p><code>.harness/project.yaml</code> · <code>.harness/MEMORY.md</code> · <code>.harness/EPOCHAL.md</code> · <code>.harness/RISKS.md</code> · <code>.harness/prd/PRD-001.md</code> · <code>.harness/stories/ST-001.md</code> · <code>.harness/adr/ADR-001.md</code> · <code>.harness/rfc/RFC-001.md</code> · <code>.harness/tasks/T-001/TASK.md</code> · <code>.harness/tasks/BUG-001/TASK.md</code></p>
+        <p><code>.harness/project.yaml</code> · <code>.harness/MEMORY.md</code> · <code>.harness/EPOCHAL.md</code> · <code>.harness/RISKS.md</code> · <code>.harness/prd/PRD-001.md</code> · <code>.harness/adr/ADR-001.md</code> · <code>.harness/rfc/RFC-001.md</code> · <code>.harness/tasks/T-001/TASK.md</code> · <code>.harness/tasks/BUG-001/TASK.md</code></p>
       </div>
 
       <h2 id="aberto"><span class="n">11</span>Mapeado vs. em aberto</h2>
@@ -948,7 +924,7 @@ flowchart LR
         <div class="card in">
           <h3>Mapeado</h3>
           <ul>
-            <li>Oito modelos por idioma em <code>templates/pt-br/</code> e <code>templates/en/</code>, versões
+            <li>Sete modelos por idioma em <code>templates/pt-br/</code> e <code>templates/en/</code>, versões
               espelhadas.</li>
             <li><code>.harness/tasks/&lt;id&gt;/</code> e os três registros de memória definidos pelo plano do produto.</li>
             <li>Formato de resultado da task igual ao formato de resposta das skills.</li>
@@ -957,7 +933,7 @@ flowchart LR
         <div class="card out">
           <h3>Em aberto</h3>
           <ul>
-            <li>Diretórios <code>prd/</code>, <code>stories/</code>, <code>adr/</code> e <code>rfc/</code> são convenção sugerida, não decisão do plano.</li>
+            <li>Diretórios <code>prd/</code>, <code>adr/</code> e <code>rfc/</code> são convenção sugerida, não decisão do plano.</li>
             <li>Manter ou descartar o RFC como template de primeira linha.</li>
             <li>Modelo separado de “plano”, “evidência”, “revisão” e “handoff”: a fatia usa <code>TASK.md</code>; evidência
               fica em <code>.harness/tasks/&lt;id&gt;/evidence/</code>; handoff é o comando
