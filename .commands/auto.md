@@ -34,7 +34,7 @@ One status line per completed stage (stage, verdict, next stage), the running `.
 - Every restriction of the chained command currently running applies unreduced: this command loosens no gate, cap or authorization check any `.commands/<stage>.md` already states.
 - The seven-item questionnaire runs exactly once per run, before the first write or dispatch; a later stage's own "ask the owner" text is answered per the active decision mode, never by re-running the questionnaire.
 - No branch other than the single `<base-branch>` for the whole batch; no per-slice branch.
-- No git-sequence step without its own questionnaire letter; no `--force`, no `--no-verify`.
+- No git-sequence step without its own questionnaire authorization, (3) to (6); no `--force`, no `--no-verify`.
 - No new agent, skill or role beyond what `.agents/` and `.skills/` already define.
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 

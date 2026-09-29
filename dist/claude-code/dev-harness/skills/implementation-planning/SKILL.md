@@ -171,7 +171,9 @@ Brief: expired invites must be refused. Map: three files and one test file. Boun
 
 ## Related
 
-Roles: implementation-planner, coordinator, solution-architect, backend-builder, qa-verifier. Command: `/dh:plan`. Skills: requirements-discovery supplies the acceptance, repository-mapping supplies the candidate files, architecture-decisions settles a boundary before slicing, incremental-implementation executes a slice, regression-testing turns the check lines into real checks, context-handoff carries an unfinished plan to the next session.
+Roles: implementation-planner, coordinator, solution-architect, backend-builder, qa-verifier. Commands: `/dh:plan`, `/dh:plan-loop`. Skills: requirements-discovery supplies the acceptance, repository-mapping supplies the candidate files, architecture-decisions settles a boundary before slicing, incremental-implementation executes a slice, regression-testing turns the check lines into real checks, context-handoff carries an unfinished plan to the next session, external-clis dispatches a CLI planner against this skill's own output format (see external-clis "The planning call").
+
+When a CLI is dispatched as a planner by `/dh:plan-loop`, its reply is expected to follow this skill's own output format in full — `## Plan`, `### Slice N` and the rest. `external-clis`' transport-failure test for a planning call (see `external-clis` "The planning call") checks only the minimum recognizer — a `## Plan` heading (or `### Slice N` headings) naming a goal and one slice — not a verbatim-format gate: a reply that passes that minimum but is otherwise incomplete is not discarded, it is judged by the wave's reviewers like any other candidate.
 
 ## Proof case
 

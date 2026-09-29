@@ -1,0 +1,9 @@
+{
+  "name": "receipts-service",
+  "version": "1.4.0",
+  "private": true,
+  "dependencies": {
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.13"
+  }
+}

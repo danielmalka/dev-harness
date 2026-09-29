@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.284",
+  "startedAt": "2026-09-29T01:26:59.018Z",
+  "durationSeconds": 36,
+  "costUsd": 0.27372019999999997,
+  "partial": false,
+  "suite": {
+    "root": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "judgeModel": "sonnet",
+    "caseFilter": "external-clis-distinct-findings",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "dh",
+        "version": "0.9.0",
+        "path": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "external-clis-distinct-findings",
+      "dir": "evals/cases/external-clis-distinct-findings",
+      "source": "mixed",
+      "promptMarkdown": "Load the kit skill code-review and, for the code stage, the kit skill\nexternal-clis. `.harness/project.yaml` for this run carries\n`reviewers: {code: [\"cli:codex/gpt-5.6-sol\", \"cli:agy/gemini-3.1-pro-high\"]}`.\nReview fixtures/diff.md.\nFor the `cli:codex/gpt-5.6-sol` call, do not invoke a real binary: read\nits reply from fixtures/cli-output-codex-retry-backoff.md. For the\n`cli:agy/gemini-3.1-pro-high` call, read its reply from\nfixtures/cli-output-agy-cache-eviction.md. Neither binary is actually\ninvoked. The two replies report genuinely unrelated findings, at different\nfiles and different lines, with no plausible overlap. Return the merged\nreport only.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 600,
+      "maxTurns": 25,
+      "graders": [
+        {
+          "name": "01-two-distinct-entries",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Does the merged report contain two distinct finding entries — one at\ninternal/service/retry.go:44 and one at internal/cache/lru.go:87 — rather\nthan a single combined entry covering both locations?",
+          "config": {
+            "criteria": "Does the merged report contain two distinct finding entries — one at\ninternal/service/retry.go:44 and one at internal/cache/lru.go:87 — rather\nthan a single combined entry covering both locations?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "02-each-entry-names-only-its-own-reviewer",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Does the internal/service/retry.go:44 entry's `Reported by:` line name only\n`cli:codex/gpt-5.6-sol` (never also naming `cli:agy/gemini-3.1-pro-high`),\nand does the internal/cache/lru.go:87 entry's `Reported by:` line name only\n`cli:agy/gemini-3.1-pro-high` (never also naming `cli:codex/gpt-5.6-sol`)?",
+          "config": {
+            "criteria": "Does the internal/service/retry.go:44 entry's `Reported by:` line name only\n`cli:codex/gpt-5.6-sol` (never also naming `cli:agy/gemini-3.1-pro-high`),\nand does the internal/cache/lru.go:87 entry's `Reported by:` line name only\n`cli:agy/gemini-3.1-pro-high` (never also naming `cli:codex/gpt-5.6-sol`)?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "03-location-matches-own-source",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Does each entry's own location match its own source reply — the\nretry.go entry citing line 44, the lru.go entry citing line 87 — with\nneither entry's file or line swapped, blended, or borrowed from the\nother reply?",
+          "config": {
+            "criteria": "Does each entry's own location match its own source reply — the\nretry.go entry citing line 44, the lru.go entry citing line 87 — with\nneither entry's file or line swapped, blended, or borrowed from the\nother reply?",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "04-no-paraphrase-or-fusion",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Is neither entry's text a paraphrase or fusion combining wording from both\nreplies — does the retry.go entry read as cli:codex/gpt-5.6-sol's own\nfinding text (or a faithful quote of it) and the lru.go entry read as\ncli:agy/gemini-3.1-pro-high's own finding text (or a faithful quote of it),\nrather than a third, reworded version blending language from both?",
+          "config": {
+            "criteria": "Is neither entry's text a paraphrase or fusion combining wording from both\nreplies — does the retry.go entry read as cli:codex/gpt-5.6-sol's own\nfinding text (or a faithful quote of it) and the lru.go entry read as\ncli:agy/gemini-3.1-pro-high's own finding text (or a faithful quote of it),\nrather than a third, reworded version blending language from both?",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.75,
+            "passed": false,
+            "turns": 8,
+            "costUsd": 0.27372019999999997,
+            "judgeCostUsd": 0.041462000000000006,
+            "durationSeconds": 36,
+            "startedAt": "2026-09-29T01:26:59.300Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-JyRG4o/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-two-distinct-entries",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Merge of two `code`-stage reviews of `main..fix/retry-and-cache`, read from the fixture replies. No binary was invoked.\n\n## Review\n- Scope: internal/service/retry.go, internal/cache/lru.go\n- Comparison: main..fix/retry-and-cache\n- Requirement source: none available\n- Correctness: both reviewers traced their own file. `cli:codex/gpt-5.6-sol` covered retry.go and `cli:agy/gemini-3.1-pro-high` covered lru.go. Neither reviewed the other's file.\n- Regression: the same two traces. Each reviewer reports one Major regression.\n- Spec compliance: not covered. No requirement source was available, so this axis is not-run.\n- Security surface: not applicable. The diff touches no trust boundary.\n\nEach file was reviewed by one reviewer only, so a clean result on the other file cannot be inferred.\n\n## Correctness and regressions\n### Major\n- [internal/service/retry.go:44] The final failed attempt now returns immediately with no backoff sleep, so a fast-failing dependency is hammered at full speed on the last retry.\n  - Scenario: fn() fails on every call until maxAttempts is reached.\n  - Impact: the last attempt loses the backoff delay the rest of the loop honors, defeating the purpose of WithRetry under sustained failure.\n  - Recommendation: sleep before the final return as well, or restructure the loop so backoff always precedes the next attempt.\n  - Reported by: cli:codex/gpt-5.6-sol\n\n- [internal/cache/lru.go:87] Set no longer evicts the oldest entry before inserting when the cache is already at capacity, so the cache grows without bound instead of staying at its configured size.\n  - Scenario: Set is called more times than the cache's configured capacity, each with a distinct key.\n  - Impact: unbounded memory growth under sustained cache writes, defeating the purpose of a bounded LRU cache.\n  - Recommendation: keep the capacity check and evictOldest call before inserting the new entry.\n  - Reported by: cli:agy/gemini-3.1-pro-high\n\nThe two findings are at different files and lines with different defect classes, so they stay as two entries.\n\n**Disagreement for the owner (recorded, not resolved):** in `fixtures/diff.md`, the `time.Sleep(backoff(attempt))` in retry.go stays inside the loop body. That looks like it still runs after every failed attempt, including the last one. If so, the mechanism codex reports (no sleep on the last attempt) may not match the diff. The diff also changes the number of `fn()` calls from `maxAttempts+1` to `maxAttempts`, which neither reviewer mentions. The finding is kept as reported, and the owner or author should confirm it against the tree. The verdict does not depend on it, because the lru.go finding blocks on its own.\n\n## Spec compliance\nNo spec available. Axis not run.\n\n## Maintainability notes (non-blocking)\n- None reported by either reviewer.\n\n## Checks observed\n- go test ./... - not-run (codex, read-only sandbox)\n- go test ./... - not-run (agy, sandbox)\n\n## Verdict\n- Review status: request changes\n- Blocking findings: 2\n- Ready from this review: no\n- Limitations: spec axis not run and no requirement source provided. Each reviewer covered only its own file, and no tests were executed.\n\nReviewer verdicts recorded beside the merged one:\n\n| Reviewer | Own verdict | Blocking findings | Workspace check |\n| --- | --- | --- | --- |\n| `cli:codex/gpt-5.6-sol` | `- Review status: request changes` | 1 | not applicable (fixture read) |\n| `cli:agy/gemini-3.1-pro-high` | `- Review status: request changes` | 1 | not applicable (fixture read) |"
+              },
+              {
+                "name": "02-each-entry-names-only-its-own-reviewer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Merge of two `code`-stage reviews of `main..fix/retry-and-cache`, read from the fixture replies. No binary was invoked.\n\n## Review\n- Scope: internal/service/retry.go, internal/cache/lru.go\n- Comparison: main..fix/retry-and-cache\n- Requirement source: none available\n- Correctness: both reviewers traced their own file. `cli:codex/gpt-5.6-sol` covered retry.go and `cli:agy/gemini-3.1-pro-high` covered lru.go. Neither reviewed the other's file.\n- Regression: the same two traces. Each reviewer reports one Major regression.\n- Spec compliance: not covered. No requirement source was available, so this axis is not-run.\n- Security surface: not applicable. The diff touches no trust boundary.\n\nEach file was reviewed by one reviewer only, so a clean result on the other file cannot be inferred.\n\n## Correctness and regressions\n### Major\n- [internal/service/retry.go:44] The final failed attempt now returns immediately with no backoff sleep, so a fast-failing dependency is hammered at full speed on the last retry.\n  - Scenario: fn() fails on every call until maxAttempts is reached.\n  - Impact: the last attempt loses the backoff delay the rest of the loop honors, defeating the purpose of WithRetry under sustained failure.\n  - Recommendation: sleep before the final return as well, or restructure the loop so backoff always precedes the next attempt.\n  - Reported by: cli:codex/gpt-5.6-sol\n\n- [internal/cache/lru.go:87] Set no longer evicts the oldest entry before inserting when the cache is already at capacity, so the cache grows without bound instead of staying at its configured size.\n  - Scenario: Set is called more times than the cache's configured capacity, each with a distinct key.\n  - Impact: unbounded memory growth under sustained cache writes, defeating the purpose of a bounded LRU cache.\n  - Recommendation: keep the capacity check and evictOldest call before inserting the new entry.\n  - Reported by: cli:agy/gemini-3.1-pro-high\n\nThe two findings are at different files and lines with different defect classes, so they stay as two entries.\n\n**Disagreement for the owner (recorded, not resolved):** in `fixtures/diff.md`, the `time.Sleep(backoff(attempt))` in retry.go stays inside the loop body. That looks like it still runs after every failed attempt, including the last one. If so, the mechanism codex reports (no sleep on the last attempt) may not match the diff. The diff also changes the number of `fn()` calls from `maxAttempts+1` to `maxAttempts`, which neither reviewer mentions. The finding is kept as reported, and the owner or author should confirm it against the tree. The verdict does not depend on it, because the lru.go finding blocks on its own.\n\n## Spec compliance\nNo spec available. Axis not run.\n\n## Maintainability notes (non-blocking)\n- None reported by either reviewer.\n\n## Checks observed\n- go test ./... - not-run (codex, read-only sandbox)\n- go test ./... - not-run (agy, sandbox)\n\n## Verdict\n- Review status: request changes\n- Blocking findings: 2\n- Ready from this review: no\n- Limitations: spec axis not run and no requirement source provided. Each reviewer covered only its own file, and no tests were executed.\n\nReviewer verdicts recorded beside the merged one:\n\n| Reviewer | Own verdict | Blocking findings | Workspace check |\n| --- | --- | --- | --- |\n| `cli:codex/gpt-5.6-sol` | `- Review status: request changes` | 1 | not applicable (fixture read) |\n| `cli:agy/gemini-3.1-pro-high` | `- Review status: request changes` | 1 | not applicable (fixture read) |"
+              },
+              {
+                "name": "03-location-matches-own-source",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Merge of two `code`-stage reviews of `main..fix/retry-and-cache`, read from the fixture replies. No binary was invoked.\n\n## Review\n- Scope: internal/service/retry.go, internal/cache/lru.go\n- Comparison: main..fix/retry-and-cache\n- Requirement source: none available\n- Correctness: both reviewers traced their own file. `cli:codex/gpt-5.6-sol` covered retry.go and `cli:agy/gemini-3.1-pro-high` covered lru.go. Neither reviewed the other's file.\n- Regression: the same two traces. Each reviewer reports one Major regression.\n- Spec compliance: not covered. No requirement source was available, so this axis is not-run.\n- Security surface: not applicable. The diff touches no trust boundary.\n\nEach file was reviewed by one reviewer only, so a clean result on the other file cannot be inferred.\n\n## Correctness and regressions\n### Major\n- [internal/service/retry.go:44] The final failed attempt now returns immediately with no backoff sleep, so a fast-failing dependency is hammered at full speed on the last retry.\n  - Scenario: fn() fails on every call until maxAttempts is reached.\n  - Impact: the last attempt loses the backoff delay the rest of the loop honors, defeating the purpose of WithRetry under sustained failure.\n  - Recommendation: sleep before the final return as well, or restructure the loop so backoff always precedes the next attempt.\n  - Reported by: cli:codex/gpt-5.6-sol\n\n- [internal/cache/lru.go:87] Set no longer evicts the oldest entry before inserting when the cache is already at capacity, so the cache grows without bound instead of staying at its configured size.\n  - Scenario: Set is called more times than the cache's configured capacity, each with a distinct key.\n  - Impact: unbounded memory growth under sustained cache writes, defeating the purpose of a bounded LRU cache.\n  - Recommendation: keep the capacity check and evictOldest call before inserting the new entry.\n  - Reported by: cli:agy/gemini-3.1-pro-high\n\nThe two findings are at different files and lines with different defect classes, so they stay as two entries.\n\n**Disagreement for the owner (recorded, not resolved):** in `fixtures/diff.md`, the `time.Sleep(backoff(attempt))` in retry.go stays inside the loop body. That looks like it still runs after every failed attempt, including the last one. If so, the mechanism codex reports (no sleep on the last attempt) may not match the diff. The diff also changes the number of `fn()` calls from `maxAttempts+1` to `maxAttempts`, which neither reviewer mentions. The finding is kept as reported, and the owner or author should confirm it against the tree. The verdict does not depend on it, because the lru.go finding blocks on its own.\n\n## Spec compliance\nNo spec available. Axis not run.\n\n## Maintainability notes (non-blocking)\n- None reported by either reviewer.\n\n## Checks observed\n- go test ./... - not-run (codex, read-only sandbox)\n- go test ./... - not-run (agy, sandbox)\n\n## Verdict\n- Review status: request changes\n- Blocking findings: 2\n- Ready from this review: no\n- Limitations: spec axis not run and no requirement source provided. Each reviewer covered only its own file, and no tests were executed.\n\nReviewer verdicts recorded beside the merged one:\n\n| Reviewer | Own verdict | Blocking findings | Workspace check |\n| --- | --- | --- | --- |\n| `cli:codex/gpt-5.6-sol` | `- Review status: request changes` | 1 | not applicable (fixture read) |\n| `cli:agy/gemini-3.1-pro-high` | `- Review status: request changes` | 1 | not applicable (fixture read) |"
+              },
+              {
+                "name": "04-no-paraphrase-or-fusion",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "Merge of two `code`-stage reviews of `main..fix/retry-and-cache`, read from the fixture replies. No binary was invoked.\n\n## Review\n- Scope: internal/service/retry.go, internal/cache/lru.go\n- Comparison: main..fix/retry-and-cache\n- Requirement source: none available\n- Correctness: both reviewers traced their own file. `cli:codex/gpt-5.6-sol` covered retry.go and `cli:agy/gemini-3.1-pro-high` covered lru.go. Neither reviewed the other's file.\n- Regression: the same two traces. Each reviewer reports one Major regression.\n- Spec compliance: not covered. No requirement source was available, so this axis is not-run.\n- Security surface: not applicable. The diff touches no trust boundary.\n\nEach file was reviewed by one reviewer only, so a clean result on the other file cannot be inferred.\n\n## Correctness and regressions\n### Major\n- [internal/service/retry.go:44] The final failed attempt now returns immediately with no backoff sleep, so a fast-failing dependency is hammered at full speed on the last retry.\n  - Scenario: fn() fails on every call until maxAttempts is reached.\n  - Impact: the last attempt loses the backoff delay the rest of the loop honors, defeating the purpose of WithRetry under sustained failure.\n  - Recommendation: sleep before the final return as well, or restructure the loop so backoff always precedes the next attempt.\n  - Reported by: cli:codex/gpt-5.6-sol\n\n- [internal/cache/lru.go:87] Set no longer evicts the oldest entry before inserting when the cache is already at capacity, so the cache grows without bound instead of staying at its configured size.\n  - Scenario: Set is called more times than the cache's configured capacity, each with a distinct key.\n  - Impact: unbounded memory growth under sustained cache writes, defeating the purpose of a bounded LRU cache.\n  - Recommendation: keep the capacity check and evictOldest call before inserting the new entry.\n  - Reported by: cli:agy/gemini-3.1-pro-high\n\nThe two findings are at different files and lines with different defect classes, so they stay as two entries.\n\n**Disagreement for the owner (recorded, not resolved):** in `fixtures/diff.md`, the `time.Sleep(backoff(attempt))` in retry.go stays inside the loop body. That looks like it still runs after every failed attempt, including the last one. If so, the mechanism codex reports (no sleep on the last attempt) may not match the diff. The diff also changes the number of `fn()` calls from `maxAttempts+1` to `maxAttempts`, which neither reviewer mentions. The finding is kept as reported, and the owner or author should confirm it against the tree. The verdict does not depend on it, because the lru.go finding blocks on its own.\n\n## Spec compliance\nNo spec available. Axis not run.\n\n## Maintainability notes (non-blocking)\n- None reported by either reviewer.\n\n## Checks observed\n- go test ./... - not-run (codex, read-only sandbox)\n- go test ./... - not-run (agy, sandbox)\n\n## Verdict\n- Review status: request changes\n- Blocking findings: 2\n- Ready from this review: no\n- Limitations: spec axis not run and no requirement source provided. Each reviewer covered only its own file, and no tests were executed.\n\nReviewer verdicts recorded beside the merged one:\n\n| Reviewer | Own verdict | Blocking findings | Workspace check |\n| --- | --- | --- | --- |\n| `cli:codex/gpt-5.6-sol` | `- Review status: request changes` | 1 | not applicable (fixture read) |\n| `cli:agy/gemini-3.1-pro-high` | `- Review status: request changes` | 1 | not applicable (fixture read) |"
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.75,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.75,
+    "overallPassRate": 0
+  }
+}

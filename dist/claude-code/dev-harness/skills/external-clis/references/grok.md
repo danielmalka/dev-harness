@@ -39,7 +39,7 @@ out or print only a reasoning preamble with exit 0 — that is a transport
 failure, not a lenient pass; see `references/gotchas.md`.
 
 `grok` has no documented read-only flag; the guarantee that it did not
-edit the workspace comes from the post-call `git status` check the
+edit the workspace comes from the post-call step-7 comparison (path list, per-path hashes and byte snapshot) the
 parent skill describes (SKILL.md step 7). `--no-subagents` narrows but
 does not replace the anti-delegation clause — pass both.
 

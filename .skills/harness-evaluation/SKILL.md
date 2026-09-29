@@ -200,6 +200,7 @@ Grader types (frontmatter `type`, always paired with `weight`).
 | `file_exists` | A path exists, or does not, on disk after the run | not yet |
 | `llm` | A model judge answers the body's yes/no question against `focus` (the llm grader's scope key; `target` is rejected for this type) | yes — most criteria |
 | `baseline` | Compares this run's output against a stored baseline run | not yet |
+| `regex` also takes `match` | Selects how `pattern` is applied against `target`: `contains` (pattern found somewhere in the scope) or `not_contains` (pattern absent from the scope) | yes — both values in use, verified against every `evals/cases/*/graders/*.md` setting `match:` |
 
 `target` (regex) and `focus` (llm) take the same values: `last_message`, `trace` (the tool-call trace), or the block `source: file` + `path:` for a grader reading a file the run produced; a file `path` must resolve inside the case's own directory.
 

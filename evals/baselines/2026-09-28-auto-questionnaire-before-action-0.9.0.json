@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.283",
+  "startedAt": "2026-09-28T14:05:45.427Z",
+  "durationSeconds": 231,
+  "costUsd": 0.5427721999999998,
+  "partial": false,
+  "suite": {
+    "root": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "judgeModel": "sonnet",
+    "caseFilter": "auto-questionnaire-before-action",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "dh",
+        "version": "0.9.0",
+        "path": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "auto-questionnaire-before-action",
+      "dir": "evals/cases/auto-questionnaire-before-action",
+      "source": "mixed",
+      "promptMarkdown": "/dh:auto This checkout's existing receipts service is described at\nfixtures/receipts/README.md (`send`, `bounce`, `attachment`). Run\n`discover` to produce the PRD for one new capability on top of it: let a\nsupport agent resend a bounced receipt email without resending the large\nscanned attachment.\n\n`.harness/project.yaml` for this run is fixtures/project.yaml. This is a\nfresh project: no `.harness/tasks/AUTO-*` directory exists yet, so `AUTO-1`\nis the next task ID. For this run, `.harness/tasks/AUTO-1/BRIEF.md` is\nfixtures/brief.md and `.harness/MEMORY.md` is fixtures/memory.md — write\nyour questionnaire record and memory summary there, at those exact paths.\n\nHere are my answers to your seven-item questionnaire, given up front so\nthere is no round trip: (1) start stage: discover, confirmed; (a) decision\nmode: b — ask only product or contract decisions; (c) commit+push\nauthorization: yes; (d) pull-request authorization: yes; (e) merge\nauthorization: no; (f) tag authorization: no; (g) eval spend cap: US$7.25.\nThese are final — you do not need to wait for another reply. Show your\nnormal confirmation of the seven items as your first reply (start-stage\nconfirmation plus a, c, d, e, f, g), then record them and continue: persist\nthem to the two records above before dispatching the first stage, exactly\nas your own instructions require.\n\nOne more thing for this particular run: once you have dispatched the\ndiscover stage's specialist and it returns, stop there. Report that\nstage's status line (stage, verdict, next stage) and end your reply — I\nwant to read the PRD myself before deciding whether it goes to document\nvalidation or comes back for changes, so don't continue into that or any\nlater stage yet.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 600,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "01-questionnaire-shown-first",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Reading only this file's content (the fixture's writable copy of\n`.harness/tasks/AUTO-1/BRIEF.md`), does the persisted brief record all\nseven items of the questionnaire — start stage `discover`; decision mode\n`b`; commit+push authorization `yes`; pull-request authorization `yes`;\nmerge authorization `no`; tag authorization `no`; eval spend cap\n`US$7.25` — every one of the seven present, not merely a subset? A file\nthat still reads only the unmodified placeholder (`Stage: not-started`),\nor that records some but not all seven items, fails this grader.",
+          "config": {
+            "criteria": "Reading only this file's content (the fixture's writable copy of\n`.harness/tasks/AUTO-1/BRIEF.md`), does the persisted brief record all\nseven items of the questionnaire — start stage `discover`; decision mode\n`b`; commit+push authorization `yes`; pull-request authorization `yes`;\nmerge authorization `no`; tag authorization `no`; eval spend cap\n`US$7.25` — every one of the seven present, not merely a subset? A file\nthat still reads only the unmodified placeholder (`Stage: not-started`),\nor that records some but not all seven items, fails this grader.",
+            "focus": {
+              "source": "file",
+              "path": "fixtures/brief.md"
+            }
+          }
+        },
+        {
+          "name": "02-brief-write-before-dispatch",
+          "type": "tool_order",
+          "weight": 1,
+          "config": {
+            "before": {
+              "tool": "Write",
+              "input_match": "\"file_path\":[ \\t]*\"[^\"]*brief\\.md\""
+            },
+            "after": {
+              "tool": "Agent"
+            }
+          }
+        },
+        {
+          "name": "03-memory-write-before-dispatch",
+          "type": "tool_order",
+          "weight": 1,
+          "config": {
+            "before": {
+              "tool": "Edit",
+              "input_match": "\"file_path\":[ \\t]*\"[^\"]*memory\\.md\""
+            },
+            "after": {
+              "tool": "Agent"
+            }
+          }
+        },
+        {
+          "name": "04-brief-content-has-answers",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": "fixtures/brief.md"
+            },
+            "pattern": "7\\.25",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "05-memory-content-has-answers",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": "fixtures/memory.md"
+            },
+            "pattern": "7\\.25",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.8,
+            "passed": false,
+            "turns": 15,
+            "costUsd": 0.5427721999999998,
+            "judgeCostUsd": 0.00808,
+            "durationSeconds": 230,
+            "startedAt": "2026-09-28T14:05:45.728Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-RuInFn/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "01-questionnaire-shown-first",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  true
+                ],
+                "evidence": "# AUTO-1 — Questionnaire record\n\n## Request\nRun `discover` to produce a PRD for one new capability on top of the\nexisting receipts service (`fixtures/receipts/README.md`): let a support\nagent resend a bounced receipt email without resending the large scanned\nattachment.\n\n## Questionnaire answers (2026-09-28, recorded up front by the owner, no round trip)\n1. Start stage: discover — confirmed.\n2. Decision mode: (b) — ask only product or contract decisions; every\n   other stage transition auto-advances.\n3. Commit+push authorization: yes.\n4. Pull-request authorization: yes.\n5. Merge authorization: no.\n6. Tag authorization: no.\n7. Eval spend cap: US$7.25.\n\n## Run parameters\n- `.harness/project.yaml` for this run: `fixtures/project.yaml` (language: en,\n  profile: none, no `reviewers:` configured, no build/lint command declared).\n- Base branch: not yet created (no git mutation performed yet).\n- Batch spend so far: US$0.00 of US$7.25 cap.\n\n## Discover stage result (2026-09-28)\n- Specialist: `dh:product-discovery`, model Sonnet (role default), effective\n  model not observable via runtime — unverified.\n- Output: `.harness/tasks/AUTO-1/PRD.md` (new capability: support-agent\n  resend of a bounced receipt without the large scanned attachment;\n  additive, existing full resend unchanged).\n- Open product/contract decisions returned by the specialist (each with its\n  own recommendation, none yet decided by the owner): attachment-reference\n  handling on resend; whether the customer is told the attachment was\n  omitted; who is authorized to trigger the resend; whether an audit trail\n  is required.\n- No document-validator dispatch this run, per explicit owner request: the\n  owner reads the PRD directly first and decides whether it proceeds to\n  document validation or comes back for changes.\n\nStage: document-validation (paused — awaiting owner decision on PRD; no dispatch made)\n"
+              },
+              {
+                "name": "02-brief-write-before-dispatch",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Write@7 precedes Agent@10",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "03-memory-write-before-dispatch",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Edit@9 precedes Agent@10",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "04-brief-content-has-answers",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched 7\\.25",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "05-memory-content-has-answers",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched 7\\.25",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.8,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.8,
+    "overallPassRate": 0
+  }
+}

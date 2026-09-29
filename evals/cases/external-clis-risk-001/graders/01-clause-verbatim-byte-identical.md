@@ -7,7 +7,7 @@ pattern: 'Do not invoke another CLI binary, spawn another agent, or delegate any
 flags: ''
 ---
 Deterministic check: the assembled prompt's final reply contains the
-anti-delegation clause from `.skills/external-clis/SKILL.md` (lines 72-83)
+anti-delegation clause from `.skills/external-clis/SKILL.md` (lines 74-84)
 verbatim, matched by regex instead of judged by a model. The check is
 byte-exact, line breaks included: every line break of the clause is matched
 by a literal newline, and every other space, including the mid-line space

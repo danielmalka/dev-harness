@@ -674,7 +674,7 @@ footer.doc-foot {
   internal/               pacotes do binário: snapshot, validate, build, doctor
   .agents/                19 papéis — fonte canônica
   .skills/                21 skills — fonte canônica
-  .commands/              18 comandos — fonte canônica
+  .commands/              19 comandos — fonte canônica
   templates/{en,pt-br}/   8 templates espelhados por idioma — fonte canônica
   profiles/               4 perfis de stack — fonte canônica
   dist/                   pacote gerado por `dh build` — não se edita à mão
@@ -682,7 +682,7 @@ footer.doc-foot {
   evals/                  cases, baselines, rubrics, fixtures de avaliação
   adapters/               guias de uso manual por outras IAs (generic) e o pacote Claude Code (claude-code)</code></pre>
       </div>
-      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 18 comandos, 21 skills, 4 perfis, 16 templates
+      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 19 comandos, 21 skills, 4 perfis, 16 templates
         (8 en + 8 pt-br), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
       <pre class="mermaid">
 flowchart LR
@@ -1191,6 +1191,64 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>Comando de planejamento em loop</h3>
+        <p><strong>Descrição:</strong> <code>/dh:plan-loop</code> roda um loop em waves entre o
+          <code>implementation-planner</code> (Claude) e uma rotação de CLIs externas despachadas, pela primeira vez,
+          como planejadoras — não só como revisoras — restritas a binários com modo somente-leitura documentado e
+          medido (hoje só <code>codex</code>; <code>mcode</code> pendente de medição; <code>grok</code>,
+          <code>agy</code> e <code>opencode</code> nunca planejam). Cada wave é julgada pelo painel completo de
+          <code>reviewers.document</code>, exceção explícita à revisão enxuta. A parada roda nesta ordem:
+          convergência (um voto elegível fora de <code>claude</code>/<code>cli:claude/&lt;slug&gt;</code> e do autor
+          do candidato vencedor) → teto de waves (padrão 6) → teto de despachos (padrão 48); no teto, a entrega usa
+          menos achados bloqueantes → menos achados totais → wave mais recente, e um candidato com conflito de
+          candidato não confiável em aberto nunca é promovido. Sem CLI elegível (k = 0), cai no <code>/dh:plan</code>
+          de hoje. Pedido do dono em 25/09/2026, especificado em PRD-005.</p>
+        <p><strong>Critérios de aceite:</strong> PRD-005 RF-01 a RF-15 (<code>.harness/tasks/PRD-005/PLAN.md</code>).</p>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Relações:</strong> PRD-005; ADR-002 (<code>docs/adr/ADR-002-cli-planejadora.md</code>); PLAN-011
+          (<code>.harness/tasks/PRD-005/PLAN.md</code>), seis fatias; <code>CHANGELOG.md</code> 0.10.0.</p>
+        <p><strong>Testado?</strong> Ver o card 0.10.0 abaixo — os dois casos de eval novos e as reexecuções da
+          0.9.0 medidos neste mesmo lote. Nenhum caso exercita o loop multi-wave completo fim a fim; essa fronteira
+          fica coberta por revisão mais os greps determinísticos do texto do comando (precedente da PLAN-010,
+          decisão do dono registrada em Decisions needed #2 do PLAN-011).</p>
+      </div>
+
+      <div class="card">
+        <h3>0.10.0 · <code>/dh:plan-loop</code> e o planejador CLI</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-005 entregue em seis fatias (T-801 a T-806). Fatia 1 estende o contrato de
+          <code>external-clis</code> para uma CLI também atuar como planejadora somente-leitura (ADR-002). Fatia 2
+          traz o comando <code>/dh:plan-loop</code> (comandos 18 → 19). Fatia 3 adiciona o caso de eval
+          <code>plan-loop-no-cli-fallback</code>. Fatia 4 fecha sete débitos pequenos represados: o caso de eval
+          <code>external-clis-distinct-findings</code>; três correções de texto (rótulo vazio do
+          <code>delivery-readiness</code>, documentação da chave <code>match:</code>, citação de linhas do grader 01
+          de <code>external-clis-risk-001</code>); uma fixture <code>evals/not-run/</code> documentando a lacuna já
+          conhecida do grader 02 de <code>risk-001</code>; a lacuna do <code>Stage:</code> ausente em
+          <code>resume.md</code>; e o grader 01 do questionário de <code>auto-questionnaire-before-action</code>
+          convertido para determinístico. Fatia 5 é este fechamento de documentação. Fatia 6 (versão, build,
+          validate, prova de clone limpo) fica pendente de autorização do dono para publicar — commit, push, PR,
+          merge e tag não são deste lote.</p>
+        <p><strong>Relações:</strong> PRD-005; ADR-002; PLAN-011 (<code>.harness/tasks/PRD-005/PLAN.md</code>).
+          <code>CHANGELOG.md</code> 0.10.0.</p>
+        <p><strong>Testado?</strong> <code>go run ./cmd/dh validate --source-only .</code>.
+          <code>plan-loop-no-cli-fallback</code>: 6/6 (<code>evals/baselines/2026-09-28-plan-loop-no-cli-fallback.md</code>).
+          <code>external-clis-distinct-findings</code>: 5/5
+          (<code>evals/baselines/2026-09-28-external-clis-distinct-findings.md</code>). Medição adiada da 0.9.0
+          fechada neste lote: <code>auto-hard-stop-recorded-state</code> 6/6;
+          <code>auto-questionnaire-before-action</code> 4/5 na rodada final, grader 01 lido como variância de juiz
+          — corrigido para determinístico na T-804
+          (<code>evals/baselines/2026-09-28-auto-cases-0.9.0.md</code>). Reexecuções adiadas de
+          <code>external-clis-*</code>: <code>document-merge-blocker</code> e <code>parallel</code> passam em cheio;
+          <code>document-only</code> reprova um grader por um comportamento pré-existente do Coordenador (o
+          autocheque "meu spot-check" ao lado de um único veredito de CLI), já presente na 0.8.0 — registrado como
+          débito, não corrigido neste lote
+          (<code>evals/baselines/2026-09-28-external-clis-reruns-0.10.0.md</code>).</p>
+        <p><strong>Limite conhecido:</strong> RISK-002 — CLIs sem flag de somente-leitura (<code>grok</code>) seguem
+          como revisoras na árvore viva; risco aceito pelo dono até o lote de isolamento por <code>git worktree</code>
+          descartável, planejado como o próximo lote depois deste.</p>
+      </div>
+
+      <div class="card">
         <h3>0.9.0 · Comando autônomo <code>/dh:auto</code> e proporcionalidade de revisão</h3>
         <p><strong>Status:</strong> concluído.</p>
         <p><strong>Resumo:</strong> <code>/dh:auto</code> encadeia discover, plan e build, com <code>secure</code> por
@@ -1259,6 +1317,52 @@ profiles/"] --> B["dh build"]
       <p>Itens com PRD ou decisão fixada, sem release ainda.</p>
 
       <div class="card">
+        <h3>Isolamento por <code>git worktree</code> para CLIs sem modo somente-leitura</h3>
+        <p><strong>Descrição:</strong> fecha RISK-002. Um revisor de <code>reviewers.document</code> sem modo
+          somente-leitura documentado (hoje <code>grok</code>) roda dentro de um <code>git worktree</code>
+          descartável em vez da árvore viva, em vez de confiar só na comparação de congelamento por bytes. Cobre
+          também escrita fora do checkout (<code>.git/hooks</code>) e reforça a regra de não escrever do
+          <code>implementation-planner</code> — prosa só, nunca grava <code>PLAN.md</code>/<code>TASK.md</code>
+          diretamente enquanto uma chamada de planejamento de CLI da mesma wave está em curso. Só o caminho de
+          revisão; o risco fica aceito pelo dono até este lote rodar. Previsto como o próximo lote depois deste
+          (PLAN-011).</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado — decisão do dono fixada em 28/09/2026 (RISK-002: opção 3,
+          isolamento por <code>git worktree</code> descartável), sem PRD ainda.</p>
+        <p><strong>Relações:</strong> RISK-002 (<code>.harness/RISKS.md</code>); ADR-002
+          (<code>docs/adr/ADR-002-cli-planejadora.md</code>); passo 7 do congelamento de workspace em
+          <code>.skills/external-clis/SKILL.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>Medir o modo somente-leitura do <code>mcode</code></h3>
+        <p><strong>Descrição:</strong> a tabela "Read-only mode by binary" de <code>.skills/external-clis/SKILL.md</code>
+          lista <code>mcode</code> como pendente de medição. Antes de poder planejar em <code>/dh:plan-loop</code>,
+          precisa de uma sonda registrada com data — a CLI pedida para criar um arquivo e rodar um comando de
+          shell, os dois recusados. Até essa medição, <code>mcode</code> segue fora da rotação de planejadoras.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado — critério de medição já fixado (T-801/ADR-002), falta rodar a
+          sonda.</p>
+        <p><strong>Relações:</strong> ADR-002; <code>.skills/external-clis/SKILL.md</code> "Read-only mode by
+          binary"; <code>.commands/plan-loop.md</code> item 1 (checagem de disponibilidade e rotação).</p>
+      </div>
+
+      <div class="card">
+        <h3>Regra de spot-check do Coordenador vs. veredito de revisor</h3>
+        <p><strong>Descrição:</strong> comportamento pré-existente, medido em <code>external-clis-document-only</code>
+          (também presente na 0.8.0): a resposta final soma um parágrafo "meu spot-check: eu mesmo li os dois
+          arquivos..." ao lado do veredito único da CLI, quando o caso espera que a fixture seja a única fonte do
+          veredito. Causa provável: a regra do Coordenador de checar por amostragem alegações que dependem de um
+          relatório que pulou QA e revisão independente está sendo aplicada a um veredito de revisão independente
+          de uma única CLI. Registrado como débito na 0.10.0, não corrigido.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado — débito registrado em 28/09/2026, esclarecimento da regra ainda em
+          aberto, sem PRD.</p>
+        <p><strong>Relações:</strong> <code>.agents/coordinator.md</code> (regra de spot-check);
+          <code>evals/baselines/2026-09-28-external-clis-reruns-0.10.0.md</code>.</p>
+      </div>
+
+      <div class="card">
         <h3>Extensão VS Code (danielmalka/dev-harness-vscode)</h3>
         <p><strong>Descrição:</strong> só visualizador e lançador; lê snapshots em disco escritos por
           <code>statusLine</code>/<code>subagentStatusLine</code> e pelos hooks do plugin; abre sessão com o plugin e
@@ -1294,18 +1398,6 @@ profiles/"] --> B["dh build"]
         <p><strong>Status:</strong> planejado, sem PRD.</p>
         <p><strong>Relações:</strong> <code>adapters/generic/</code> (guia manual atual); <code>adapters/claude-code/</code>
           (adaptador nativo hoje, único da v1); listado como fora da release desde 0.1.0.</p>
-      </div>
-
-      <div class="card">
-        <h3>Comando de planejamento em loop</h3>
-        <p><strong>Descrição:</strong> um comando para planejamento em loop, com estas referências: <a
-            href="https://medium.com/@deejay.me/multi-wave-adversarial-orchestration-architecture-for-llm-agents-e705dd433fab">Multi-Wave
-            Adversarial Orchestration Architecture for LLM Agents</a> e <a
-            href="https://mcpmarket.com/tools/skills/wave-orchestration">Wave Orchestration</a>. Pedido do dono em
-          25/09/2026, sem PRD ainda.</p>
-        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
-        <p><strong>Status:</strong> planejado, sem PRD.</p>
-        <p><strong>Relações:</strong> nenhuma ainda — não há discovery aberto.</p>
       </div>
 
       <div class="card">

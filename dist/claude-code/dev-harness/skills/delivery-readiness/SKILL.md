@@ -95,7 +95,7 @@ This procedure turns a verified change into a delivery package that ends at one 
 ## Documentation
 - Use: <relative path> | not needed (<reason>)
 - Operate: <relative path> | not needed (<reason>)
-- Planned but not implemented:
+- Planned but not implemented: <capability> | none
 - docs-guide dispatched: yes | no (<reason>)
 
 ## Rollout
