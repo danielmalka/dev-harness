@@ -17,7 +17,7 @@ From the repository's own marketplace, without cloning, inside a Claude Code ses
 
 The version comes from the tag pinned in `.claude-plugin/marketplace.json`. For a team, the project can declare the marketplace in `extraKnownMarketplaces` and the plugin in `enabledPlugins` in `.claude/settings.json`, and Claude installs it for whoever trusts the folder.
 
-**Current version: 0.9.0** (tag `v0.9.0`). `/dh:auto` chains discover, plan, and build on one branch, with a single questionnaire. Document review is capped at two rounds; the three-reviewer panel runs when you ask for it or when the document touches security. Roadmap: [`docs/en/roadmap.html`](docs/en/roadmap.html). Notes: [`CHANGELOG.md`](CHANGELOG.md).
+**Current version: 0.10.0** (tag `v0.10.0`). `/dh:plan-loop` has the Claude planner compete with one read-only external CLI (codex today) in waves judged by the full panel; with no CLI available it follows `/dh:plan`'s flow. `/dh:auto` chains discover, plan, and build on one branch, with a single questionnaire. Document review is capped at two rounds; the three-reviewer panel runs when you ask for it or when the document touches security. Roadmap: [`docs/en/roadmap.html`](docs/en/roadmap.html). Notes: [`CHANGELOG.md`](CHANGELOG.md).
 
 **Migrating from a pre-0.8.0 install:** the plugin id changed from `dev-harness@dev-harness` to `dh@dev-harness`, and commands from `/dev-harness:<command>` to `/dh:<command>`. Run `/plugin uninstall dev-harness@dev-harness` then `/plugin install dh@dev-harness`; replace `/dev-harness:` with `/dh:` in your own scripts and notes. Marketplace name, repository, Go binary `dh` and snapshot path are unchanged. See `CHANGELOG.md` 0.8.0.
 
