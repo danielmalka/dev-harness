@@ -1236,10 +1236,9 @@ profiles/"] --> B["dh build"]
           pelo clone, ação (r). Toda ação concordou com o R13 depois de duas correções de texto do kit achadas pela
           sonda: limpar as flags do índice antes de <code>checkout HEAD</code> e fazer <code>cd "$CLONE"</code> antes
           de lançar a CLI. A evidência bruta é local, em <code>.harness/</code>, que o git ignora, e não vai no commit.
-          T-1012: baseline em <code>evals/baselines/2026-09-30-external-clis-clone-isolation.md</code>. A rodada 2
-          deu 0.882 em clone-isolation e 0.950 em clone-lifecycle; 3 de 36 graders ainda falham, então a barra de
-          todos os graders não foi atingida e o limiar de 0.8 da CI foi. A medição pontua a classificação de
-          snapshots prontos.</p>
+          T-1012: baseline em <code>evals/baselines/2026-09-30-external-clis-clone-isolation.md</code>. Depois de três
+          rodadas medidas (com correções de grader e de prompt entre elas), os dois casos passam em todos os
+          graders (nota 1.0, <code>--runs 1</code>). A medição pontua a classificação de snapshots prontos.</p>
         <p><strong>Limite conhecido:</strong> nada impede escrita fora do clone; só a detecção existe. O sandbox do
           sistema operacional (Planejado) é o que impediria.</p>
       </div>

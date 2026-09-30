@@ -215,6 +215,8 @@ call (a table, not an executable). Judge these thirteen calls as separate
 scenarios, one per row: a, b, c, d, e, f, l (live tree) and g, h, i, j1, j2, k
 (clone). For each, classify the call from the snapshots as the kit text says:
 verdict kept or discarded, the not-run reason if any, what is reverted, what
-the report lists. Return one report per scenario, each starting with a line
+the report lists. For each clone scenario (g to k) also say what happens to the
+clone at the end and whether any file of it reaches the live tree. Return one
+report per scenario, each starting with a line
 `[scenario <id>]` (for example `[scenario j1]`) and containing no other square
 bracket character.

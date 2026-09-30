@@ -20,8 +20,8 @@
   rede e push para outros remotos, leitura de segredos, e os caminhos do `.git` vivo fora de R5. RISK-002 passa a
   "mitigado", nunca "resolvido".
 - **Casos de eval novos**: `external-clis-clone-isolation` e `external-clis-clone-lifecycle`. Baseline em
-  `evals/baselines/2026-09-30-external-clis-clone-isolation.md` (rodada 2: 0.882 e 0.950; 3 de 36 graders ainda
-  falham). A execução real do procedimento (T-1015) achou e corrigiu duas falhas de texto antes do merge.
+  `evals/baselines/2026-09-30-external-clis-clone-isolation.md` (rodada A, a terceira medida: os dois casos
+  passam em todos os graders, nota 1.0). A execução real do procedimento (T-1015) achou e corrigiu duas falhas de texto antes do merge.
 - **À parte, fora do PRD-008**: no projeto consumidor, `AGENTS.md` é o arquivo canônico de instruções; um
   `CLAUDE.md` também é lido, e em conflito vale o `AGENTS.md` (`.agents/coordinator.md`,
   `.skills/project-onboarding/SKILL.md`, `profiles/examples/project.yaml`). Neste repositório o `CLAUDE.md` virou

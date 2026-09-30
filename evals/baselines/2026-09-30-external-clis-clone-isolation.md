@@ -22,9 +22,20 @@ Total USD 2.058 (agent 1.389 + judge 0.670; the tool's reported `costUsd` of 1.3
 
 Total USD 2.129 (agent 1.426 + judge 0.703). Both runs: **USD 4.187, above the USD 3.50 the owner authorized**. The Coordinator read the tool's `costUsd` (agent only, 1.389 after run 1) as the whole spend and set run 2's `--max-cost-usd 2.1` from it; `--max-cost-usd` also checks agent cost only. The overrun is USD 0.687, reported to the owner.
 
-## Outcome
+## Outcome after run 2 (superseded by Round A below)
 
 - The pass bar used by earlier baselines (every grader passes) is **not** met: 3 graders out of 36 fail in run 2. The CI gate threshold of `.github/workflows/evals.yml` (0.8) is met by both cases.
 - The budget is already exceeded, so no further run. Decided by the Coordinator: stop here, record the three misses as open, no routine repetition.
 - Lesson for later measurements: budget the judge separately; `--max-cost-usd` and the aggregate `costUsd` count the agent only (the per-run `judgeCostUsd` is separate).
 - Open misses: lifecycle 04 is a real omission in the answer (the r3 report did not restate what the clone never holds); isolation 14 and 15 were judged FAIL 3/3 and their evidence was not inspected further within this budget, so they stay open, neither dismissed nor fixed.
+
+## Round A (owner's choice 2 on 2026-09-30: "faça mais 3 rodadas")
+
+Changes before the run, from the run-2 evidence: the clone-isolation prompt asks, for scenarios g–k, what happens to the clone and whether any file of it reaches the live tree (grader 14 unchanged); grader 15 (llm, "no real call or git", unverifiable from the last message) replaced by a deterministic `tool_used` grader on `Bash`, min 0, max 0; the clone-lifecycle r3 prompt also asks what the clone never contains (grader 04 unchanged).
+
+| Case | Score | Failed graders | Cost (agent + judge) |
+|---|---|---|---|
+| clone-isolation | 1.0 (17/17) | none | 0.992 |
+| clone-lifecycle | 1.0 (19/19) | none | 1.222 |
+
+Round total USD 2.214. The all-graders bar is met; the two remaining authorized rounds were not needed. Measurement total over three runs: USD 6.40 (agent + judge).

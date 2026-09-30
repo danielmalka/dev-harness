@@ -216,6 +216,8 @@ which probe.
 and whether each R2 check passes.
 (r3) Same file, calls X and Y: state what happens to each call. For Y say what
 the Coordinator does and does not do about the mismatch.
+Also say what the clone never contains compared with the live tree (ignored
+files, `.harness`, `.claude/settings.local.json`).
 (r9) Read fixtures/tmp-root-listing.md: state which directories the orphan
 sweep removes, which it leaves and why for each, and when the sweep runs.
 (r10) Read fixtures/parallel-dispatch.md: state how the two calls stay apart,

@@ -1234,9 +1234,9 @@ profiles/"] --> B["dh build"]
           clone, action (r). Every action agreed with R13 after two kit-text corrections found by the probe: clear the
           index flags before <code>checkout HEAD</code>, and <code>cd "$CLONE"</code> before launching the CLI. The raw
           evidence is local under <code>.harness/</code>, which is git-ignored and not in the commit. T-1012: the
-          baseline is <code>evals/baselines/2026-09-30-external-clis-clone-isolation.md</code>. Run 2 scored 0.882 on
-          clone-isolation and 0.950 on clone-lifecycle; 3 of 36 graders still fail, so the all-graders bar is not met;
-          the 0.8 CI threshold is met. The measurement scores classification of canned snapshots.</p>
+          baseline is <code>evals/baselines/2026-09-30-external-clis-clone-isolation.md</code>. After three measured
+          rounds (grader and prompt corrections in between), both cases pass every grader (score 1.0,
+          <code>--runs 1</code>). The measurement scores classification of canned snapshots.</p>
         <p><strong>Known limitation:</strong> nothing prevents a write outside the clone; only detection exists. The
           OS sandbox (Planned) is what would prevent it.</p>
       </div>
