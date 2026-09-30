@@ -2,10 +2,10 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aprovado (2026-09-30) |
+| Status | entregue em 2026-09-30 |
 | Dono | Daniel Malka |
 | Criado / atualizado | 2026-09-30 / 2026-09-30 |
-| Tickets | a derivar |
+| Tickets | T-1101 a T-1106 |
 
 ## 1. Problema
 
@@ -117,6 +117,14 @@ necessária e nenhum card histórico é reescrito. Um card sem prefixo de versã
 - .skills/delivery-readiness/SKILL.md
 - .agents/coordinator.md
 - docs/tutoriais/ e docs/en/tutorials/ (só se algum tutorial descrever o que o `dh validate` checa; o ticket confirma por `grep`)
+
+## Resumo executado
+
+- Entregue: `dh validate` passou a barrar a deriva mecânica dos dois roadmaps contra `CHANGELOG.md` e entre pt e en (release 0.13.0, PR #21); o roadmap continua escrito à mão.
+- Regras: R1 a R12 honradas, com a evidência nos tickets T-1101 a T-1106 (testes em Go da checagem, `dh validate` limpo na árvore real, texto do lote e prova de clone limpo da 0.13.0).
+- Tickets: T-1101 (backend, checagem em Go), T-1102 (teste unitário), T-1103 (backend, regra de manutenção no `delivery-readiness` e no Coordenador), T-1104 (documentação do lote: CHANGELOG 0.13.0 e roadmaps), T-1105 (versão 0.13.0 e prova de clone limpo), T-1106 (prova integrada); todos aprovados.
+- Docs: `docs/roadmap.html`, `docs/en/roadmap.html`, `CHANGELOG.md`, `README.md`, `README.en.md`, `.skills/delivery-readiness/SKILL.md`, `.agents/coordinator.md`.
+- Fora: geração do HTML a partir de dados (alternativas B e C) e a checagem do movimento Planejado/Ideias, como previsto no Apêndice.
 
 ## Apêndice
 

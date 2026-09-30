@@ -10,7 +10,7 @@ Os modelos ficam em `templates/pt-br/` e `templates/en/` no kit, em versões esp
 | `PRD.md` | Por quê e o quê (produto) | Dono do produto, com `product-discovery` | Uma dor ou oportunidade ainda não tem escopo e aceite claros | Requisitos (regras) e aceite aprovados; status `entregue em <data>` só quando nenhuma regra ficou "Não honrada" sem decisão registrada do dono |
 | `TASK.md` (ticket) | Como executar uma fatia | `implementation-planner`; executado pelo builder | O PRD foi aprovado | Checks passaram, revisão feita, resultado preenchido |
 | `TASK.md` (bug) | O que falha e por quê | `debugger` | Um defeito foi reportado ou observado | Reprodução no Fluxo e teste de regressão verde no "Pronto quando", ou status inconclusivo com lacuna declarada |
-| `ADR.md` | Qual decisão durável foi tomada e por quê | `solution-architect`, aprovado pelo dono | Uma escolha cara de reverter precisa de registro | Status `aceito`; revisado quando a condição de revisão ocorrer |
+| `ADR.md` | Qual decisão durável foi tomada e por quê | `architect`, aprovado pelo dono | Uma escolha cara de reverter precisa de registro | Status `aceito`; revisado quando a condição de revisão ocorrer |
 | `RFC.md` (opcional) | Qual mudança técnica se propõe, antes de construir | Engenharia | Mudança ampla sem PRD, com impacto além do autor | Aprovado (gera ADR e tickets), rejeitado ou retirado |
 | `MEMORY.md` | Estado vigente da execução | Só o Coordenador | Na inicialização do projeto (`setup`) | Nunca fecha; é enxugado por `consolidate-memory` |
 | `EPOCHAL.md` | Histórico bruto das memórias anteriores | Só o Coordenador | No primeiro `consolidate-memory` | Nunca fecha; só recebe lotes |
@@ -52,14 +52,14 @@ flowchart TB
     ideia([Pedido ou dor]) --> discover["/dh:discover<br/>product-discovery"]
     discover --> prd[/PRD.md/]
     prd --> understand["/dh:understand<br/>repo-scout"]
-    understand --> plan["/dh:plan<br/>implementation-planner<br/>+ solution-architect se preciso"]
+    understand --> plan["/dh:plan<br/>implementation-planner<br/>+ architect se preciso"]
     plan --> decisao{Decisão cara<br/>de reverter?}
     decisao -->|sim| adr[/ADR.md/]
     decisao -->|não| tasks
     adr --> tasks[/TASK.md por fatia/]
-    tasks --> build["/dh:build<br/>backend-builder / frontend-builder"]
+    tasks --> build["/dh:build<br/>builder (lane backend / frontend)"]
     build --> verify["/dh:verify<br/>qa-verifier"]
-    build --> review["/dh:review<br/>code-reviewer"]
+    build --> review["/dh:review<br/>reviewer (modo code)"]
     verify --> ok{Aceite e revisão<br/>aprovados?}
     review --> ok
     ok -->|não, até 6 rodadas| build

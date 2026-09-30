@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.14.0 — 2026-09-30
+
+- **Kit enxuto** (PRD-010, `docs/prd/PRD-010-kit-enxuto.md`, decisões em `docs/adr/ADR-003-kit-enxuto.md`). O kit não
+  perde capacidade: os 19 comandos continuam.
+- **Agentes 19 → 13 (BREAKING para quem despacha agentes pelo nome)**: `builder` (lane `backend`, `frontend`,
+  `dados` ou `infra`; modo `build`, `refactor` ou `design`) substitui `backend-builder`, `frontend-builder`,
+  `data-engineer`, `devops-engineer` e `refactorer`; `reviewer` (modo `code` ou `security`) substitui
+  `code-reviewer` e `security-reviewer`; `architect` substitui `api-designer` e `solution-architect`. O `debugger`
+  fica. Consumidores que usam os ids antigos precisam trocar pelos novos.
+- **Evals fora do fluxo normal**: ficam 5 casos em `evals/cases/`, 18 vão para `evals/archive/`; sem cópias de
+  agentes embutidas nos casos, e o scaffold copia o agente vivo. Eval paga só quando o dono pede direto, no
+  `/dh:improve` ou pelo teto do questionário do `/dh:auto`.
+- **Coordenador enxuto** e sobreposições fundidas por trás dos comandos, sem remover nenhum dos 19.
+- **Verificação**: padrão é checagem determinística mais 1 revisor Claude; painel de 3 só sob pedido ou em
+  segurança. A prova de clone limpo só vale quando o PR toca `cmd/`, `internal/`, `go.mod` ou `dist/*/bin`.
+- **`AGENTS.md`** reduzido às regras vigentes; o histórico foi para o ADR-003.
+- **Tutorial completo** em `docs/tutorial.html` e `docs/en/tutorial.html`; o início rápido e o tutorial 00 antigos
+  passam a apontar para ele.
+- **PRD-009** marcado como entregue.
+
 ## 0.13.0 — 2026-09-30
 
 - **Roadmap vivo, opção A** (PRD-009, `docs/prd/PRD-009-roadmap-vivo.md`). `dh validate` ganha uma checagem do

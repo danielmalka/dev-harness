@@ -49,11 +49,7 @@ Assemble readiness, versioning, notes, rollout, and rollback until the owner can
 
 ## Procedure
 
-1. Verify readiness against the project's own release rules if they exist.
-2. Draft version, compatibility notes, rollout, and rollback that apply.
-3. List residual risks.
-4. Write the delivery package (notes, checklist, artifact list).
-5. If publishing is not authorized, stop at "ready for decision". If it is already explicitly authorized, record the action, target, and applicable conditions, then return the package to the coordinator for a capable authorized executor. Do not repeat the same permission request or claim publication from this preparation-only role.
+Follow the kit skill `delivery-readiness`, checking readiness against the project's own release rules when they exist.
 
 ## Shared contract
 
@@ -76,21 +72,11 @@ Assemble readiness, versioning, notes, rollout, and rollback until the owner can
 
 ## Skills
 
-Load and follow the kit skill `delivery-readiness` for the release readiness procedure. Skills are procedures; your role limits, tools and write set above still apply.
+Load `delivery-readiness` for the release readiness procedure. Skills are procedures; your role limits, tools and write set above still apply.
 
 ## Output format
 
-```
-## Readiness
-- Checks
-- Findings
-- Version
-## Notes
-## Rollout
-## Rollback
-## Residual risk
-## Decision needed
-```
+The delivery package in `delivery-readiness`'s Output format, returned to the coordinator.
 
 ## Context handoff
 

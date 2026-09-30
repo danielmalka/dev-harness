@@ -18,7 +18,7 @@ Apague os comentários ao finalizar. -->
 | Tipo | task / bug |
 | Status | pronta / em andamento / bloqueada / em revisão / concluída |
 | PRD (RF-<n>) | PRD-000 (RF-01) |
-| Papel sugerido | backend-builder / frontend-builder / data-engineer / devops-engineer / qa-verifier / ... |
+| Papel sugerido | builder (lane, modo) / qa-verifier / reviewer (modo) / architect / ... |
 | Depende de | T-000, <contrato, decisão, migração> |
 | Bloqueia | T-000 |
 | Autorização | <o que pode ser escrito; commit/push/deploy exigem autorização explícita> |

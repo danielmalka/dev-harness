@@ -743,7 +743,7 @@ footer.doc-foot {
 
       <h2 id="adr"><span class="n">05</span>ADR</h2>
       <span class="tag">Decisão · o que foi decidido e por quê</span>
-      <p>Uma decisão durável, cara de reverter, com contexto, opções, escolha, consequências e condição de revisão. Escreve <code>solution-architect</code>; aprova o dono. Tem a mesma forma que a skill <code>architecture-decisions</code> produz. Fecha com status aceito e é revisto quando a condição de revisão ocorrer. Modelo: <code>templates/&lt;lang&gt;/ADR.md</code>.</p>
+      <p>Uma decisão durável, cara de reverter, com contexto, opções, escolha, consequências e condição de revisão. Escreve <code>architect</code>; aprova o dono. Tem a mesma forma que a skill <code>architecture-decisions</code> produz. Fecha com status aceito e é revisto quando a condição de revisão ocorrer. Modelo: <code>templates/&lt;lang&gt;/ADR.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>Entra</h3>
@@ -829,14 +829,14 @@ flowchart TB
     ideia([Pedido ou dor]) --> discover["/dh:discover<br/>product-discovery"]
     discover --> prd[/PRD.md/]
     prd --> understand["/dh:understand<br/>repo-scout"]
-    understand --> plan["/dh:plan<br/>implementation-planner<br/>+ solution-architect se preciso"]
+    understand --> plan["/dh:plan<br/>implementation-planner<br/>+ architect se preciso"]
     plan --> decisao{Decisão cara<br/>de reverter?}
     decisao -->|sim| adr[/ADR.md/]
     decisao -->|não| tasks
     adr --> tasks[/TASK.md por fatia/]
-    tasks --> build["/dh:build<br/>backend-builder / frontend-builder"]
+    tasks --> build["/dh:build<br/>builder (lane backend / frontend)"]
     build --> verify["/dh:verify<br/>qa-verifier"]
-    build --> review["/dh:review<br/>code-reviewer"]
+    build --> review["/dh:review<br/>reviewer (modo code)"]
     verify --> ok{Aceite e revisão<br/>aprovados?}
     review --> ok
     ok -->|não, até 6 rodadas| build
@@ -873,7 +873,7 @@ flowchart TB
             <tr><td><code>PRD.md</code></td><td>Por quê e o quê</td><td>Dono do produto, com product-discovery</td><td>Dor sem escopo e aceite claros</td><td>Regras e aceite aprovados; status entregue em &lt;data&gt; só sem regra "Não honrada" sem decisão do dono</td></tr>
             <tr><td><code>TASK.md</code> (ticket)</td><td>Como executar uma fatia</td><td>implementation-planner; executa o builder</td><td>PRD aprovado</td><td>Checks passaram, revisão feita, resultado preenchido</td></tr>
             <tr><td><code>TASK.md</code> (bug)</td><td>O que falha e por quê</td><td>debugger</td><td>Defeito reportado ou observado</td><td>Reprodução no Fluxo e regressão verde no Pronto quando, ou inconclusivo com lacuna</td></tr>
-            <tr><td><code>ADR.md</code></td><td>Qual decisão durável</td><td>solution-architect; aprova o dono</td><td>Escolha cara de reverter</td><td>Status aceito; revisto na condição de revisão</td></tr>
+            <tr><td><code>ADR.md</code></td><td>Qual decisão durável</td><td>architect; aprova o dono</td><td>Escolha cara de reverter</td><td>Status aceito; revisto na condição de revisão</td></tr>
             <tr><td><code>RFC.md</code></td><td>Qual mudança técnica se propõe</td><td>Engenharia</td><td>Mudança ampla sem PRD, impacto além do autor</td><td>Aprovado (gera ADR e tickets), rejeitado ou retirado</td></tr>
             <tr><td><code>MEMORY.md</code></td><td>Estado vigente</td><td>Só o Coordenador</td><td>setup do projeto</td><td>Nunca; enxugado por consolidate-memory</td></tr>
             <tr><td><code>EPOCHAL.md</code></td><td>Histórico bruto</td><td>Só o Coordenador</td><td>Primeiro consolidate-memory</td><td>Nunca; só recebe lotes</td></tr>

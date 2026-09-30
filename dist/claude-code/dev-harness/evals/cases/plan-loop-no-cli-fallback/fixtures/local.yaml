@@ -1,6 +1,0 @@
-# Fixture double: excerpt of .harness/local.yaml, used as fixture data
-# only, never read by a real `dh` run in these evals. Empty on purpose:
-# this case never resolves or invokes any `cli:` binary (k = 0 after the
-# AA1 exclusion), so no binary path is needed.
-binaries: {}
-models: {}

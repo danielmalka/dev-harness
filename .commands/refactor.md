@@ -4,7 +4,7 @@ description: Change structure while proving behavior is preserved
 author: malka
 argument-hint: "[target and motivation]"
 metadata:
-  roles: [coordinator, refactorer, qa-verifier, code-reviewer]
+  roles: [coordinator, builder, qa-verifier, reviewer]
   skills: [safe-refactoring, regression-testing, code-review]
   writes: authorized write set only
 ---
@@ -12,7 +12,7 @@ metadata:
 Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
 
 ## Routing
-Target and motivation: $ARGUMENTS. In sequence: dispatch `refactorer` with the Agent tool, model `sonnet`, requiring the kit skill `safe-refactoring`, with the write set and the behavior boundary. Freeze the result, then dispatch `qa-verifier` (model `sonnet`, skill `regression-testing`) to compare against the recorded baseline. Then dispatch `code-reviewer` (model `sonnet`, skill `code-review`) on that stable state. At most two specialists run concurrently and only on independent work.
+Target and motivation: $ARGUMENTS. In sequence: dispatch `builder` in mode `refactor` with the Agent tool, model `sonnet`, requiring the kit skill `safe-refactoring`, with the lane of the code being restructured, with the write set and the behavior boundary. Freeze the result, then dispatch `qa-verifier` (model `sonnet`, skill `regression-testing`) to compare against the recorded baseline. Then dispatch `reviewer` in mode `code` (model `sonnet`, skill `code-review`) on that stable state. At most two specialists run concurrently and only on independent work.
 
 ## Prerequisites
 The named structural problem and the evidence of its cost; without one there is no way to say the work succeeded, so ask the owner and stop. Existing checks and their current results, captured as the baseline before anything moves, including a suite already failing. Coverage at the boundary being moved: if preservation needs characterization tests, they are added only inside the authorized test scope, otherwise report the gap before changing structure.

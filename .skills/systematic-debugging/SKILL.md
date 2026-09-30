@@ -134,7 +134,7 @@ For authorized changes to asynchronous code or tests, prefer waiting on a condit
 
 ## Example
 
-Symptom: "invites sometimes created twice". The recorded fix authorization explicitly covers the invite migration; without it, the migration is a data slice for data-engineer and only the service mapping stays here.
+Symptom: "invites sometimes created twice". The recorded fix authorization explicitly covers the invite migration; without it, the migration is a data slice for builder in lane `dados` and only the service mapping stays here.
 
 ```
 ## Status
@@ -167,7 +167,7 @@ The fix sits at the origin, so the bulk path is covered without a second edit.
 
 ## Related
 
-Roles: debugger, qa-verifier, coordinator, backend-builder, code-reviewer. Commands: `/dh:fix`. Skills: regression-testing, incremental-implementation, repository-mapping, safe-refactoring.
+Roles: debugger, qa-verifier, coordinator, builder, reviewer. Commands: `/dh:fix`. Skills: regression-testing, incremental-implementation, repository-mapping, safe-refactoring.
 
 ## Proof case
 

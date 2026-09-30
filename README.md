@@ -4,7 +4,7 @@ English: [README.en.md](README.en.md)
 
 Kit portátil de desenvolvimento assistido por IA. Clone, carregue no Claude Code, desenvolva.
 
-Licença MIT. Plano de produto: [`docs/plano-produto.html`](docs/plano-produto.html). Início rápido: [`docs/inicio-rapido.html`](docs/inicio-rapido.html).
+Licença MIT. Plano de produto: [`docs/plano-produto.html`](docs/plano-produto.html). Tutorial: [`docs/tutorial.html`](docs/tutorial.html).
 
 ## Instalar
 
@@ -17,7 +17,7 @@ Pelo marketplace do próprio repositório, sem clonar, dentro de uma sessão do 
 
 A versão vem da tag fixada em `.claude-plugin/marketplace.json`. Para um time, o projeto pode declarar o marketplace em `extraKnownMarketplaces` e o plugin em `enabledPlugins` no `.claude/settings.json`, e o Claude instala para quem confiar na pasta.
 
-**Versão atual: 0.13.0** (tag `v0.13.0`). CLIs externas sem modo somente-leitura medido (`grok`, `opencode`, `mcode`, `claude` como revisor) rodam num clone descartável; escritas fora dele são detectadas na árvore viva, nunca impedidas, e fora do projeto não são detectadas. O PRD passa a ter quatro seções (Problema, Solução, Regras, Docs) e o ticket único (`TASK.md`) substitui a story, com lane por ticket; `/dh:review feature PRD-<n>` faz a revisão final da feature. `/dh:plan-loop` põe o planner Claude para disputar com CLIs externas medidas somente-leitura (o codex) ou que rodam num clone descartável (grok, opencode, mcode), em ondas julgadas pelo painel completo; sem CLI disponível, segue o fluxo do `/dh:plan`. `/dh:auto` encadeia discover, plan e build numa branch só, com um questionário. A revisão de documento fica em até duas rodadas; o painel de três revisores entra quando você pede ou quando o documento toca segurança. Roadmap: [`docs/roadmap.html`](docs/roadmap.html). Notas: [`CHANGELOG.md`](CHANGELOG.md).
+**Versão atual: 0.14.0** (tag `v0.14.0`). Kit enxuto: 13 agentes (`builder`, `reviewer` e `architect` absorvem os papéis antigos; os ids antigos deixam de existir) e evals fora do fluxo normal. Tutorial completo: [`docs/tutorial.html`](docs/tutorial.html). CLIs externas sem modo somente-leitura medido (`grok`, `opencode`, `mcode`, `claude` como revisor) rodam num clone descartável; escritas fora dele são detectadas na árvore viva, nunca impedidas, e fora do projeto não são detectadas. O PRD passa a ter quatro seções (Problema, Solução, Regras, Docs) e o ticket único (`TASK.md`) substitui a story, com lane por ticket; `/dh:review feature PRD-<n>` faz a revisão final da feature. `/dh:plan-loop` põe o planner Claude para disputar com CLIs externas medidas somente-leitura (o codex) ou que rodam num clone descartável (grok, opencode, mcode), em ondas julgadas pelo painel completo; sem CLI disponível, segue o fluxo do `/dh:plan`. `/dh:auto` encadeia discover, plan e build numa branch só, com um questionário. A revisão de documento fica em até duas rodadas; o painel de três revisores entra quando você pede ou quando o documento toca segurança. Roadmap: [`docs/roadmap.html`](docs/roadmap.html). Notas: [`CHANGELOG.md`](CHANGELOG.md).
 
 **Migrando de uma instalação anterior à 0.8.0:** o id do plugin mudou de `dev-harness@dev-harness` para `dh@dev-harness` e os comandos de `/dev-harness:<comando>` para `/dh:<comando>`. Rode `/plugin uninstall dev-harness@dev-harness` e depois `/plugin install dh@dev-harness`; troque `/dev-harness:` por `/dh:` em scripts e anotações próprias. Nome do marketplace, repositório, binário Go `dh` e caminho de snapshot não mudam. Ver `CHANGELOG.md` 0.8.0.
 
@@ -46,7 +46,7 @@ O diagnóstico mecânico também roda sem o Claude:
 dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness
 ```
 
-Tutorial 00: [`docs/tutoriais/00-primeira-maquina.html`](docs/tutoriais/00-primeira-maquina.html). Fixture da primeira fatia: [`evals/fixtures/slice-01`](evals/fixtures/slice-01).
+Tutorial completo: [`docs/tutorial.html`](docs/tutorial.html). Fixture da primeira fatia: [`evals/fixtures/slice-01`](evals/fixtures/slice-01).
 
 ## Fontes e pacote
 

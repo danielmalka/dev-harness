@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-09-30</b></span>
-          <span class="chip">status <b>0.13.0 · live</b></span>
+          <span class="chip">status <b>0.14.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -672,7 +672,7 @@ footer.doc-foot {
         <pre><code>dev-harness/
   cmd/                    entry point of the Go binary dh (cmd/dh)
   internal/               binary packages: snapshot, validate, build, doctor
-  .agents/                19 roles — canonical source
+  .agents/                13 roles — canonical source
   .skills/                21 skills — canonical source
   .commands/              19 commands — canonical source
   templates/{en,pt-br}/   7 templates mirrored per language — canonical source
@@ -682,7 +682,7 @@ footer.doc-foot {
   evals/                  cases, baselines, rubrics, evaluation fixtures
   adapters/               manual usage guides for other AIs (generic) and the Claude Code package (claude-code)</code></pre>
       </div>
-      <p>Current count (<code>harness-manifest.json</code>): 19 agents, 19 commands, 21 skills, 4 profiles, 14 templates
+      <p>Current count (<code>harness-manifest.json</code>): 13 agents, 19 commands, 21 skills, 4 profiles, 14 templates
         (7 en + 7 pt-br), 5 precompiled binaries (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
       <pre class="mermaid">
 flowchart LR
@@ -699,6 +699,23 @@ profiles/"] --> B["dh build"]
       <p>Tasks completed per release, sourced from <code>CHANGELOG.md</code>. "Tested?" only claims execution when a
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
+
+      <div class="card">
+        <h3>0.14.0 · Lean kit</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-010 delivered. Agents from 19 to 13: <code>builder</code> (lane backend,
+          frontend, data or infra; mode build, refactor or design), <code>reviewer</code> (mode code or security) and
+          <code>architect</code> replace the old roles; <strong>breaking for anyone dispatching agents by name</strong>.
+          Evals leave the normal flow: 5 cases stay, 18 move to <code>evals/archive/</code>, and a paid eval runs only
+          when the owner asks, in <code>/dh:improve</code>, or via the <code>/dh:auto</code> questionnaire cap. Trimmed
+          Coordinator, overlaps merged behind commands (all 19 remain), default verification of deterministic checks
+          plus 1 Claude reviewer, clean-clone proof only when a PR touches Go or binaries, <code>AGENTS.md</code> with
+          current rules only (history in ADR-003) and a new complete tutorial (<code>docs/en/tutorial.html</code>).
+          PRD-009 marked as delivered.</p>
+        <p><strong>Relations:</strong> PRD-010 (<code>docs/prd/PRD-010-kit-enxuto.md</code>);
+          <code>docs/adr/ADR-003-kit-enxuto.md</code>; <code>docs/en/tutorial.html</code>; <code>.agents/</code>.</p>
+        <p><strong>Tested?</strong> deterministic checks (validate, build, go test); no paid eval.</p>
+      </div>
 
       <div class="card">
         <h3>0.13.0 · Living roadmap check</h3>
@@ -1584,7 +1601,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.13.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.14.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

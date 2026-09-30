@@ -4,7 +4,7 @@ description: Run a wave-based competing-plan loop between the implementation pla
 author: malka
 argument-hint: "[brief, PRD path or scope]"
 metadata:
-  roles: [coordinator, implementation-planner, document-validator, solution-architect, api-designer, data-engineer]
+  roles: [coordinator, implementation-planner, document-validator, architect, builder]
   skills: [implementation-planning, architecture-decisions, api-contracts, document-review, external-clis]
   writes: ".harness/tasks/<id>/ (wave-N/ subdirectories, PLAN.md, TASK.md, PLAN.review.md, LOOP-REPORT.md) and .harness/adr/ when authorized"
 ---

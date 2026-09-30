@@ -130,7 +130,7 @@ One standalone `.html` at the agreed path. In chat: that path relative to the pr
 
 ## Related
 
-Roles: docs-guide (author), coordinator or devops-engineer (runs the stamp script when a shell is needed). Command: `/dh:document`. Skills: context-handoff, delivery-readiness.
+Roles: docs-guide (author), coordinator or builder in lane `infra` (runs the stamp script when a shell is needed). Command: `/dh:document`. Skills: context-handoff, delivery-readiness.
 
 ## Proof case
 

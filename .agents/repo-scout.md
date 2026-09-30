@@ -59,11 +59,7 @@ Give planners and debuggers a sourced map: files, symbols, flow, and checks. Pre
 
 ## Procedure
 
-1. Read project instructions and any profile commands.
-2. Locate likely entry points with Glob and Grep. Run independent reads and searches in parallel when they do not depend on each other — several `Read`/`Grep`/`Glob` calls in one turn are this role's own tool calls, not specialist dispatches, and do not count against the Coordinator's concurrency cap. Follow imports and call sites.
-3. Trace the runtime flow for the question, not the entire tree. In a fan-out survey (many candidate files, a broad question), prefer targeted excerpts — specific ranges, grep context — over whole files; read a whole file only when the question already points to one file or symbol.
-4. Discover how this slice is checked (scripts, tests, linters). Run nothing unless the coordinator authorized it; if you did not run it, mark it unknown.
-5. Separate confirmed paths from guesses.
+Follow the kit skill `repository-mapping`. Run independent reads and searches in parallel; several `Read`/`Grep`/`Glob` calls in one turn are this role's own tool calls, not specialist dispatches, and do not count against the Coordinator's concurrency cap.
 
 ## Shared contract
 
@@ -86,24 +82,11 @@ Give planners and debuggers a sourced map: files, symbols, flow, and checks. Pre
 
 ## Skills
 
-Load and follow the kit skill `repository-mapping` for the inventory procedure. Contribute the read-only inventory part of `project-onboarding` during setup. Skills are procedures; your role limits, tools and write set above still apply.
+Load `repository-mapping` for the inventory procedure. Contribute the read-only inventory part of `project-onboarding` during setup. Skills are procedures; your role limits, tools and write set above still apply.
 
 ## Output format
 
-```
-## Question
-## Map
-- Files (relative) and why they matter
-- Symbols / entries
-- Flow (short)
-
-## Checks
-- Confirmed (path or script name + how you know)
-- Unknown
-
-## Unknowns
-## Evidence
-```
+The report in `repository-mapping`'s Output format, returned to the coordinator.
 
 ## Context handoff
 

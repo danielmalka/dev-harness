@@ -199,7 +199,7 @@ Input: `PRD-gap.md` written from `discovery-notes.md`, which raised five points.
 
 ## Related
 
-Roles: document-validator, product-discovery, coordinator, implementation-planner, solution-architect. Commands: `/dh:discover`, which runs this cycle after the PRD is written; `/dh:plan` and `/dh:document` for the documents that follow. Skills: requirements-discovery for writing the document this procedure judges, code-review for the same read-only discipline applied to a diff, harness-evaluation for measuring whether a change to this procedure helped.
+Roles: document-validator, product-discovery, coordinator, implementation-planner, architect. Commands: `/dh:discover`, which runs this cycle after the PRD is written; `/dh:plan` and `/dh:document` for the documents that follow. Skills: requirements-discovery for writing the document this procedure judges, code-review for the same read-only discipline applied to a diff, harness-evaluation for measuring whether a change to this procedure helped.
 
 ## Proof case
 

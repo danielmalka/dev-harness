@@ -125,6 +125,7 @@ func TestBuildCopiesEvalsWithoutResultsBaselinesNotRun(t *testing.T) {
 		"evals/results",
 		"evals/baselines",
 		"evals/not-run",
+		"evals/archive/old",
 		"evals/fixtures/slice-01/__pycache__",
 	} {
 		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(path)), 0o755); err != nil {
@@ -136,6 +137,7 @@ func TestBuildCopiesEvalsWithoutResultsBaselinesNotRun(t *testing.T) {
 	writeBuildFixture(t, root, "evals/results/run.json", "{}\n", 0o644)
 	writeBuildFixture(t, root, "evals/baselines/base.json", "{}\n", 0o644)
 	writeBuildFixture(t, root, "evals/not-run/skip.json", "{}\n", 0o644)
+	writeBuildFixture(t, root, "evals/archive/old/case.yaml", "id: old\n", 0o644)
 	writeBuildFixture(t, root, "evals/fixtures/slice-01/__pycache__/x.pyc", "cache\n", 0o644)
 	writeBuildFixture(t, root, "evals/fixtures/slice-01/keep.py", "print(1)\n", 0o644)
 
@@ -161,6 +163,7 @@ func TestBuildCopiesEvalsWithoutResultsBaselinesNotRun(t *testing.T) {
 		"evals/results",
 		"evals/baselines",
 		"evals/not-run",
+		"evals/archive",
 		"evals/fixtures/slice-01/__pycache__",
 	} {
 		if _, err := os.Stat(filepath.Join(output, filepath.FromSlash(path))); !os.IsNotExist(err) {

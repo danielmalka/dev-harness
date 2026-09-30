@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harness · Tutorial (do not publish)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* Harness Doc Shell
+   Ink paper on cool charcoal. Neon is a signal, not a wash.
+   One standalone HTML file, CSS inlined. Not a marketing page. */
+
+:root {
+  --void: #131418;
+  --void-deep: #0C0D10;
+  --void-elevated: #1A1C22;
+  --void-soft: #23262E;
+  --text: #F1EFE8;
+  --muted: #9A978E;
+  --border: rgba(241, 239, 232, 0.10);
+  --primary: #3DFF9A;
+  --primary-hover: #6AFFB4;
+  --primary-soft: rgba(61, 255, 154, 0.10);
+  --accent: #E2D2A8;
+  --accent-hover: #F0E4C4;
+  --accent-soft: rgba(226, 210, 168, 0.10);
+  --gold: #E2D2A8;
+  --ok: #3DFF9A;
+  --ok-bg: rgba(61, 255, 154, 0.08);
+  --no: #E08A8A;
+  --no-bg: rgba(224, 138, 138, 0.08);
+  --warn: #E2C48A;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 22px;
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Outfit", var(--font);
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: 180ms var(--ease);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 15.5px;
+  line-height: 1.62;
+  color: var(--text);
+  background: var(--void-deep);
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 56% 40% at 92% -10%, rgba(61, 255, 154, 0.06), transparent 55%),
+    radial-gradient(ellipse 44% 34% at 0% 100%, rgba(226, 210, 168, 0.04), transparent 50%),
+    var(--void-deep);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  pointer-events: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 50;
+  background: var(--primary);
+  color: var(--void-deep);
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+}
+
+.skip-link:focus { left: 1rem; top: 1rem; }
+
+.page {
+  position: relative;
+  z-index: 2;
+  width: min(92%, 1320px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 3.25rem;
+  align-items: start;
+  padding: 2.25rem 0 5rem;
+  min-width: 0;
+}
+
+.side {
+  position: sticky;
+  top: 1.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.side__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.12rem;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.2rem;
+}
+
+.side__brand span { color: var(--primary); }
+
+.mark {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.side__sub {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin: 0 0 0.85rem 2rem;
+}
+
+.side__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  background: var(--void-elevated);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  margin: 0 0 1.25rem;
+}
+
+.side__type::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.side nav {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.side nav a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.42rem 0.65rem;
+  border-left: 2px solid transparent;
+  border-radius: 0 8px 8px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+
+.side nav a:hover {
+  color: var(--text);
+  background: var(--void-elevated);
+}
+
+.side nav a.active {
+  color: var(--text);
+  border-left-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.side nav a b {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.68rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.wrap { min-width: 0; overflow-wrap: break-word; }
+.wrap > p,
+.wrap > .lead { max-width: 74ch; }
+
+.hero {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 0.28rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--void-elevated);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(1.85rem, 3.4vw, 2.45rem);
+  margin: 0;
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 2.75rem 0 0.95rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+h2 .n {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+h3 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin: 1.15rem 0 0.4rem;
+  letter-spacing: -0.02em;
+}
+
+p { margin: 0 0 0.85rem; color: var(--muted); }
+p.lead { color: var(--text); font-size: 1.05rem; line-height: 1.55; max-width: 62ch; }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+}
+
+.chip b {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.banner {
+  background: var(--accent-soft);
+  border: 1px dashed rgba(226, 210, 168, 0.38);
+  color: var(--gold);
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin: 0 0 1.5rem;
+}
+
+.banner.warn {
+  background: var(--no-bg);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: var(--no);
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 0.7rem;
+  margin: 0 0 1.5rem;
+}
+
+.strip a {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 0.95rem;
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-decoration: none;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.strip a:hover {
+  border-color: rgba(61, 255, 154, 0.28);
+  transform: translateY(-1px);
+  color: var(--muted);
+}
+
+.strip a strong {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.strip a span {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.card {
+  background: var(--void-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.05rem 1.2rem;
+  margin: 0.8rem 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.card:hover { border-color: rgba(61, 255, 154, 0.22); transform: translateY(-1px); }
+.card h3 { margin-top: 0; }
+
+.card h3::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.in { border-color: rgba(52, 211, 153, 0.32); background: var(--ok-bg); }
+.in h3 { color: var(--ok); }
+.in h3::before { background: var(--ok); }
+.out { border-color: rgba(248, 113, 113, 0.32); background: var(--no-bg); }
+.out h3 { color: var(--no); }
+.out h3::before { background: var(--no); }
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  border: 1px solid rgba(61, 255, 154, 0.28);
+  color: var(--primary);
+  margin: 0 0 0.65rem;
+}
+
+.price {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: var(--primary-soft);
+  border: 1px solid rgba(61, 255, 154, 0.22);
+  color: var(--primary);
+  padding: 0.08rem 0.42rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.grid-asym {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 0.8rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 0.7rem 0 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--void-elevated);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.68rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--muted);
+}
+
+th {
+  background: var(--void-soft);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+tr:last-child td { border-bottom: 0; }
+tbody tr { transition: background var(--transition); }
+tbody tr:hover { background: rgba(241, 239, 232, 0.04); }
+tbody tr:hover td { color: var(--text); }
+
+ul, ol { margin: 0.25rem 0 0.85rem; padding-left: 1.2rem; color: var(--muted); }
+li { margin: 0.28rem 0; }
+
+.steps {
+  list-style: none;
+  margin: 0.5rem 0 1.15rem;
+  padding: 0;
+  counter-reset: step;
+}
+
+.steps > li {
+  position: relative;
+  margin: 0;
+  padding: 0 0 1.15rem 2.35rem;
+  border-left: 1px solid var(--border);
+  margin-left: 0.75rem;
+}
+
+.steps > li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.steps > li::before {
+  counter-increment: step;
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: -0.9rem;
+  top: 0.05rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  background: var(--void-soft);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  display: grid;
+  place-items: center;
+}
+
+.callout {
+  padding: 0.95rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  background: var(--void-elevated);
+  margin: 0.85rem 0;
+}
+
+.callout.gold {
+  border-left-color: var(--gold);
+  background: var(--accent-soft);
+}
+
+.callout.stop {
+  border-left-color: var(--no);
+  background: var(--no-bg);
+}
+
+a { color: var(--accent); text-decoration: none; transition: color var(--transition); }
+a:hover { color: var(--accent-hover); }
+strong { color: var(--text); font-weight: 600; }
+em { color: var(--text); }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+  background: var(--void-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.08rem 0.34rem;
+  border-radius: 6px;
+}
+
+::selection { background: rgba(61, 255, 154, 0.35); color: var(--void-deep); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+
+footer.doc-foot {
+  margin-top: 2.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: grid;
+  gap: 0.35rem;
+}
+
+@media (max-width: 1000px) {
+  .page {
+    width: auto;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem 1.1rem 4rem;
+  }
+  .side { position: static; }
+  .side nav {
+    display: flex;
+    gap: 0.35rem;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+  }
+  .side nav a {
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 8px;
+    white-space: nowrap;
+    background: var(--void-elevated);
+  }
+  .side nav a.active {
+    border-bottom-color: var(--primary);
+    border-left-color: transparent;
+  }
+  .strip,
+  .grid-2,
+  .grid-asym { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .card, .strip a, .side nav a, tbody tr { transition: none; }
+  .card:hover, .strip a:hover { transform: none; }
+}
+
+@media print {
+  body::before, body::after, .progress, .side, .skip-link { display: none !important; }
+  .page { display: block; width: auto; padding: 0; }
+  .card, .table-wrap, .banner { break-inside: avoid; }
+  a { color: inherit; }
+}
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <a class="skip-link" href="#conteudo">Skip to content</a>
+  <div class="page">
+    <aside class="side">
+      <div class="side__brand">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="mark-grad" x1="4" y1="2" x2="28" y2="30">
+              <stop offset="0" stop-color="#3DFF9A"/>
+              <stop offset="1" stop-color="#E2D2A8"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill="url(#mark-grad)"/>
+        </svg>
+        Harness<span>.</span>
+      </div>
+      <div class="side__sub">Internal doc</div>
+      <div class="side__type">report</div>
+      <nav>
+        <a href="#install"><b>01</b>Install</a>
+        <a href="#first-session"><b>02</b>First session</a>
+        <a href="#harness"><b>03</b>What lives in .harness/</a>
+        <a href="#flows"><b>04</b>Flows</a>
+        <a href="#config"><b>05</b>Configuration</a>
+        <a href="#advanced"><b>06</b>Advanced</a>
+        <a href="#reference"><b>07</b>Command reference</a>
+      </nav>
+    </aside>
+    <div class="wrap" id="conteudo">
+      <div class="callout">Português: <a href="../tutorial.html">versão em pt-br</a></div>
+      <div class="banner">Internal doc. Do not publish.</div>
+      <header class="hero">
+        <div class="eyebrow">Guide · full usage</div>
+        <h1>dev-harness tutorial</h1>
+        <p class="lead">From install to release: how to use the kit day to day, what it writes to <code>.harness/</code>, and what each command does.</p>
+        <div class="chips">
+          <span class="chip">date <b>2026-09-30</b></span>
+          <span class="chip">status <b>internal</b></span>
+          <span class="chip">path <b>docs/en/tutorial.html</b></span>
+        </div>
+      </header>
+
+      <h2 id="install"><span class="n">01</span>Install</h2>
+      <p>Prerequisites: Git and an authenticated Claude Code with access to a model. The package ships the <code>dh</code> binary; no interpreter is needed. Go 1.22+ only for people who maintain the kit.</p>
+      <ol class="steps">
+        <li><strong>From the marketplace.</strong> Inside a Claude Code session, in the project you will work on:
+          <div class="table-wrap"><pre><code>/plugin marketplace add danielmalka/dev-harness
+/plugin install dh@dev-harness</code></pre></div>
+          The version comes from the tag pinned in <code>.claude-plugin/marketplace.json</code>. For a team, the project can declare the marketplace under <code>extraKnownMarketplaces</code> and the plugin under <code>enabledPlugins</code> in <code>.claude/settings.json</code>.
+        </li>
+        <li><strong>Or from the clone (development).</strong> Clone the repository and load the generated package, in the target project:
+          <div class="table-wrap"><pre><code>claude --plugin-dir "/absolute/path/to/clone/dist/claude-code/dev-harness" --agent coordinator</code></pre></div>
+          <div class="callout stop">Inside quotes <code>~</code> does not expand: <code>"~/projects/..."</code> does not exist, Claude silently ignores the plugin and <code>--agent coordinator</code> fails with "not found". Use <code>$HOME/...</code> or the full path. If the runtime needs the qualified name, use <code>--agent dh:coordinator</code>.</div>
+        </li>
+        <li><strong>Migrating from before 0.8.0.</strong> <code>/plugin uninstall dev-harness@dev-harness</code>, then <code>/plugin install dh@dev-harness</code>; replace <code>/dev-harness:</code> with <code>/dh:</code> in your own scripts and notes.</li>
+        <li><strong>Deactivate.</strong> End the session without <code>--plugin-dir</code>, or uninstall the plugin. The <code>.harness/</code> files in your project stay: the kit never deletes your work.</li>
+      </ol>
+      <p>The package includes <code>settings.json</code> and <code>hooks/hooks.json</code>, which write per-session snapshots to <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, local files only, pruned after 7 days.</p>
+
+      <h2 id="first-session"><span class="n">02</span>First session</h2>
+      <p>Open Claude Code in the project with the Coordinator as main agent (<code>--agent coordinator</code> when loading from the clone), and run:</p>
+      <ol class="steps">
+        <li><strong><code>/dh:doctor</code></strong> diagnoses kit, runtime and project. It writes nothing. Without Claude, from the clone: <code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code>.</li>
+        <li><strong><code>/dh:setup</code></strong> reads the project (stack, manifests, test, lint and build commands) and proposes the profile. With permission to write, it records <code>.harness/project.yaml</code> and, only when they do not exist yet, <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code>. The <code>language</code> field (<code>en</code> by default, <code>pt-br</code> if you wrote in Portuguese) picks <code>templates/&lt;lang&gt;/</code>. A project <code>AGENTS.md</code> is canonical; a <code>CLAUDE.md</code> is read too, and on conflict <code>AGENTS.md</code> wins.</li>
+        <li><strong>Optional practice.</strong> The <code>evals/fixtures/slice-01</code> fixture (in the kit clone; Python 3, unittest, one criterion red on purpose) is there for a first <code>plan</code>, <code>build</code>, <code>verify</code>, <code>review</code>, <code>handoff</code> cycle. Do not copy <code>expected/greet.py</code> over the code.</li>
+      </ol>
+
+      <h2 id="harness"><span class="n">03</span>What lives in .harness/</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Path</th><th>What it is for</th></tr></thead>
+        <tbody>
+          <tr><td><code>project.yaml</code></td><td>Project profile: <code>language</code>, <code>commands</code>, <code>reviewers</code>. See Configuration.</td></tr>
+          <tr><td><code>local.yaml</code></td><td>CLI paths and slugs for this machine. No secrets.</td></tr>
+          <tr><td><code>MEMORY.md</code></td><td>Active state: current work, decisions, blockers, next step.</td></tr>
+          <tr><td><code>EPOCHAL.md</code></td><td>Archive of memory batches, written by <code>/dh:consolidate-memory</code>. Read only for a concrete historical question.</td></tr>
+          <tr><td><code>RISKS.md</code></td><td>Severe incidents, with cause, resolution and prevention.</td></tr>
+          <tr><td><code>tasks/&lt;id&gt;/</code></td><td><code>PLAN.md</code>, <code>TASK.md</code> (ticket), <code>PLAN.review.md</code>, <code>evidence/</code>, handoffs; <code>AUTO-&lt;n&gt;/BRIEF.md</code> holds the <code>Stage:</code> of a <code>/dh:auto</code> run.</td></tr>
+          <tr><td><code>prd/</code>, <code>adr/</code></td><td>The project's PRDs and architecture decisions, from the kit templates.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout">Only the Coordinator writes <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code>. Other agents return proposals. The disk is the truth: if you deleted records, the Coordinator does not recreate them from what it remembers of the conversation.</div>
+
+      <h2 id="flows"><span class="n">04</span>Flows</h2>
+      <p>The kit has 13 agents and 19 commands. You talk to the Coordinator; it dispatches the specialists and holds the authorization: nothing is installed, committed, published or deployed without you authorizing it.</p>
+      <h3>Feature, from ask to release</h3>
+      <ol class="steps">
+        <li><strong><code>/dh:discover</code> &lt;idea&gt;.</strong> <code>product-discovery</code> asks one blocking question at a time and writes the PRD (Problema, Solução, Regras, Docs). A <code>document-validator</code> reviews it for up to 2 rounds; you get the PRD after <code>approved</code> or the cap.</li>
+        <li><strong><code>/dh:plan</code>.</strong> <code>implementation-planner</code> slices the work into <code>PLAN.md</code> and one <code>TASK.md</code> per slice, each with its lane (<code>backend</code>, <code>frontend</code>, <code>dados</code>, <code>infra</code> or a test lane). The validator reviews the plan.</li>
+        <li><strong><code>/dh:build</code> &lt;ticket&gt;.</strong> <code>builder</code> implements the slice in the ticket's lane, <code>qa-verifier</code> writes and runs tests on the frozen state, and a <code>reviewer</code> reviews. Up to 6 correction rounds; any edit invalidates the evidence and the review. Repeat per ticket. If the change touches authentication, data, input or execution, run <code>/dh:secure</code>.</li>
+        <li><strong><code>/dh:review feature PRD-&lt;n&gt;</code> and <code>/dh:verify</code>.</strong> The final review looks at the seams between tickets against the whole PRD, with QA using the screen as a client (Playwright headless) when there is one. Outcome: FEATURE APROVADA, REPROVADA or BLOQUEADA. <code>/dh:verify</code> widens the acceptance matrix at any point.</li>
+        <li><strong><code>/dh:document</code>.</strong> <code>docs-guide</code> updates what the change requires. Documentation ships in the same PR, never in a PR of its own.</li>
+        <li><strong><code>/dh:release</code>.</strong> <code>release-manager</code> assembles the readiness package (version, notes, compatibility, rollout, rollback). It stops at "ready for decision": commit, push, tag and deploy only with your authorization.</li>
+      </ol>
+      <p>Verification default: deterministic checks (<code>dh validate</code>, build, tests) plus 1 Claude reviewer. The panel of 3 only joins when you ask or the change touches security.</p>
+      <h3>All at once: /dh:auto</h3>
+      <p><code>/dh:auto</code> takes an idea, an approved PRD or an approved <code>PLAN.md</code>, detects the start stage and asks one 7-item questionnaire: start stage, decision mode (a: decide and record everything; b: ask only product or contract decisions, the default; c: ask everything), commit and push, PR, merge, tag, and an eval spend cap (zero or absent means no paid evals). Then it chains discover, plan and build on a single branch, with <code>secure</code> per slice when it applies, <code>review</code> at the end and <code>release</code>. It stops outright on a demonstrated vulnerability, a destructive action, an unauthorized install, the spend cap or the round cap. State lives in <code>.harness/tasks/AUTO-&lt;n&gt;/BRIEF.md</code>; <code>/dh:resume</code> continues where it stopped.</p>
+      <h3>Bug: /dh:fix</h3>
+      <p>Give the literal error or the reproduction steps. <code>debugger</code> reproduces, isolates the cause (marked fact or hypothesis) and, if you authorized file changes, applies the smallest fix at the origin of the bad value, with a regression test seen failing before and passing after. Then <code>qa-verifier</code> and a <code>reviewer</code> run. With no reproduction the result is "inconclusive", never a presumed fix.</p>
+      <h3>Refactor: /dh:refactor</h3>
+      <p>Needs a named structural problem and the baseline of the checks before anything moves. <code>builder</code> (mode <code>refactor</code>) works in small, revertible steps; any observable difference is a defect. A new feature goes to <code>/dh:plan</code>.</p>
+      <h3>Verification: /dh:verify</h3>
+      <p>Given acceptance criteria and a stable change, <code>qa-verifier</code> returns a pass, fail or not-run matrix and, for a user interface, checks keyboard use, two viewport widths and loading, error and empty states, with captures under <code>.harness/tasks/&lt;id&gt;/evidence/</code>.</p>
+      <h3>Long session: handoff, resume, consolidate-memory</h3>
+      <ol class="steps">
+        <li><strong><code>/dh:handoff</code></strong> records objective, constraints, files, decisions, evidence and the next step under <code>.harness/tasks/&lt;id&gt;/</code>. With no objective it stops and asks.</li>
+        <li><strong><code>/dh:resume</code></strong> in the next session reconciles the record with the tree (<code>repo-scout</code> checks the files) and continues only what is already authorized. Where the two disagree, the tree wins.</li>
+        <li><strong><code>/dh:consolidate-memory</code></strong> archives <code>MEMORY.md</code> into <code>EPOCHAL.md</code>, verifies the copy and only then shortens the memory. It asks you to confirm that no other session is writing.</li>
+      </ol>
+      <h3>Kit care: /dh:improve</h3>
+      <p>For a concrete case where the kit misbehaved (prompt, expected, observed). <code>harness-maintainer</code> names the owning asset, makes the smallest edit in the sources (<code>.agents/</code>, <code>.skills/</code>, <code>.commands/</code>, <code>templates/</code>, <code>profiles/</code>; never <code>dist/</code>) and measures before and after with a paid eval (running <code>/dh:improve</code> counts as your request for it). Afterwards, <code>/dh:doctor</code>.</p>
+      <h3>Understand before changing: /dh:understand</h3>
+      <p>Ask in terms of behavior ("where does password reset go through?"). <code>repo-scout</code> returns entries, dependencies and flow, read-only.</p>
+
+      <h2 id="config"><span class="n">05</span>Configuration</h2>
+      <h3><code>.harness/project.yaml</code></h3>
+      <p>Written by <code>/dh:setup</code> and editable by hand. No secrets or absolute paths. Fields:</p>
+      <ul>
+        <li><code>language</code>: <code>en</code> or <code>pt-br</code>. Picks <code>templates/&lt;lang&gt;/</code> for records and artifacts and the language of the Coordinator's replies. Dispatches, code and commits are always in English.</li>
+        <li><code>commands</code>: <code>test</code>, <code>lint</code>, <code>build</code>, <code>run</code>, each with a value and a source; <code>null</code> means "do not guess". With no discoverable command, the check is reported not-run.</li>
+        <li><code>reviewers</code>: optional, per stage (<code>document</code>, <code>code</code>, <code>security</code>; <code>verify</code> is out). Each entry is <code>claude</code>, <code>"cli:&lt;binary&gt;/&lt;slug&gt;"</code> (15-minute default timeout) or <code>{reviewer: "cli:&lt;binary&gt;/&lt;slug&gt;", timeout_minutes: &lt;n&gt;}</code>. Absent, the flow is Claude-only.</li>
+      </ul>
+      <div class="table-wrap"><pre><code>language: en
+commands:
+  test:
+    value: go test ./...
+    source: observed ci.yml
+reviewers:
+  document: [claude, "cli:codex/&lt;slug&gt;"]
+  code: [claude]
+  security: [claude]</code></pre></div>
+      <h3><code>.harness/local.yaml</code></h3>
+      <p>Machine data: under <code>binaries</code>, where to find each CLI that is not on <code>PATH</code>; under <code>models</code>, the measured slugs. Paths are always home-relative (<code>~/.grok/bin/grok</code>) or project-relative, never the expanded home, so the same file works on any machine. A binary that does not resolve leaves the reviewer not-run, with the reason. File model: <code>.skills/external-clis/references/local.yaml.example</code> (in the clone).</p>
+
+      <h2 id="advanced"><span class="n">06</span>Advanced</h2>
+      <h3>Looped planning: /dh:plan-loop</h3>
+      <p>For a new feature, instead of a single plan: the <code>implementation-planner</code> (Claude) competes with an external CLI planner in waves. Rotation follows the order of <code>reviewers.document</code>; each candidate is judged by the full reviewer list, and the loop converges when all approve with no blocking finding, with at least one reviewer that is not Claude and did not write the candidate. Caps are <code>plan_loop.wave_cap</code> (default 6) and <code>plan_loop.dispatch_cap</code> (default 48) in <code>project.yaml</code>. With no eligible CLI it falls back to <code>/dh:plan</code>. Delivering the plan does not authorize building.</p>
+      <h3>External CLI reviewers and clone isolation</h3>
+      <p>Listed under <code>reviewers</code>, they run beside Claude or in its place. The binary is resolved from <code>PATH</code> and, failing that, from <code>local.yaml</code>; a reply only counts with the stage's verdict signal. A binary with a documented, measured read-only mode (today <code>codex</code>) uses its own sandbox. One without such a mode (<code>grok</code>, <code>opencode</code>, <code>mcode</code>, <code>claude</code> as a CLI) runs in a disposable clone, and <code>agy</code> as a reviewer runs on the live tree with a freeze comparison. The clone is not a sandbox: writes outside it are detected on the live tree, never prevented, and writes outside the project are not detected. Any detected change discards the verdict. A <code>grok</code> may need an explicit Bash permission rule in <code>.claude/settings.local.json</code> before the Coordinator can dispatch it. Per-binary details: the <code>external-clis</code> skill.</p>
+      <h3>Evals on request only</h3>
+      <p>Paid eval measurement is not part of the normal flow. It only runs when you ask: directly, inside <code>/dh:improve</code>, or through the spend cap in the <code>/dh:auto</code> questionnaire. When it runs, it is the minimum the change requires, one run by default.</p>
+
+      <h2 id="reference"><span class="n">07</span>Command reference</h2>
+      <p>One command per file in <code>.commands/</code>. All run as <code>/dh:&lt;command&gt;</code>.</p>
+      <div class="table-wrap">
+      <table id="comandos">
+        <thead><tr><th>Command</th><th>When to use</th><th>What it produces</th><th>Who approves</th></tr></thead>
+        <tbody>
+          <tr><td><code>auto</code></td><td>An idea, PRD or PLAN.md and you want the whole path on one branch</td><td>State in <code>.harness/tasks/AUTO-&lt;n&gt;/BRIEF.md</code>, plus whatever each chained stage produces; PR and tag only if the questionnaire authorized them</td><td>You, through the 7-item questionnaire; each stage keeps its own gate</td></tr>
+          <tr><td><code>build</code></td><td>One authorized, ready slice (ticket)</td><td>Slice code, the <code>incremental-implementation</code> report, the QA matrix, an independent review</td><td><code>qa-verifier</code> and one Claude reviewer; you authorize the slice</td></tr>
+          <tr><td><code>consolidate-memory</code></td><td><code>MEMORY.md</code> grew past what execution needs</td><td>A batch archived in <code>EPOCHAL.md</code> and a shorter <code>MEMORY.md</code></td><td>You confirm no other session is writing</td></tr>
+          <tr><td><code>discover</code></td><td>A vague ask that must become a PRD with acceptance</td><td>A PRD with Problema, Solução, Regras and Docs</td><td><code>document-validator</code>, then you</td></tr>
+          <tr><td><code>doctor</code></td><td>Check kit, runtime and project; nothing is written</td><td>A diagnosis report (inventory, environment, gaps)</td><td>Nobody: it only observes</td></tr>
+          <tr><td><code>document</code></td><td>The change alters how someone uses, runs or continues the work</td><td>A document at the authorized path (tutorial, runbook, handoff, ADR)</td><td><code>document-validator</code> when it is a PRD, TASK or ADR; you</td></tr>
+          <tr><td><code>fix</code></td><td>A defect with the literal error or reproduction steps</td><td>Debugging report, fix with a regression test, evidence</td><td><code>qa-verifier</code> and one Claude reviewer; you authorize file changes</td></tr>
+          <tr><td><code>handoff</code></td><td>End of a session or a change of agent</td><td>A record in <code>.harness/tasks/&lt;id&gt;/</code> and an updated <code>MEMORY.md</code></td><td>You, who provide the objective and authorized scope</td></tr>
+          <tr><td><code>improve</code></td><td>A concrete case where the kit misbehaved</td><td>A kit-asset change report; before/after measurement (paid eval, requested by running the command)</td><td>You, who authorize the edit scope</td></tr>
+          <tr><td><code>plan-loop</code></td><td>A plan for a new feature with external CLIs configured</td><td><code>wave-N/</code> per wave, <code>PLAN.md</code>, tickets, <code>LOOP-REPORT.md</code></td><td>The full <code>reviewers.document</code> panel; you decide the next step</td></tr>
+          <tr><td><code>plan</code></td><td>Acceptance is ready and the work is bigger than one patch</td><td><code>PLAN.md</code>, one <code>TASK.md</code> per slice, <code>PLAN.review.md</code></td><td><code>document-validator</code>, then you</td></tr>
+          <tr><td><code>refactor</code></td><td>A named structural problem, behavior unchanged</td><td>A <code>safe-refactoring</code> report with a before and after baseline</td><td><code>qa-verifier</code> and one Claude reviewer</td></tr>
+          <tr><td><code>release</code></td><td>A verified, reviewed change ready for a publish decision</td><td>A readiness package in <code>.harness/tasks/&lt;id&gt;/</code>; nothing is published</td><td>You decide to publish</td></tr>
+          <tr><td><code>resume</code></td><td>A new session on work already under way</td><td>A reconciliation of the record against the tree, and the next authorized step</td><td>You, for anything beyond what is already authorized</td></tr>
+          <tr><td><code>review</code></td><td>A diff before merge; or <code>feature PRD-&lt;n&gt;</code> at the end of a feature</td><td>A <code>code-review</code> report (approve, request changes or incomplete); for a feature, APROVADA, REPROVADA or BLOQUEADA</td><td><code>reviewer</code> (mode <code>code</code>); you</td></tr>
+          <tr><td><code>secure</code></td><td>A change touching authentication, data, input or execution</td><td>A <code>security-review</code> report with classified findings</td><td><code>reviewer</code> (mode <code>security</code>); you</td></tr>
+          <tr><td><code>setup</code></td><td>A project new to the kit</td><td><code>.harness/project.yaml</code> and, if absent, <code>MEMORY.md</code>, <code>EPOCHAL.md</code>, <code>RISKS.md</code></td><td>You authorize the write</td></tr>
+          <tr><td><code>understand</code></td><td>Where a behavior lives in the repository</td><td>An area map (<code>repository-mapping</code>) in the reply</td><td>Nobody: read-only</td></tr>
+          <tr><td><code>verify</code></td><td>Acceptance criteria and a stable change</td><td>A pass, fail or not-run matrix; for a screen, captures under <code>evidence/</code></td><td><code>qa-verifier</code>; you</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <footer class="doc-foot">
+        <div>File: <code>docs/en/tutorial.html</code> · type <code>report</code> · written on 30/09/2026</div>
+        <div>Next step: run <code>/dh:doctor</code> and <code>/dh:setup</code> in your project.</div>
+      </footer>
+    </div>
+  </div>
+  <script>
+(function () {
+  var bar = document.getElementById("progress");
+  var links = {};
+  document.querySelectorAll(".side nav a").forEach(function (a) {
+    var href = a.getAttribute("href");
+    if (href && href.charAt(0) === "#") links[href.slice(1)] = a;
+  });
+  var visible = new Set();
+  function onScroll() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    if (bar && max > 0) bar.style.transform = "scaleX(" + (h.scrollTop / max) + ")";
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+  if (!("IntersectionObserver" in window)) return;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      visible[e.isIntersecting ? "add" : "delete"](e.target.id);
+    });
+    var first = Object.keys(links).find(function (id) { return visible.has(id); });
+    Object.keys(links).forEach(function (id) {
+      links[id].classList.toggle("active", id === first);
+    });
+  }, { rootMargin: "0px 0px -70% 0px" });
+  document.querySelectorAll("h2[id]").forEach(function (h) { io.observe(h); });
+})();
+  </script>
+</body>
+</html>

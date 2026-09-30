@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 	"testing"
 )
@@ -119,6 +118,7 @@ func TestCoverageEvalsExclusions(t *testing.T) {
 	writeFixture(t, filepath.Join(root, "evals", "cases", "x", "case.yaml"), "id: x\n")
 	// Exclusions present only on one side must not fail coverage.
 	writeFixture(t, filepath.Join(root, "evals", "baselines", "b.json"), "{}")
+	writeFixture(t, filepath.Join(root, "evals", "archive", "old", "case.yaml"), "id: old\n")
 	writeFixture(t, filepath.Join(packageRoot, "evals", "results", "r.json"), "{}")
 	writeFixture(t, filepath.Join(root, "evals", "fixtures", "slice", "__pycache__", "x.pyc"), "cache")
 
@@ -130,7 +130,7 @@ func TestCoverageEvalsExclusions(t *testing.T) {
 	if !strings.Contains(joined, "package missing evals/cases/x/case.yaml") {
 		t.Fatalf("errors = %v, want package missing evals/cases/x/case.yaml", report.Errors)
 	}
-	if strings.Contains(joined, "baselines") || strings.Contains(joined, "results") || strings.Contains(joined, "__pycache__") {
+	if strings.Contains(joined, "baselines") || strings.Contains(joined, "archive") || strings.Contains(joined, "results") || strings.Contains(joined, "__pycache__") {
 		t.Fatalf("errors = %v, want exclusions to be silent", report.Errors)
 	}
 
@@ -226,165 +226,6 @@ func TestAntiDelegationClauseParity(t *testing.T) {
 				t.Fatalf("errors = %v, want substring %q", report.Errors, test.want)
 			}
 		})
-	}
-}
-
-func TestEmbeddedAgentBodyDrift(t *testing.T) {
-	body := strings.Join([]string{
-		"You are the coordinator.",
-		"",
-		"## Mission",
-		"",
-		"Deliver the authorized outcome with current project memory.",
-		"A builder's claim is not independent approval.",
-		"",
-		"## Memory ownership",
-		"",
-		"You are the sole writer of the shared records.",
-		"Specialists report and stop.",
-		"",
-		"## Procedure",
-		"",
-		"Read the instructions, then classify the request.",
-		"Assign the smallest role set that can do the work.",
-		"Dispatch at most two specialists concurrently.",
-		"Integrate the results and update the records.",
-	}, "\n")
-	unrelated := strings.Join([]string{
-		"You review a bounded change.",
-		"",
-		"## Scope",
-		"",
-		"Report findings with severity and location.",
-		"Never apply the fix yourself.",
-	}, "\n")
-	agentFile := "---\nname: coordinator\ndescription: Use when testing\nauthor: test\nmodel: haiku\n---\n" + body + "\n"
-	indent := func(text string) string {
-		lines := strings.Split(text, "\n")
-		for i, line := range lines {
-			if strings.TrimSpace(line) != "" {
-				lines[i] = "  " + line
-			}
-		}
-		return strings.Join(lines, "\n")
-	}
-	prompt := func(embedded string) string {
-		return "---\nname: c\nmax_turns: 3\nappend_system_prompt: |\n" + indent(embedded) + "\n---\nDo the thing.\n"
-	}
-	drifted := strings.Replace(body, "Dispatch at most two specialists concurrently.", "Dispatch as many specialists as the work needs.", 1)
-	driftedFirstLine := strings.Replace(drifted, "You are the coordinator.", "You are the orchestrator.", 1)
-	// More than half the lines rewritten, opening line untouched: below the
-	// overlap threshold, so only the opening-line path can still claim it.
-	heavilyDrifted := strings.Join([]string{
-		"You are the coordinator.",
-		"",
-		"## Purpose",
-		"",
-		"Ship whatever the owner asked for, as fast as possible.",
-		"A builder's own word is good enough.",
-		"",
-		"## Records",
-		"",
-		"Anyone may edit the shared records.",
-		"Specialists keep their own notes.",
-		"",
-		"## Steps",
-		"",
-		"Skim the request and start.",
-		"Use as many specialists as feel useful.",
-		"Run them all at once.",
-		"Report when something looks done.",
-	}, "\n")
-
-	tests := []struct {
-		name     string
-		embedded string
-		fixture  string
-		crlf     bool
-		want     string
-	}{
-		{name: "in sync", embedded: body, want: ""},
-		{name: "trailing whitespace only", embedded: body + "  ", want: ""},
-		{name: "drifted", embedded: drifted, want: "evals/cases/c/prompt.md: append_system_prompt no longer matches .agents/coordinator.md"},
-		{
-			name:     "drifted including the first line",
-			embedded: driftedFirstLine,
-			want:     "evals/cases/c/prompt.md: append_system_prompt no longer matches .agents/coordinator.md",
-		},
-		{
-			name:     "drifted past the overlap threshold, opening line intact",
-			embedded: heavilyDrifted,
-			want:     "evals/cases/c/prompt.md: append_system_prompt no longer matches .agents/coordinator.md",
-		},
-		{
-			name:     "drifted in a file saved with CRLF",
-			embedded: drifted,
-			crlf:     true,
-			want:     "evals/cases/c/prompt.md: append_system_prompt no longer matches .agents/coordinator.md",
-		},
-		{name: "unrelated system prompt", embedded: unrelated, want: ""},
-		{name: "fixture copy in sync", embedded: body, fixture: body, want: ""},
-		{
-			name:     "fixture copy drifted",
-			embedded: body,
-			fixture:  drifted,
-			want:     "evals/cases/c/fixtures/coordinator.md: copy of .agents/coordinator.md is out of date",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			root := syntheticRoot(t)
-			writeFixture(t, filepath.Join(root, ".agents", "coordinator.md"), agentFile)
-			text := prompt(test.embedded)
-			if test.crlf {
-				text = strings.ReplaceAll(text, "\n", "\r\n")
-			}
-			writeFixture(t, filepath.Join(root, "evals", "cases", "c", "prompt.md"), text)
-			if test.fixture != "" {
-				writeFixture(t, filepath.Join(root, "evals", "cases", "c", "fixtures", "coordinator.md"), test.fixture+"\n")
-			}
-			report, err := Validate(root, Options{SkipMinimumCounts: true})
-			if err != nil {
-				t.Fatal(err)
-			}
-			joined := strings.Join(report.Errors, "\n")
-			if test.want == "" {
-				if strings.Contains(joined, "append_system_prompt no longer matches") || strings.Contains(joined, "is out of date") {
-					t.Fatalf("errors = %v, want no drift error", report.Errors)
-				}
-				return
-			}
-			if !strings.Contains(joined, test.want) {
-				t.Fatalf("errors = %v, want substring %q", report.Errors, test.want)
-			}
-		})
-	}
-}
-
-func TestShippedAgentBodiesStayBelowOverlapThreshold(t *testing.T) {
-	// matchingAgentBody claims a copy at 0.6 shared lines. Two shipped agents
-	// that grew past that would make a drifted copy of one get reported against
-	// the other. The measured peak on 2026-09-22 was 0.54 (backend-builder vs.
-	// frontend-builder); this pins the margin so the next shared paragraph is a
-	// red test rather than a misattributed drift report.
-	bodies := agentBodies(filepath.Join("..", "..", ".agents"))
-	if len(bodies) < 2 {
-		t.Skip("no shipped agents to compare")
-	}
-	names := make([]string, 0, len(bodies))
-	for name := range bodies {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	for _, a := range names {
-		for _, b := range names {
-			if a == b {
-				continue
-			}
-			if score := lineOverlap(bodies[a], bodies[b]); score >= 0.6 {
-				t.Errorf("lineOverlap(%s, %s) = %.2f, want < 0.6: a drifted copy of one would be reported against the other", a, b, score)
-			}
-		}
 	}
 }
 
@@ -549,5 +390,30 @@ func copyFixtureTree(t *testing.T, source, destination string) {
 		return os.WriteFile(target, data, 0o644)
 	}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// TestCheckCountsAgentMinimum pins the agent floor at 13 (PRD-010 R5): 13
+// agents pass, 12 fail.
+func TestCheckCountsAgentMinimum(t *testing.T) {
+	if MinAgents != 13 {
+		t.Fatalf("MinAgents = %d, want 13", MinAgents)
+	}
+	inventory := func(agents int) Inventory {
+		return Inventory{
+			Agents:   make([]string, agents),
+			Commands: make([]string, MinCommands),
+			Skills:   make([]string, MinSkills),
+			Profiles: []string{"base", "go-api", "typescript-web"},
+		}
+	}
+	var errs []string
+	checkCounts(inventory(13), &errs)
+	if len(errs) != 0 {
+		t.Fatalf("13 agents: errors = %v, want none", errs)
+	}
+	checkCounts(inventory(12), &errs)
+	if len(errs) != 1 || errs[0] != "agents: 12 < 13" {
+		t.Fatalf("12 agents: errors = %v, want [agents: 12 < 13]", errs)
 	}
 }

@@ -15,7 +15,7 @@ description: |
   <example>
   Context: A backend slice is stabilized and a diff is waiting for a second read.
   user: "Review this diff for correctness and regressions"
-  assistant: "A code diff belongs to code-reviewer. I will not invoke document-validator."
+  assistant: "A code diff belongs to reviewer in mode code. I will not invoke document-validator."
   <commentary>
   Code review is not document validation.
   </commentary>
@@ -48,7 +48,7 @@ Compare a document against the source material it was written from: discovery no
 
 ## When not to use
 
-- The artifact is code, a diff or a test. That is code-reviewer.
+- The artifact is code, a diff or a test. That is reviewer in mode code.
 - No source material is available to compare against. Return that and stop.
 - The ask is to rewrite or improve the document. The author writes; you report.
 

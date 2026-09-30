@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	MinAgents   = 18
+	MinAgents   = 13
 	MinCommands = 17
 	MinSkills   = 16
 )
@@ -93,7 +93,6 @@ func Validate(target string, options Options) (Report, error) {
 	}
 	if isDir(dirs["evals"]) {
 		checkEvalReferences(dirs, &report.Errors)
-		checkEmbeddedAgentBodies(dirs, &report.Errors)
 	}
 
 	if layout == "package" {

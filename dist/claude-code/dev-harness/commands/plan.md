@@ -4,7 +4,7 @@ description: Split authorized work into provable slices
 author: malka
 argument-hint: "[brief, PRD path or scope]"
 metadata:
-  roles: [coordinator, implementation-planner, solution-architect, api-designer, data-engineer, document-validator]
+  roles: [coordinator, implementation-planner, architect, builder, document-validator]
   skills: [implementation-planning, architecture-decisions, api-contracts, document-review]
   writes: .harness/tasks/<id>/ and .harness/adr/ when authorized
 ---
@@ -12,7 +12,7 @@ metadata:
 Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
 
 ## Routing
-Brief or scope: $ARGUMENTS. Dispatch `implementation-planner` with the Agent tool, model `sonnet`, and require it to load the kit skill `implementation-planning`. Only when the plan genuinely depends on them, dispatch in addition: `solution-architect` (model `opus`, skill `architecture-decisions`) for a boundary that other components will depend on, `api-designer` (model `sonnet`, skill `api-contracts`) for a new or changed interface, `data-engineer` (model `sonnet`, skill `data-migrations`) for a schema change. At most two specialists run concurrently and only on independent work.
+Brief or scope: $ARGUMENTS. Dispatch `implementation-planner` with the Agent tool, model `sonnet`, and require it to load the kit skill `implementation-planning`. Only when the plan genuinely depends on them, dispatch in addition: `architect` (model `opus`, skill `architecture-decisions`) for a boundary that other components will depend on, `architect` (model `sonnet`, skill `api-contracts`) for a new or changed interface, `builder` in lane `dados`, mode `design` (model `sonnet`, skill `data-migrations`) for a schema change — no product write; it returns the schema and migration proposal. At most two specialists run concurrently and only on independent work.
 Once `implementation-planner` has written `PLAN.md` and the per-slice `TASK.md` files, dispatch `document-validator`, model `opus`, requiring the kit skill `document-review`, with `PLAN.md` as the document under review, the PRD or brief it derives from as the source material, and the `TASK.md` files as annex. An observable rule `R<n>` of the source PRD is a `gap`, under the existing category, when no ticket whose `Lane` is `teste (unitário)`, `teste (integração)` or `teste (unitário e integração)` cites it by id; `approved` is withheld while such a gap stands. The validator is read-only and never edits the document; dispatch stays exclusively with the Coordinator. Persist the report it returns as `.harness/tasks/<PRD-id>/PLAN.review.md` (or `.harness/tasks/PLAN-<n>/PLAN.review.md` when the plan does not derive from a PRD). On `changes required`, re-dispatch `implementation-planner` with only the listed blocking points and validate again. Cap: two correction rounds; the full list runs only when the owner asks for the panel in this request or the plan touches security.
 
 ## Prerequisites

@@ -10,7 +10,7 @@ The templates live in `templates/pt-br/` and `templates/en/` in the kit, in mirr
 | `PRD.md` | Why and what (product) | Product owner, with `product-discovery` | A pain point or opportunity still lacks clear scope and acceptance criteria | Requirements (rules) and acceptance approved; status `delivered on <date>` only when no rule is "Não honrada" (not honored) without a recorded owner decision |
 | `TASK.md` (ticket) | How to execute a slice | `implementation-planner`; executed by the builder | The PRD has been approved | Checks passed, review completed, result recorded |
 | `TASK.md` (bug) | What fails and why | `debugger` | A defect was reported or observed | Reproduction in Flow and a green regression test in "Done when", or the status is inconclusive with the gap declared |
-| `ADR.md` | Which durable decision was made and why | `solution-architect`, approved by the owner | A costly-to-reverse choice needs a record | Status `accepted`; reviewed when the review condition occurs |
+| `ADR.md` | Which durable decision was made and why | `architect`, approved by the owner | A costly-to-reverse choice needs a record | Status `accepted`; reviewed when the review condition occurs |
 | `RFC.md` (optional) | Which technical change is proposed, before building | Engineering | A broad change without a PRD has impact beyond the author | Approved (generates ADR and tickets), rejected, or withdrawn |
 | `MEMORY.md` | Current execution state | Coordinator only | During project initialization (`setup`) | Never closes; trimmed by `consolidate-memory` |
 | `EPOCHAL.md` | Raw history of previous memories | Coordinator only | During the first `consolidate-memory` | Never closes; only receives batches |
@@ -52,14 +52,14 @@ flowchart TB
     ideia([Request or pain]) --> discover["/dh:discover<br/>product-discovery"]
     discover --> prd[/PRD.md/]
     prd --> understand["/dh:understand<br/>repo-scout"]
-    understand --> plan["/dh:plan<br/>implementation-planner<br/>+ solution-architect if needed"]
+    understand --> plan["/dh:plan<br/>implementation-planner<br/>+ architect if needed"]
     plan --> decisao{Costly decision<br/>to reverse?}
     decisao -->|yes| adr[/ADR.md/]
     decisao -->|no| tasks
     adr --> tasks[/TASK.md per slice/]
-    tasks --> build["/dh:build<br/>backend-builder / frontend-builder"]
+    tasks --> build["/dh:build<br/>builder (lane backend / frontend)"]
     build --> verify["/dh:verify<br/>qa-verifier"]
-    build --> review["/dh:review<br/>code-reviewer"]
+    build --> review["/dh:review<br/>reviewer (code mode)"]
     verify --> ok{Acceptance and review<br/>approved?}
     review --> ok
     ok -->|no, up to 6 rounds| build
