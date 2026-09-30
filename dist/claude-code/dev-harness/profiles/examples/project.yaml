@@ -23,7 +23,7 @@ conventions_applied:
   - profiles/go-api.yaml
 conflicts: []
 notes:
-  - Existing CLAUDE.md outranks this file.
+  - Existing AGENTS.md (canonical) and CLAUDE.md outrank this file.
 # reviewers: is optional; absent means the flow today, Claude only.
 # Not written by setup — the owner adds it by hand when opting into external CLI review.
 # reviewers:

@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-09-29</b></span>
-          <span class="chip">status <b>0.11.0 · vivo</b></span>
+          <span class="chip">status <b>0.12.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -1214,6 +1214,37 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>0.12.0 · Isolamento de CLIs por clone descartável</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-008 entregue. Uma CLI externa sem modo somente-leitura roda num clone
+          descartável (<code>git clone --no-hardlinks</code> numa pasta sob o diretório temporário, com <code>.git</code>
+          próprio e sem <code>origin</code>), em vez da árvore viva. <code>grok</code>, <code>opencode</code>,
+          <code>claude</code> (como revisor CLI externo) e <code>mcode</code> (até a sonda datada dele) rodam no clone;
+          cada receita de clone começa com <code>cd "$CLONE" &amp;&amp;</code>. O <code>codex</code> segue no sandbox
+          somente-leitura próprio. O <code>agy</code> fica na árvore viva, só revisão, até a sonda H3.
+          <code>cli:claude/&lt;slug&gt;</code> continua fora do planejamento (AA1) enquanto o kit for plugin do Claude
+          Code. O conjunto de planejadoras agora inclui <code>grok</code>, <code>opencode</code> e <code>mcode</code>;
+          com <code>[claude, cli:grok, cli:codex]</code>, k = 2. Qualificação obrigatória: clone descartável; escritas
+          fora dele são detectadas na árvore viva (R5), nunca impedidas; escritas fora do projeto não são
+          detectadas.</p>
+        <p><strong>Relações:</strong> PRD-008; RISK-002 (<code>.harness/RISKS.md</code>): mitigado, não resolvido.
+          Residuais aceitos pelo dono em 29/09/2026: (a) escritas fora do projeto; (b) processos que sobrevivem à
+          chamada, rede e push para outros remotes; (e) leitura de segredos; e os caminhos do <code>.git</code> vivo
+          fora da foto do R5. <code>.skills/external-clis/SKILL.md</code>; <code>CHANGELOG.md</code> 0.12.0.</p>
+        <p><strong>Testado?</strong> T-1015: o Coordenador executou o procedimento numa cópia descartável do
+          repositório, com uma CLI falsa em shell para as ações (a) a (q), mais uma chamada real do <code>grok</code>
+          pelo clone, ação (r). Toda ação concordou com o R13 depois de duas correções de texto do kit achadas pela
+          sonda: limpar as flags do índice antes de <code>checkout HEAD</code> e fazer <code>cd "$CLONE"</code> antes
+          de lançar a CLI. A evidência bruta é local, em <code>.harness/</code>, que o git ignora, e não vai no commit.
+          T-1012: baseline em <code>evals/baselines/2026-09-30-external-clis-clone-isolation.md</code>. A rodada 2
+          deu 0.882 em clone-isolation e 0.950 em clone-lifecycle; 3 de 36 graders ainda falham, então a barra de
+          todos os graders não foi atingida e o limiar de 0.8 da CI foi. A medição pontua a classificação de
+          snapshots prontos.</p>
+        <p><strong>Limite conhecido:</strong> nada impede escrita fora do clone; só a detecção existe. O sandbox do
+          sistema operacional (Planejado) é o que impediria.</p>
+      </div>
+
+      <div class="card">
         <h3>0.11.0 · Novo fluxo de PRD e tickets</h3>
         <p><strong>Status:</strong> concluído.</p>
         <p><strong>Resumo:</strong> PRD-007 entregue em nove fatias (T-901 a T-909). O PRD tem quatro seções (Problema,
@@ -1374,20 +1405,13 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
-        <h3>Isolamento por <code>git worktree</code> para CLIs sem modo somente-leitura</h3>
-        <p><strong>Descrição:</strong> fecha RISK-002. Um revisor de <code>reviewers.document</code> sem modo
-          somente-leitura documentado (hoje <code>grok</code>) roda dentro de um <code>git worktree</code>
-          descartável em vez da árvore viva, em vez de confiar só na comparação de congelamento por bytes. Cobre
-          também escrita fora do checkout (<code>.git/hooks</code>) e reforça a regra de não escrever do
-          <code>implementation-planner</code> — prosa só, nunca grava <code>PLAN.md</code>/<code>TASK.md</code>
-          diretamente enquanto uma chamada de planejamento de CLI da mesma wave está em curso. Só o caminho de
-          revisão; o risco fica aceito pelo dono até este lote rodar. Previsto como o próximo lote depois deste
-          (PLAN-011).</p>
+        <h3>Sandbox do sistema operacional para CLIs externas (bubblewrap)</h3>
+        <p><strong>Descrição:</strong> caixa de areia do sistema operacional, opcional e só Linux (bubblewrap), para
+          rodar CLIs externas. É o único item que impediria escrita fora do clone descartável; hoje o kit só a
+          detecta na árvore viva (R5) e não detecta escrita fora do projeto. Lote posterior ao PRD-008.</p>
         <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
-        <p><strong>Status:</strong> planejado — decisão do dono fixada em 28/09/2026 (RISK-002: opção 3,
-          isolamento por <code>git worktree</code> descartável), sem PRD ainda.</p>
-        <p><strong>Relações:</strong> RISK-002 (<code>.harness/RISKS.md</code>); ADR-002
-          (<code>docs/adr/ADR-002-cli-planejadora.md</code>); passo 7 do congelamento de workspace em
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> PRD-008; RISK-002 (<code>.harness/RISKS.md</code>);
           <code>.skills/external-clis/SKILL.md</code>.</p>
       </div>
 
