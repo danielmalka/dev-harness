@@ -20,3 +20,15 @@ Depth: lean rule — one Claude validator (`document-validator`, opus requested,
 - A1 applied: the §5 signal was checked against T-801:38-51 and SKILL.md:72-82; a correct implementation passes and real drift is flagged. A2–A5 applied.
 - No regression: only §3 bullets 3 and 5, §4:47-49, §5:55 and §7:63/65 changed. No new findings.
 - Validator note, not raised: §5:54 ("outside and after" the first fenced block of the reviewers section) is met automatically, since coordinator.md holds no copy of the clause.
+
+---
+
+# Review · Amendment 2026-09-29 (T-1002, PRD-008)
+
+## Round 1
+- Reviewer: document-validator (claude; opus requested, effective unverified). One Claude validator (Coordinator decision on the owner's behalf: the amendment reproduces decisions of PRD-008, already validated by the full panel).
+- Verdict: changes required — P1 (blocking) residual list omitted `refs/` as files while claiming to be PRD-008's list; P2 §7 did not cite RISK-002; P3 agy probe wording ambiguous; P4 (annex) RISK-002 proposal opened with "mitigado". Reported by: claude.
+- Coordinator applied all four.
+
+## Round 2
+- Verdict: approved — P1–P4 applied; no new blocking problem. Reported by: claude.

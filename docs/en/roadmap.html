@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-09-29</b></span>
-          <span class="chip">status <b>0.11.0 · live</b></span>
+          <span class="chip">status <b>0.12.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -1212,6 +1212,36 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>0.12.0 · Disposable-clone isolation for external CLIs</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-008 delivered. An external CLI with no read-only mode runs in a disposable
+          clone (<code>git clone --no-hardlinks</code> into a directory under the tmp root, with its own
+          <code>.git</code> and no <code>origin</code>) instead of the live tree. <code>grok</code>,
+          <code>opencode</code>, <code>claude</code> (as an external CLI reviewer) and <code>mcode</code> (until its own
+          dated probe) run in the clone; each clone recipe starts with <code>cd "$CLONE" &amp;&amp;</code>.
+          <code>codex</code> keeps its own read-only sandbox. <code>agy</code> stays on the live tree, review only,
+          until the H3 probe. <code>cli:claude/&lt;slug&gt;</code> stays excluded from planning (AA1) while the kit is
+          a Claude Code plugin. The planner set now includes <code>grok</code>, <code>opencode</code> and
+          <code>mcode</code>; with <code>[claude, cli:grok, cli:codex]</code>, k = 2. Required qualification:
+          disposable clone; writes outside it are detected on the live tree (R5), never prevented; writes outside the
+          project are not detected.</p>
+        <p><strong>Relations:</strong> PRD-008; RISK-002 (<code>.harness/RISKS.md</code>): mitigated, not resolved.
+          Residuals accepted by the owner on 2026-09-29: (a) writes outside the project; (b) surviving processes,
+          network, and push to other remotes; (e) reading secrets; and the live <code>.git</code> paths outside the
+          R5 snapshot. <code>.skills/external-clis/SKILL.md</code>; <code>CHANGELOG.md</code> 0.12.0.</p>
+        <p><strong>Tested?</strong> T-1015: the Coordinator executed the procedure on a throwaway copy of the
+          repository, using a shell fake CLI for actions (a) to (q), plus one real <code>grok</code> call through the
+          clone, action (r). Every action agreed with R13 after two kit-text corrections found by the probe: clear the
+          index flags before <code>checkout HEAD</code>, and <code>cd "$CLONE"</code> before launching the CLI. The raw
+          evidence is local under <code>.harness/</code>, which is git-ignored and not in the commit. T-1012: the
+          baseline is <code>evals/baselines/2026-09-30-external-clis-clone-isolation.md</code>. After three measured
+          rounds (grader and prompt corrections in between), both cases pass every grader (score 1.0,
+          <code>--runs 1</code>). The measurement scores classification of canned snapshots.</p>
+        <p><strong>Known limitation:</strong> nothing prevents a write outside the clone; only detection exists. The
+          OS sandbox (Planned) is what would prevent it.</p>
+      </div>
+
+      <div class="card">
         <h3>0.11.0 · New PRD and ticket flow</h3>
         <p><strong>Status:</strong> done.</p>
         <p><strong>Summary:</strong> PRD-007 delivered in nine slices (T-901 to T-909). The PRD has four sections
@@ -1371,19 +1401,13 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
-        <h3><code>git worktree</code> isolation for CLIs with no read-only mode</h3>
-        <p><strong>Description:</strong> closes RISK-002. A <code>reviewers.document</code> entry with no
-          documented read-only mode (today <code>grok</code>) runs inside a disposable <code>git worktree</code>
-          instead of the live tree, instead of relying only on the byte-level freeze comparison. Also covers writes
-          outside the checkout (<code>.git/hooks</code>) and reinforces the <code>implementation-planner</code>'s
-          no-write rule — prose only, never writes <code>PLAN.md</code>/<code>TASK.md</code> directly while a CLI
-          planning call for the same wave is in flight. Review path only; the risk stays accepted by the owner
-          until this batch ships. Planned as the next batch after this one (PLAN-011).</p>
+        <h3>OS sandbox for external CLIs (bubblewrap)</h3>
+        <p><strong>Description:</strong> an optional, Linux-only OS sandbox (bubblewrap) for running external CLIs.
+          It is the only item that would prevent writes outside the disposable clone; today the kit only detects them
+          on the live tree (R5) and does not detect writes outside the project. A batch after PRD-008.</p>
         <p><strong>Acceptance criteria:</strong> to be defined.</p>
-        <p><strong>Status:</strong> planned — owner decision fixed on 2026-09-28 (RISK-002: option 3, disposable
-          <code>git worktree</code> isolation), no PRD yet.</p>
-        <p><strong>Relations:</strong> RISK-002 (<code>.harness/RISKS.md</code>); ADR-002
-          (<code>docs/adr/ADR-002-cli-planejadora.md</code>); the workspace-freeze step 7 in
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> PRD-008; RISK-002 (<code>.harness/RISKS.md</code>);
           <code>.skills/external-clis/SKILL.md</code>.</p>
       </div>
 

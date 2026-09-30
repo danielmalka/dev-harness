@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.12.0 — 2026-09-30
+
+- **Isolamento de CLIs externas por clone descartável** (PRD-008, `docs/prd/PRD-008-isolamento-por-clone.md`).
+  Uma CLI sem modo somente-leitura medido (`grok`, `opencode`, `claude` como revisor e `mcode` até ter sonda
+  datada) roda com um `git clone --no-hardlinks` descartável como diretório de trabalho, com `.git` próprio, sem
+  `origin` e sem arquivos ignorados. Clone descartável; escritas fora dele são detectadas na árvore viva (R5),
+  nunca impedidas; escritas fora do projeto não são detectadas. Ciclo de vida em
+  `.skills/external-clis/references/clone-isolation.md` (criar, preencher e conferir, usar, remover, varredura de
+  órfãos, chamadas paralelas em grupo fechado); comparação e reversão em `references/live-tree-freeze.md`.
+- **Congelamento da árvore viva ampliado (R5)**: arquivos ignorados, hash de todo arquivo rastreado,
+  `ls-files -v --stage`, `for-each-ref`, bytes de `.harness/`, `.claude/settings*.json`, `.gitattributes` e de
+  `hooks/`, `config`, `info/`, `HEAD`, `packed-refs` do `.git` vivo; git sem config global, sem fsmonitor e sem
+  hooks. Os caminhos de confiança são restaurados sem git antes de qualquer comando git; a fotografia tem digest
+  guardado fora do alcance da CLI; a reversão nunca escreve através de um caminho plantado.
+- **Planejadores do `/dh:plan-loop`**: qualifica quem tem modo somente-leitura medido (`codex`) ou roda no clone
+  (`grok`, `opencode`, `mcode`); `agy` fica fora até a sonda H3; `cli:claude/<slug>` continua excluído (AA1).
+- **Residuais aceitos pelo dono** até o lote de sandbox do SO: escrita fora do projeto, processos sobreviventes,
+  rede e push para outros remotos, leitura de segredos, e os caminhos do `.git` vivo fora de R5. RISK-002 passa a
+  "mitigado", nunca "resolvido".
+- **Casos de eval novos**: `external-clis-clone-isolation` e `external-clis-clone-lifecycle`. Baseline em
+  `evals/baselines/2026-09-30-external-clis-clone-isolation.md` (rodada A, a terceira medida: os dois casos
+  passam em todos os graders, nota 1.0). A execução real do procedimento (T-1015) achou e corrigiu duas falhas de texto antes do merge.
+- **À parte, fora do PRD-008**: no projeto consumidor, `AGENTS.md` é o arquivo canônico de instruções; um
+  `CLAUDE.md` também é lido, e em conflito vale o `AGENTS.md` (`.agents/coordinator.md`,
+  `.skills/project-onboarding/SKILL.md`, `profiles/examples/project.yaml`). Neste repositório o `CLAUDE.md` virou
+  `@AGENTS.md`.
+
 ## 0.11.0 — 2026-09-29
 
 - **Novo fluxo de PRD e tickets** (PRD-007, `docs/prd/PRD-007-fluxo-prd-e-tickets.md`; proposta em

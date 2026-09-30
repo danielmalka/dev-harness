@@ -15,16 +15,18 @@ file.
 
 ```bash
 OPENCODE=<resolved path or bare "opencode">
-"$OPENCODE" run --dir "$PWD" --auto -m '<provider>/<slug>' \
-  --variant high "$(cat /tmp/prompt.md)"
+cd "$CLONE" && "$OPENCODE" run --dir "$CLONE" --auto -m '<provider>/<slug>' \
+  --variant high "$(cat "$PROMPT")"
 ```
+
+`$CLONE` in these recipes is the literal clone path stored when the clone was created ([clone-isolation.md](clone-isolation.md), Terms), written into the command as that literal string. The prompt file `$PROMPT` is the literal path of a file created by `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )` inside the call's freeze directory ([live-tree-freeze.md](live-tree-freeze.md), section 5); it is unique per call and is removed with that directory.
 
 Long prompt as an attached file (do not stuff a multi-kilobyte prompt
 into argv):
 
 ```bash
-"$OPENCODE" run --dir "$PWD" --auto -m '<provider>/<slug>' \
-  --file=/tmp/prompt.md -- "Follow the attached prompt."
+cd "$CLONE" && "$OPENCODE" run --dir "$CLONE" --auto -m '<provider>/<slug>' \
+  --file="$PROMPT" -- "Follow the attached prompt."
 ```
 
 `-f`/`--file` is a yargs array: a bare `-f file.md "msg"` swallows `msg`
@@ -36,7 +38,7 @@ Always `--file=path -- "message"`.
 | `run` | one-shot; bare `opencode` is the TUI |
 | `--auto` | approve tools (required for an unattended call) |
 | `-m provider/model` | pin; do not rely on the interactive picker |
-| `--dir` | workspace; default is cwd |
+| `--dir` | workspace; `cd "$CLONE" &&` first, then `--dir "$CLONE"`, for every call |
 | `-f` / `--file` | attach file(s) to the message (repeatable) |
 | `--format json` | raw events if parsing is required |
 | `--variant` | reasoning effort (only the levels that slug advertises) |
@@ -49,9 +51,7 @@ Refuse from an orchestrator turn: bare `opencode`, `opencode --mini`,
 agent, not an in-process subagent (`task` inside opencode) — the
 anti-delegation clause still applies to what that primary agent may do.
 
-`opencode` has no documented read-only flag; the guarantee that it did
-not edit the workspace comes from the post-call step-7 comparison (path list, per-path hashes and byte snapshot) the
-parent skill describes (SKILL.md step 7).
+`opencode` has no documented read-only flag, so it runs in a clone: disposable clone; writes outside it are detected on the live tree (R5), never prevented; writes outside the project are not detected. The live tree is compared as `references/live-tree-freeze.md` describes (SKILL.md step 7 covers only a call without a clone).
 
 **Do not run two `opencode run` calls concurrently.** Two simultaneous
 runs against the same account have been seen to fail with a database
