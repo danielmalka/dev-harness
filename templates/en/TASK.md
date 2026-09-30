@@ -19,7 +19,7 @@ Delete the comments when finished. -->
 | Type | task / bug |
 | Status | ready / in progress / blocked / in review / done |
 | PRD (RF-<n>) | PRD-000 (RF-01) |
-| Suggested role | backend-builder / frontend-builder / data-engineer / devops-engineer / qa-verifier / ... |
+| Suggested role | builder (lane, mode) / qa-verifier / reviewer (mode) / architect / ... |
 | Depends on | T-000, <contract, decision, migration> |
 | Blocks | T-000 |
 | Authorization | <what may be written; commit/push/deploy require explicit authorization> |

@@ -49,11 +49,7 @@ Produce a matrix of pass, fail, and not-run, each tied to a criterion, a command
 
 ## Procedure
 
-1. Confirm the evaluated implementation, contracts, configuration, and tests are stable. Map each criterion to a check at a depth that matches risk. If the evaluated state changes, invalidate affected results and coordinate a new check.
-2. Write tests only in the agreed test scope, following local conventions.
-3. Run what you can. Record the exact command and outcome.
-4. Mark unavailable checks as not-run, never as pass.
-5. If you plant or use a known defect in a fixture, show that the suite catches it.
+Follow the kit skill `regression-testing`, and `ui-verification` too when the change has a user interface. If the evaluated state changes, invalidate affected results and coordinate a new check.
 
 ## Shared contract
 
@@ -76,18 +72,11 @@ Produce a matrix of pass, fail, and not-run, each tied to a criterion, a command
 
 ## Skills
 
-Load and follow the kit skill `regression-testing` for the verification procedure. Load `ui-verification` too when the change has a user interface. Skills are procedures; your role limits, tools and write set above still apply.
+Load `regression-testing` for the verification procedure, and `ui-verification` when the change has a user interface. Skills are procedures; your role limits, tools and write set above still apply.
 
 ## Output format
 
-```
-## Matrix
-| Criterion | Check | Command | Result (pass/fail/not-run) | Evidence |
-
-## Tests added
-## Limitations
-## Next step
-```
+The report in `regression-testing`'s Output format (plus the `ui-verification` matrix for a user interface), returned to the coordinator.
 
 ## Context handoff
 

@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-09-30</b></span>
-          <span class="chip">status <b>0.13.0 · vivo</b></span>
+          <span class="chip">status <b>0.14.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -672,7 +672,7 @@ footer.doc-foot {
         <pre><code>dev-harness/
   cmd/                    ponto de entrada do binário Go dh (cmd/dh)
   internal/               pacotes do binário: snapshot, validate, build, doctor
-  .agents/                19 papéis — fonte canônica
+  .agents/                13 papéis — fonte canônica
   .skills/                21 skills — fonte canônica
   .commands/              19 comandos — fonte canônica
   templates/{en,pt-br}/   7 templates espelhados por idioma — fonte canônica
@@ -682,7 +682,7 @@ footer.doc-foot {
   evals/                  cases, baselines, rubrics, fixtures de avaliação
   adapters/               guias de uso manual por outras IAs (generic) e o pacote Claude Code (claude-code)</code></pre>
       </div>
-      <p>Contagem atual (<code>harness-manifest.json</code>): 19 agentes, 19 comandos, 21 skills, 4 perfis, 14 templates
+      <p>Contagem atual (<code>harness-manifest.json</code>): 13 agentes, 19 comandos, 21 skills, 4 perfis, 14 templates
         (7 en + 7 pt-br), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
       <pre class="mermaid">
 flowchart LR
@@ -699,6 +699,23 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.14.0 · Kit enxuto</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-010 entregue. Agentes de 19 para 13: <code>builder</code> (lane backend,
+          frontend, dados ou infra; modo build, refactor ou design), <code>reviewer</code> (modo code ou security) e
+          <code>architect</code> substituem os papéis antigos; <strong>quebra para quem despacha agentes pelo nome</strong>.
+          Evals saem do fluxo normal: 5 casos ficam, 18 vão para <code>evals/archive/</code>, e a eval paga só roda a
+          pedido do dono, no <code>/dh:improve</code> ou pelo teto do questionário do <code>/dh:auto</code>. Coordenador
+          enxuto, sobreposições fundidas por trás dos comandos (os 19 continuam), verificação padrão com checagem
+          determinística mais 1 revisor Claude, prova de clone limpo só quando o PR mexe em Go ou binários,
+          <code>AGENTS.md</code> só com as regras vigentes (histórico no ADR-003) e tutorial completo novo
+          (<code>docs/tutorial.html</code>). PRD-009 marcado como entregue.</p>
+        <p><strong>Relações:</strong> PRD-010 (<code>docs/prd/PRD-010-kit-enxuto.md</code>);
+          <code>docs/adr/ADR-003-kit-enxuto.md</code>; <code>docs/tutorial.html</code>; <code>.agents/</code>.</p>
+        <p><strong>Testado?</strong> checagens determinísticas (validate, build, go test); nenhuma eval paga.</p>
+      </div>
 
       <div class="card">
         <h3>0.13.0 · Checagem do roadmap vivo</h3>
@@ -1583,7 +1600,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.13.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.14.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

@@ -4,7 +4,7 @@ description: Reproduce, diagnose and fix a defect with evidence
 author: malka
 argument-hint: "[symptom, error text or issue]"
 metadata:
-  roles: [coordinator, debugger, qa-verifier, code-reviewer]
+  roles: [coordinator, debugger, qa-verifier, reviewer]
   skills: [systematic-debugging, regression-testing, code-review]
   writes: authorized write set only
 ---
@@ -12,7 +12,7 @@ metadata:
 Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
 
 ## Routing
-Symptom: $ARGUMENTS. In sequence: dispatch `debugger` with the Agent tool, model `sonnet`, requiring the kit skills `systematic-debugging` and `regression-testing`, and state whether it is diagnose-only or authorized to change files, with the write set. Once a fix is applied and the state is frozen, dispatch `qa-verifier` (model `sonnet`, skill `regression-testing`). Then dispatch `code-reviewer` (model `sonnet`, skill `code-review`) scoped to the fix, proportional to its blast radius. At most two specialists run concurrently and only on independent work.
+Symptom: $ARGUMENTS. In sequence: dispatch `debugger` with the Agent tool, model `sonnet`, requiring the kit skills `systematic-debugging` and `regression-testing`, and state whether it is diagnose-only or authorized to change files, with the write set. Once a fix is applied and the state is frozen, dispatch `qa-verifier` (model `sonnet`, skill `regression-testing`). Then dispatch `reviewer` in mode `code` (model `sonnet`, skill `code-review`) scoped to the fix, proportional to its blast radius. At most two specialists run concurrently and only on independent work.
 
 ## Prerequisites
 The literal error text or observed behavior, and reproduction steps or the failing command. A paraphrased error points at the wrong component: ask for the exact output. Consult `.harness/RISKS.md` when the symptom touches a critical rule or a known incident area. Ask the owner only for the authorization to change files or the environment.

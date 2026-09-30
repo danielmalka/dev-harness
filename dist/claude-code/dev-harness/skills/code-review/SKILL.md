@@ -72,7 +72,7 @@ Review a bounded change against a diff that is not moving, on two independent ax
 
 ## For the author receiving the review (never the reviewer)
 
-If you are the reviewer, your procedure ends at step 12. The steps below belong to the write-set owner (backend-builder, frontend-builder, refactorer) and require an authorized write set.
+If you are the reviewer, your procedure ends at step 12. The steps below belong to the write-set owner (builder, in any lane or mode) and require an authorized write set.
 
 1. **Read every finding before answering any of them.** Findings interact; a partial reading produces a partial fix that breaks the next item.
 
@@ -201,7 +201,7 @@ Input: a diff that adds pagination to a list endpoint, with the brief "return at
 
 ## Related
 
-Roles: code-reviewer, coordinator, qa-verifier, backend-builder, frontend-builder. Command: `/dh:review`, used inside `/dh:build` and `/dh:refactor`. Skills: security-review for trust boundaries, regression-testing for turning a finding into a failing test, safe-refactoring when the fix is structural, incremental-implementation for the author applying the fixes.
+Roles: reviewer, coordinator, qa-verifier, builder. Command: `/dh:review`, used inside `/dh:build` and `/dh:refactor`. Skills: security-review for trust boundaries, regression-testing for turning a finding into a failing test, safe-refactoring when the fix is structural, incremental-implementation for the author applying the fixes.
 
 ## Proof case
 

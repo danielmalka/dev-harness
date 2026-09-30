@@ -44,7 +44,7 @@ Produce a sourced map of one slice of a repository: the files that matter, the s
 
 3. **Use an index only if one is already present.** If the project ships a code index or a graph, query it for the symbols in question and treat the result as a lead, not a verdict. If none exists, drop to local search without comment. Never require an external server, service or index to answer.
 
-4. **Search in the order that converges fastest.** Each pass narrows the next.
+4. **Search in the order that converges fastest.** Each pass narrows the next. In a fan-out survey (many candidate files, a broad question), prefer targeted excerpts (specific ranges, grep context) over whole files; read a whole file only when the question already points to one file or symbol.
    1. Entry points: routes, handlers, commands, event subscriptions, exported public surface, scheduled jobs.
    2. Domain vocabulary: the literal nouns and verbs from the question, plus the names the prose uses for them.
    3. Imports and requires of the files just found, to reach the layer underneath.

@@ -19,7 +19,7 @@ conventions:
   - A phpstan baseline file, when present, covers pre-existing findings only; new code is held to the configured level and the baseline is not regenerated to hide a new finding.
   - Tests go in tests/ following the existing split (Unit, Feature); a new behavior ships with a test at the same level the repo already uses.
   - composer.json and composer.lock stay in the write set of any slice that adds, updates or removes a package; the lock file is committed with the change.
-  - Database work uses the data-engineer role and the data-migrations skill; framework migrations run only against a disposable database during verification.
+  - Database work uses the builder role in lane dados and the data-migrations skill; framework migrations run only against a disposable database during verification.
 limits:
   - Do not run composer require, composer update or change the PHP version without authorization recorded for the slice.
   - Do not assume Pest, PHPUnit, phpstan, php-cs-fixer, Docker or a Makefile are present; probe vendor/bin and the repo root and record unknown.

@@ -65,6 +65,9 @@ This procedure turns acceptance criteria into executed checks and returns a matr
 ## Failure detection proof
 - <test name> - <prior evidence or authorized isolated fixture>, observed failure <message>, current evaluated state <result>; or <not-run and reason>
 
+## Tests added
+- <relative path> - <criterion it covers>
+
 ## Defects found
 - <id> | severity | reproduction | expected | actual | criterion violated
 
@@ -158,14 +161,14 @@ Partial: the concurrent AC-2 case fails and required AC-3 is not-run.
 - npm run test:integration - no mail sandbox in this environment
 
 ## Next step
-- Implementer fixes D1; QA reruns AC-2 concurrent (owner: backend-builder)
+- Implementer fixes D1; QA reruns AC-2 concurrent (owner: builder, lane backend)
 ```
 
 AC-3 stays not-run with its reason. The race is a defect report, not a fix by QA.
 
 ## Related
 
-Roles: qa-verifier, backend-builder, frontend-builder, code-reviewer, coordinator. Commands: `/dh:verify`, and used inside `/dh:build`, `/dh:fix`, `/dh:refactor`. Skills: incremental-implementation, ui-verification, systematic-debugging, safe-refactoring, delivery-readiness.
+Roles: qa-verifier, builder, reviewer, coordinator. Commands: `/dh:verify`, and used inside `/dh:build`, `/dh:fix`, `/dh:refactor`. Skills: incremental-implementation, ui-verification, systematic-debugging, safe-refactoring, delivery-readiness.
 
 ## Proof case
 

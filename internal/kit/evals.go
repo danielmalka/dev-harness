@@ -105,6 +105,12 @@ func checkEvalReferences(dirs map[string]string, errors *[]string) {
 			continue
 		}
 		caseDir := filepath.Join(casesRoot, entry.Name())
+		if symlinkedSubdir(caseDir, "fixtures") {
+			*errors = append(*errors, fmt.Sprintf(
+				"%s: fixtures is a symbolic link; a case directory holds its own files",
+				rootRelative(dirs["root"], filepath.Join(caseDir, "fixtures")),
+			))
+		}
 		checkCaseYAML(caseDir, errors)
 		checkCaseGraders(caseDir, errors)
 	}
@@ -305,8 +311,8 @@ func yamlScalar(lines []string, key string) (string, bool) {
 }
 
 // checkEvalsCoverage compares evals/ between source and package the same way
-// checkCoverage compares the other trees, except results/, baselines/, and
-// not-run/ are excluded only at the first level of evals/, and __pycache__/
+// checkCoverage compares the other trees, except results/, baselines/,
+// not-run/, and archive/ are excluded only at the first level of evals/, and __pycache__/
 // and *.pyc are excluded at any depth. It runs only when evals/ exists on at
 // least one side.
 func checkEvalsCoverage(sourceDirs map[string]string, packageRoot string, errors *[]string) {
@@ -335,13 +341,13 @@ func checkEvalsCoverage(sourceDirs map[string]string, packageRoot string, errors
 }
 
 // evalsExcluded mirrors the exclusion rule `dh build` applies when copying
-// evals/ into the package: results/, baselines/, and not-run/ only at the
+// evals/ into the package: results/, baselines/, not-run/, and archive/ only at the
 // first level of evals/; __pycache__/ and *.pyc at any depth.
 func evalsExcluded(relative string) bool {
 	parts := strings.Split(filepath.ToSlash(relative), "/")
 	if len(parts) > 0 {
 		switch parts[0] {
-		case "results", "baselines", "not-run":
+		case "results", "baselines", "not-run", "archive":
 			return true
 		}
 	}
@@ -361,229 +367,4 @@ func relativeFilesSkipping(root string, skip func(relative string) bool) map[str
 		}
 	}
 	return files
-}
-
-// checkEmbeddedAgentBodies compares each evals/cases/<id>/prompt.md's
-// append_system_prompt block against the body of the agent it copies. The
-// runner accepts no file reference for that field, so the copy is the only
-// text a case actually runs against: when it drifts from .agents/<role>.md,
-// every run of that case silently measures the old instructions. It stays
-// silent when the block is absent or no shipped agent body matches it.
-func checkEmbeddedAgentBodies(dirs map[string]string, errors *[]string) {
-	bodies := agentBodies(dirs["agents"])
-	if len(bodies) == 0 {
-		return
-	}
-	prompts, _ := filepath.Glob(filepath.Join(dirs["evals"], "cases", "*", "prompt.md"))
-	sort.Strings(prompts)
-	for _, promptPath := range prompts {
-		text, err := readText(promptPath)
-		if err != nil {
-			*errors = append(*errors, fmt.Sprintf("%s: %v", promptPath, err))
-			continue
-		}
-		embedded, ok := yamlBlockScalar(text, "append_system_prompt")
-		if !ok {
-			continue
-		}
-		name, body, ok := matchingAgentBody(bodies, embedded)
-		if !ok {
-			continue
-		}
-		if !sameTrimmedLines(embedded, body) {
-			*errors = append(*errors, fmt.Sprintf(
-				"%s: append_system_prompt no longer matches %s",
-				rootRelative(dirs["root"], promptPath),
-				rootRelative(dirs["root"], filepath.Join(dirs["agents"], name+".md")),
-			))
-		}
-	}
-	checkFixtureAgentCopies(dirs, bodies, errors)
-}
-
-// checkFixtureAgentCopies applies the same rule to a case fixture that ships a
-// copy of an agent body, so a case that hands the model a role prompt measures
-// the current one.
-func checkFixtureAgentCopies(dirs map[string]string, bodies map[string]string, errors *[]string) {
-	caseDirs, _ := filepath.Glob(filepath.Join(dirs["evals"], "cases", "*"))
-	sort.Strings(caseDirs)
-	fixtures := []string{}
-	for _, caseDir := range caseDirs {
-		if !isDir(caseDir) {
-			continue
-		}
-		if symlinkedSubdir(caseDir, "fixtures") {
-			*errors = append(*errors, fmt.Sprintf(
-				"%s: fixtures is a symbolic link; a case directory holds its own files",
-				rootRelative(dirs["root"], filepath.Join(caseDir, "fixtures")),
-			))
-			continue
-		}
-		matches, _ := filepath.Glob(filepath.Join(caseDir, "fixtures", "*.md"))
-		fixtures = append(fixtures, matches...)
-	}
-	sort.Strings(fixtures)
-	for _, fixturePath := range fixtures {
-		text, err := readText(fixturePath)
-		if err != nil {
-			*errors = append(*errors, fmt.Sprintf("%s: %v", fixturePath, err))
-			continue
-		}
-		name, body, ok := matchingAgentBody(bodies, text)
-		if !ok {
-			continue
-		}
-		if !sameTrimmedLines(text, body) {
-			*errors = append(*errors, fmt.Sprintf(
-				"%s: copy of %s is out of date",
-				rootRelative(dirs["root"], fixturePath),
-				rootRelative(dirs["root"], filepath.Join(dirs["agents"], name+".md")),
-			))
-		}
-	}
-}
-
-// agentBodies reads every .agents/<role>.md and returns its body, frontmatter
-// removed, keyed by role name.
-func agentBodies(agentsDir string) map[string]string {
-	bodies := map[string]string{}
-	paths, _ := filepath.Glob(filepath.Join(agentsDir, "*.md"))
-	for _, path := range paths {
-		text, err := readText(path)
-		if err != nil {
-			continue
-		}
-		body, ok := bodyAfterFrontmatter(text)
-		if !ok {
-			continue
-		}
-		bodies[strings.TrimSuffix(filepath.Base(path), ".md")] = body
-	}
-	return bodies
-}
-
-// matchingAgentBody picks the agent whose body an embedded copy was taken from.
-// Two independent paths claim a copy, because each one alone goes silent on a
-// different drift: the opening line still matching a shipped agent, and a high
-// share of lines in common. Identity by opening line alone misses a copy whose
-// first line drifted with the rest; identity by overlap alone misses a copy
-// that drifted past the threshold. A copy that lost both its opening line and
-// most of its lines is no longer attributable to any agent and is left to the
-// case author, which the skill records as a known limit.
-func matchingAgentBody(bodies map[string]string, embedded string) (string, string, bool) {
-	const minOverlap = 0.6
-	names := make([]string, 0, len(bodies))
-	for name := range bodies {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	first := firstNonEmptyLine(embedded)
-	bestName, bestScore := "", 0.0
-	for _, name := range names {
-		if score := lineOverlap(embedded, bodies[name]); score > bestScore {
-			bestName, bestScore = name, score
-		}
-	}
-	if bestName != "" && bestScore >= minOverlap {
-		return bestName, bodies[bestName], true
-	}
-	// Overlap did not claim it: fall back to the opening line, which is what
-	// caught a partially rewritten copy before overlap existed.
-	if first != "" {
-		for _, name := range names {
-			if firstNonEmptyLine(bodies[name]) == first {
-				return name, bodies[name], true
-			}
-		}
-	}
-	return "", "", false
-}
-
-func firstNonEmptyLine(text string) string {
-	for _, line := range strings.Split(text, "\n") {
-		if trimmed := strings.TrimSpace(line); trimmed != "" {
-			return trimmed
-		}
-	}
-	return ""
-}
-
-// lineOverlap is the fraction of the candidate's non-empty lines that also
-// appear in the text, trimmed. Membership, not order: a body whose sections
-// were reordered still identifies as the same agent, and the exact comparison
-// that follows is what decides whether it drifted.
-func lineOverlap(text, candidate string) float64 {
-	present := map[string]bool{}
-	for _, line := range strings.Split(text, "\n") {
-		if trimmed := strings.TrimSpace(line); trimmed != "" {
-			present[trimmed] = true
-		}
-	}
-	total, shared := 0, 0
-	for _, line := range strings.Split(candidate, "\n") {
-		trimmed := strings.TrimSpace(line)
-		if trimmed == "" {
-			continue
-		}
-		total++
-		if present[trimmed] {
-			shared++
-		}
-	}
-	if total == 0 {
-		return 0
-	}
-	return float64(shared) / float64(total)
-}
-
-// bodyAfterFrontmatter strips a leading YAML frontmatter block.
-func bodyAfterFrontmatter(text string) (string, bool) {
-	if !strings.HasPrefix(text, "---\n") {
-		return "", false
-	}
-	rest := text[len("---\n"):]
-	end := strings.Index(rest, "\n---\n")
-	if end < 0 {
-		return "", false
-	}
-	return strings.TrimSpace(rest[end+len("\n---\n"):]), true
-}
-
-// yamlBlockScalar reads a literal block scalar (key: |) and returns it with the
-// block indentation removed.
-func yamlBlockScalar(text, key string) (string, bool) {
-	lines := strings.Split(text, "\n")
-	start := -1
-	for i, line := range lines {
-		if strings.TrimRight(line, " ") == key+": |" {
-			start = i + 1
-			break
-		}
-	}
-	if start < 0 {
-		return "", false
-	}
-	indent := ""
-	for _, line := range lines[start:] {
-		if strings.TrimSpace(line) == "" {
-			continue
-		}
-		indent = line[:len(line)-len(strings.TrimLeft(line, " "))]
-		break
-	}
-	if indent == "" {
-		return "", false
-	}
-	collected := []string{}
-	for _, line := range lines[start:] {
-		if strings.TrimSpace(line) == "" {
-			collected = append(collected, "")
-			continue
-		}
-		if !strings.HasPrefix(line, indent) {
-			break
-		}
-		collected = append(collected, strings.TrimPrefix(line, indent))
-	}
-	return strings.TrimSpace(strings.Join(collected, "\n")), true
 }

@@ -1,9 +1,9 @@
 {
   "name": "dev-harness",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "license": "MIT",
   "generated": true,
-  "generated_at": "2026-09-30T14:08:38Z",
+  "generated_at": "2026-09-30T15:21:10Z",
   "source": "dh build",
   "runtime": {
     "primary": "claude-code",
@@ -13,25 +13,19 @@
   },
   "inventory": {
     "agents": [
-      "api-designer",
-      "backend-builder",
-      "code-reviewer",
+      "architect",
+      "builder",
       "coordinator",
-      "data-engineer",
       "debugger",
-      "devops-engineer",
       "docs-guide",
       "document-validator",
-      "frontend-builder",
       "harness-maintainer",
       "implementation-planner",
       "product-discovery",
       "qa-verifier",
-      "refactorer",
       "release-manager",
       "repo-scout",
-      "security-reviewer",
-      "solution-architect"
+      "reviewer"
     ],
     "commands": [
       "auto",
@@ -105,31 +99,31 @@
       "os": "linux",
       "arch": "amd64",
       "path": "bin/linux_amd64/dh",
-      "sha256": "5596d5e7a6a93d14d48da3d89ab933734b1a282f11555193ea22ae8decabd478"
+      "sha256": "5e434f2d06fdb38ff97901d9aa72286d82c211192089026dc49e9dff165efbbf"
     },
     {
       "os": "linux",
       "arch": "arm64",
       "path": "bin/linux_arm64/dh",
-      "sha256": "c655e3b131f1f1aec3734947b4436c655aeb3d93282f7db9f4b4ea7714bd8e87"
+      "sha256": "46fdc062da2858bf877dd16cd373b6b732e3951b2c674839f1b7ac6df42bff79"
     },
     {
       "os": "darwin",
       "arch": "amd64",
       "path": "bin/darwin_amd64/dh",
-      "sha256": "d6709a4a9bed394111ea76647b912f67e2f70daa04c857b4d3fbed24189967d6"
+      "sha256": "7cff0e4b06de0cb738d87fd246b7d464e2cef354e4344ce668ce6b9ff14cf520"
     },
     {
       "os": "darwin",
       "arch": "arm64",
       "path": "bin/darwin_arm64/dh",
-      "sha256": "623ec0e24a8193a8cb7a7b124ec108fcb0673e1fdbd6161a28e3b809d6346a62"
+      "sha256": "e6f82be7b1ce7aeaee6cf1dd9cb4593ca8fee54a383ee885fcf3d0630486d789"
     },
     {
       "os": "windows",
       "arch": "amd64",
       "path": "bin/windows_amd64/dh.exe",
-      "sha256": "52a1cd3dbb5ae89a9535c5dc2204b1a7f4c738d8df55eb02e409d894e537af85"
+      "sha256": "30ab77ed9633499c3476d9743be43078a51b58cbe1cd14075460987851a35c66"
     }
   ]
 }

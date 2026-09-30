@@ -154,7 +154,7 @@ The race condition is reported rather than fixed, because the migration lives ou
 
 ## Related
 
-Roles: backend-builder, frontend-builder, coordinator, qa-verifier, code-reviewer. Commands: `/dh:build`. Skills: implementation-planning, api-contracts, regression-testing, ui-verification, code-review, safe-refactoring.
+Roles: builder, coordinator, qa-verifier, reviewer. Commands: `/dh:build`. Skills: implementation-planning, api-contracts, regression-testing, ui-verification, code-review, safe-refactoring.
 
 ## Proof case
 

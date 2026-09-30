@@ -17,7 +17,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/kit"
 )
 
-const defaultVersion = "0.13.0"
+const defaultVersion = "0.14.0"
 
 type Target struct {
 	OS   string
@@ -518,14 +518,14 @@ func treeFilesSkipping(root string, skip func(relative string, isDir bool) bool)
 }
 
 // evalsSkip reports whether a path relative to evals/ should be excluded
-// from the package: results/, baselines/, and not-run/ only at the first
+// from the package: results/, baselines/, not-run/, and archive/ only at the first
 // level of evals/ (a same-named directory nested deeper, e.g. under a case's
 // fixtures/, is kept); __pycache__/ and *.pyc are excluded at any depth.
 func evalsSkip(relative string, isDirEntry bool) bool {
 	parts := strings.Split(filepath.ToSlash(relative), "/")
 	if len(parts) > 0 {
 		switch parts[0] {
-		case "results", "baselines", "not-run":
+		case "results", "baselines", "not-run", "archive":
 			return true
 		}
 	}

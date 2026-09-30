@@ -153,54 +153,6 @@ func TestEvalGraderSymlinkIsReportedNotSkipped(t *testing.T) {
 	}
 }
 
-// TestEvalPromptSymlinkIsReportedNotSkipped covers the prompt.md read inside
-// checkEmbeddedAgentBodies.
-func TestEvalPromptSymlinkIsReportedNotSkipped(t *testing.T) {
-	root := syntheticRoot(t)
-	real := filepath.Join(root, "real-prompt.md")
-	writeFixture(t, real, "---\nname: c\n---\nDo the thing.\n")
-	caseDir := filepath.Join(root, "evals", "cases", "c")
-	if err := os.MkdirAll(caseDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Symlink(real, filepath.Join(caseDir, "prompt.md")); err != nil {
-		t.Fatal(err)
-	}
-
-	report, err := Validate(root, Options{SkipMinimumCounts: true})
-	if err != nil {
-		t.Fatal(err)
-	}
-	joined := strings.Join(report.Errors, "\n")
-	if !strings.Contains(joined, "prompt.md") || !strings.Contains(joined, "not a regular file") {
-		t.Fatalf("errors = %v, want prompt.md symlink reported", report.Errors)
-	}
-}
-
-// TestEvalFixtureSymlinkIsReportedNotSkipped covers the fixture read inside
-// checkFixtureAgentCopies.
-func TestEvalFixtureSymlinkIsReportedNotSkipped(t *testing.T) {
-	root := syntheticRoot(t)
-	real := filepath.Join(root, "real-fixture.md")
-	writeFixture(t, real, "body\n")
-	fixtureDir := filepath.Join(root, "evals", "cases", "c", "fixtures")
-	if err := os.MkdirAll(fixtureDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Symlink(real, filepath.Join(fixtureDir, "coordinator.md")); err != nil {
-		t.Fatal(err)
-	}
-
-	report, err := Validate(root, Options{SkipMinimumCounts: true})
-	if err != nil {
-		t.Fatal(err)
-	}
-	joined := strings.Join(report.Errors, "\n")
-	if !strings.Contains(joined, "fixtures/coordinator.md") || !strings.Contains(joined, "not a regular file") {
-		t.Fatalf("errors = %v, want fixture symlink reported", report.Errors)
-	}
-}
-
 // TestEvalGraderOversizeIsReportedNotSkipped covers MEDIUM 2 for an eval read:
 // an oversized grader file must be a validation error naming the path and the
 // limit, not a silent skip.
