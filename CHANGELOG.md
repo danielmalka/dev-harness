@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.13.0 — 2026-09-30
+
+- **Roadmap vivo, opção A** (PRD-009, `docs/prd/PRD-009-roadmap-vivo.md`). `dh validate` ganha uma checagem do
+  roadmap (`internal/kit/roadmap_check.go`) que compara `docs/roadmap.html` e `docs/en/roadmap.html` com o
+  `CHANGELOG.md`: chip de data, chip de versão, faixa da linha Fontes, um card Entregue por release em ordem da mais
+  nova para a mais antiga, e paridade entre pt e en. A checagem só é pulada quando os dois roadmaps estão ausentes.
+  Nenhum card histórico é alterado.
+- **Linha de manutenção condicional**: a skill `delivery-readiness` e o despacho de documentação do Coordenador
+  passam a dizer que o roadmap é atualizado junto do `CHANGELOG.md` quando o projeto mantém um roadmap.
+- **Roadmap**: a ideia "Este próprio roadmap como artefato vivo" sai de Ideias, porque está entregue.
+
 ## 0.12.1 — 2026-09-30
 
 - **Débitos da 0.11.0 fechados**: o exemplo do `/dh:review` passa a `feature PRD-007`, e os dígitos valem como

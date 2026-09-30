@@ -141,6 +141,7 @@ Readiness matrix. Every row is answered.
 | Configuration | New keys and flags named, with default and required or optional |
 | Secrets | Named by purpose only, never valued, never printed |
 | Documentation | A first-time reader can use and operate the change from the written text alone |
+| Roadmap | Met when the project keeps a roadmap tied to its changelog: it names the new release, its date and version, and passes the project's roadmap check, when it has one (in dev-harness: `docs/roadmap.html`, `docs/en/roadmap.html`, one card per release, `dh validate`). Not applicable when the project keeps no roadmap. |
 | Rollout | Ordered, with an observable per step |
 | Rollback | A concrete action with cost, limits and triggers, decided before shipping |
 | Reproducibility | Build and test run from a clean checkout with no machine-specific path |
