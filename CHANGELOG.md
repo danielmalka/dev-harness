@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12.1 — 2026-09-30
+
+- **Débitos da 0.11.0 fechados**: o exemplo do `/dh:review` passa a `feature PRD-007`, e os dígitos valem como
+  escritos, casando com o nome da pasta (`.commands/review.md`); a revisão final não despacha o `product-discovery`
+  enquanto um bloqueio do `/dh:secure` segue aberto, porque o veredito já é `FEATURE REPROVADA`; os tutoriais dizem a
+  condição de "entregue" como no RF-14; o nó t3 do mapa excalidraw diz "Escopo e regras (R<n>)"; os diagramas dos
+  tutoriais mostram a revisão final da feature.
+- **Prompt do `codex` por chamada** (`.skills/external-clis/references/codex.md`): criado com `mktemp` sob a raiz
+  temporária, modo 0600, e removido na limpeza da própria chamada; chamadas paralelas não colidem mais.
+- **Roadmap**: seção Entregue em ordem, da mais nova para a mais antiga; card novo em Planejado para a sonda H3 do
+  `agy`.
+
 ## 0.12.0 — 2026-09-30
 
 - **Isolamento de CLIs externas por clone descartável** (PRD-008, `docs/prd/PRD-008-isolamento-por-clone.md`).
