@@ -7,7 +7,7 @@ Os modelos ficam em `templates/pt-br/` e `templates/en/` no kit, em versões esp
 
 | Template | Responde | Quem escreve | Abrir quando | Fechar quando |
 |---|---|---|---|---|
-| `PRD.md` | Por quê e o quê (produto) | Dono do produto, com `product-discovery` | Uma dor ou oportunidade ainda não tem escopo e aceite claros | Requisitos (regras) e aceite aprovados; status `entregue em <data>` quando o lote fecha |
+| `PRD.md` | Por quê e o quê (produto) | Dono do produto, com `product-discovery` | Uma dor ou oportunidade ainda não tem escopo e aceite claros | Requisitos (regras) e aceite aprovados; status `entregue em <data>` só quando nenhuma regra ficou "Não honrada" sem decisão registrada do dono |
 | `TASK.md` (ticket) | Como executar uma fatia | `implementation-planner`; executado pelo builder | O PRD foi aprovado | Checks passaram, revisão feita, resultado preenchido |
 | `TASK.md` (bug) | O que falha e por quê | `debugger` | Um defeito foi reportado ou observado | Reprodução no Fluxo e teste de regressão verde no "Pronto quando", ou status inconclusivo com lacuna declarada |
 | `ADR.md` | Qual decisão durável foi tomada e por quê | `solution-architect`, aprovado pelo dono | Uma escolha cara de reverter precisa de registro | Status `aceito`; revisado quando a condição de revisão ocorrer |
@@ -45,7 +45,7 @@ O `TASK.md` é o ticket: depois do cabeçalho vêm Lane, Story, Fluxo, Regras (c
 
 Exemplo com os comandos do kit. Nem toda tarefa passa por todas as etapas: um bug entra direto em `fix`; uma edição pequena entra direto em `build` com uma task.
 
-Fluxo novo, de ponta a ponta: o PRD nasce no `/dh:discover` e passa pelo `document-validator` (um validador, até duas rodadas) antes de chegar ao dono. Aprovado, o `/dh:plan` o quebra em tickets por lane, e cada regra observável `R<n>` precisa ser citada por um ticket de teste. O `/dh:build` roteia cada ticket pela lane; o ticket de implementação passa por `qa-verifier` e um revisor Claude, e o de teste só por `qa-verifier`. Com todos aprovados, `/dh:review feature PRD-<n>` faz a revisão final da feature, com integração e aderência ao PRD, e termina em `FEATURE APROVADA`, `FEATURE REPROVADA` ou `FEATURE BLOQUEADA`. Ao fechar o lote, o Coordenador escreve a seção "Resumo executado" no fim do PRD e muda o status para `entregue em <data>`. Detalhes: [`docs/novo-fluxo-prd.md`](../novo-fluxo-prd.md) e [`docs/prd/PRD-007-fluxo-prd-e-tickets.md`](../prd/PRD-007-fluxo-prd-e-tickets.md).
+Fluxo novo, de ponta a ponta: o PRD nasce no `/dh:discover` e passa pelo `document-validator` (um validador, até duas rodadas) antes de chegar ao dono. Aprovado, o `/dh:plan` o quebra em tickets por lane, e cada regra observável `R<n>` precisa ser citada por um ticket de teste. O `/dh:build` roteia cada ticket pela lane; o ticket de implementação passa por `qa-verifier` e um revisor Claude, e o de teste só por `qa-verifier`. Com todos aprovados, `/dh:review feature PRD-<n>` faz a revisão final da feature, com integração e aderência ao PRD, e termina em `FEATURE APROVADA`, `FEATURE REPROVADA` ou `FEATURE BLOQUEADA`. Ao fechar o lote, o Coordenador escreve a seção "Resumo executado" no fim do PRD e muda o status para `entregue em <data>`, mas só se nenhuma regra `R<n>` ficou "Não honrada" sem uma decisão registrada do dono; caso contrário o PRD não é marcado como entregue. Detalhes: [`docs/novo-fluxo-prd.md`](../novo-fluxo-prd.md) e [`docs/prd/PRD-007-fluxo-prd-e-tickets.md`](../prd/PRD-007-fluxo-prd-e-tickets.md).
 
 ```mermaid
 flowchart TB
@@ -63,7 +63,9 @@ flowchart TB
     verify --> ok{Aceite e revisão<br/>aprovados?}
     review --> ok
     ok -->|não, até 6 rodadas| build
-    ok -->|sim| release["/dh:release<br/>release-manager"]
+    ok -->|sim, todos os tickets| final["/dh:review feature PRD-007<br/>FEATURE APROVADA / REPROVADA / BLOQUEADA"]
+    final -->|aprovada| release["/dh:release<br/>release-manager"]
+    final -->|reprovada| build
     release --> handoff["/dh:handoff<br/>Coordenador"]
 
     bug([Defeito reportado]) --> fix["/dh:fix<br/>debugger"]

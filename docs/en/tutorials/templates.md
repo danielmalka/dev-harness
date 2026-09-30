@@ -7,7 +7,7 @@ The templates live in `templates/pt-br/` and `templates/en/` in the kit, in mirr
 
 | Template | Answers | Who writes | Open when | Close when |
 |---|---|---|---|---|
-| `PRD.md` | Why and what (product) | Product owner, with `product-discovery` | A pain point or opportunity still lacks clear scope and acceptance criteria | Requirements (rules) and acceptance approved; status `delivered on <date>` when the batch closes |
+| `PRD.md` | Why and what (product) | Product owner, with `product-discovery` | A pain point or opportunity still lacks clear scope and acceptance criteria | Requirements (rules) and acceptance approved; status `delivered on <date>` only when no rule is "Não honrada" (not honored) without a recorded owner decision |
 | `TASK.md` (ticket) | How to execute a slice | `implementation-planner`; executed by the builder | The PRD has been approved | Checks passed, review completed, result recorded |
 | `TASK.md` (bug) | What fails and why | `debugger` | A defect was reported or observed | Reproduction in Flow and a green regression test in "Done when", or the status is inconclusive with the gap declared |
 | `ADR.md` | Which durable decision was made and why | `solution-architect`, approved by the owner | A costly-to-reverse choice needs a record | Status `accepted`; reviewed when the review condition occurs |
@@ -45,7 +45,7 @@ The PRD passes through `document-validator` before it reaches the owner: the Coo
 
 Example using the kit commands. Not every task goes through every stage: a bug goes directly into `fix`; a small edit goes directly into `build` with a task.
 
-The new flow, end to end: the PRD is born in `/dh:discover` and goes through `document-validator` (one validator, up to two rounds) before it reaches the owner. Once approved, `/dh:plan` splits it into tickets by lane, and every observable rule `R<n>` must be cited by a test ticket. `/dh:build` routes each ticket by lane; an implementation ticket goes through `qa-verifier` and one Claude reviewer, and a test ticket only through `qa-verifier`. With every ticket approved, `/dh:review feature PRD-<n>` runs the final feature review, covering integration and adherence to the PRD, and ends in `FEATURE APROVADA`, `FEATURE REPROVADA`, or `FEATURE BLOQUEADA` (approved, rejected, or blocked). When the batch closes, the Coordinator writes the "Resumo executado" (executed summary) section at the end of the PRD and sets the status to `delivered on <date>`. Details: [`docs/en/new-prd-flow.md`](../new-prd-flow.md) and [`docs/prd/PRD-007-fluxo-prd-e-tickets.md`](../../prd/PRD-007-fluxo-prd-e-tickets.md) (pt-br).
+The new flow, end to end: the PRD is born in `/dh:discover` and goes through `document-validator` (one validator, up to two rounds) before it reaches the owner. Once approved, `/dh:plan` splits it into tickets by lane, and every observable rule `R<n>` must be cited by a test ticket. `/dh:build` routes each ticket by lane; an implementation ticket goes through `qa-verifier` and one Claude reviewer, and a test ticket only through `qa-verifier`. With every ticket approved, `/dh:review feature PRD-<n>` runs the final feature review, covering integration and adherence to the PRD, and ends in `FEATURE APROVADA`, `FEATURE REPROVADA`, or `FEATURE BLOQUEADA` (approved, rejected, or blocked). When the batch closes, the Coordinator writes the "Resumo executado" (executed summary) section at the end of the PRD and sets the status to `delivered on <date>`, but only if no rule `R<n>` is "Não honrada" (not honored) without a recorded owner decision; otherwise the PRD is not marked as delivered. Details: [`docs/en/new-prd-flow.md`](../new-prd-flow.md) and [`docs/prd/PRD-007-fluxo-prd-e-tickets.md`](../../prd/PRD-007-fluxo-prd-e-tickets.md) (pt-br).
 
 ```mermaid
 flowchart TB
@@ -63,7 +63,9 @@ flowchart TB
     verify --> ok{Acceptance and review<br/>approved?}
     review --> ok
     ok -->|no, up to 6 rounds| build
-    ok -->|yes| release["/dh:release<br/>release-manager"]
+    ok -->|yes, all tickets| final["/dh:review feature PRD-007<br/>FEATURE APROVADA / REPROVADA / BLOQUEADA"]
+    final -->|approved| release["/dh:release<br/>release-manager"]
+    final -->|rejected| build
     release --> handoff["/dh:handoff<br/>Coordinator"]
 
     bug([Reported defect]) --> fix["/dh:fix<br/>debugger"]

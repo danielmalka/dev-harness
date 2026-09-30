@@ -691,7 +691,7 @@ footer.doc-foot {
 
       <h2 id="prd"><span class="n">02</span>PRD</h2>
       <span class="tag">Produto · por quê e o quê</span>
-      <p>Responde por que fazer e o que entregar, sem dizer como. Um PRD bom pode ser atendido por três desenhos técnicos diferentes. Escreve o dono do produto, com o papel <code>product-discovery</code> via <code>/dh:discover</code>. Fecha quando as regras e o aceite estão aprovados e, ao fim do lote, o status vira <code>entregue em &lt;data&gt;</code>. Tem quatro seções (Problema, Solução, Regras, Docs) e um apêndice opcional. Modelo: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+      <p>Responde por que fazer e o que entregar, sem dizer como. Um PRD bom pode ser atendido por três desenhos técnicos diferentes. Escreve o dono do produto, com o papel <code>product-discovery</code> via <code>/dh:discover</code>. Fecha quando as regras e o aceite estão aprovados e, o status só vira <code>entregue em &lt;data&gt;</code> quando nenhuma regra ficou "Não honrada" sem uma decisão registrada do dono. Tem quatro seções (Problema, Solução, Regras, Docs) e um apêndice opcional. Modelo: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>Entra</h3>
@@ -714,7 +714,7 @@ footer.doc-foot {
 
       <h2 id="fluxo"><span class="n">03</span>Fluxo novo: do PRD ao ticket</h2>
       <span class="tag">Produto · sem STORY.md</span>
-      <p>Não existe mais <code>STORY.md</code>: a story é uma frase dentro do ticket. O PRD nasce no <code>/dh:discover</code> e passa pelo <code>document-validator</code> (um validador, até duas rodadas) antes de chegar ao dono. Aprovado, o <code>/dh:plan</code> o quebra em tickets por lane, e cada regra observável <code>R&lt;n&gt;</code> precisa ser citada por um ticket de teste. O <code>/dh:build</code> roteia cada ticket pela lane; o ticket de implementação passa por <code>qa-verifier</code> e um revisor Claude, e o de teste só por <code>qa-verifier</code>. Com todos aprovados, <code>/dh:review feature PRD-&lt;n&gt;</code> faz a revisão final da feature (integração e aderência ao PRD) e termina em <code>FEATURE APROVADA</code>, <code>FEATURE REPROVADA</code> ou <code>FEATURE BLOQUEADA</code>. Ao fechar o lote, o Coordenador escreve a seção "Resumo executado" no fim do PRD e muda o status para <code>entregue em &lt;data&gt;</code>. Detalhes: <a href="../novo-fluxo-prd.md">docs/novo-fluxo-prd.md</a> e <a href="../prd/PRD-007-fluxo-prd-e-tickets.md">docs/prd/PRD-007-fluxo-prd-e-tickets.md</a>.</p>
+      <p>Não existe mais <code>STORY.md</code>: a story é uma frase dentro do ticket. O PRD nasce no <code>/dh:discover</code> e passa pelo <code>document-validator</code> (um validador, até duas rodadas) antes de chegar ao dono. Aprovado, o <code>/dh:plan</code> o quebra em tickets por lane, e cada regra observável <code>R&lt;n&gt;</code> precisa ser citada por um ticket de teste. O <code>/dh:build</code> roteia cada ticket pela lane; o ticket de implementação passa por <code>qa-verifier</code> e um revisor Claude, e o de teste só por <code>qa-verifier</code>. Com todos aprovados, <code>/dh:review feature PRD-&lt;n&gt;</code> faz a revisão final da feature (integração e aderência ao PRD) e termina em <code>FEATURE APROVADA</code>, <code>FEATURE REPROVADA</code> ou <code>FEATURE BLOQUEADA</code>. Ao fechar o lote, o Coordenador escreve a seção "Resumo executado" no fim do PRD e muda o status para <code>entregue em &lt;data&gt;</code>, mas só se nenhuma regra <code>R&lt;n&gt;</code> ficou "Não honrada" sem uma decisão registrada do dono; caso contrário o PRD não é marcado como entregue. Detalhes: <a href="../novo-fluxo-prd.md">docs/novo-fluxo-prd.md</a> e <a href="../prd/PRD-007-fluxo-prd-e-tickets.md">docs/prd/PRD-007-fluxo-prd-e-tickets.md</a>.</p>
 
       <h2 id="task"><span class="n">04</span>Task e Bug</h2>
       <span class="tag">Execução · como executar uma fatia</span>
@@ -840,7 +840,9 @@ flowchart TB
     verify --> ok{Aceite e revisão<br/>aprovados?}
     review --> ok
     ok -->|não, até 6 rodadas| build
-    ok -->|sim| release["/dh:release<br/>release-manager"]
+    ok -->|sim, todos os tickets| final["/dh:review feature PRD-007<br/>FEATURE APROVADA / REPROVADA / BLOQUEADA"]
+    final -->|aprovada| release["/dh:release<br/>release-manager"]
+    final -->|reprovada| build
     release --> handoff["/dh:handoff<br/>Coordenador"]
 
     bug([Defeito reportado]) --> fix["/dh:fix<br/>debugger"]
@@ -868,7 +870,7 @@ flowchart TB
             <tr><th>Template</th><th>Responde</th><th>Quem escreve</th><th>Abrir quando</th><th>Fechar quando</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>PRD.md</code></td><td>Por quê e o quê</td><td>Dono do produto, com product-discovery</td><td>Dor sem escopo e aceite claros</td><td>Regras e aceite aprovados; status entregue em &lt;data&gt; ao fechar o lote</td></tr>
+            <tr><td><code>PRD.md</code></td><td>Por quê e o quê</td><td>Dono do produto, com product-discovery</td><td>Dor sem escopo e aceite claros</td><td>Regras e aceite aprovados; status entregue em &lt;data&gt; só sem regra "Não honrada" sem decisão do dono</td></tr>
             <tr><td><code>TASK.md</code> (ticket)</td><td>Como executar uma fatia</td><td>implementation-planner; executa o builder</td><td>PRD aprovado</td><td>Checks passaram, revisão feita, resultado preenchido</td></tr>
             <tr><td><code>TASK.md</code> (bug)</td><td>O que falha e por quê</td><td>debugger</td><td>Defeito reportado ou observado</td><td>Reprodução no Fluxo e regressão verde no Pronto quando, ou inconclusivo com lacuna</td></tr>
             <tr><td><code>ADR.md</code></td><td>Qual decisão durável</td><td>solution-architect; aprova o dono</td><td>Escolha cara de reverter</td><td>Status aceito; revisto na condição de revisão</td></tr>

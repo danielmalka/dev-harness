@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-09-29</b></span>
-          <span class="chip">status <b>0.12.0 · vivo</b></span>
+           <span class="chip">data <b>2026-09-30</b></span>
+          <span class="chip">status <b>0.12.1 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -701,516 +701,22 @@ profiles/"] --> B["dh build"]
         testado.</p>
 
       <div class="card">
-        <h3>0.1.0 · Empacotamento fase 1</h3>
+        <h3>0.12.1 · Débitos da 0.11.0 e prompt do codex</h3>
         <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> 18 agentes, 17 comandos e 19 skills como fontes canônicas; pacote Claude Code
-          gerado em <code>dist/claude-code/dev-harness</code>; perfis <code>base</code>, <code>go-api</code>,
-          <code>typescript-web</code>; validador estático e script doctor, incluindo cópia dentro do pacote; fixture
-          guiada <code>evals/fixtures/slice-01</code>; licença MIT; tutorial 00 e <code>docs/inicio-rapido.html</code>.
-        </p>
-        <p><strong>Relações:</strong> primeira versão, anterior a PRD-001, PRD-002 e ADR-001. Base de que toda
-          release seguinte depende.</p>
-        <p><strong>Testado?</strong> A fixture <code>evals/fixtures/slice-01</code> roda em CI a cada push/PR
-          (<code>.github/workflows/ci.yml</code>, step "Fixture": <code>python3 -m unittest test_greet.py</code>,
-          saída silenciada por <code>|| true</code>). O restante — pacote gerado, perfis, validador — não tem
-          execução automatizada registrada; o próprio changelog lista como fora da release: "prova de execução em
-          sessão limpa do Claude Code, execução dos casos de avaliação, qualificação Linux/macOS/WSL2, adaptadores
-          nativos para outras IAs".</p>
-      </div>
-
-      <div class="card">
-        <h3>0.2.0 · Etapa 1 — marketplace e observabilidade</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> binário Go <code>dh</code> (<code>snapshot</code>, <code>validate</code>,
-          <code>build</code>, <code>doctor</code>); scripts Python e bash removidos (ADR-001);
-          <code>settings.json</code> do plugin com <code>subagentStatusLine</code> e <code>hooks/hooks.json</code>
-          (seis hooks) gravando <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>;
-          <code>.claude-plugin/marketplace.json</code> na raiz; skill <code>doc-template-html</code> com
-          <code>--lang pt-br|en</code>; docs em inglês em <code>docs/en/</code>; templates espelhados
-          <code>en/</code>/<code>pt-br/</code>; regra de idioma do Coordenador; skill <code>project-onboarding</code>
-          passa a listar perfis em runtime; perfil <code>profiles/php.yaml</code>; templates de trabalho PRD, STORY,
-          TASK, ADR, RFC; tutorial de templates; comandos com frontmatter completo; Mermaid via CDN como única
-          exceção de CDN da skill; <code>CLAUDE.md</code> do repositório com as decisões fixadas.</p>
-        <p><strong>Relações:</strong> implementa PRD-001 (RF-01 a RF-08) e a decisão de ADR-001 (runtime Go). Da
-          qual dependem 0.2.1 e 0.3.x.</p>
-        <p><strong>Testado?</strong> CI executa <code>go test ./...</code>, <code>dh validate --source-only .</code>,
-          <code>dh build</code>, comparação <code>git diff --exit-code</code> entre <code>dist/</code> e as fontes, e
-          <code>dh validate .</code> completo — cobre diretamente AC-02 (reprodutibilidade do pacote) e parte de
-          AC-08 (doctor). AC-03/AC-04 (snapshot listando subagentes, transições de estado ativo/ocioso/fechado) e
-          AC-06 a AC-09 (status line opcional, retenção de 7 dias, tutorial em máquina limpa) não têm evidência de
-          execução automatizada no repositório — ainda não fechado.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.2.1 · Build reprodutível</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> <code>dh build</code> passa a compilar com <code>-buildvcs=false</code> para que
-          os binários sejam idênticos entre a máquina do mantenedor e a CI.</p>
-        <p><strong>Relações:</strong> corrige uma regressão de 0.2.0 encontrada pela própria CI; origem da regra do
-          repositório "reproduzir o que a CI faz num clone limpo antes de commitar <code>dist/</code>".</p>
-        <p><strong>Testado?</strong> Mesmo step de CI "Package matches committed sources and binaries" reproduz o
-          build e compara os arquivos de <code>dist/</code> — execução registrada em CI a cada push/PR.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.3.0 · Ferramenta Skill para todos os agentes + validador de documentos</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> todos os agentes ganham a ferramenta <code>Skill</code> na lista
-          <code>tools</code>; papel <code>document-validator</code> (somente leitura, Opus); skill
-          <code>document-review</code> com seis categorias e regra de severidade; relatório persistente
-          <code>&lt;documento&gt;.review.md</code>; ciclo criação → validação embutido em
-          <code>/dh:discover</code>, limite de duas rodadas; casos de avaliação e fixture de PRD em
-          <code>evals/</code>.</p>
-        <p><strong>Relações:</strong> implementa PRD-002 RF-01 a RF-05 (RF-06, estender a story/plano/ADR, fica para
-          depois — ver Planejado). Produz <code>.agents/document-validator.md</code>,
-          <code>.skills/document-review</code> e <code>evals/cases/doc-validator-*.md</code>.</p>
-        <p><strong>Testado?</strong> Caso de avaliação existe: <code>evals/cases/doc-validator-clean.md</code>,
-          <code>doc-validator-gap.md</code>, <code>doc-validator-round-cap.md</code>, com rubrica
-          <code>evals/rubrics/document-review.md</code> e fixture <code>evals/fixtures/prd-review/</code>; execução
-          não registrada — <code>evals/baselines/</code> só contém <code>.gitkeep</code>. O próprio PRD-002 registra
-          o status como "avaliação comportamental pendente".</p>
-      </div>
-
-      <div class="card">
-        <h3>0.3.1 · Ferramentas dos agentes e dispatch do Coordenador</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> política de ferramentas invertida — <code>coordinator</code> deixa de declarar
-          <code>tools</code> (a allowlist cortava <code>ToolSearch</code> e, com ele, toda ferramenta deferida:
-          <code>SendMessage</code>, <code>Monitor</code>, <code>TaskStop</code>, <code>WebFetch</code>, MCP); os
-          especialistas que escrevem passam a herdar todas as ferramentas; os quatro somente-leitura
-          (<code>code-reviewer</code>, <code>security-reviewer</code>, <code>document-validator</code>,
-          <code>repo-scout</code>) mantêm allowlist explícita, agora com <code>LSP</code>, <code>ToolSearch</code>,
-          <code>Monitor</code>, <code>SendMessage</code> e <code>WebFetch</code>; todo especialista leva
-          <code>disallowedTools: [Agent]</code> para que só o Coordenador despache; <code>dh validate</code> passa a
-          aceitar <code>tools</code> ausente (presente e vazio continua erro).</p>
-        <p><strong>Relações:</strong> fix de regressão funcional sobre os mesmos agentes definidos em 0.3.0.</p>
-        <p><strong>Testado?</strong> <code>go test ./...</code> e <code>dh validate .</code> rodam em CI a cada
-          push/PR e cobrem o novo comportamento de <code>tools</code> opcional no validador estático. Não há caso de
-          avaliação comportamental dedicado a essa allowlist — ainda não fechado.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.4.0 · Revisão em pares por CLI externa</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> skill <code>.skills/external-clis/</code> (<code>SKILL.md</code> e as receitas
-          <code>references/{agy,codex,grok,opencode,mcode,claude,gotchas}.md</code> e
-          <code>references/local.yaml.example</code>), portada e generalizada de uma skill pessoal, ensina o
-          Coordenador e os papéis de revisão a resolver um binário de CLI (<code>command -v</code> ou
-          <code>.harness/local.yaml</code>), montar o prompt em disco, aplicar o modo somente-leitura do binário e
-          distinguir falha de transporte de veredito real; campo opcional <code>reviewers:</code> em
-          <code>.harness/project.yaml</code>, documentado em <code>profiles/README.md</code> ("Consumer-only
-          fields") e ilustrado em <code>profiles/examples/project.yaml</code>, declara por etapa
-          (<code>document</code>, <code>code</code>, <code>security</code>) a lista de revisores —
-          <code>claude</code>, <code>"cli:&lt;binário&gt;/&lt;slug&gt;"</code> ou um mapa com
-          <code>timeout_minutes</code>; <code>.agents/coordinator.md</code> ganha a seção "External CLI reviewers"
-          com resolução de binário, despacho em paralelo ou em levas, montagem do prompt a partir de
-          <code>.agents/&lt;role&gt;.md</code> + skill de revisão + contexto do despacho, a cláusula
-          anti-delegação embutida no corpo do prompt, mescla de N vereditos, degradação not-run por binário ausente
-          ou etapa inteira, somente-leitura com reversão por <code>git status</code> pós-chamada e escrita de
-          <code>.harness/local.yaml</code>; campo <code>Reported by: claude | cli:&lt;binário&gt;/&lt;slug&gt;</code>
-          acrescentado a <code>.skills/code-review/SKILL.md</code>, <code>.skills/document-review/SKILL.md</code> e
-          <code>.skills/security-review/SKILL.md</code>; <code>.commands/review.md</code>,
-          <code>.commands/discover.md</code> e <code>.commands/secure.md</code> com despacho do agente Claude
-          condicional a <code>reviewers.&lt;etapa&gt;</code> ausente ou contendo <code>claude</code>.</p>
-        <p><strong>Relações:</strong> implementa PRD-003 RF-01 a RF-10. Junta, na mesma release, duas decisões do
-          dono já aplicadas fora deste PRD: remoção de <code>disallowedTools: [Agent]</code> do frontmatter dos 18 arquivos de especialista em <code>.agents/</code> (o <code>coordinator.md</code> nunca declarou o campo) e atualização de <code>.skills/harness-authoring/SKILL.md</code>
-          (RISK-001 — o runtime não impunha o campo, a regra "só o Coordenador despacha" passa a viver no corpo do
-          prompt de cada especialista) e <code>model: sonnet</code> → <code>model: opus</code> em
-          <code>.agents/coordinator.md</code>.</p>
-        <p><strong>Testado?</strong> <code>go test ./...</code> e <code>dh validate --source-only .</code> cobrem o
-          schema de skill, agente e comando. Sete casos em <code>evals/cases/external-clis-*.md</code>
-          (<code>parallel</code>, <code>only</code>, <code>missing-binary</code>, <code>merge-blocker</code>,
-          <code>attribution</code>, <code>risk-001</code>, <code>transport-failure</code>) existem com a rubrica
-          <code>evals/rubrics/external-clis.md</code> e a fixture <code>evals/fixtures/external-clis-review/</code>;
-          execução comportamental não registrada — <code>evals/baselines/</code> continua só com
-          <code>.gitkeep</code>, mesmo padrão do card de 0.3.0/PRD-002.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.5.0 · Runner de evals executável e higiene do lote 0.4.0</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> <code>evals/</code> migra do formato arquivo único para o layout nativo do
-          <code>claude plugin eval</code> (Claude Code CLI 2.1.278) —
-          <code>evals/cases/&lt;id&gt;/{prompt.md,case.yaml,scaffold.sh,fixtures/,graders/}</code>; os 10 casos
-          existentes migraram e ganharam 4 novos cobrindo <code>reviewers.document</code>/<code>reviewers.security</code>
-          (<code>external-clis-document-only</code>, <code>external-clis-document-merge-blocker</code>,
-          <code>external-clis-security-only</code>, <code>external-clis-security-merge-blocker</code>);
-          <code>doc-validator-round-cap</code> não é dirigível pelo runner e vive em
-          <code>evals/not-run/doc-validator-round-cap/</code> com <code>REASON.md</code>.
-          <code>evals/rubrics/</code> e os fixtures compartilhados <code>evals/fixtures/external-clis-review</code> e
-          <code>prd-review</code> foram removidos — cada caso leva graders e fixtures próprios; só
-          <code>evals/fixtures/slice-01</code> continua fora dos casos. <code>dh build</code> passa a copiar
-          <code>evals/</code> para o pacote, excluindo <code>results/</code>, <code>baselines/</code>,
-          <code>not-run/</code> e <code>__pycache__</code>/<code>*.pyc</code>. <code>dh validate</code> ganha duas
-          checagens: paridade da cláusula anti-delegação entre <code>.agents/coordinator.md</code> e
-          <code>.skills/external-clis/SKILL.md</code>, e resolução das referências relativas dentro de
-          <code>evals/</code> (<code>context.add_dirs</code>/<code>scaffold_script</code>/<code>history_file</code>
-          de <code>case.yaml</code>, <code>target.path</code> de grader). <code>.github/workflows/evals.yml</code>
-          (novo, <code>ci.yml</code> intocado) roda o runner com <code>--scaffold --threshold 0.8</code> só quando o
-          secret <code>ANTHROPIC_API_KEY</code> existe; sem o secret, termina verde com
-          <code>skipped: ANTHROPIC_API_KEY absent</code>. Correções de prosa: formato de saída do Coordenador nomeia
-          o revisor CLI usado ou o motivo de not-run; o congelamento do workspace antes de uma chamada de CLI
-          reviewer fica concreto (<code>git status --porcelain -uall</code> + <code>git hash-object</code> por
-          caminho, recalculado depois da chamada); o ciclo de validação de documento (criação →
-          <code>document-validator</code> → até duas rodadas) passa a cobrir <code>PLAN.md</code> em
-          <code>.commands/plan.md</code> e os templates PRD/STORY/TASK/ADR em <code>.commands/document.md</code>; a
-          ordem build-antes-de-test para uma fatia que altera <code>dist/</code> fica explícita em
-          <code>.skills/implementation-planning/SKILL.md</code>, com remissão em
-          <code>.skills/delivery-readiness/SKILL.md</code>; <code>.skills/harness-evaluation/SKILL.md</code> reescrito
-          para o layout nativo.</p>
-        <p><strong>Relações:</strong> implementa PRD-004 (RF-01 a RF-18). Fecha a cobertura de revisor CLI nas três
-          etapas que o PRD-003 (0.4.0) tinha deixado só em <code>code</code>, e fecha a avaliação comportamental que
-          o card de 0.3.0/PRD-002 registrava como pendente — o item "Avaliação comportamental do PRD-002 pendente"
-          saiu de Planejado.</p>
-        <p><strong>Testado?</strong> Primeiro baseline real do kit:
-          <code>evals/baselines/2026-09-22-0.5.0.{json,md}</code> — 13 casos pontuados, 4 passaram
-          (<code>doc-validator-clean</code>, <code>external-clis-document-merge-blocker</code>,
-          <code>external-clis-document-only</code>, <code>external-clis-security-only</code>), score geral 0,74,
-          custo 4,81 USD; os 9 casos falhos são achados comportamentais para um próximo ciclo de
-          <code>/dh:improve</code>, não defeitos do runner. <code>external-clis-risk-001</code>: os graders
-          anti-delegação passaram, só <code>06-no-paraphrasing</code> falhou — RISK-001 continua <em>mitigado</em>,
-          não <em>resolvido</em>. Duas lições do runner descobertas nesta rodada e já incorporadas em
-          <code>.skills/harness-evaluation/SKILL.md</code>: <code>context.add_dirs</code> não materializa fixtures no
-          cwd do workspace (cada caso precisou de <code>scaffold.sh</code> próprio via <code>--scaffold</code>);
-          graders <code>regex</code> não aceitam flags inline — migraram para a chave <code>flags:</code>.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.5.1 · Regras do Coordenador para revisor CLI e checagem de deriva do prompt</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> primeiro ciclo real de <code>/dh:improve</code> sobre o próprio kit,
-          guiado pelo baseline 0.5.0. Duas regras novas no Coordenador: só se registra como revisor quem foi de fato
-          despachado (uma entrada não chamada vira not-run com motivo, e a leitura do próprio Coordenador nunca
-          ocupa o lugar de um revisor), e o relatório mesclado passa a registrar o veredito de cada revisor ao lado
-          do mesclado, para que uma aprovação derrubada por um achado bloqueador continue visível. Três regras novas
-          em <code>.agents/coordinator.md</code> ("External CLI reviewers"), cada uma originada de um caso de eval
-          que falhou no baseline 0.5.0: um revisor not-run não gasta rodada de correção; a deduplicação de achados
-          equivalentes preserva a redação de cada revisor; o relatório mesclado reproduz verbatim os títulos e
-          rótulos da skill da etapa. <code>dh validate</code> passa a comparar o <code>append_system_prompt</code>
-          de cada <code>evals/cases/&lt;id&gt;/prompt.md</code> com o corpo do agente que ele copia e falha quando a
-          cópia defasa do original — as onze cópias do corpo do Coordenador foram re-sincronizadas. Oito correções
-          do lado dos casos de eval, onde o critério era inobservável por construção; sete graders viraram
-          mecânicos ou foram reescritos para forma observável.</p>
-        <p><strong>Relações:</strong> primeiro ciclo de <code>/dh:improve</code> sobre 0.5.0. Origem direta
-          da 0.5.2 abaixo; dos dois achados deixados em aberto aqui, o sobre-despacho fechou por medição contra o pacote
-          0.5.2 e o rótulo do veredito fechou por medição na 0.5.4.</p>
-        <p><strong>Testado?</strong> Medição antes/depois em <code>evals/baselines/2026-09-22-0.5.0.md</code> →
-          <code>2026-09-22-0.5.1.md</code>: com três rodadas nos quatro casos decisivos, o defeito real do ciclo
-          (<code>external-clis-merge-blocker</code>, veredito individual dissolvido na mescla) vai de FFF para PPP,
-          e dois casos que pareciam ter regredido numa rodada única passam PPP — era variância. Rodada única do
-          conjunto inteiro oscila entre 0,84 e 0,91 com os mesmos assets, então ela é o retrato que acompanha o
-          pacote, não o critério de aceitação. Ficaram em aberto, com evidência no companion: sobre-despacho em
-          <code>external-clis-parallel</code> (<code>Agent called 2x</code>) e uma rodada em três que renomeou e
-          colocou em negrito o rótulo do veredito apesar da regra de reprodução verbatim — o sobre-despacho
-          fechado por medição contra o pacote 0.5.2 e o rótulo na 0.5.4, ver abaixo.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.5.2 · Primeira revisão real por CLI externa e contrato da linha de veredito</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> primeira revisão por CLI externa de verdade (nenhum fixture):
-          <code>codex exec --skip-git-repo-check -s read-only -m &lt;slug&gt; -</code> com o prompt do papel
-          <code>code-reviewer</code> no stdin, sobre o commit da 0.5.1 — o contrato de somente-leitura se confirmou
-          na prática (congelamento <code>git status --porcelain -uall</code> + <code>git hash-object</code> antes e
-          depois da chamada, idêntico). Contrato da linha de veredito em <code>.skills/external-clis/SKILL.md</code>:
-          o prompt montado para um revisor CLI passa a exigir a linha de sinal da etapa, sob pena de a revisão ser
-          descartada — motivo medido: o revisor real bloqueou corretamente sem emitir a linha
-          <code>Review status:</code>, e pela regra antiga aquele bloqueio teria sido jogado fora como falha de
-          transporte. Recuperação de veredito desviante: uma resposta cuja seção <code>## Verdict</code> contém
-          exatamente uma das duas palavras de veredito passa a ser lida como esse veredito, com o desvio registrado
-          ao lado; ambíguo ou ausente continua falha de transporte. O contrato e a recuperação são por etapa —
-          <code>security</code> não tem seção <code>## Verdict</code>, o sinal vive em <code>## Findings</code>.
-          <code>readText</code> normaliza CRLF (<code>internal/kit/validate.go</code>) para que um
-          <code>prompt.md</code> salvo com CRLF não escape em silêncio a checagem de deriva do
-          <code>append_system_prompt</code>. Identidade de cópia por sobreposição de linhas em
-          <code>matchingAgentBody</code> (<code>internal/kit/evals.go</code>), com dois caminhos independentes
-          (sobreposição e linha de abertura) e teste novo com oito casos. Asserção negativa restaurada em
-          <code>evals/cases/external-clis-only</code> — achado do próprio revisor CLI externo, que o revisor Claude
-          e o Coordenador não pegaram.</p>
-        <p><strong>Relações:</strong> segundo ciclo de <code>/dh:improve</code>, sobre 0.5.1 — primeira vez
-          que uma revisão CLI real (não fixture) roda contra o próprio kit.</p>
-        <p><strong>Testado?</strong> A própria revisão real é a prova: dois achados do kit saíram dessa chamada.
-          Medido depois desta release, ainda sem registro em nenhum documento antes deste: as etapas
-          <code>security</code> e <code>document</code> também foram exercitadas com um revisor CLI real pela
-          primeira vez, e ambas produziram o sinal de veredito exato da etapa já na primeira tentativa — o contrato
-          da linha de veredito da 0.5.2 se sustenta nas três etapas (<code>document</code>, <code>security</code>,
-          <code>code</code>). A revisão de segurança encontrou duas vulnerabilidades MEDIUM demonstradas em
-          <code>dh validate</code> (contenção de symlink, leituras sem limite), corrigidas no mesmo lote por outro
-          especialista. O achado de sobre-despacho registrado no card 0.5.1 (<code>external-clis-parallel</code>,
-          <code>Agent called 2x</code>) não reproduz mais: três execuções consecutivas contra o pacote 0.5.2
-          marcaram <code>Agent called 1x</code> — fechado por medição; o histórico do achado continua registrado no
-          card 0.5.1 acima, não apagado. Ficou em aberto nesta release: uma execução em três renomeava ou colocava em negrito o
-          rótulo do veredito apesar da regra de reprodução verbatim — fechado por medição na 0.5.4, ver abaixo.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.5.3 · Primeira revisão real em segurança e documento; symlink e leitura sem limite corrigidos</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> primeira revisão real nas etapas <code>security</code> e <code>document</code>
-          (antes só <code>code</code> tinha sido exercitada com binário externo) — <code>codex</code> headless em
-          modo somente-leitura produziu o sinal exato de cada etapa na primeira tentativa
-          (<code>### MEDIUM:</code> sob <code>## Findings</code> e <code>- changes required</code> sob
-          <code>## Verdict</code>). Essa revisão encontrou, e a release corrigiu, duas vulnerabilidades em
-          <code>dh validate</code>: contenção por symlink decidida no diretório antes de enumerar qualquer arquivo
-          (nenhum componente symlink é aceito entre o diretório do caso e o alvo, recusa em vez de
-          resolve-e-permite) e leitura sem limite (todo arquivo passa por um único ponto que recusa não-regular e
-          aplica teto de 5 MiB, conferido antes e depois da leitura). Quatro skips silenciosos eliminados
-          (<code>case.yaml</code>, grader, <code>prompt.md</code> e fixture ilegíveis agora falham nomeando o
-          caminho). <code>dh validate</code> passa a conferir a contagem em prosa da documentação contra a
-          contagem real de <code>docs/**</code> e <code>README*</code> — motivado pelo tutorial 00 mandando esperar
-          <code>18/17/19/3</code> de um kit que já entregava <code>19/17/21/4</code>. Documentação atualizada em
-          massa (contagens, cards 0.5.1/0.5.2 no roadmap, card do validador de story/plano/ADR movido para
-          Entregue, <code>plano-produto.html</code> tirado do estado "0.1.0, runtime pendente", seção nova sobre
-          <code>reviewers:</code> nos dois inícios rápidos); documentação vira condição de conclusão, não boa
-          intenção. O prompt de revisor CLI passa a carregar a própria tag
-          <code>cli:&lt;binário&gt;/&lt;slug&gt;</code>. Nada escreve na árvore entre o congelamento e a
-          comparação pós-chamada, o Coordenador inclusive.</p>
-        <p><strong>Relações:</strong> segue o ciclo de <code>/dh:improve</code> aberto na 0.5.1/0.5.2,
-          primeira vez com revisão CLI real nas três etapas do PRD-003. Evidência de RF-09/AC-10 e RF-13/AC-14 do
-          PRD-004 registrada em <code>docs/prd/PRD-004-evals-executaveis-e-higiene.review.md</code>.</p>
-        <p><strong>Testado?</strong> As duas vulnerabilidades foram demonstradas pela própria revisão CLI e
-          corrigidas no mesmo lote. O achado de sobre-despacho da 0.5.1 (<code>external-clis-parallel</code>) não
-          reproduz mais — <code>Agent called 1x</code> em três rodadas consecutivas contra o pacote 0.5.2. Sem
-          baseline comportamental novo registrado nesta release; a checagem de contagem documentada roda em
-          <code>dh validate</code> a cada execução.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.5.4 · Rótulo do veredito mesclado sem qualificador do Coordenador</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> medido: em 2 de 12 execuções de um caso, o relatório saía com
-          <code>- Merged review status: **request changes**</code> — renomeado e em negrito — apesar da regra de
-          reprodução verbatim existir desde a 0.5.2. Cláusula nova em <code>.agents/coordinator.md</code> nomeia
-          exatamente essa forma; o desvio não apareceu em 18 execuções depois dela (duas séries de 9). Três
-          armadilhas novas em <code>harness-evaluation</code>, todas sobre o mesmo ponto — o corpo do grader é o
-          prompt do juiz: uma redação que deixa ambígua a construção do próprio caso faz o juiz responder à
-          ambiguidade (medido: 3 falhas em 12 com a frase que nomeava a construção, 7 em 9 sem ela, numa redação
-          mais curta — encurtar piorou duas vezes); comentário sobre o próprio grader dentro do corpo vira parte da
-          pergunta; critério que manda o juiz comparar com um arquivo que ele não pode ler não é respondível.</p>
-        <p><strong>Relações:</strong> continuação do ciclo de <code>/dh:improve</code> sobre revisão CLI;
-          nenhuma mudança de código — o pacote sobe de versão porque o corpo do Coordenador muda e é ele que os
-          casos de eval carregam.</p>
-        <p><strong>Testado?</strong> Dezoito execuções depois da correção não reproduziram mais o desvio (duas
-          séries de 9) — dezoito execuções não provam zero, provam que o que aparecia uma vez a cada seis parou de
-          aparecer.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.5.5 · CLI do Claude Code deixa de ser fixada no workflow de evals</h3>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> o runner passa a gravar em cada resultado a versão sob a qual rodou
-          (<code>claudeVersion</code> no JSON do baseline), então a comparabilidade vem do que a execução
-          registrou, não de um número congelado num arquivo que envelhece entre releases — a máquina já estava em
-          2.1.280 com a CI ainda pedindo 2.1.278. A skill <code>harness-evaluation</code> passa a mandar reportar a
-          versão registrada junto do resultado e tratar diferença de versão entre duas execuções como condição
-          declarada da comparação, em vez de algo que o pino escondia.</p>
-        <p><strong>Relações:</strong> mesma linha do ciclo de <code>harness-evaluation</code> aberto na 0.5.4;
-          prepara o terreno para o baseline antes/depois da 0.6.0, que roda sob CLI 2.1.282, à frente do pino 2.1.278 das
-          releases anteriores, com a 2.1.280 já registrada no meio.</p>
-        <p><strong>Testado?</strong> Mudança de contrato do runner e da skill; sem execução comportamental dedicada
-          registrada nesta release. <code>go test ./...</code> e <code>dh validate .</code> continuam cobrindo o
-          schema.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.6.0 · Intake do Coordenador, plano decision-complete e caso de exploração vs. pergunta</h3>
-        <p><strong>Status:</strong> concluído — parcial: AC-15 ("mostrar que a mudança ajuda") não é demonstrado
-          pela nota do juiz, decisão registrada do dono.</p>
-        <p><strong>Resumo:</strong> <code>.agents/coordinator.md</code> ganha as seções <code>## Intake</code> e
-          <code>## Owner-facing replies</code>: explorar antes de perguntar — fato descobrível no repositório, na
-          tarefa ou em <code>.harness/</code> é responsabilidade do Coordenador (leitura direta ou despacho de
-          <code>repo-scout</code>), nunca perguntado ao dono; preferência ou tradeoff real vira pergunta em prosa
-          numerada, com o contexto da escolha, de 2 a 4 opções cada uma com sua consequência, e uma recomendação —
-          conselho, não decisão tomada no lugar do dono, por isso presente mesmo quando ele mantém a escolha para
-          si. Pergunta de baixo risco sem resposta segue pela recomendação, registrada como suposição; pergunta
-          bloqueante espera; silêncio nunca autoriza implementar, instalar, commitar, dar push, publicar ou fazer
-          deploy. Trabalho não trivial ganha fase somente leitura antes de qualquer mutação — explorar, perguntar
-          só o que a exploração não resolveu, apresentar plano decision-complete, esperar aprovação — com
-          ferramenta nativa de plan mode do runtime tratada como opcional. A reafirmação da demanda em 1-2 linhas
-          vira a primeira linha da primeira resposta a um pedido não trivial; o caminho trivial fecha com veredito
-          explícito (pronto, parcial ou bloqueado); relatório que pulou QA e revisão ganha checagem pontual antes de
-          entrar numa decisão ou no <code>MEMORY.md</code>. Contradição de modelo corrigida: o corpo dizia "seu
-          padrão é Sonnet" apesar do frontmatter já trazer <code>model: opus</code> desde a 0.4.0 — o corpo passa a
-          remeter ao próprio frontmatter. <code>product-discovery</code> ganha o mesmo formato de pergunta e uma
-          frase de reconciliação corrigida em revisão (a redação original contradizia a regra de lote único do
-          Coordenador). <code>repo-scout</code> ganha leitura e busca paralelas quando independentes, preferência
-          por trechos sobre arquivo inteiro numa varredura em leque, e dois não-objetivos restabelecidos.
-          <code>implementation-planner</code> e a skill <code>implementation-planning</code> passam a exigir plano
-          decision-complete, com uma seção <code>## Assumptions</code> nova no formato de saída. Caso de avaliação
-          novo <code>evals/cases/coordinator-explore-then-ask</code> (9 graders) e baselines
-          <code>evals/baselines/2026-09-24-0.5.5-{before,after}.{json,md}</code>.</p>
-        <p><strong>Relações:</strong> PLAN-005 (AC-01 a AC-16, brief IMP-001); terceiro ciclo de
-          <code>/dh:improve</code> sobre o próprio kit, desta vez sobre o Coordenador e os papéis de
-          descoberta, mapeamento e planejamento — os ciclos anteriores (0.5.1, 0.5.2) tocaram a revisão por CLI
-          externa. Revisores mais críticos (<code>code-reviewer</code>, <code>security-reviewer</code>,
-          <code>document-validator</code>) ficam fora deste lote por decisão do dono, para o segundo lote.</p>
-        <p><strong>Testado?</strong> Medido, com o limite declarado: nota 0,67 antes e 0,74 depois no caso decisivo, 3
-          execuções de cada lado, juiz sonnet, CLI 2.1.282 — diferença que essa amostra não separa do ruído,
-          portanto não é ganho medido. Só o grader 03b (pergunta com contexto, opções e
-          recomendação) moveu com clareza, 1/3 → 3/3. O grader 06 (reafirma a demanda primeiro) pontuou 0/3 nos dois
-          lados no juiz, mas a leitura manual das respostas mostra a reafirmação aparecendo depois da mudança —
-          primeira linha literal 0/3 → 2/3, no topo da resposta 0/3 → 3/3 — o grader precisa de recalibração,
-          candidata ao segundo lote. AC-15 não é demonstrado pela nota do juiz. Reexecução dos 11 casos vizinhos
-          <code>external-clis-*</code> (1 execução cada, CLI 2.1.282, <code>evals/results/</code>, fora do controle
-          de versão): média 0,91, e 0,82 para os mesmos casos na 0.5.1 (CLI 2.1.278) — com uma execução por caso a comparação não
-          sustenta melhora nem piora; três caíram (<code>attribution</code>, <code>only</code>,
-          <code>risk-001</code>) e foram reverificados na 0.7.0 (variância, não regressão; ver card 0.7.0 abaixo). Limites conhecidos adicionais, listados no <code>CHANGELOG.md</code> 0.6.0 como do segundo lote (entregue na 0.7.0, ver card abaixo) e outros fechados na 0.7.1, cada um pelo próprio critério de aceite (ver card 0.7.1 abaixo): a redação do item 4 do Procedure do
-          Coordenador quanto ao despacho de <code>repo-scout</code> antes da atribuição de papéis; os dois bullets
-          adjacentes de auditoria de arquitetura em <code>repo-scout</code>; e o prompt montado para um revisor CLI
-          precisa dizer explicitamente que ler arquivos é permitido — uma tentativa de revisão leu a cláusula
-          anti-delegação como proibição de leitura. Código Go: só a constante de versão em <code>internal/build/build.go</code>; <code>go run ./cmd/dh validate
-          --source-only .</code> confirma 0 erros e as contagens de agentes/comandos/skills/perfis/templates
-          inalteradas (19/17/21/4/16).</p>
-      </div>
-
-      <div class="card">
-        <h3>0.7.0 · Revisores críticos, grader 06 recalibrado e vizinhos reverificados</h3>
-        <p><strong>Status:</strong> concluído — sem ganho de detecção comprovado em nenhum dos três revisores
-          editados; decisão do dono de não descrever efeito não medido como ganho (lição do T-207) mantida.</p>
-        <p><strong>Resumo:</strong> <code>code-reviewer</code>, <code>security-reviewer</code> e
-          <code>document-validator</code>, com as skills <code>code-review</code>, <code>security-review</code> e
-          <code>document-review</code>, passam a adversariais por padrão: uma alegação de que a mudança funciona, ou
-          de que um documento cobre o que afirma, fica não provada até ser rastreada. Cada papel ganha ângulos ou
-          categorias de cobertura obrigatórios (correção/regressão/spec/superfície de segurança na etapa
-          <code>code</code>; autenticação/autorização em nível de objeto/validação/dado sensível/execução na etapa
-          <code>security</code>; as seis categorias já existentes na etapa <code>document</code>), e um ângulo não
-          efetivamente checado fica descoberto — nunca aprovado por omissão. Achados exigem cenário concreto.
-          Aprovação exige prova do que foi checado: seção <code>## Coverage</code> nova em <code>code</code>,
-          <code>## Not raised</code> vira condição de <code>approved</code> em <code>document</code>, a frase de
-          saldo limpo de <code>security</code> só sai quando toda categoria tocada foi rastreada. Um ângulo
-          descoberto vira, por etapa, achado Major (<code>code</code>), achado categoria <code>gap</code>
-          (<code>document</code>) ou achado Low <code>hypothesis requiring investigation</code>
-          (<code>security</code>) — sob a regra de mescla do Coordenador
-          (<code>.agents/coordinator.md:132</code>), os dois primeiros bloqueiam o veredito mesclado por si só; o
-          de <code>security</code> precisa de uma resolução (<code>.agents/coordinator.md:85</code>) mas não bloqueia
-          sozinho, e não retira por si só o rótulo "verified" — a linha 83 só nega esse rótulo diante de um
-          bloqueador não resolvido, e um Low de <code>security</code> não é um bloqueador da mescla. Nenhuma linha de
-          sinal de veredito nem campo de frontmatter mudou; o <code>code-reviewer</code> ganhou o cabeçalho <code>## Coverage</code>.</p>
-        <p><strong>Relações:</strong> PLAN-006/IMP-003, o "segundo lote" anunciado no card 0.6.0 acima e antes
-          listado em Planejado. <code>CHANGELOG.md</code> 0.7.0.</p>
-        <p><strong>Testado?</strong> Medido, com o limite declarado. Três casos novos com defeito plantado
-          (<code>code-reviewer-equivalent-form-miss</code>, <code>security-reviewer-object-authz-miss</code>,
-          <code>document-validator-scope-overclaim</code>) comparam cada papel antes/depois
-          (<code>evals/baselines/2026-09-24-*-reviewer-before.md</code>,
-          <code>evals/baselines/2026-09-25-*-reviewer-after.md</code>). <strong>Nenhum ganho de detecção
-          medido</strong>: <code>code</code> e <code>document</code> detectam o defeito plantado 3/3 antes e depois,
-          nota idêntica nas duas pontas (0,78 e 0,67); <code>security</code> já não discriminava depois da única
-          rodada de robustecimento autorizada (3/3 antes e depois), AC-04 para <code>security</code> fica
-          <strong>não medido</strong>. Os controles de <code>code</code> (grader 03, dupla negativa) e
-          <code>document</code> (grader do controle, que ignora uma condição-fonte legítima) são defeitos do
-          próprio caso, confirmados por leitura manual das seis réplicas de cada lado — registrados para correção
-          posterior, não corrigidos aqui. Mudança visível sem controvérsia: <code>code-reviewer</code> abre toda
-          resposta com <code>## Coverage</code> em 3/3 depois, 0/3 antes. Sem regressão: <code>security</code> 3/3,
-          <code>doc-validator-clean</code> 6/6 graders, <code>doc-validator-gap</code> 11/11 graders. Grader 06
-          recalibrado (<code>evals/results/2026-09-25-grader06-regrade.md</code>): 18/18 votos batem com a leitura
-          manual; amostra maior de seis execuções por lado
-          (<code>evals/baselines/2026-09-25-coordinator-restate-larger.md</code>) dá 0/6 → 6/6 na reafirmação da
-          demanda — primeira evidência medida da regra da 0.6.0. Vizinhos reverificados
-          (<code>evals/results/2026-09-24-neighbour-recheck.md</code>): <code>attribution</code> e <code>only</code>
-          voltam a 1,00 (3/3), <code>risk-001</code> fica em 0,96 (3/4, 5ª execução não rodou por teto de custo) —
-          as três quedas da 0.6.0 eram variância, não regressão. RISK-001 continua <strong>mitigado</strong> (a
-          regra de 5/5 não foi alcançada). Gasto: cerca de US$ 22,5 do teto de US$ 25, incluindo US$ 3,84 perdidos
-          num lote de rejulgamento do grader 06 que rodou sem isolar o contexto da máquina (erro de processo,
-          registrado). <strong>Limites conhecidos, ainda sem lote definido:</strong> o achado novo de que o grader
-          07 (sem "posso prosseguir?") cai de 3/6 para 1/6 no corpo do Coordenador 0.6.0 — na 0.7.1 (ver card
-          abaixo) o mesmo grader vai de 1/6 para 2/6, ainda abaixo da barra de ≥ 5/6, e fecha na 0.7.2 (6/6) porque a
-          definição do grader mudou — comparável aos placares do rejulgamento offline da T-501 (0.7.0 em 6/6, 0.7.1
-          em 5/6 sob o grader novo, <code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code>), não
-          evidência de mudança de comportamento; e o <code>timeout_minutes</code> maior para
-          <code>cli:grok/grok-4.7</code>.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.7.1 · Texto de release do lote pendente: seis itens fecham, dois seguem abertos</h3>
-        <p><strong>Status:</strong> concluído — seis dos sete itens do "Limites conhecidos" listados no card 0.7.0
-          acima fecham, cada um pelo próprio critério de aceite; o grader 07 de
-          <code>coordinator-explore-then-ask</code> segue sem fechar (1/6 → 2/6, abaixo da barra de ≥ 5/6); RISK-001
-          continua mitigado (3 de 5 passes completos).</p>
-        <p><strong>Resumo:</strong> grader 03 de <code>code-reviewer-equivalent-form-miss</code> reescrito sem
-          dupla negativa e reconfirmado por rejulgamento offline das 6 réplicas já salvas (6/6 PASS, negativo
-          sintético reprovado 3/3); grader <code>01-clause-verbatim-byte-identical</code> de
-          <code>external-clis-risk-001</code> vira checagem <code>type: regex</code> determinística, casando as 4
-          réplicas salvas, inclusive a que o antigo juiz LLM tinha reprovado; fixture de controle e graders 04/05 de
-          <code>document-validator-scope-overclaim</code> corrigidos (04 vai de 1/3 para 3/3, 05 de 0/3 para 3/3).
-          Item 4 do Procedure do Coordenador, mescla dos bullets de <code>repo-scout</code> em "When not to use" e
-          bloco novo de leitura permitida em <code>.skills/external-clis/SKILL.md</code> fecham cada um pelo próprio
-          critério de aceite. <code>timeout_minutes</code> do grok: fechado sem mudança (nenhum timeout em ~15
-          chamadas <code>cli:grok/grok-4.7</code> desde 2026-09-24) — a frase correspondente no "Limites conhecidos"
-          do card 0.7.0 acima não é removida por este lote. Versão, changelog, roadmap (pt-br e inglês) e
-          manifesto/marketplace passam a declarar 0.7.1 de forma consistente.</p>
-        <p><strong>Relações:</strong> PLAN-007/IMP-004, quarta e última fatia; consome os resultados medidos das
-          três fatias anteriores (T-401 checagens offline, T-402 critérios de aceite, T-403 rodadas pagas).
-          <code>CHANGELOG.md</code> 0.7.1.</p>
-        <p><strong>Testado?</strong> Medido, com a barra que faltou registrada como faltou, não arredondada para
-          fechamento. <code>coordinator-explore-then-ask</code> (6 execuções por lado): grader 06 segue 6/6; grader
-          07 vai de 1/6 (0.7.0) para 2/6 (candidato 0.7.1), abaixo da barra de ≥ 5/6 — <strong>barra não
-          atingida</strong>, item permanece no "Limites conhecidos" do card 0.7.0 acima. Achado adicional, não
-          corrigido neste lote: grader 03 do mesmo caso cai de 2/6 para 0/6 (comportamento já presente na 0.7.0, não
-          endereçado). <code>document-validator-scope-overclaim</code> (3 execuções): barra atingida, detecção
-          (graders 01-03) segue 3/3. <code>external-clis-risk-001</code> (5 execuções): 3 de 5 passes completos —
-          RISK-001 <strong>continua mitigado</strong> (a regra de 5/5 não foi alcançada); as duas falhas, lidas
-          manualmente, apontam para variância do juiz LLM nos graders ainda não determinísticos, sem reclassificar o
-          status. Guardas <code>external-clis-attribution</code> (5/5 graders) e <code>external-clis-only</code>
-          (6/6) sem queda. Gasto: US$ 10,21 do teto de US$ 12 do lote. Evidência:
-          <code>evals/baselines/2026-09-25-pending-batch-0.7.1.md</code> e os baselines por caso
-          <code>evals/baselines/2026-09-25-*-0.7.1.json</code>.</p>
-      </div>
-
-      <div class="card">
-        <h3>0.7.2 · Grader 07 recalibrado: fecha, mas a definição mudou</h3>
-        <p><strong>Status:</strong> concluído — grader 07 e grader 06 de <code>coordinator-explore-then-ask</code>
-          fecham (6/6 e 5/6, ambas as barras ≥ 5/6 atingidas); grader 03 do mesmo caso segue fora de escopo (2/6);
-          nenhum caso de guarda rodou neste lote.</p>
-        <p><strong>Resumo:</strong> grader 07 (<code>.../graders/07-no-filler-may-i-proceed.md</code>) e a frase de
-          fechamento do Intake do Coordenador (<code>.agents/coordinator.md</code>) recalibrados na mesma regra: um
-          fechamento que nomeia o próximo passo concreto depois da decisão do dono deixa de contar como enchimento
-          — as duas frases ganham o mesmo exemplo, "I'll turn this into an implementation plan". O rejulgamento
-          offline (T-501) precisou de uma correção de texto na rodada 0 (duas réplicas 0.7.0 discordaram sobre esse
-          tipo de fechamento); a rodada 1, já corrigida, bateu nas 13 réplicas. <strong>O grader 07 fecha na 0.7.2
-          porque a definição dele mudou, não porque o comportamento do Coordenador mudou:</strong> sob o grader
-          corrigido, as réplicas já salvas da 0.7.0 e da 0.7.1 já pontuavam 6/6 e 5/6
-          (<code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code>), de modo que o 6/6 medido ao vivo na
-          0.7.2 não é evidência de mudança de comportamento. Nenhum caso de guarda (<code>external-clis-*</code>,
-          RISK-001) rodou neste lote. Versão, changelog, roadmap (pt-br e inglês) e manifesto/marketplace passam a
-          declarar 0.7.2 de forma consistente.</p>
-        <p><strong>Relações:</strong> PLAN-008/IMP-005, quarta e última fatia; consome os resultados medidos das
-          três fatias anteriores (T-501 rejulgamento offline, T-502 recalibração de texto, T-503 medição ao vivo).
-          <code>CHANGELOG.md</code> 0.7.2.</p>
-        <p><strong>Testado?</strong> Medido, com a ressalva de redefinição aplicada onde o grader 07 é reportado
-          como fechado. <code>coordinator-explore-then-ask</code> (6 execuções): grader 07 fecha em 6/6, grader 06
-          fica em 5/6 — <strong>as duas barras (≥ 5/6) atingidas</strong>. Grader 03 do mesmo caso segue em 2/6,
-          fora de escopo deste lote. Rejulgamento offline da T-501: 13 réplicas (12 salvas + 1 negativo sintético)
-          batendo com a expectativa pré-registrada na rodada 1, após uma correção de texto na rodada 0. Grader 06 cai de 6/6 (0.7.1) para 5/6 ao vivo:
-          a única réplica que falha abre com o comando de teste em vez de reafirmar a demanda primeiro (reprovada
-          3/3 pelo juiz, unânime); a regra que esse grader mede ("reafirmar a demanda primeiro" no Intake) não foi
-          tocada neste lote, então a leitura é variância de execução única, não regressão — uma amostra maior
-          confirmaria. Gasto do
-          lote: US$ 2,36 de um teto de US$ 3, somando o rejulgamento offline e a medição ao vivo. Evidência:
-          <code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code> e
-          <code>evals/baselines/2026-09-25-pending-batch-0.7.2.md</code>.</p>
-      </div>
-
-      <div class="card">
-        <h3>Comando de planejamento em loop</h3>
-        <p><strong>Descrição:</strong> <code>/dh:plan-loop</code> roda um loop em waves entre o
-          <code>implementation-planner</code> (Claude) e uma rotação de CLIs externas despachadas, pela primeira vez,
-          como planejadoras — não só como revisoras — restritas a binários com modo somente-leitura documentado e
-          medido (hoje só <code>codex</code>; <code>mcode</code> pendente de medição; <code>grok</code>,
-          <code>agy</code> e <code>opencode</code> nunca planejam). Cada wave é julgada pelo painel completo de
-          <code>reviewers.document</code>, exceção explícita à revisão enxuta. A parada roda nesta ordem:
-          convergência (um voto elegível fora de <code>claude</code>/<code>cli:claude/&lt;slug&gt;</code> e do autor
-          do candidato vencedor) → teto de waves (padrão 6) → teto de despachos (padrão 48); no teto, a entrega usa
-          menos achados bloqueantes → menos achados totais → wave mais recente, e um candidato com conflito de
-          candidato não confiável em aberto nunca é promovido. Sem CLI elegível (k = 0), cai no <code>/dh:plan</code>
-          de hoje. Pedido do dono em 25/09/2026, especificado em PRD-005.</p>
-        <p><strong>Critérios de aceite:</strong> PRD-005 RF-01 a RF-15 (<code>.harness/tasks/PRD-005/PLAN.md</code>).</p>
-        <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Relações:</strong> PRD-005; ADR-002 (<code>docs/adr/ADR-002-cli-planejadora.md</code>); PLAN-011
-          (<code>.harness/tasks/PRD-005/PLAN.md</code>), seis fatias; <code>CHANGELOG.md</code> 0.10.0.</p>
-        <p><strong>Testado?</strong> Ver o card 0.10.0 abaixo — os dois casos de eval novos e as reexecuções da
-          0.9.0 medidos neste mesmo lote. Nenhum caso exercita o loop multi-wave completo fim a fim; essa fronteira
-          fica coberta por revisão mais os greps determinísticos do texto do comando (precedente da PLAN-010,
-          decisão do dono registrada em Decisions needed #2 do PLAN-011).</p>
+        <p><strong>Resumo:</strong> Lote de débitos registrados na 0.11.0, mais um ajuste no <code>codex</code>.
+          O exemplo do <code>/dh:review</code> agora é <code>feature PRD-007</code> (os dígitos valem como escritos e casam com o nome da pasta). A revisão final não despacha o <code>product-discovery</code> enquanto um bloqueio do
+          <code>/dh:secure</code> segue aberto (o veredito já é FEATURE REPROVADA). Os tutoriais (pt-br e en) dizem a condição exata do RF-14: o Status do PRD só vira
+          <code>entregue em &lt;data&gt;</code> quando nenhuma regra ficou "Não honrada" sem decisão registrada do
+          dono. O nó t3 do mapa excalidraw diz "Escopo e regras (R&lt;n&gt;)", e os diagramas dos tutoriais e do
+          mapa mostram a revisão final <code>/dh:review feature PRD-007</code> (FEATURE APROVADA, REPROVADA ou
+          BLOQUEADA) depois do build por ticket e antes da entrega. O arquivo de prompt do <code>codex</code> é
+          por chamada (<code>mktemp</code>) e é removido na própria limpeza da receita.</p>
+        <p><strong>Relações:</strong> PRD-007 (<code>docs/prd/PRD-007-fluxo-prd-e-tickets.md</code>, RF-14);
+          <code>.commands/review.md</code>; <code>docs/tutoriais/templates.md</code>;
+          <code>.skills/external-clis/references/codex.md</code>; <code>docs/dev-harness-mapa.excalidraw</code>.</p>
+        <p><strong>Testado?</strong> validate, build e testes verdes; um revisor Claude pediu correção de uma frase deste card (zeros à esquerda) e de uma relação, corrigidas; o conjunto de cards conferido contra a main (só os cinco débitos saíram).</p>
+        <p><strong>Limite conhecido:</strong> nenhuma eval paga medida neste lote; a mudança de texto do
+          <code>codex</code> não foi exercitada numa chamada real registrada aqui.</p>
       </div>
 
       <div class="card">
@@ -1301,6 +807,29 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>Comando de planejamento em loop</h3>
+        <p><strong>Descrição:</strong> <code>/dh:plan-loop</code> roda um loop em waves entre o
+          <code>implementation-planner</code> (Claude) e uma rotação de CLIs externas despachadas, pela primeira vez,
+          como planejadoras — não só como revisoras — restritas a binários com modo somente-leitura documentado e
+          medido (hoje só <code>codex</code>; <code>mcode</code> pendente de medição; <code>grok</code>,
+          <code>agy</code> e <code>opencode</code> nunca planejam). Cada wave é julgada pelo painel completo de
+          <code>reviewers.document</code>, exceção explícita à revisão enxuta. A parada roda nesta ordem:
+          convergência (um voto elegível fora de <code>claude</code>/<code>cli:claude/&lt;slug&gt;</code> e do autor
+          do candidato vencedor) → teto de waves (padrão 6) → teto de despachos (padrão 48); no teto, a entrega usa
+          menos achados bloqueantes → menos achados totais → wave mais recente, e um candidato com conflito de
+          candidato não confiável em aberto nunca é promovido. Sem CLI elegível (k = 0), cai no <code>/dh:plan</code>
+          de hoje. Pedido do dono em 25/09/2026, especificado em PRD-005.</p>
+        <p><strong>Critérios de aceite:</strong> PRD-005 RF-01 a RF-15 (<code>.harness/tasks/PRD-005/PLAN.md</code>).</p>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Relações:</strong> PRD-005; ADR-002 (<code>docs/adr/ADR-002-cli-planejadora.md</code>); PLAN-011
+          (<code>.harness/tasks/PRD-005/PLAN.md</code>), seis fatias; <code>CHANGELOG.md</code> 0.10.0.</p>
+        <p><strong>Testado?</strong> Ver o card 0.10.0 — os dois casos de eval novos e as reexecuções da
+          0.9.0 medidos neste mesmo lote. Nenhum caso exercita o loop multi-wave completo fim a fim; essa fronteira
+          fica coberta por revisão mais os greps determinísticos do texto do comando (precedente da PLAN-010,
+          decisão do dono registrada em Decisions needed #2 do PLAN-011).</p>
+      </div>
+
+      <div class="card">
         <h3>0.9.0 · Comando autônomo <code>/dh:auto</code> e proporcionalidade de revisão</h3>
         <p><strong>Status:</strong> concluído.</p>
         <p><strong>Resumo:</strong> <code>/dh:auto</code> encadeia discover, plan e build, com <code>secure</code> por
@@ -1348,6 +877,321 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
+        <h3>0.7.2 · Grader 07 recalibrado: fecha, mas a definição mudou</h3>
+        <p><strong>Status:</strong> concluído — grader 07 e grader 06 de <code>coordinator-explore-then-ask</code>
+          fecham (6/6 e 5/6, ambas as barras ≥ 5/6 atingidas); grader 03 do mesmo caso segue fora de escopo (2/6);
+          nenhum caso de guarda rodou neste lote.</p>
+        <p><strong>Resumo:</strong> grader 07 (<code>.../graders/07-no-filler-may-i-proceed.md</code>) e a frase de
+          fechamento do Intake do Coordenador (<code>.agents/coordinator.md</code>) recalibrados na mesma regra: um
+          fechamento que nomeia o próximo passo concreto depois da decisão do dono deixa de contar como enchimento
+          — as duas frases ganham o mesmo exemplo, "I'll turn this into an implementation plan". O rejulgamento
+          offline (T-501) precisou de uma correção de texto na rodada 0 (duas réplicas 0.7.0 discordaram sobre esse
+          tipo de fechamento); a rodada 1, já corrigida, bateu nas 13 réplicas. <strong>O grader 07 fecha na 0.7.2
+          porque a definição dele mudou, não porque o comportamento do Coordenador mudou:</strong> sob o grader
+          corrigido, as réplicas já salvas da 0.7.0 e da 0.7.1 já pontuavam 6/6 e 5/6
+          (<code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code>), de modo que o 6/6 medido ao vivo na
+          0.7.2 não é evidência de mudança de comportamento. Nenhum caso de guarda (<code>external-clis-*</code>,
+          RISK-001) rodou neste lote. Versão, changelog, roadmap (pt-br e inglês) e manifesto/marketplace passam a
+          declarar 0.7.2 de forma consistente.</p>
+        <p><strong>Relações:</strong> PLAN-008/IMP-005, quarta e última fatia; consome os resultados medidos das
+          três fatias anteriores (T-501 rejulgamento offline, T-502 recalibração de texto, T-503 medição ao vivo).
+          <code>CHANGELOG.md</code> 0.7.2.</p>
+        <p><strong>Testado?</strong> Medido, com a ressalva de redefinição aplicada onde o grader 07 é reportado
+          como fechado. <code>coordinator-explore-then-ask</code> (6 execuções): grader 07 fecha em 6/6, grader 06
+          fica em 5/6 — <strong>as duas barras (≥ 5/6) atingidas</strong>. Grader 03 do mesmo caso segue em 2/6,
+          fora de escopo deste lote. Rejulgamento offline da T-501: 13 réplicas (12 salvas + 1 negativo sintético)
+          batendo com a expectativa pré-registrada na rodada 1, após uma correção de texto na rodada 0. Grader 06 cai de 6/6 (0.7.1) para 5/6 ao vivo:
+          a única réplica que falha abre com o comando de teste em vez de reafirmar a demanda primeiro (reprovada
+          3/3 pelo juiz, unânime); a regra que esse grader mede ("reafirmar a demanda primeiro" no Intake) não foi
+          tocada neste lote, então a leitura é variância de execução única, não regressão — uma amostra maior
+          confirmaria. Gasto do
+          lote: US$ 2,36 de um teto de US$ 3, somando o rejulgamento offline e a medição ao vivo. Evidência:
+          <code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code> e
+          <code>evals/baselines/2026-09-25-pending-batch-0.7.2.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.7.1 · Texto de release do lote pendente: seis itens fecham, dois seguem abertos</h3>
+        <p><strong>Status:</strong> concluído — seis dos sete itens do "Limites conhecidos" listados no card 0.7.0
+          acima fecham, cada um pelo próprio critério de aceite; o grader 07 de
+          <code>coordinator-explore-then-ask</code> segue sem fechar (1/6 → 2/6, abaixo da barra de ≥ 5/6); RISK-001
+          continua mitigado (3 de 5 passes completos).</p>
+        <p><strong>Resumo:</strong> grader 03 de <code>code-reviewer-equivalent-form-miss</code> reescrito sem
+          dupla negativa e reconfirmado por rejulgamento offline das 6 réplicas já salvas (6/6 PASS, negativo
+          sintético reprovado 3/3); grader <code>01-clause-verbatim-byte-identical</code> de
+          <code>external-clis-risk-001</code> vira checagem <code>type: regex</code> determinística, casando as 4
+          réplicas salvas, inclusive a que o antigo juiz LLM tinha reprovado; fixture de controle e graders 04/05 de
+          <code>document-validator-scope-overclaim</code> corrigidos (04 vai de 1/3 para 3/3, 05 de 0/3 para 3/3).
+          Item 4 do Procedure do Coordenador, mescla dos bullets de <code>repo-scout</code> em "When not to use" e
+          bloco novo de leitura permitida em <code>.skills/external-clis/SKILL.md</code> fecham cada um pelo próprio
+          critério de aceite. <code>timeout_minutes</code> do grok: fechado sem mudança (nenhum timeout em ~15
+          chamadas <code>cli:grok/grok-4.7</code> desde 2026-09-24) — a frase correspondente no "Limites conhecidos"
+          do card 0.7.0 não é removida por este lote. Versão, changelog, roadmap (pt-br e inglês) e
+          manifesto/marketplace passam a declarar 0.7.1 de forma consistente.</p>
+        <p><strong>Relações:</strong> PLAN-007/IMP-004, quarta e última fatia; consome os resultados medidos das
+          três fatias anteriores (T-401 checagens offline, T-402 critérios de aceite, T-403 rodadas pagas).
+          <code>CHANGELOG.md</code> 0.7.1.</p>
+        <p><strong>Testado?</strong> Medido, com a barra que faltou registrada como faltou, não arredondada para
+          fechamento. <code>coordinator-explore-then-ask</code> (6 execuções por lado): grader 06 segue 6/6; grader
+          07 vai de 1/6 (0.7.0) para 2/6 (candidato 0.7.1), abaixo da barra de ≥ 5/6 — <strong>barra não
+          atingida</strong>, item permanece no "Limites conhecidos" do card 0.7.0. Achado adicional, não
+          corrigido neste lote: grader 03 do mesmo caso cai de 2/6 para 0/6 (comportamento já presente na 0.7.0, não
+          endereçado). <code>document-validator-scope-overclaim</code> (3 execuções): barra atingida, detecção
+          (graders 01-03) segue 3/3. <code>external-clis-risk-001</code> (5 execuções): 3 de 5 passes completos —
+          RISK-001 <strong>continua mitigado</strong> (a regra de 5/5 não foi alcançada); as duas falhas, lidas
+          manualmente, apontam para variância do juiz LLM nos graders ainda não determinísticos, sem reclassificar o
+          status. Guardas <code>external-clis-attribution</code> (5/5 graders) e <code>external-clis-only</code>
+          (6/6) sem queda. Gasto: US$ 10,21 do teto de US$ 12 do lote. Evidência:
+          <code>evals/baselines/2026-09-25-pending-batch-0.7.1.md</code> e os baselines por caso
+          <code>evals/baselines/2026-09-25-*-0.7.1.json</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.7.0 · Revisores críticos, grader 06 recalibrado e vizinhos reverificados</h3>
+        <p><strong>Status:</strong> concluído — sem ganho de detecção comprovado em nenhum dos três revisores
+          editados; decisão do dono de não descrever efeito não medido como ganho (lição do T-207) mantida.</p>
+        <p><strong>Resumo:</strong> <code>code-reviewer</code>, <code>security-reviewer</code> e
+          <code>document-validator</code>, com as skills <code>code-review</code>, <code>security-review</code> e
+          <code>document-review</code>, passam a adversariais por padrão: uma alegação de que a mudança funciona, ou
+          de que um documento cobre o que afirma, fica não provada até ser rastreada. Cada papel ganha ângulos ou
+          categorias de cobertura obrigatórios (correção/regressão/spec/superfície de segurança na etapa
+          <code>code</code>; autenticação/autorização em nível de objeto/validação/dado sensível/execução na etapa
+          <code>security</code>; as seis categorias já existentes na etapa <code>document</code>), e um ângulo não
+          efetivamente checado fica descoberto — nunca aprovado por omissão. Achados exigem cenário concreto.
+          Aprovação exige prova do que foi checado: seção <code>## Coverage</code> nova em <code>code</code>,
+          <code>## Not raised</code> vira condição de <code>approved</code> em <code>document</code>, a frase de
+          saldo limpo de <code>security</code> só sai quando toda categoria tocada foi rastreada. Um ângulo
+          descoberto vira, por etapa, achado Major (<code>code</code>), achado categoria <code>gap</code>
+          (<code>document</code>) ou achado Low <code>hypothesis requiring investigation</code>
+          (<code>security</code>) — sob a regra de mescla do Coordenador
+          (<code>.agents/coordinator.md:132</code>), os dois primeiros bloqueiam o veredito mesclado por si só; o
+          de <code>security</code> precisa de uma resolução (<code>.agents/coordinator.md:85</code>) mas não bloqueia
+          sozinho, e não retira por si só o rótulo "verified" — a linha 83 só nega esse rótulo diante de um
+          bloqueador não resolvido, e um Low de <code>security</code> não é um bloqueador da mescla. Nenhuma linha de
+          sinal de veredito nem campo de frontmatter mudou; o <code>code-reviewer</code> ganhou o cabeçalho <code>## Coverage</code>.</p>
+        <p><strong>Relações:</strong> PLAN-006/IMP-003, o "segundo lote" anunciado no card 0.6.0 e antes
+          listado em Planejado. <code>CHANGELOG.md</code> 0.7.0.</p>
+        <p><strong>Testado?</strong> Medido, com o limite declarado. Três casos novos com defeito plantado
+          (<code>code-reviewer-equivalent-form-miss</code>, <code>security-reviewer-object-authz-miss</code>,
+          <code>document-validator-scope-overclaim</code>) comparam cada papel antes/depois
+          (<code>evals/baselines/2026-09-24-*-reviewer-before.md</code>,
+          <code>evals/baselines/2026-09-25-*-reviewer-after.md</code>). <strong>Nenhum ganho de detecção
+          medido</strong>: <code>code</code> e <code>document</code> detectam o defeito plantado 3/3 antes e depois,
+          nota idêntica nas duas pontas (0,78 e 0,67); <code>security</code> já não discriminava depois da única
+          rodada de robustecimento autorizada (3/3 antes e depois), AC-04 para <code>security</code> fica
+          <strong>não medido</strong>. Os controles de <code>code</code> (grader 03, dupla negativa) e
+          <code>document</code> (grader do controle, que ignora uma condição-fonte legítima) são defeitos do
+          próprio caso, confirmados por leitura manual das seis réplicas de cada lado — registrados para correção
+          posterior, não corrigidos aqui. Mudança visível sem controvérsia: <code>code-reviewer</code> abre toda
+          resposta com <code>## Coverage</code> em 3/3 depois, 0/3 antes. Sem regressão: <code>security</code> 3/3,
+          <code>doc-validator-clean</code> 6/6 graders, <code>doc-validator-gap</code> 11/11 graders. Grader 06
+          recalibrado (<code>evals/results/2026-09-25-grader06-regrade.md</code>): 18/18 votos batem com a leitura
+          manual; amostra maior de seis execuções por lado
+          (<code>evals/baselines/2026-09-25-coordinator-restate-larger.md</code>) dá 0/6 → 6/6 na reafirmação da
+          demanda — primeira evidência medida da regra da 0.6.0. Vizinhos reverificados
+          (<code>evals/results/2026-09-24-neighbour-recheck.md</code>): <code>attribution</code> e <code>only</code>
+          voltam a 1,00 (3/3), <code>risk-001</code> fica em 0,96 (3/4, 5ª execução não rodou por teto de custo) —
+          as três quedas da 0.6.0 eram variância, não regressão. RISK-001 continua <strong>mitigado</strong> (a
+          regra de 5/5 não foi alcançada). Gasto: cerca de US$ 22,5 do teto de US$ 25, incluindo US$ 3,84 perdidos
+          num lote de rejulgamento do grader 06 que rodou sem isolar o contexto da máquina (erro de processo,
+          registrado). <strong>Limites conhecidos, ainda sem lote definido:</strong> o achado novo de que o grader
+          07 (sem "posso prosseguir?") cai de 3/6 para 1/6 no corpo do Coordenador 0.6.0 — na 0.7.1 (ver card
+          0.7.1) o mesmo grader vai de 1/6 para 2/6, ainda abaixo da barra de ≥ 5/6, e fecha na 0.7.2 (6/6) porque a
+          definição do grader mudou — comparável aos placares do rejulgamento offline da T-501 (0.7.0 em 6/6, 0.7.1
+          em 5/6 sob o grader novo, <code>evals/baselines/2026-09-25-grader07-offline-rejudge.md</code>), não
+          evidência de mudança de comportamento; e o <code>timeout_minutes</code> maior para
+          <code>cli:grok/grok-4.7</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.6.0 · Intake do Coordenador, plano decision-complete e caso de exploração vs. pergunta</h3>
+        <p><strong>Status:</strong> concluído — parcial: AC-15 ("mostrar que a mudança ajuda") não é demonstrado
+          pela nota do juiz, decisão registrada do dono.</p>
+        <p><strong>Resumo:</strong> <code>.agents/coordinator.md</code> ganha as seções <code>## Intake</code> e
+          <code>## Owner-facing replies</code>: explorar antes de perguntar — fato descobrível no repositório, na
+          tarefa ou em <code>.harness/</code> é responsabilidade do Coordenador (leitura direta ou despacho de
+          <code>repo-scout</code>), nunca perguntado ao dono; preferência ou tradeoff real vira pergunta em prosa
+          numerada, com o contexto da escolha, de 2 a 4 opções cada uma com sua consequência, e uma recomendação —
+          conselho, não decisão tomada no lugar do dono, por isso presente mesmo quando ele mantém a escolha para
+          si. Pergunta de baixo risco sem resposta segue pela recomendação, registrada como suposição; pergunta
+          bloqueante espera; silêncio nunca autoriza implementar, instalar, commitar, dar push, publicar ou fazer
+          deploy. Trabalho não trivial ganha fase somente leitura antes de qualquer mutação — explorar, perguntar
+          só o que a exploração não resolveu, apresentar plano decision-complete, esperar aprovação — com
+          ferramenta nativa de plan mode do runtime tratada como opcional. A reafirmação da demanda em 1-2 linhas
+          vira a primeira linha da primeira resposta a um pedido não trivial; o caminho trivial fecha com veredito
+          explícito (pronto, parcial ou bloqueado); relatório que pulou QA e revisão ganha checagem pontual antes de
+          entrar numa decisão ou no <code>MEMORY.md</code>. Contradição de modelo corrigida: o corpo dizia "seu
+          padrão é Sonnet" apesar do frontmatter já trazer <code>model: opus</code> desde a 0.4.0 — o corpo passa a
+          remeter ao próprio frontmatter. <code>product-discovery</code> ganha o mesmo formato de pergunta e uma
+          frase de reconciliação corrigida em revisão (a redação original contradizia a regra de lote único do
+          Coordenador). <code>repo-scout</code> ganha leitura e busca paralelas quando independentes, preferência
+          por trechos sobre arquivo inteiro numa varredura em leque, e dois não-objetivos restabelecidos.
+          <code>implementation-planner</code> e a skill <code>implementation-planning</code> passam a exigir plano
+          decision-complete, com uma seção <code>## Assumptions</code> nova no formato de saída. Caso de avaliação
+          novo <code>evals/cases/coordinator-explore-then-ask</code> (9 graders) e baselines
+          <code>evals/baselines/2026-09-24-0.5.5-{before,after}.{json,md}</code>.</p>
+        <p><strong>Relações:</strong> PLAN-005 (AC-01 a AC-16, brief IMP-001); terceiro ciclo de
+          <code>/dh:improve</code> sobre o próprio kit, desta vez sobre o Coordenador e os papéis de
+          descoberta, mapeamento e planejamento — os ciclos anteriores (0.5.1, 0.5.2) tocaram a revisão por CLI
+          externa. Revisores mais críticos (<code>code-reviewer</code>, <code>security-reviewer</code>,
+          <code>document-validator</code>) ficam fora deste lote por decisão do dono, para o segundo lote.</p>
+        <p><strong>Testado?</strong> Medido, com o limite declarado: nota 0,67 antes e 0,74 depois no caso decisivo, 3
+          execuções de cada lado, juiz sonnet, CLI 2.1.282 — diferença que essa amostra não separa do ruído,
+          portanto não é ganho medido. Só o grader 03b (pergunta com contexto, opções e
+          recomendação) moveu com clareza, 1/3 → 3/3. O grader 06 (reafirma a demanda primeiro) pontuou 0/3 nos dois
+          lados no juiz, mas a leitura manual das respostas mostra a reafirmação aparecendo depois da mudança —
+          primeira linha literal 0/3 → 2/3, no topo da resposta 0/3 → 3/3 — o grader precisa de recalibração,
+          candidata ao segundo lote. AC-15 não é demonstrado pela nota do juiz. Reexecução dos 11 casos vizinhos
+          <code>external-clis-*</code> (1 execução cada, CLI 2.1.282, <code>evals/results/</code>, fora do controle
+          de versão): média 0,91, e 0,82 para os mesmos casos na 0.5.1 (CLI 2.1.278) — com uma execução por caso a comparação não
+          sustenta melhora nem piora; três caíram (<code>attribution</code>, <code>only</code>,
+          <code>risk-001</code>) e foram reverificados na 0.7.0 (variância, não regressão; ver card 0.7.0). Limites conhecidos adicionais, listados no <code>CHANGELOG.md</code> 0.6.0 como do segundo lote (entregue na 0.7.0, ver card abaixo) e outros fechados na 0.7.1, cada um pelo próprio critério de aceite (ver card 0.7.1): a redação do item 4 do Procedure do
+          Coordenador quanto ao despacho de <code>repo-scout</code> antes da atribuição de papéis; os dois bullets
+          adjacentes de auditoria de arquitetura em <code>repo-scout</code>; e o prompt montado para um revisor CLI
+          precisa dizer explicitamente que ler arquivos é permitido — uma tentativa de revisão leu a cláusula
+          anti-delegação como proibição de leitura. Código Go: só a constante de versão em <code>internal/build/build.go</code>; <code>go run ./cmd/dh validate
+          --source-only .</code> confirma 0 erros e as contagens de agentes/comandos/skills/perfis/templates
+          inalteradas (19/17/21/4/16).</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.5 · CLI do Claude Code deixa de ser fixada no workflow de evals</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> o runner passa a gravar em cada resultado a versão sob a qual rodou
+          (<code>claudeVersion</code> no JSON do baseline), então a comparabilidade vem do que a execução
+          registrou, não de um número congelado num arquivo que envelhece entre releases — a máquina já estava em
+          2.1.280 com a CI ainda pedindo 2.1.278. A skill <code>harness-evaluation</code> passa a mandar reportar a
+          versão registrada junto do resultado e tratar diferença de versão entre duas execuções como condição
+          declarada da comparação, em vez de algo que o pino escondia.</p>
+        <p><strong>Relações:</strong> mesma linha do ciclo de <code>harness-evaluation</code> aberto na 0.5.4;
+          prepara o terreno para o baseline antes/depois da 0.6.0, que roda sob CLI 2.1.282, à frente do pino 2.1.278 das
+          releases anteriores, com a 2.1.280 já registrada no meio.</p>
+        <p><strong>Testado?</strong> Mudança de contrato do runner e da skill; sem execução comportamental dedicada
+          registrada nesta release. <code>go test ./...</code> e <code>dh validate .</code> continuam cobrindo o
+          schema.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.4 · Rótulo do veredito mesclado sem qualificador do Coordenador</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> medido: em 2 de 12 execuções de um caso, o relatório saía com
+          <code>- Merged review status: **request changes**</code> — renomeado e em negrito — apesar da regra de
+          reprodução verbatim existir desde a 0.5.2. Cláusula nova em <code>.agents/coordinator.md</code> nomeia
+          exatamente essa forma; o desvio não apareceu em 18 execuções depois dela (duas séries de 9). Três
+          armadilhas novas em <code>harness-evaluation</code>, todas sobre o mesmo ponto — o corpo do grader é o
+          prompt do juiz: uma redação que deixa ambígua a construção do próprio caso faz o juiz responder à
+          ambiguidade (medido: 3 falhas em 12 com a frase que nomeava a construção, 7 em 9 sem ela, numa redação
+          mais curta — encurtar piorou duas vezes); comentário sobre o próprio grader dentro do corpo vira parte da
+          pergunta; critério que manda o juiz comparar com um arquivo que ele não pode ler não é respondível.</p>
+        <p><strong>Relações:</strong> continuação do ciclo de <code>/dh:improve</code> sobre revisão CLI;
+          nenhuma mudança de código — o pacote sobe de versão porque o corpo do Coordenador muda e é ele que os
+          casos de eval carregam.</p>
+        <p><strong>Testado?</strong> Dezoito execuções depois da correção não reproduziram mais o desvio (duas
+          séries de 9) — dezoito execuções não provam zero, provam que o que aparecia uma vez a cada seis parou de
+          aparecer.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.3 · Primeira revisão real em segurança e documento; symlink e leitura sem limite corrigidos</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> primeira revisão real nas etapas <code>security</code> e <code>document</code>
+          (antes só <code>code</code> tinha sido exercitada com binário externo) — <code>codex</code> headless em
+          modo somente-leitura produziu o sinal exato de cada etapa na primeira tentativa
+          (<code>### MEDIUM:</code> sob <code>## Findings</code> e <code>- changes required</code> sob
+          <code>## Verdict</code>). Essa revisão encontrou, e a release corrigiu, duas vulnerabilidades em
+          <code>dh validate</code>: contenção por symlink decidida no diretório antes de enumerar qualquer arquivo
+          (nenhum componente symlink é aceito entre o diretório do caso e o alvo, recusa em vez de
+          resolve-e-permite) e leitura sem limite (todo arquivo passa por um único ponto que recusa não-regular e
+          aplica teto de 5 MiB, conferido antes e depois da leitura). Quatro skips silenciosos eliminados
+          (<code>case.yaml</code>, grader, <code>prompt.md</code> e fixture ilegíveis agora falham nomeando o
+          caminho). <code>dh validate</code> passa a conferir a contagem em prosa da documentação contra a
+          contagem real de <code>docs/**</code> e <code>README*</code> — motivado pelo tutorial 00 mandando esperar
+          <code>18/17/19/3</code> de um kit que já entregava <code>19/17/21/4</code>. Documentação atualizada em
+          massa (contagens, cards 0.5.1/0.5.2 no roadmap, card do validador de story/plano/ADR movido para
+          Entregue, <code>plano-produto.html</code> tirado do estado "0.1.0, runtime pendente", seção nova sobre
+          <code>reviewers:</code> nos dois inícios rápidos); documentação vira condição de conclusão, não boa
+          intenção. O prompt de revisor CLI passa a carregar a própria tag
+          <code>cli:&lt;binário&gt;/&lt;slug&gt;</code>. Nada escreve na árvore entre o congelamento e a
+          comparação pós-chamada, o Coordenador inclusive.</p>
+        <p><strong>Relações:</strong> segue o ciclo de <code>/dh:improve</code> aberto na 0.5.1/0.5.2,
+          primeira vez com revisão CLI real nas três etapas do PRD-003. Evidência de RF-09/AC-10 e RF-13/AC-14 do
+          PRD-004 registrada em <code>docs/prd/PRD-004-evals-executaveis-e-higiene.review.md</code>.</p>
+        <p><strong>Testado?</strong> As duas vulnerabilidades foram demonstradas pela própria revisão CLI e
+          corrigidas no mesmo lote. O achado de sobre-despacho da 0.5.1 (<code>external-clis-parallel</code>) não
+          reproduz mais — <code>Agent called 1x</code> em três rodadas consecutivas contra o pacote 0.5.2. Sem
+          baseline comportamental novo registrado nesta release; a checagem de contagem documentada roda em
+          <code>dh validate</code> a cada execução.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.2 · Primeira revisão real por CLI externa e contrato da linha de veredito</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> primeira revisão por CLI externa de verdade (nenhum fixture):
+          <code>codex exec --skip-git-repo-check -s read-only -m &lt;slug&gt; -</code> com o prompt do papel
+          <code>code-reviewer</code> no stdin, sobre o commit da 0.5.1 — o contrato de somente-leitura se confirmou
+          na prática (congelamento <code>git status --porcelain -uall</code> + <code>git hash-object</code> antes e
+          depois da chamada, idêntico). Contrato da linha de veredito em <code>.skills/external-clis/SKILL.md</code>:
+          o prompt montado para um revisor CLI passa a exigir a linha de sinal da etapa, sob pena de a revisão ser
+          descartada — motivo medido: o revisor real bloqueou corretamente sem emitir a linha
+          <code>Review status:</code>, e pela regra antiga aquele bloqueio teria sido jogado fora como falha de
+          transporte. Recuperação de veredito desviante: uma resposta cuja seção <code>## Verdict</code> contém
+          exatamente uma das duas palavras de veredito passa a ser lida como esse veredito, com o desvio registrado
+          ao lado; ambíguo ou ausente continua falha de transporte. O contrato e a recuperação são por etapa —
+          <code>security</code> não tem seção <code>## Verdict</code>, o sinal vive em <code>## Findings</code>.
+          <code>readText</code> normaliza CRLF (<code>internal/kit/validate.go</code>) para que um
+          <code>prompt.md</code> salvo com CRLF não escape em silêncio a checagem de deriva do
+          <code>append_system_prompt</code>. Identidade de cópia por sobreposição de linhas em
+          <code>matchingAgentBody</code> (<code>internal/kit/evals.go</code>), com dois caminhos independentes
+          (sobreposição e linha de abertura) e teste novo com oito casos. Asserção negativa restaurada em
+          <code>evals/cases/external-clis-only</code> — achado do próprio revisor CLI externo, que o revisor Claude
+          e o Coordenador não pegaram.</p>
+        <p><strong>Relações:</strong> segundo ciclo de <code>/dh:improve</code>, sobre 0.5.1 — primeira vez
+          que uma revisão CLI real (não fixture) roda contra o próprio kit.</p>
+        <p><strong>Testado?</strong> A própria revisão real é a prova: dois achados do kit saíram dessa chamada.
+          Medido depois desta release, ainda sem registro em nenhum documento antes deste: as etapas
+          <code>security</code> e <code>document</code> também foram exercitadas com um revisor CLI real pela
+          primeira vez, e ambas produziram o sinal de veredito exato da etapa já na primeira tentativa — o contrato
+          da linha de veredito da 0.5.2 se sustenta nas três etapas (<code>document</code>, <code>security</code>,
+          <code>code</code>). A revisão de segurança encontrou duas vulnerabilidades MEDIUM demonstradas em
+          <code>dh validate</code> (contenção de symlink, leituras sem limite), corrigidas no mesmo lote por outro
+          especialista. O achado de sobre-despacho registrado no card 0.5.1 (<code>external-clis-parallel</code>,
+          <code>Agent called 2x</code>) não reproduz mais: três execuções consecutivas contra o pacote 0.5.2
+          marcaram <code>Agent called 1x</code> — fechado por medição; o histórico do achado continua registrado no
+          card 0.5.1, não apagado. Ficou em aberto nesta release: uma execução em três renomeava ou colocava em negrito o
+          rótulo do veredito apesar da regra de reprodução verbatim — fechado por medição na 0.5.4, ver card 0.5.4.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.1 · Regras do Coordenador para revisor CLI e checagem de deriva do prompt</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> primeiro ciclo real de <code>/dh:improve</code> sobre o próprio kit,
+          guiado pelo baseline 0.5.0. Duas regras novas no Coordenador: só se registra como revisor quem foi de fato
+          despachado (uma entrada não chamada vira not-run com motivo, e a leitura do próprio Coordenador nunca
+          ocupa o lugar de um revisor), e o relatório mesclado passa a registrar o veredito de cada revisor ao lado
+          do mesclado, para que uma aprovação derrubada por um achado bloqueador continue visível. Três regras novas
+          em <code>.agents/coordinator.md</code> ("External CLI reviewers"), cada uma originada de um caso de eval
+          que falhou no baseline 0.5.0: um revisor not-run não gasta rodada de correção; a deduplicação de achados
+          equivalentes preserva a redação de cada revisor; o relatório mesclado reproduz verbatim os títulos e
+          rótulos da skill da etapa. <code>dh validate</code> passa a comparar o <code>append_system_prompt</code>
+          de cada <code>evals/cases/&lt;id&gt;/prompt.md</code> com o corpo do agente que ele copia e falha quando a
+          cópia defasa do original — as onze cópias do corpo do Coordenador foram re-sincronizadas. Oito correções
+          do lado dos casos de eval, onde o critério era inobservável por construção; sete graders viraram
+          mecânicos ou foram reescritos para forma observável.</p>
+        <p><strong>Relações:</strong> primeiro ciclo de <code>/dh:improve</code> sobre 0.5.0. Origem direta
+          da 0.5.2; dos dois achados deixados em aberto aqui, o sobre-despacho fechou por medição contra o pacote
+          0.5.2 e o rótulo do veredito fechou por medição na 0.5.4.</p>
+        <p><strong>Testado?</strong> Medição antes/depois em <code>evals/baselines/2026-09-22-0.5.0.md</code> →
+          <code>2026-09-22-0.5.1.md</code>: com três rodadas nos quatro casos decisivos, o defeito real do ciclo
+          (<code>external-clis-merge-blocker</code>, veredito individual dissolvido na mescla) vai de FFF para PPP,
+          e dois casos que pareciam ter regredido numa rodada única passam PPP — era variância. Rodada única do
+          conjunto inteiro oscila entre 0,84 e 0,91 com os mesmos assets, então ela é o retrato que acompanha o
+          pacote, não o critério de aceitação. Ficaram em aberto, com evidência no companion: sobre-despacho em
+          <code>external-clis-parallel</code> (<code>Agent called 2x</code>) e uma rodada em três que renomeou e
+          colocou em negrito o rótulo do veredito apesar da regra de reprodução verbatim — o sobre-despacho
+          fechado por medição contra o pacote 0.5.2 e o rótulo na 0.5.4, ver card 0.5.4.</p>
+      </div>
+
+      <div class="card">
         <h3>Validador estendido a story, plano e ADR</h3>
         <p><strong>Status:</strong> concluído na 0.5.0.</p>
         <p><strong>Resumo:</strong> PRD-002 RF-06 registrava a premissa geral — "todo documento que vira contrato
@@ -1359,48 +1203,197 @@ profiles/"] --> B["dh build"]
           <code>.commands/document.md</code>.</p>
         <p><strong>Relações:</strong> PRD-002 RF-06; PRD-004 RF-10/RF-11; depende de 0.3.0, já que o papel
           <code>document-validator</code> foi desenhado genérico desde a v1 (decisão fechada em 20/09/2026). Ver o
-          card 0.5.0 acima.</p>
+          card 0.5.0.</p>
         <p><strong>Testado?</strong> Sem caso de avaliação dedicado a <code>PLAN.md</code> nem aos templates
           STORY/TASK/ADR — o baseline <code>2026-09-22-0.5.0</code> cobre <code>doc-validator-*</code>, que
           exercitam PRD.md. Cobertura comportamental dos tipos novos ainda não testada.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.5.0 · Runner de evals executável e higiene do lote 0.4.0</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> <code>evals/</code> migra do formato arquivo único para o layout nativo do
+          <code>claude plugin eval</code> (Claude Code CLI 2.1.278) —
+          <code>evals/cases/&lt;id&gt;/{prompt.md,case.yaml,scaffold.sh,fixtures/,graders/}</code>; os 10 casos
+          existentes migraram e ganharam 4 novos cobrindo <code>reviewers.document</code>/<code>reviewers.security</code>
+          (<code>external-clis-document-only</code>, <code>external-clis-document-merge-blocker</code>,
+          <code>external-clis-security-only</code>, <code>external-clis-security-merge-blocker</code>);
+          <code>doc-validator-round-cap</code> não é dirigível pelo runner e vive em
+          <code>evals/not-run/doc-validator-round-cap/</code> com <code>REASON.md</code>.
+          <code>evals/rubrics/</code> e os fixtures compartilhados <code>evals/fixtures/external-clis-review</code> e
+          <code>prd-review</code> foram removidos — cada caso leva graders e fixtures próprios; só
+          <code>evals/fixtures/slice-01</code> continua fora dos casos. <code>dh build</code> passa a copiar
+          <code>evals/</code> para o pacote, excluindo <code>results/</code>, <code>baselines/</code>,
+          <code>not-run/</code> e <code>__pycache__</code>/<code>*.pyc</code>. <code>dh validate</code> ganha duas
+          checagens: paridade da cláusula anti-delegação entre <code>.agents/coordinator.md</code> e
+          <code>.skills/external-clis/SKILL.md</code>, e resolução das referências relativas dentro de
+          <code>evals/</code> (<code>context.add_dirs</code>/<code>scaffold_script</code>/<code>history_file</code>
+          de <code>case.yaml</code>, <code>target.path</code> de grader). <code>.github/workflows/evals.yml</code>
+          (novo, <code>ci.yml</code> intocado) roda o runner com <code>--scaffold --threshold 0.8</code> só quando o
+          secret <code>ANTHROPIC_API_KEY</code> existe; sem o secret, termina verde com
+          <code>skipped: ANTHROPIC_API_KEY absent</code>. Correções de prosa: formato de saída do Coordenador nomeia
+          o revisor CLI usado ou o motivo de not-run; o congelamento do workspace antes de uma chamada de CLI
+          reviewer fica concreto (<code>git status --porcelain -uall</code> + <code>git hash-object</code> por
+          caminho, recalculado depois da chamada); o ciclo de validação de documento (criação →
+          <code>document-validator</code> → até duas rodadas) passa a cobrir <code>PLAN.md</code> em
+          <code>.commands/plan.md</code> e os templates PRD/STORY/TASK/ADR em <code>.commands/document.md</code>; a
+          ordem build-antes-de-test para uma fatia que altera <code>dist/</code> fica explícita em
+          <code>.skills/implementation-planning/SKILL.md</code>, com remissão em
+          <code>.skills/delivery-readiness/SKILL.md</code>; <code>.skills/harness-evaluation/SKILL.md</code> reescrito
+          para o layout nativo.</p>
+        <p><strong>Relações:</strong> implementa PRD-004 (RF-01 a RF-18). Fecha a cobertura de revisor CLI nas três
+          etapas que o PRD-003 (0.4.0) tinha deixado só em <code>code</code>, e fecha a avaliação comportamental que
+          o card de 0.3.0/PRD-002 registrava como pendente — o item "Avaliação comportamental do PRD-002 pendente"
+          saiu de Planejado.</p>
+        <p><strong>Testado?</strong> Primeiro baseline real do kit:
+          <code>evals/baselines/2026-09-22-0.5.0.{json,md}</code> — 13 casos pontuados, 4 passaram
+          (<code>doc-validator-clean</code>, <code>external-clis-document-merge-blocker</code>,
+          <code>external-clis-document-only</code>, <code>external-clis-security-only</code>), score geral 0,74,
+          custo 4,81 USD; os 9 casos falhos são achados comportamentais para um próximo ciclo de
+          <code>/dh:improve</code>, não defeitos do runner. <code>external-clis-risk-001</code>: os graders
+          anti-delegação passaram, só <code>06-no-paraphrasing</code> falhou — RISK-001 continua <em>mitigado</em>,
+          não <em>resolvido</em>. Duas lições do runner descobertas nesta rodada e já incorporadas em
+          <code>.skills/harness-evaluation/SKILL.md</code>: <code>context.add_dirs</code> não materializa fixtures no
+          cwd do workspace (cada caso precisou de <code>scaffold.sh</code> próprio via <code>--scaffold</code>);
+          graders <code>regex</code> não aceitam flags inline — migraram para a chave <code>flags:</code>.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.4.0 · Revisão em pares por CLI externa</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> skill <code>.skills/external-clis/</code> (<code>SKILL.md</code> e as receitas
+          <code>references/{agy,codex,grok,opencode,mcode,claude,gotchas}.md</code> e
+          <code>references/local.yaml.example</code>), portada e generalizada de uma skill pessoal, ensina o
+          Coordenador e os papéis de revisão a resolver um binário de CLI (<code>command -v</code> ou
+          <code>.harness/local.yaml</code>), montar o prompt em disco, aplicar o modo somente-leitura do binário e
+          distinguir falha de transporte de veredito real; campo opcional <code>reviewers:</code> em
+          <code>.harness/project.yaml</code>, documentado em <code>profiles/README.md</code> ("Consumer-only
+          fields") e ilustrado em <code>profiles/examples/project.yaml</code>, declara por etapa
+          (<code>document</code>, <code>code</code>, <code>security</code>) a lista de revisores —
+          <code>claude</code>, <code>"cli:&lt;binário&gt;/&lt;slug&gt;"</code> ou um mapa com
+          <code>timeout_minutes</code>; <code>.agents/coordinator.md</code> ganha a seção "External CLI reviewers"
+          com resolução de binário, despacho em paralelo ou em levas, montagem do prompt a partir de
+          <code>.agents/&lt;role&gt;.md</code> + skill de revisão + contexto do despacho, a cláusula
+          anti-delegação embutida no corpo do prompt, mescla de N vereditos, degradação not-run por binário ausente
+          ou etapa inteira, somente-leitura com reversão por <code>git status</code> pós-chamada e escrita de
+          <code>.harness/local.yaml</code>; campo <code>Reported by: claude | cli:&lt;binário&gt;/&lt;slug&gt;</code>
+          acrescentado a <code>.skills/code-review/SKILL.md</code>, <code>.skills/document-review/SKILL.md</code> e
+          <code>.skills/security-review/SKILL.md</code>; <code>.commands/review.md</code>,
+          <code>.commands/discover.md</code> e <code>.commands/secure.md</code> com despacho do agente Claude
+          condicional a <code>reviewers.&lt;etapa&gt;</code> ausente ou contendo <code>claude</code>.</p>
+        <p><strong>Relações:</strong> implementa PRD-003 RF-01 a RF-10. Junta, na mesma release, duas decisões do
+          dono já aplicadas fora deste PRD: remoção de <code>disallowedTools: [Agent]</code> do frontmatter dos 18 arquivos de especialista em <code>.agents/</code> (o <code>coordinator.md</code> nunca declarou o campo) e atualização de <code>.skills/harness-authoring/SKILL.md</code>
+          (RISK-001 — o runtime não impunha o campo, a regra "só o Coordenador despacha" passa a viver no corpo do
+          prompt de cada especialista) e <code>model: sonnet</code> → <code>model: opus</code> em
+          <code>.agents/coordinator.md</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> e <code>dh validate --source-only .</code> cobrem o
+          schema de skill, agente e comando. Sete casos em <code>evals/cases/external-clis-*.md</code>
+          (<code>parallel</code>, <code>only</code>, <code>missing-binary</code>, <code>merge-blocker</code>,
+          <code>attribution</code>, <code>risk-001</code>, <code>transport-failure</code>) existem com a rubrica
+          <code>evals/rubrics/external-clis.md</code> e a fixture <code>evals/fixtures/external-clis-review/</code>;
+          execução comportamental não registrada — <code>evals/baselines/</code> continua só com
+          <code>.gitkeep</code>, mesmo padrão do card de 0.3.0/PRD-002.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.3.1 · Ferramentas dos agentes e dispatch do Coordenador</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> política de ferramentas invertida — <code>coordinator</code> deixa de declarar
+          <code>tools</code> (a allowlist cortava <code>ToolSearch</code> e, com ele, toda ferramenta deferida:
+          <code>SendMessage</code>, <code>Monitor</code>, <code>TaskStop</code>, <code>WebFetch</code>, MCP); os
+          especialistas que escrevem passam a herdar todas as ferramentas; os quatro somente-leitura
+          (<code>code-reviewer</code>, <code>security-reviewer</code>, <code>document-validator</code>,
+          <code>repo-scout</code>) mantêm allowlist explícita, agora com <code>LSP</code>, <code>ToolSearch</code>,
+          <code>Monitor</code>, <code>SendMessage</code> e <code>WebFetch</code>; todo especialista leva
+          <code>disallowedTools: [Agent]</code> para que só o Coordenador despache; <code>dh validate</code> passa a
+          aceitar <code>tools</code> ausente (presente e vazio continua erro).</p>
+        <p><strong>Relações:</strong> fix de regressão funcional sobre os mesmos agentes definidos em 0.3.0.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> e <code>dh validate .</code> rodam em CI a cada
+          push/PR e cobrem o novo comportamento de <code>tools</code> opcional no validador estático. Não há caso de
+          avaliação comportamental dedicado a essa allowlist — ainda não fechado.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.3.0 · Ferramenta Skill para todos os agentes + validador de documentos</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> todos os agentes ganham a ferramenta <code>Skill</code> na lista
+          <code>tools</code>; papel <code>document-validator</code> (somente leitura, Opus); skill
+          <code>document-review</code> com seis categorias e regra de severidade; relatório persistente
+          <code>&lt;documento&gt;.review.md</code>; ciclo criação → validação embutido em
+          <code>/dh:discover</code>, limite de duas rodadas; casos de avaliação e fixture de PRD em
+          <code>evals/</code>.</p>
+        <p><strong>Relações:</strong> implementa PRD-002 RF-01 a RF-05 (RF-06, estender a story/plano/ADR, fica para
+          depois — ver Planejado). Produz <code>.agents/document-validator.md</code>,
+          <code>.skills/document-review</code> e <code>evals/cases/doc-validator-*.md</code>.</p>
+        <p><strong>Testado?</strong> Caso de avaliação existe: <code>evals/cases/doc-validator-clean.md</code>,
+          <code>doc-validator-gap.md</code>, <code>doc-validator-round-cap.md</code>, com rubrica
+          <code>evals/rubrics/document-review.md</code> e fixture <code>evals/fixtures/prd-review/</code>; execução
+          não registrada — <code>evals/baselines/</code> só contém <code>.gitkeep</code>. O próprio PRD-002 registra
+          o status como "avaliação comportamental pendente".</p>
+      </div>
+
+      <div class="card">
+        <h3>0.2.1 · Build reprodutível</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> <code>dh build</code> passa a compilar com <code>-buildvcs=false</code> para que
+          os binários sejam idênticos entre a máquina do mantenedor e a CI.</p>
+        <p><strong>Relações:</strong> corrige uma regressão de 0.2.0 encontrada pela própria CI; origem da regra do
+          repositório "reproduzir o que a CI faz num clone limpo antes de commitar <code>dist/</code>".</p>
+        <p><strong>Testado?</strong> Mesmo step de CI "Package matches committed sources and binaries" reproduz o
+          build e compara os arquivos de <code>dist/</code> — execução registrada em CI a cada push/PR.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.2.0 · Etapa 1 — marketplace e observabilidade</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> binário Go <code>dh</code> (<code>snapshot</code>, <code>validate</code>,
+          <code>build</code>, <code>doctor</code>); scripts Python e bash removidos (ADR-001);
+          <code>settings.json</code> do plugin com <code>subagentStatusLine</code> e <code>hooks/hooks.json</code>
+          (seis hooks) gravando <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>;
+          <code>.claude-plugin/marketplace.json</code> na raiz; skill <code>doc-template-html</code> com
+          <code>--lang pt-br|en</code>; docs em inglês em <code>docs/en/</code>; templates espelhados
+          <code>en/</code>/<code>pt-br/</code>; regra de idioma do Coordenador; skill <code>project-onboarding</code>
+          passa a listar perfis em runtime; perfil <code>profiles/php.yaml</code>; templates de trabalho PRD, STORY,
+          TASK, ADR, RFC; tutorial de templates; comandos com frontmatter completo; Mermaid via CDN como única
+          exceção de CDN da skill; <code>CLAUDE.md</code> do repositório com as decisões fixadas.</p>
+        <p><strong>Relações:</strong> implementa PRD-001 (RF-01 a RF-08) e a decisão de ADR-001 (runtime Go). Da
+          qual dependem 0.2.1 e 0.3.x.</p>
+        <p><strong>Testado?</strong> CI executa <code>go test ./...</code>, <code>dh validate --source-only .</code>,
+          <code>dh build</code>, comparação <code>git diff --exit-code</code> entre <code>dist/</code> e as fontes, e
+          <code>dh validate .</code> completo — cobre diretamente AC-02 (reprodutibilidade do pacote) e parte de
+          AC-08 (doctor). AC-03/AC-04 (snapshot listando subagentes, transições de estado ativo/ocioso/fechado) e
+          AC-06 a AC-09 (status line opcional, retenção de 7 dias, tutorial em máquina limpa) não têm evidência de
+          execução automatizada no repositório — ainda não fechado.</p>
+      </div>
+
+      <div class="card">
+        <h3>0.1.0 · Empacotamento fase 1</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> 18 agentes, 17 comandos e 19 skills como fontes canônicas; pacote Claude Code
+          gerado em <code>dist/claude-code/dev-harness</code>; perfis <code>base</code>, <code>go-api</code>,
+          <code>typescript-web</code>; validador estático e script doctor, incluindo cópia dentro do pacote; fixture
+          guiada <code>evals/fixtures/slice-01</code>; licença MIT; tutorial 00 e <code>docs/inicio-rapido.html</code>.
+        </p>
+        <p><strong>Relações:</strong> primeira versão, anterior a PRD-001, PRD-002 e ADR-001. Base de que toda
+          release seguinte depende.</p>
+        <p><strong>Testado?</strong> A fixture <code>evals/fixtures/slice-01</code> roda em CI a cada push/PR
+          (<code>.github/workflows/ci.yml</code>, step "Fixture": <code>python3 -m unittest test_greet.py</code>,
+          saída silenciada por <code>|| true</code>). O restante — pacote gerado, perfis, validador — não tem
+          execução automatizada registrada; o próprio changelog lista como fora da release: "prova de execução em
+          sessão limpa do Claude Code, execução dos casos de avaliação, qualificação Linux/macOS/WSL2, adaptadores
+          nativos para outras IAs".</p>
       </div>
 
       <h2 id="planejado"><span class="n">03</span>Planejado</h2>
       <p>Itens com PRD ou decisão fixada, sem release ainda.</p>
 
       <div class="card">
-        <h3><code>/dh:review</code>: exemplo <code>feature PRD-7</code> contra pastas <code>PRD-007</code></h3>
-        <p><strong>Descrição:</strong> O exemplo de uso do <code>/dh:review</code> mostra <code>feature PRD-7</code>, mas os diretórios levam zeros à esquerda (<code>PRD-007</code>); alinhar exemplo e validação.</p>
-        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
-        <p><strong>Relações:</strong> PRD-007; <code>.commands/review.md</code>.</p>
-      </div>
-
-      <div class="card">
-        <h3>Bloqueio aberto do <code>/dh:secure</code> fora da lista de skip do <code>product-discovery</code></h3>
-        <p><strong>Descrição:</strong> O bloqueio aberto do <code>/dh:secure</code> não consta da lista de skip do ramo de revisão final do <code>product-discovery</code>.</p>
-        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
-        <p><strong>Relações:</strong> PRD-007; <code>.agents/product-discovery.md</code>.</p>
-      </div>
-
-      <div class="card">
-        <h3>Tutoriais simplificam a condição de "entregue"</h3>
-        <p><strong>Descrição:</strong> Os tutoriais descrevem a condição de PRD entregue de forma mais simples que o RF-14.</p>
-        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
-        <p><strong>Relações:</strong> PRD-007; <code>docs/</code> (tutoriais).</p>
-      </div>
-
-      <div class="card">
-        <h3>Nó t3 do excalidraw ainda diz "Escopo e AC"</h3>
-        <p><strong>Descrição:</strong> O nó t3 do diagrama excalidraw dos tutoriais mantém o rótulo antigo "Escopo e AC".</p>
-        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
-        <p><strong>Relações:</strong> PRD-007; arquivo <code>.excalidraw</code> dos tutoriais.</p>
-      </div>
-
-      <div class="card">
-        <h3>Diagramas dos tutoriais omitem a revisão final</h3>
-        <p><strong>Descrição:</strong> Os diagramas dos tutoriais não mostram a etapa de revisão final da feature.</p>
-        <p><strong>Status:</strong> planejado — débito registrado na 0.11.0, sem PRD.</p>
-        <p><strong>Relações:</strong> PRD-007; <code>docs/</code> (tutoriais).</p>
+        <h3>Sonda H3 do <code>agy</code> (cwd do processo)</h3>
+        <p><strong>Descrição:</strong> o <code>agy</code> segue na árvore viva, só como revisor e nunca planejando,
+          até uma sonda datada mostrar que ele opera no cwd do processo. Depois dessa sonda, ele pode rodar no clone
+          descartável e planejar.</p>
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> PRD-008; <code>.skills/external-clis/SKILL.md</code>.</p>
       </div>
 
       <div class="card">
@@ -1584,14 +1577,14 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.7.1, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.12.1, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
           e <code>evals/baselines/2026-09-25-{code-reviewer,security-reviewer,document-validator}-reviewer-after.md</code>
           — medição antes/depois dos três revisores editados no lote 0.7.0 (IMP-003/PLAN-006).</li>
         <li><code>evals/results/2026-09-24-neighbour-recheck.md</code> — reverificação dos três casos vizinhos e o
-          resultado do RISK-001, citados no card 0.7.0 acima.</li>
+          resultado do RISK-001, citados no card 0.7.0.</li>
         <li><code>evals/results/2026-09-25-grader06-regrade.md</code> e
           <code>evals/baselines/2026-09-25-coordinator-restate-larger.md</code> — recalibração do grader 06 e a
           amostra maior que mede a regra de reafirmação da 0.6.0.</li>

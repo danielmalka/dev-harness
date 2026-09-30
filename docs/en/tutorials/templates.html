@@ -691,7 +691,7 @@ footer.doc-foot {
 
       <h2 id="prd"><span class="n">02</span>PRD</h2>
        <span class="tag">Product · why and what</span>
-       <p>It answers why to do something and what to deliver, without saying how. A good PRD can be satisfied by three different technical designs. The product owner writes it, with the <code>product-discovery</code> role through <code>/dh:discover</code>. It closes when the rules and acceptance are approved and, when the batch ends, its status becomes <code>delivered on &lt;date&gt;</code>. It has four sections (Problem, Solution, Rules, Docs) and an optional appendix. Template: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+       <p>It answers why to do something and what to deliver, without saying how. A good PRD can be satisfied by three different technical designs. The product owner writes it, with the <code>product-discovery</code> role through <code>/dh:discover</code>. It closes when the rules and acceptance are approved and, its status becomes <code>delivered on &lt;date&gt;</code> only when no rule is "Não honrada" (not honored) without a recorded owner decision. It has four sections (Problem, Solution, Rules, Docs) and an optional appendix. Template: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>
@@ -714,7 +714,7 @@ footer.doc-foot {
 
       <h2 id="fluxo"><span class="n">03</span>New flow: from PRD to ticket</h2>
        <span class="tag">Product · no STORY.md</span>
-       <p><code>STORY.md</code> no longer exists: the story is one sentence inside the ticket. The PRD is born in <code>/dh:discover</code> and goes through <code>document-validator</code> (one validator, up to two rounds) before it reaches the owner. Once approved, <code>/dh:plan</code> splits it into tickets by lane, and every observable rule <code>R&lt;n&gt;</code> must be cited by a test ticket. <code>/dh:build</code> routes each ticket by lane; an implementation ticket goes through <code>qa-verifier</code> and one Claude reviewer, and a test ticket only through <code>qa-verifier</code>. With every ticket approved, <code>/dh:review feature PRD-&lt;n&gt;</code> runs the final feature review (integration and adherence to the PRD) and ends in <code>FEATURE APROVADA</code>, <code>FEATURE REPROVADA</code>, or <code>FEATURE BLOQUEADA</code> (approved, rejected, or blocked). When the batch closes, the Coordinator writes the "Resumo executado" (executed summary) section at the end of the PRD and sets the status to <code>delivered on &lt;date&gt;</code>. Details: <a href="../new-prd-flow.md">docs/en/new-prd-flow.md</a> and <a href="../../prd/PRD-007-fluxo-prd-e-tickets.md">docs/prd/PRD-007-fluxo-prd-e-tickets.md</a> (pt-br).</p>
+       <p><code>STORY.md</code> no longer exists: the story is one sentence inside the ticket. The PRD is born in <code>/dh:discover</code> and goes through <code>document-validator</code> (one validator, up to two rounds) before it reaches the owner. Once approved, <code>/dh:plan</code> splits it into tickets by lane, and every observable rule <code>R&lt;n&gt;</code> must be cited by a test ticket. <code>/dh:build</code> routes each ticket by lane; an implementation ticket goes through <code>qa-verifier</code> and one Claude reviewer, and a test ticket only through <code>qa-verifier</code>. With every ticket approved, <code>/dh:review feature PRD-&lt;n&gt;</code> runs the final feature review (integration and adherence to the PRD) and ends in <code>FEATURE APROVADA</code>, <code>FEATURE REPROVADA</code>, or <code>FEATURE BLOQUEADA</code> (approved, rejected, or blocked). When the batch closes, the Coordinator writes the "Resumo executado" (executed summary) section at the end of the PRD and sets the status to <code>delivered on &lt;date&gt;</code>, but only if no rule <code>R&lt;n&gt;</code> is "Não honrada" (not honored) without a recorded owner decision; otherwise the PRD is not marked as delivered. Details: <a href="../new-prd-flow.md">docs/en/new-prd-flow.md</a> and <a href="../../prd/PRD-007-fluxo-prd-e-tickets.md">docs/prd/PRD-007-fluxo-prd-e-tickets.md</a> (pt-br).</p>
 
       <h2 id="task"><span class="n">04</span>Task and Bug</h2>
        <span class="tag">Execution · how to execute a slice</span>
@@ -840,7 +840,9 @@ flowchart TB
      verify --> ok{Acceptance and review<br/>approved?}
     review --> ok
      ok -->|no, up to 6 rounds| build
-     ok -->|yes| release["/dh:release<br/>release-manager"]
+     ok -->|yes, all tickets| final["/dh:review feature PRD-007<br/>FEATURE APROVADA / REPROVADA / BLOQUEADA"]
+     final -->|approved| release["/dh:release<br/>release-manager"]
+     final -->|rejected| build
      release --> handoff["/dh:handoff<br/>Coordinator"]
 
      bug([Reported defect]) --> fix["/dh:fix<br/>debugger"]
@@ -868,7 +870,7 @@ flowchart TB
            <tr><th>Template</th><th>Answers</th><th>Who writes it</th><th>Open when</th><th>Close when</th></tr>
           </thead>
           <tbody>
-             <tr><td><code>PRD.md</code></td><td>Why and what</td><td>Product owner, with product-discovery</td><td>Pain without clear scope and acceptance</td><td>Rules and acceptance approved; status delivered on &lt;date&gt; when the batch closes</td></tr>
+             <tr><td><code>PRD.md</code></td><td>Why and what</td><td>Product owner, with product-discovery</td><td>Pain without clear scope and acceptance</td><td>Rules and acceptance approved; status delivered on &lt;date&gt; only when no rule is "Não honrada" without an owner decision</td></tr>
              <tr><td><code>TASK.md</code> (ticket)</td><td>How to execute a slice</td><td>implementation-planner; builder executes it</td><td>PRD approved</td><td>Checks passed, review completed, result filled in</td></tr>
              <tr><td><code>TASK.md</code> (bug)</td><td>What fails and why</td><td>debugger</td><td>Defect reported or observed</td><td>Reproduction in Flow and green regression in Done when, or inconclusive with a stated gap</td></tr>
              <tr><td><code>ADR.md</code></td><td>Which durable decision</td><td>solution-architect; owner approves it</td><td>Choice expensive to reverse</td><td>Accepted status; reviewed under the review condition</td></tr>

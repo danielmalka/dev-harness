@@ -6,8 +6,10 @@ Binary: `codex`. Reviewer. Hands: yes, via `codex exec`, unless run under
 ## Headless
 
 ```bash
-codex exec --skip-git-repo-check -s read-only -m <slug> - < /tmp/prompt.md
+codex exec --skip-git-repo-check -s read-only -m <slug> - < "$PROMPT"
 ```
+
+Here `$PROMPT` is the literal path of the review prompt, created by `( umask 077; mktemp "<tmp root>/dh-prompt-XXXXXXXX" )` because the `codex` review runs without a clone; it is removed in the call's own cleanup (an interrupted call can leave it behind, mode 0600; it is not swept and is left for the owner; `<tmp root>` is defined in [clone-isolation.md](clone-isolation.md), Terms).
 
 `exec` is the non-interactive path. Prompt on stdin when using `-`. If
 stdin is piped **and** a prompt argv is set, stdin is appended as a
