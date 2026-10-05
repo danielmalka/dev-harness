@@ -6,7 +6,7 @@ argument-hint: "[scope, comparison ref, or feature PRD-<n>]"
 metadata:
   roles: [coordinator, reviewer, qa-verifier, product-discovery]
   skills: [code-review, external-clis, regression-testing, ui-verification]
-  writes: none (read-only); final-feature mode: qa-verifier evidence under .harness/tasks/<id>/evidence/
+  writes: "none (read-only); final-feature mode: qa-verifier evidence under .harness/tasks/<id>/evidence/"
 ---
 ## Role
 Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.

@@ -6,3 +6,6 @@ __pycache__/
 .understand-anything/
 .harness/
 evals/results/
+# Written by Claude Code when it loads the plugin with --plugin-dir; not build output
+dist/*/*/tsconfig.json
+dist/*/*/.claude-plugin/types/

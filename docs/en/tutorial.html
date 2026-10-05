@@ -706,7 +706,7 @@ footer.doc-foot {
           <tr><td><code>prd/</code>, <code>adr/</code></td><td>The project's PRDs and architecture decisions, from the kit templates.</td></tr>
         </tbody>
       </table></div>
-      <div class="callout">Only the Coordinator writes <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code>. Other agents return proposals. The disk is the truth: if you deleted records, the Coordinator does not recreate them from what it remembers of the conversation.</div>
+      <div class="callout">Only the Coordinator writes <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code>. Other agents return proposals. The Claude Code plugin enforces this rule at runtime: a subagent that tries to write those files is blocked. The disk is the truth: if you deleted records, the Coordinator does not recreate them from what it remembers of the conversation.</div>
 
       <h2 id="flows"><span class="n">04</span>Flows</h2>
       <p>The kit has 13 agents and 19 commands. You talk to the Coordinator; it dispatches the specialists and holds the authorization: nothing is installed, committed, published or deployed without you authorizing it.</p>

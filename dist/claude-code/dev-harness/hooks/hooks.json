@@ -1,5 +1,6 @@
 {
   "description": "Dev Harness session snapshots for the VS Code viewer; local files only, no network",
+  "modules": ["./runtime-guard.ts"],
   "hooks": {
     "SessionStart": [
       {

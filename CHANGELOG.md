@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.0 — 2026-10-05
+
+- **Guarda de runtime por mod** (PRD-011, `docs/prd/PRD-011-trava-de-runtime-por-mod.md`; decisão em `docs/adr/ADR-005-trava-de-runtime-por-mod.md`). O plugin Claude Code (`adapters/claude-code/plugin/`) ganha um mod `hooks/runtime-guard.ts` (declarado sob `"modules"` em `hooks/hooks.json`, ao lado dos hooks clássicos de `dh snapshot`) com duas guardas de tempo de execução: (1) `agent.spawn` de um subagente é negado — "só o Coordenador despacha agentes" —, forçando em runtime o que `disallowedTools` não conseguiu, e (2) Write/Edit de um subagente sobre `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md` é negado; a sessão principal não é afetada. Casamento de caminhos: sufixo simples após `\` → `/`, sem colapso de `//` nem `./`, case-sensitive. A API de mod é de acesso antecipado: guardas comprovadas em sessão real no 2.1.289 e no 2.1.287; o 2.1.288 carrega o plugin. Escrita por `Bash` não é bloqueada. Testes: `hooks/runtime-guard.test.ts` (62 casos, `claude plugin test`), embarcado com o plugin; os hooks clássicos de `dh snapshot` ficam iguais. Correção à parte: frontmatter do `/dh:review` tinha YAML inválido (valor `writes:` sem aspas), o comando carregava sem metadados; agora válido. Sem comando, agente ou skill nova. Os 13 agentes e os 19 comandos continuam. Nenhuma eval paga.
+
 ## 0.15.0 — 2026-10-05
 
 - **Dúvida no meio do build** (ADR-004, `docs/adr/ADR-004-duvida-e-rotacao.md`). O Coordenador despacha um revisor em contexto limpo quando a fatia marca `Doubt: yes` (fronteira de confiança, contrato público ou migração) ou quando o builder devolve a opção estrutural (O2). O revisor recebe o artefato e o contrato, sem a conclusão do autor. No máximo 3 ciclos, fora do teto de 6 rodadas. Fatia mecânica e bug cujo teste de regressão já falha antes da correção não entram. A revisão do fim continua, uma vez, no estado congelado.
