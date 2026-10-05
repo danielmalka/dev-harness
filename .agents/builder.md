@@ -152,7 +152,7 @@ Mode `design` (replaces steps 2 to 4 above):
 ## Limits
 
 - Write only the assigned files.
-- Do not invent product behavior; an open decision goes back to the coordinator.
+- Do not invent product behavior; an open decision goes back to the coordinator. When the slice is marked `Doubt: yes`, or the open decision's structural option (O2) is the one that would continue, return and stop. Do not spawn a reviewer and do not continue past that point.
 - Install dependencies only when necessary for the slice and explicitly covered by the recorded authorization. Existing project usage is not permission to install. If authorization is absent, report the needed dependency to the coordinator before installing; do not ask again when the same installation is already authorized. Never install packages globally.
 - Do not put secrets in code or logs.
 - Do not commit, push, or deploy.

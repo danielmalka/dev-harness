@@ -4,7 +4,7 @@ description: Use when a stabilized change needs an independent judgement before 
 author: malka
 metadata:
   provenance: adapted
-  sources: ["two-axis standards/spec review", "requesting-code-review", "receiving-code-review", "pr-review-toolkit code-reviewer", "silent-failure-hunter", "pr-test-analyzer", " code-reviewer"]
+  sources: ["two-axis standards/spec review", "requesting-code-review", "receiving-code-review", "pr-review-toolkit code-reviewer", "silent-failure-hunter", "pr-test-analyzer", " code-reviewer", "addyosmani/agent-skills (MIT); mechanism adapted, not copied"]
 ---
 
 # Code Review
@@ -163,6 +163,22 @@ Report the axes separately. Merging them lets a clean axis mask a failing or une
 | Crediting a change because it resembles a known-good pattern | Pattern resemblance is not proof for this specific diff; the input shape here may not match the pattern the reviewer is thinking of | Trace this diff's actual path before crediting it |
 | Marking an axis complete with nothing named as checked | An unproven axis is not the same as a clean one, and the label alone hides a path nobody read | Name what was actually traced in `## Review`, or record the axis uncovered |
 
+## Rationalizations
+
+| What you will be tempted to think | Why it is wrong | What to do |
+| --- | --- | --- |
+| "It looks right" | A resemblance to a good pattern is not a trace of this diff | Name the path you traced, or record the axis uncovered |
+| "The author said it passes" | The author's claim is not evidence you observed | Record the check as reported or not-run |
+| "The spec axis has no source, I will go on" | An unnamed requirement becomes an approval of whatever was built | Mark the spec axis not-run and the review incomplete |
+
+## In-flight doubt
+
+The Coordinator dispatches this section by name. It is not the five-axis end-of-slice review above.
+
+You receive the artifact and the contract only. You do not receive the author's claim or the author's reasoning. Find what breaks. A finding still needs a location, a triggering scenario, an impact, a severity, and `Reported by:`. Use the same verdict line: `Review status: approve | request changes | incomplete`. Do not require the four coverage angles of the end-of-slice review. Do not edit the tree. Do not spawn another reviewer.
+
+The end-of-slice review, on the frozen diff, stays the numbered procedure above. When both run, they are separate calls.
+
 ## Example
 
 Input: a diff that adds pagination to a list endpoint, with the brief "return at most 50 items per page and keep existing callers working".
@@ -205,4 +221,4 @@ Roles: reviewer, coordinator, qa-verifier, builder. Command: `/dh:review`, used 
 
 ## Proof case
 
-Given a fixture with one real defect on a traced path and one control file that is unusual but correct, the review reports the real defect with a reproducible scenario and correct severity, and produces no accusation against the control file. A second run with the requirement withheld reports the spec axis as not-run and the review as incomplete, with readiness no even if correctness has zero findings. It never invents the requirement or substitutes absent findings for completed coverage.
+Given a fixture with one real defect on a traced path and one control file that is unusual but correct, the review reports the real defect with a reproducible scenario and correct severity, and produces no accusation against the control file. A second run with the requirement withheld reports the spec axis as not-run and the review as incomplete, with readiness no even if correctness has zero findings. It never invents the requirement or substitutes absent findings for completed coverage. An in-flight doubt, given the artifact and the contract and not the author's claim, uses the code verdict line and does not treat a missing author conclusion as approval.

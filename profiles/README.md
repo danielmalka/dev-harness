@@ -54,7 +54,7 @@ Rules:
 
 These fields exist only in a consumer's `.harness/project.yaml`, never in a `profiles/*.yaml` stack profile — `base.yaml`, `go-api.yaml`, `typescript-web.yaml` and `php.yaml` never carry them.
 
-`reviewers:` is optional. Absent, the flow is Claude-only, as it is today. When present, it maps a stage to a list of reviewers for that stage:
+`reviewers:` is optional. Absent, the flow is Claude-only and there is no other CLI to rotate. When present, it maps a stage to a list of reviewers for that stage. On the `code` stage the first entry of a task is `claude` when that list includes it, otherwise the first entry; each later entry of the same task advances one entry. The `security` stage still runs its full list. The full `code` list runs only when the owner asks for that stage.
 
 ```yaml
 reviewers:                       # optional; absent = flow today, Claude only

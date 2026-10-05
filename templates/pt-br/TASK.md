@@ -32,6 +32,13 @@ tela com responsabilidades independentes vira dois tickets, um por lane;
 
 Lane: backend / frontend / dados / infra / teste (unitário) / teste (integração) / teste (unitário e integração)
 
+<!-- O planejador preenche. `yes` nomeia o motivo. O builder não despacha
+a revisão: `yes`, ou uma decisão em aberto cuja opção estrutural seguiria,
+volta ao Coordenador, que roda a dúvida no meio do build. O rótulo do
+campo fica `Doubt` nos dois idiomas, porque o procedimento casa essa linha. -->
+
+Doubt: yes (trust boundary | public contract | migration) | no
+
 ## 2. Story
 
 <!-- Uma frase, sempre neste formato. -->

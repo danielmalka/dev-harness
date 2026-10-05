@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-09-30</b></span>
-          <span class="chip">status <b>0.14.0 · vivo</b></span>
+           <span class="chip">data <b>2026-10-05</b></span>
+          <span class="chip">status <b>0.15.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,16 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.15.0 · Dúvida no meio do build e um revisor rotacionado</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> ADR-004. O Coordenador despacha uma dúvida no meio da fatia quando ela marca fronteira de confiança, contrato público ou migração, ou quando o builder devolve a opção estrutural. O revisor vê artefato e contrato, sem a conclusão do autor. A etapa <code>code</code> usa um revisor por entrada e avança na lista de <code>reviewers.code</code> quando a mesma tarefa volta; sem o campo, fica só o revisor do kit. O painel completo dessa etapa só entra quando o dono pede. A etapa <code>security</code> continua com a lista inteira, pelo <code>/dh:secure</code>. Tabelas de racionalização nas quatro skills do caminho quente. Página oficial na primeira escolha durável de biblioteca e na segunda falha do mesmo truque de framework. Observabilidade e aposentadoria de API ficam condicionadas. Sem comando, agente ou skill nova, e sem eval nova.</p>
+        <p><strong>Relações:</strong> ADR-004 (<code>docs/adr/ADR-004-duvida-e-rotacao.md</code>);
+          <code>.agents/coordinator.md</code>; <code>.skills/code-review/SKILL.md</code>;
+          <code>.skills/incremental-implementation/SKILL.md</code>.</p>
+        <p><strong>Testado?</strong> validate, build e go test verdes; nenhuma eval paga.</p>
+      </div>
 
       <div class="card">
         <h3>0.14.0 · Kit enxuto</h3>
@@ -1600,7 +1610,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.14.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.15.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

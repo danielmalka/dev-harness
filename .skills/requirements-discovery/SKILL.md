@@ -4,7 +4,7 @@ description: Use when a request names a pain, an audience or an outcome but no t
 author: malka
 metadata:
   provenance: adapted
-  sources: ["product-discovery role", "brainstorming", "grilling", " discovery-agent"]
+  sources: ["product-discovery role", "brainstorming", "grilling", " discovery-agent", "addyosmani/agent-skills (MIT); mechanism adapted, not copied"]
 ---
 
 # Requirements Discovery
@@ -117,16 +117,22 @@ When persisted, the brief becomes `.harness/prd/PRD-<n>.md` from the kit templat
 
 ## Common mistakes
 
-| Excuse | Reality |
-|---|---|
-| "I will ask everything upfront so I only interrupt once" | A question list gets one answer and a tired user. One at a time, ordered by impact, finishes faster. |
-| "The stack question seems important" | It changes the build only if the user has a real constraint. Otherwise it is a decision for planning, not discovery. |
-| "They did not mention errors, so there are none" | Unstated does not mean absent. Name the awkward case and get a decision on it. |
-| "I thought of a nicer flow, so I will add it" | Your idea is a suggestion. Label it and let the user promote it. |
-| "Acceptance is obvious, I will skip writing it" | Obvious acceptance is exactly what two people read differently. |
-| "The scope is clear but I will run discovery anyway" | Reopening a settled brief costs a cycle and reintroduces closed questions. |
-| "I could not reach the user, so I decided for them" | Record it as an open decision with a recommendation, and say the brief is provisional. |
-| "It is one request, so it is one brief" | Several independent subsystems in one ask need decomposition before any refinement. |
+| Mistake | Why it hurts | Do instead |
+|---|---|---|
+| Asking everything upfront so you only interrupt once | A question list gets one answer and a tired user | One blocking question at a time, ordered by impact |
+| Treating the stack question as discovery | It changes the build only when the user has a real constraint | Leave an unconstrained stack to planning |
+| Adding a nicer flow you thought of | Your idea ships as scope nobody asked for | Label it a suggestion and let the user promote it |
+| Running discovery when the scope is already clear | A settled brief gets reopened and closed questions come back | Go to planning |
+| Treating one request as one brief | Independent subsystems get refined before they are split | Decompose first, then one brief per piece |
+
+## Rationalizations
+
+| What you will be tempted to think | Why it is wrong | What to do |
+| --- | --- | --- |
+| "I already understand it, I will write the PRD without the question that changes the software" | Two readings of that sentence produce different software, and the brief freezes the wrong one | Ask that one question and wait |
+| "Acceptance is obvious, I will skip writing it" | Obvious acceptance is what two people read differently | Write each item as "when X, then Y" |
+| "They did not mention errors, so there are none" | Unstated does not mean absent | Name the awkward case and get a decision on it |
+| "I could not reach the user, so I decided for them" | A quiet decision becomes a contract | Record an open decision with a recommendation, and mark the brief provisional |
 
 ## Example
 
@@ -172,4 +178,4 @@ Roles: product-discovery, coordinator, implementation-planner, qa-verifier. Comm
 
 ## Proof case
 
-A one-sentence vague request produces a brief with at least one normal and one awkward example, acceptance written as "when X, then Y" with requirement and suggestion marked separately, and at least one open decision stated with the reason it changes scope. The session asks no question whose two possible answers would produce the same build, and asks nothing that was already answered in the repository.
+A one-sentence vague request produces a brief with at least one normal and one awkward example, acceptance written as "when X, then Y" with requirement and suggestion marked separately, and at least one open decision stated with the reason it changes scope. The session asks no question whose two possible answers would produce the same build, and asks nothing that was already answered in the repository. The brief is not written while a question that would change the software is still unasked, and acceptance is written even when it looks obvious.

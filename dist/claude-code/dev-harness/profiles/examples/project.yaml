@@ -24,7 +24,9 @@ conventions_applied:
 conflicts: []
 notes:
   - Existing AGENTS.md (canonical) and CLAUDE.md outrank this file.
-# reviewers: is optional; absent means the flow today, Claude only.
+# reviewers: is optional; absent means Claude only, with no other CLI to rotate.
+# When reviewers.code is set, the first code entry of a task is claude if listed,
+# otherwise the first entry; a later entry of the same task advances one entry.
 # Not written by setup — the owner adds it by hand when opting into external CLI review.
 # reviewers:
 #   document: [claude, "cli:agy/gemini-3.1-pro-high"]

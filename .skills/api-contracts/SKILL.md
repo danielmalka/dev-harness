@@ -4,7 +4,7 @@ description: Use when a public interface between components is being created or 
 author: malka
 metadata:
   provenance: adapted
-  sources: ["api-design reference (REST/GraphQL conventions)", " api-designer role description", "dev-harness api-designer agent"]
+  sources: ["api-design reference (REST/GraphQL conventions)", " api-designer role description", "dev-harness api-designer agent", "addyosmani/agent-skills (MIT); mechanism adapted, not copied"]
 ---
 
 # API Contracts
@@ -90,6 +90,7 @@ This procedure produces a contract that a consumer and a provider read identical
 - Breaking: <item> | <consumer affected> | <migration step>
 - Unresolved: <item> | <consumer> | <evidence needed before finalizing compatibility>
 - Sequence: expand -> migrate consumers -> contract
+- Retirement: not applicable | <surface> | consumers: <measured count or unknown> | replacement: <name or "no replacement", owner decision>
 
 ## Integration scenarios
 - Given <state>, when <call>, then <observable result> (criterion: <id>)
@@ -128,6 +129,8 @@ Compatibility classification.
 | Change pagination defaults or ordering | Breaking |
 
 Expand and contract, the only sequence that avoids a flag day: add the new shape beside the old one, serve both, migrate each consumer with evidence, announce the removal date, then remove.
+
+Retirement, only when the change removes or sunsets a consumer-visible operation, field, or error code. Measure usage first: call sites, plus any deployed consumer named in the inputs. An unknown count stays unknown. Do not write unknown as zero. Name a proven replacement, or write "no replacement" as an open decision for the owner. The default is advisory. It is compulsory only with a date, a migration guide that has concrete steps, and a way to find the remaining callers. Do not add behavior to a surface marked for removal. Column and schema removal stay in data-migrations. This section does not restate that procedure.
 
 Do not label an unresolved compatibility check additive. Name the affected consumer and the evidence needed to decide. For example, a consumer that rejects unknown response properties can break when a field is added. Ownership alone also does not settle authorization: changing one's own account can still require a role or entitlement.
 
@@ -185,4 +188,4 @@ Roles: architect, builder, qa-verifier. Commands: used inside `/dh:plan`. Skills
 
 ## Proof case
 
-Given a contract produced by this procedure, a consumer role and a provider role independently describe the same success body and the same failure body, including status, error code, and field names, without further clarification. A change that removes a response field is classified as breaking, names the affected consumer, and carries an expand and contract sequence rather than a bare version bump. Adding a response field for a consumer that rejects unknown properties is also breaking; absent tolerance evidence remains unresolved. An operation on the caller's own account that requires an entitlement retains that authorization rule.
+Given a contract produced by this procedure, a consumer role and a provider role independently describe the same success body and the same failure body, including status, error code, and field names, without further clarification. A change that removes a response field is classified as breaking, names the affected consumer, and carries an expand and contract sequence rather than a bare version bump. Adding a response field for a consumer that rejects unknown properties is also breaking; absent tolerance evidence remains unresolved. An operation on the caller's own account that requires an entitlement retains that authorization rule. A removal of a consumer-visible operation names a consumer count, measured or explicitly unknown, and a replacement or an explicit no-replacement decision. Unknown is not written as zero. A column drop is left to data-migrations.

@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
-           <span class="chip">date <b>2026-09-30</b></span>
-          <span class="chip">status <b>0.14.0 · live</b></span>
+           <span class="chip">date <b>2026-10-05</b></span>
+          <span class="chip">status <b>0.15.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,16 @@ profiles/"] --> B["dh build"]
       <p>Tasks completed per release, sourced from <code>CHANGELOG.md</code>. "Tested?" only claims execution when a
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
+
+      <div class="card">
+        <h3>0.15.0 · In-flight doubt and one rotating reviewer</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> ADR-004. The Coordinator dispatches one in-flight doubt when the slice names a trust boundary, a public contract, or a migration, or when the builder returns the structural option. The reviewer sees the artifact and the contract, not the author's claim. The <code>code</code> stage runs one reviewer per entry and advances through <code>reviewers.code</code> when the same task comes back; with the field absent, only the kit reviewer runs. That stage's full list runs only when the owner asks. The <code>security</code> stage still dispatches its full list, through <code>/dh:secure</code>. Rationalization tables on the four hot-path skills. One official page on the first durable library choice and on the second failure of the same framework approach. Observability and API retirement stay gated. No new command, agent, or skill, and no new eval case.</p>
+        <p><strong>Relations:</strong> ADR-004 (<code>docs/adr/ADR-004-duvida-e-rotacao.md</code>);
+          <code>.agents/coordinator.md</code>; <code>.skills/code-review/SKILL.md</code>;
+          <code>.skills/incremental-implementation/SKILL.md</code>.</p>
+        <p><strong>Tested?</strong> validate, build and go test green; no paid eval.</p>
+      </div>
 
       <div class="card">
         <h3>0.14.0 · Lean kit</h3>
@@ -1601,7 +1611,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.14.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.15.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

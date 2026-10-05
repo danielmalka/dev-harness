@@ -4,7 +4,7 @@ description: Use when authorized work is wider than one obvious patch, when seve
 author: malka
 metadata:
   provenance: adapted
-  sources: ["implementation-planner role", "writing-plans", "plan-document-reviewer", " harness-planner"]
+  sources: ["implementation-planner role", "writing-plans", "plan-document-reviewer", " harness-planner", "addyosmani/agent-skills (MIT); mechanism adapted, not copied"]
 ---
 
 # Implementation Planning
@@ -48,7 +48,7 @@ Split authorized work into slices that can each be finished and proven on their 
 
 4. **Draw the file structure before drawing the slices.** List what gets created and what gets modified, and what each file is responsible for. Files that change together belong together. Split by responsibility, not by technical layer for its own sake. In an existing codebase, follow the local pattern instead of importing a preferred one.
 
-5. **Cut slices by independently verifiable behavior.** A slice is the smallest unit that carries its own check cycle and could be accepted or rejected on its own merits. Fold setup, configuration, fixtures and documentation into the slice whose deliverable needs them. The test that proves a PRD rule `R<n>` is the exception: it MUST live in its own test-lane ticket that cites the id, not folded into the ticket that implements the rule. Tests that prove nothing tied to a PRD rule still fold into their slice. Split only where a reviewer could sensibly approve one slice and reject its neighbor. Two to five behaviors per slice is a working range; a slice nobody can finish in one focused pass is too big.
+5. **Cut slices by independently verifiable behavior.** A slice is the smallest unit that carries its own check cycle and could be accepted or rejected on its own merits. Fold setup, configuration, fixtures and documentation into the slice whose deliverable needs them. The test that proves a PRD rule `R<n>` is the exception: it MUST live in its own test-lane ticket that cites the id, not folded into the ticket that implements the rule. On every implementation slice write `Doubt: yes (<trust boundary | public contract | migration>)` when the slice declares one of those, otherwise `Doubt: no`. A mechanical slice (rename, copy, single path, docs only) is `no`. A bug whose regression test already fails before the fix is `no`. Tests that prove nothing tied to a PRD rule still fold into their slice. Split only where a reviewer could sensibly approve one slice and reject its neighbor. Two to five behaviors per slice is a working range; a slice nobody can finish in one focused pass is too big.
 
 6. **Order by dependency and list dependencies completely.** Foundation before the things that stand on it. Slice five naming slice four is not enough when it also needs something from slice two. No slice may depend on a later one; if two slices need each other, the cut is wrong. Mark which slices could run side by side, bounded by the ceiling of two specialists working concurrently.
 
@@ -58,7 +58,7 @@ Split authorized work into slices that can each be finished and proven on their 
 
 9. **Give each slice its own check line and its own risk line.** Which check proves this slice, how it is invoked, and what result counts. Status stays `not-run` in a plan, because planning runs nothing. The risk line names what could go wrong here and the cheapest early signal that it did, remembering that a slice gets at most six correction rounds for the same issue before it is reported blocked or partial and replanned. For a slice that changes `internal/build`, `internal/kit`, or any `dist/` content, the check line's order is fixed: apply the code change, then `go run ./cmd/dh build`, then `go test ./...` / `go run ./cmd/dh validate .` — never the reverse, because the reproducibility test compares the committed `dist/` against a fresh rebuild and fails by construction if the rebuild has not run yet. The clean-clone proof (commit locally, clone that commit, rebuild there, compare the binaries' sha256 with the working tree) is required only when the PR touches `cmd/`, `internal/`, `go.mod` or `dist/*/bin`; a PR of kit text and docs only needs `dh validate` and `go run ./cmd/dh build` with no difference left in `dist/`.
 
-10. **Self-review the finished plan against the brief.** Four passes, inline, fixing as you go. Coverage: point at the slice that satisfies each acceptance item and list any gap. Readiness: executable slices have concrete checks and no unresolved prerequisite; unknown commands or interfaces leave only the affected slices provisional. Do not invent values to remove placeholders. Consistency: the name a later slice consumes matches the name the earlier slice produces, exactly. Rule coverage: every observable rule `R<n>` of the source PRD is cited by id in at least one test-lane ticket; list any uncited `R<n>` as a `gap` (the existing category, no new one).
+10. **Self-review the finished plan against the brief.** Four passes, inline, fixing as you go. Coverage: point at the slice that satisfies each acceptance item and list any gap. Readiness: executable slices have concrete checks and no unresolved prerequisite; unknown commands or interfaces leave only the affected slices provisional. Do not invent values to remove placeholders. Consistency: the name a later slice consumes matches the name the earlier slice produces, exactly. Rule coverage: every observable rule `R<n>` of the source PRD is cited by id in at least one test-lane ticket; list any uncited `R<n>` as a `gap` (the existing category, no new one). Doubt: every implementation slice has `yes` or `no`, and every `yes` names one of the three reasons.
 
 11. **Deliver the plan and the decisions it needs.** Do not implement. Do not widen scope to make a slice tidier. Report facts, open decisions and any incident to the Coordinator for the memory records.
 
@@ -94,6 +94,7 @@ Split authorized work into slices that can each be finished and proven on their 
 - Checks: <discovered command or explicit unresolved check>, expected result, status: not-run
 - Readiness: ready | provisional (<missing prerequisite>)
 - Done when: <objectively verifiable condition>
+- Doubt: yes (<trust boundary | public contract | migration>) | no
 - Risks: <what could break, and the earliest signal>
 
 ## Decisions needed
@@ -105,6 +106,7 @@ Split authorized work into slices that can each be finished and proven on their 
 ## Self-review
 - Coverage: <acceptance item -> slice, or gap>
 - Rule coverage: <R<n> -> test-lane ticket id, or gap>
+- Doubt: <slice -> yes (<reason>) | no>
 - Unresolved prerequisites: none | <affected slices and what must be resolved>
 - Interface consistency: checked
 
@@ -146,6 +148,13 @@ When persisted, each slice becomes `.harness/tasks/<id>/TASK.md` from the kit te
 | Adding a nice extra slice nobody asked for | Scope creep dressed as thoroughness | Keep it under decisions needed, as a suggestion |
 | Cloning before committing to "prove" a rebuild of a PR that touches `cmd/`, `internal/`, `go.mod` or `dist/*/bin` | `git clone` copies HEAD; uncommitted changes are invisible in the clone, so the comparison proves nothing | Commit locally after the gate is green and review approves, then clone that commit, rerun the CI sequence there (`go test ./...`, `go run ./cmd/dh validate --source-only .`, `go run ./cmd/dh build`, `git diff --exit-code --stat -- dist` with the CI exclusions, `go run ./cmd/dh validate .`), and compare binary sha256 between clone and tree; amend only while unpushed, never with `--force`, then push |
 
+## Rationalizations
+
+| What you will be tempted to think | Why it is wrong | What to do |
+| --- | --- | --- |
+| "The acceptance is obvious, so the test ticket does not need to cite R<n>" | An uncited rule has no slice that can fail when the rule breaks | Put the proof in its own test-lane ticket that cites the id, or list the id as a gap |
+| "Doubt: no saves a dispatch" | The line exists so the Coordinator knows whether to stop the builder | Mark `yes` when the slice declares a trust boundary, a public contract, or a migration |
+
 ## Example
 
 Brief: expired invites must be refused. Map: three files and one test file. Bounded check says two slices.
@@ -178,4 +187,4 @@ When a CLI is dispatched as a planner by `/dh:plan-loop`, its reply is expected 
 
 ## Proof case
 
-Given a brief and a map, produce a plan whose first slice another agent starts and finishes with no further conversation: candidate files exist in the tree, the done condition is verifiable by a named check, and every symbol a later slice consumes is defined by an earlier slice. On a request that touches consolidated behavior, show the risk record consulted through the Coordinator and at least one prevention carried into a slice's acceptance. On a one-file request, show that no plan document was produced.
+Given a brief and a map, produce a plan whose first slice another agent starts and finishes with no further conversation: candidate files exist in the tree, the done condition is verifiable by a named check, and every symbol a later slice consumes is defined by an earlier slice. On a request that touches consolidated behavior, show the risk record consulted through the Coordinator and at least one prevention carried into a slice's acceptance. On a one-file request, show that no plan document was produced. A slice that changes a public contract is marked `Doubt: yes`. A one-file rename is marked `Doubt: no`. A plan that leaves an observable `R<n>` without a test-lane ticket citing it is not finished.

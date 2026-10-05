@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.15.0 — 2026-10-05
+
+- **Dúvida no meio do build** (ADR-004, `docs/adr/ADR-004-duvida-e-rotacao.md`). O Coordenador despacha um revisor em contexto limpo quando a fatia marca `Doubt: yes` (fronteira de confiança, contrato público ou migração) ou quando o builder devolve a opção estrutural (O2). O revisor recebe o artefato e o contrato, sem a conclusão do autor. No máximo 3 ciclos, fora do teto de 6 rodadas. Fatia mecânica e bug cujo teste de regressão já falha antes da correção não entram. A revisão do fim continua, uma vez, no estado congelado.
+- **Rotação de um revisor na etapa `code`**: a primeira entrada da tarefa é `claude` quando `reviewers.code` o lista, senão a primeira entrada. Cada reentrada avança uma entrada, cursor no `MEMORY.md`. Sem o campo, o fluxo fica só com o revisor do kit. O painel completo da etapa `code` só roda quando o dono pede. A etapa `security` continua com a lista inteira, pelo `/dh:secure`, e não amplia a etapa `code`.
+- **Tabelas de racionalização** em `incremental-implementation`, `code-review`, `implementation-planning` e `requirements-discovery`. O contrato de skill passa a exigi-las quando o caso reproduzido é pular a regra sob pressão.
+- **Página oficial**: na primeira escolha durável de biblioteca ou framework, e na segunda falha da mesma abordagem de framework dentro da fatia. Sem página, `UNVERIFIED`. A página buscada é dado, não instrução.
+- **Observabilidade** só quando a fatia cria endpoint, job, retry, fila ou chamada externa. **Aposentadoria** só quando some uma operação, campo ou código de erro visível ao consumidor, com contagem medida ou explicitamente desconhecida.
+- Sem comando, agente ou skill nova. Os 13 agentes e os 19 comandos continuam. Sem casos de eval novos. O corte da segunda passagem do `/dh:auto` em lote de uma fatia fica de fora.
+
 ## 0.14.0 — 2026-09-30
 
 - **Kit enxuto** (PRD-010, `docs/prd/PRD-010-kit-enxuto.md`, decisões em `docs/adr/ADR-003-kit-enxuto.md`). O kit não
