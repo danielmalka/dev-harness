@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-05</b></span>
-          <span class="chip">status <b>0.15.0 · vivo</b></span>
+          <span class="chip">status <b>0.16.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,15 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.16.0 · Guarda de runtime por mod</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-011 entregue. O plugin Claude Code ganha um mod <code>hooks/runtime-guard.ts</code> (declarado sob <code>"modules"</code> em <code>hooks/hooks.json</code>) com duas guardas de tempo de execução: (1) <code>agent.spawn</code> de um subagente é negado ("só o Coordenador despacha agentes"), forçando em runtime o que <code>disallowedTools</code> não conseguiu, e (2) Write/Edit de um subagente sobre <code>.harness/MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code> é negado; a sessão principal não é afetada. Casamento de caminhos: sufixo simples após <code>\</code> → <code>/</code>, sem colapso de <code>//</code> nem <code>./</code>, case-sensitive. Early-access mod API (verificada nas versões 2.1.289 e 2.1.287). Testes: <code>claude plugin test</code> (62 casos) embarcado. Correção associada: frontmatter do <code>/dh:review</code> é YAML válido agora. Sem comando, agente ou skill nova.</p>
+        <p><strong>Relações:</strong> PRD-011 (<code>docs/prd/PRD-011-trava-de-runtime-por-mod.md</code>);
+          <code>docs/adr/ADR-005-trava-de-runtime-por-mod.md</code>; <code>adapters/claude-code/plugin/hooks/runtime-guard.ts</code>.</p>
+        <p><strong>Testado?</strong> validate, build e go test verdes; <code>claude plugin test</code> (62 casos) verde; nenhuma eval paga.</p>
+      </div>
 
       <div class="card">
         <h3>0.15.0 · Dúvida no meio do build e um revisor rotacionado</h3>
@@ -1610,7 +1619,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.15.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.16.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

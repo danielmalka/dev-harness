@@ -706,7 +706,7 @@ footer.doc-foot {
           <tr><td><code>prd/</code>, <code>adr/</code></td><td>PRDs e decisões de arquitetura do projeto, a partir dos templates do kit.</td></tr>
         </tbody>
       </table></div>
-      <div class="callout">Só o Coordenador escreve <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>. Os outros agentes devolvem propostas. O disco é a verdade: se você apagou registros, o Coordenador não os recria de memória da conversa.</div>
+      <div class="callout">Só o Coordenador escreve <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>. Os outros agentes devolvem propostas. O plugin Claude Code força essa regra em tempo de execução: um subagente que tenta escrever naqueles arquivos é bloqueado. O disco é a verdade: se você apagou registros, o Coordenador não os recria de memória da conversa.</div>
 
       <h2 id="fluxos"><span class="n">04</span>Fluxos</h2>
       <p>O kit tem 13 agentes e 19 comandos. Você fala com o Coordenador; ele despacha os especialistas e guarda a autorização: nada é instalado, commitado, publicado ou implantado sem você autorizar.</p>
