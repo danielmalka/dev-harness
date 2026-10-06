@@ -6,7 +6,8 @@
 | Data | 2026-10-05 |
 | Decisor | Daniel Lemos (dono) |
 | Origem | PRD-011; RISK-001 (subagente ignorou `disallowedTools` e despachou outro agente) |
-| Reversibilidade | barata: remover `modules` do `hooks.json` e o arquivo `.ts` |
+| Reversibilidade | barata, mas ver ADR-006: o `runtime-guard.ts` é encadeado por `panel.ts`, então reverter exige tirar o import e o encadeamento de lá |
+| Alterado por | ADR-006 (composição em `panel.ts`; `runtime-guard.ts` não é mais declarado em `modules`) |
 
 ## 1. Contexto
 
