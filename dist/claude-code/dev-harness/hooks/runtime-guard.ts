@@ -2,7 +2,7 @@ import type { Register } from 'claude-code'
 
 const PROTECTED = ['.harness/MEMORY.md', '.harness/EPOCHAL.md', '.harness/RISKS.md']
 
-function denySpawn($: any, e: any, next: any) {
+export function denySpawn($: any, e: any, next: any) {
   try {
     if (e.parentAgentId) return { deny: 'only the Coordinator dispatches agents (dev-harness runtime guard)' }
   } catch {} // fail open
@@ -10,7 +10,7 @@ function denySpawn($: any, e: any, next: any) {
 }
 
 // ponytail: Write/Edit only; a Bash redirect into these files is not blocked.
-function guardFile($: any, e: any, next: any) {
+export function guardFile($: any, e: any, next: any) {
   try {
     const p = String(e.file_path ?? '').replace(/\\/g, '/')
     const hit = PROTECTED.find(f => p === f || p.endsWith('/' + f))
