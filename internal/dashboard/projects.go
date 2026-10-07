@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -17,7 +18,6 @@ const RootsEnv = "DH_DASHBOARD_ROOTS"
 
 // Bounds on what one poll reads (security round 1): per-file bytes and entry counts.
 const (
-	MaxFileBytes      = 1 << 20
 	MaxProjects       = 100
 	MaxTicketsPerProj = 1000
 	MaxSnapshots      = 500
@@ -177,14 +177,12 @@ func ProjectProgress(projectPath string) Progress {
 	status := map[string]string{}
 	for _, pat := range []string{"docs/prd/PRD-*.md", ".harness/prd/PRD-*.md"} {
 		files, _ := filepath.Glob(filepath.Join(projectPath, filepath.FromSlash(pat)))
+		files = slices.DeleteFunc(files, func(f string) bool { return strings.HasSuffix(f, ".review.md") }) // before the cap
 		if len(files) > MaxTicketsPerProj {
 			warns = append(warns, fmt.Sprintf("%s: more than %d PRD files: reading the first %d.", name, MaxTicketsPerProj, MaxTicketsPerProj))
 			files = files[:MaxTicketsPerProj]
 		}
 		for _, f := range files {
-			if strings.HasSuffix(f, ".review.md") {
-				continue
-			}
 			id := prdFile.FindString(filepath.Base(f))
 			b, err := readCapped(f)
 			if skipped(err) {

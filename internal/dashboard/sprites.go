@@ -107,53 +107,82 @@ func (s *Sprites) PoseFor(state string) PoseSpec {
 
 var frameName = regexp.MustCompile(`^(.+)_(\d\d)\.png$`)
 
-// Frames returns the PNG frames of a known pose: the owner's folder first (<pose>.png or <pose>_00.png...),
-// then the kit's example of the same name, then frente. false for an unknown name (e.g. "../x") or no file anywhere.
-func (s *Sprites) Frames(pose string) ([][]byte, bool) {
+// MaxFrames caps the frames of one pose.
+const MaxFrames = 60
+
+// effective is the pose that supplies files: the pose itself when any file exists, else frente (jevmon behaviour).
+// ok is false for an unknown name (e.g. "../x") or no file anywhere. Paths are names only, nothing is read here.
+func (s *Sprites) effective(pose string) (paths []string, name string, ok bool) {
 	if !KnownPose(pose) {
-		return nil, false
+		return nil, "", false
 	}
-	if fr, ok := s.frames(pose); ok {
-		return fr, true
+	for _, p := range []string{pose, "frente"} {
+		paths = s.ownerPaths(p)
+		if len(paths) > 0 || embeddedHas(p) {
+			return paths, p, true
+		}
 	}
-	if pose != "frente" { // jevmon behaviour: a pose with no file anywhere shows frente
-		return s.frames("frente")
-	}
-	return nil, false
+	return nil, "", false
 }
 
-func (s *Sprites) frames(pose string) ([][]byte, bool) {
-	if s.dir != "" {
-		if b, err := readCapped(filepath.Join(s.dir, pose+".png")); err == nil {
-			return [][]byte{b}, true
-		}
-		files, _ := filepath.Glob(filepath.Join(s.dir, pose+"_[0-9][0-9].png"))
-		sort.Strings(files)
-		var out [][]byte
-		for _, f := range files {
-			if m := frameName.FindStringSubmatch(filepath.Base(f)); m != nil && m[1] == pose {
-				if b, err := readCapped(f); err == nil {
-					out = append(out, b)
-				}
-			}
-		}
-		if len(out) > 0 {
-			return out, true
-		}
-	}
-	if b, err := embedded.ReadFile("web/sprites/" + pose + ".png"); err == nil {
-		return [][]byte{b}, true
-	}
-	return nil, false
+func embeddedHas(pose string) bool {
+	_, err := embedded.ReadFile("web/sprites/" + pose + ".png")
+	return err == nil
 }
 
-// Frame returns frame i of a pose (same rules as Frames).
+// ownerPaths lists the owner's files for a pose: <pose>.png, else <pose>_00.png... (at most MaxFrames), by glob only.
+func (s *Sprites) ownerPaths(pose string) []string {
+	if s.dir == "" {
+		return nil
+	}
+	single := filepath.Join(s.dir, pose+".png")
+	if st, err := os.Lstat(single); err == nil && st.Mode().IsRegular() {
+		return []string{single}
+	}
+	files, _ := filepath.Glob(filepath.Join(s.dir, pose+"_[0-9][0-9].png"))
+	sort.Strings(files)
+	var out []string
+	for _, f := range files {
+		if m := frameName.FindStringSubmatch(filepath.Base(f)); m != nil && m[1] == pose {
+			out = append(out, f)
+		}
+	}
+	if len(out) > MaxFrames {
+		out = out[:MaxFrames]
+	}
+	return out
+}
+
+// FrameCount counts the frames of a pose without reading any file.
+func (s *Sprites) FrameCount(pose string) int {
+	paths, _, ok := s.effective(pose)
+	switch {
+	case !ok:
+		return 0
+	case len(paths) > 0:
+		return len(paths)
+	}
+	return 1
+}
+
+// Frame returns frame i of a pose, reading only that file. An owner file that cannot be read (symlink, too big)
+// falls back to the kit's example of the same pose for frame 0.
 func (s *Sprites) Frame(pose string, i int) ([]byte, bool) {
-	fr, ok := s.Frames(pose)
-	if !ok || i < 0 || i >= len(fr) {
+	paths, name, ok := s.effective(pose)
+	if !ok || i < 0 {
 		return nil, false
 	}
-	return fr[i], true
+	if i < len(paths) {
+		if b, err := readCapped(paths[i]); err == nil {
+			return b, true
+		}
+	}
+	if i == 0 {
+		if b, err := embedded.ReadFile("web/sprites/" + name + ".png"); err == nil {
+			return b, true
+		}
+	}
+	return nil, false
 }
 
 // EmbeddedBytes is the total size of the embedded example PNGs.

@@ -232,8 +232,8 @@ func TestSprites(t *testing.T) {
 	mk(t, filepath.Join(d, "celular_00.png"), "A")
 	mk(t, filepath.Join(d, "celular_01.png"), "B")
 	mk(t, filepath.Join(d, "frente.png"), "F")
-	if fr, _ := s.Frames("celular"); len(fr) != 2 || string(fr[1]) != "B" {
-		t.Fatalf("frames %v", fr)
+	if b, _ := s.Frame("celular", 1); s.FrameCount("celular") != 2 || string(b) != "B" {
+		t.Fatalf("frames %d %q", s.FrameCount("celular"), b)
 	}
 	if b, _ := s.Frame("frente", 0); string(b) != "F" {
 		t.Fatal("owner pose must win")

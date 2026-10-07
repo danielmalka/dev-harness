@@ -15,7 +15,7 @@ import (
 
 func big(t *testing.T, path string) {
 	t.Helper()
-	mk(t, path, strings.Repeat("x", MaxFileBytes+1))
+	mk(t, path, strings.Repeat("x", snapshot.MaxFileBytes+1))
 }
 
 func TestOversizedFilesAreSkipped(t *testing.T) {
@@ -33,7 +33,7 @@ func TestOversizedFilesAreSkipped(t *testing.T) {
 		t.Fatalf("poses: %+v", s.Warnings)
 	}
 	big(t, filepath.Join(sd, "frente.png"))
-	if b, _ := LoadSprites(sd).Frame("frente", 0); len(b) > MaxFileBytes {
+	if b, _ := LoadSprites(sd).Frame("frente", 0); len(b) > snapshot.MaxFileBytes {
 		t.Fatal("oversized sprite served")
 	}
 	snaps := t.TempDir()
@@ -142,5 +142,27 @@ func TestPRDFileCap(t *testing.T) {
 	pr := ProjectProgress(p)
 	if len(pr.Open) != MaxTicketsPerProj || len(pr.Warnings) != 1 {
 		t.Fatalf("open %d warns %v", len(pr.Open), pr.Warnings)
+	}
+}
+
+func TestReviewFilesDoNotEatThePRDCap(t *testing.T) {
+	p := t.TempDir()
+	for i := 0; i < MaxTicketsPerProj; i++ {
+		mk(t, filepath.Join(p, "docs/prd", fmt.Sprintf("PRD-%04d-a.review.md", i)), "| Status | aprovado |\n")
+	}
+	mk(t, filepath.Join(p, "docs/prd", "PRD-9999-real.md"), "| Status | aprovado |\n")
+	pr := ProjectProgress(p)
+	if len(pr.Open) != 1 || pr.Open[0].PRD != "PRD-9999" || len(pr.Warnings) != 0 {
+		t.Fatalf("%+v", pr)
+	}
+}
+
+func TestFrameCountIsCappedAndReadsNothing(t *testing.T) {
+	d := t.TempDir()
+	for i := 0; i < MaxFrames+5; i++ {
+		mk(t, filepath.Join(d, fmt.Sprintf("celular_%02d.png", i)), "x")
+	}
+	if n := LoadSprites(d).FrameCount("celular"); n != MaxFrames {
+		t.Fatalf("frames %d", n)
 	}
 }

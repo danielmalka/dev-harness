@@ -219,8 +219,7 @@ func buildState(cfg Config, sprites *Sprites) state {
 		FiveHourAgeSec: int64(lim.FiveHourAge.Seconds()), SevenDayAgeSec: int64(lim.SevenDayAge.Seconds())}
 	as := AvatarState(open, lim)
 	spec := sprites.PoseFor(as)
-	fr, _ := sprites.Frames(spec.Pose)
-	st.Avatar = jsonAvatar{State: as, Pose: spec.Pose, FPS: spec.FPS, Frames: len(fr)}
+	st.Avatar = jsonAvatar{State: as, Pose: spec.Pose, FPS: spec.FPS, Frames: sprites.FrameCount(spec.Pose)}
 	return st
 }
 
