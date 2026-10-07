@@ -6,8 +6,9 @@ import { driftMessage, findDrift, statusValue } from './status-drift.ts'
 
 // Commit/PR text that mentions AI: an empty `attribution` covers the default footer, this covers the rest.
 const AI_MENTION = /co-authored-by:\s*claude|generated with \[?claude|🤖|anthropic\.com|\bclaude code\b/i
-const SHIPS = /\b(git\s+commit|gh\s+pr\s+(create|edit)|gh\s+release\s+create)\b/
-const COMMIT = /\bgit\s+commit(?![\w-])/
+const GIT_C = String.raw`(?:-C\s+(?:"[^"]*"|'[^']*'|\S+)\s+)?`
+const SHIPS = new RegExp(String.raw`\b(git\s+${GIT_C}commit|gh\s+pr\s+(create|edit)|gh\s+release\s+create)\b`)
+const COMMIT = new RegExp(String.raw`\bgit\s+${GIT_C}commit(?![\w-])`)
 const GENERIC_GATE = /\b(make\s+(check|test|lint|ci|stan|gate)|go\s+(test|vet)|golangci-lint|pytest|ruff\s+check|cargo\s+(test|clippy)|(npm|pnpm|yarn|bun)\s+(run\s+)?(test|lint|check|typecheck)|tsc\b|phpstan|phpunit|pint)\b/
 const GATE_KEYS = /^ {2}(test|lint|vet|check|typecheck|stan|fmt[\w-]*):\s*\n\s+value:\s*(.+)$/gm
 
@@ -40,6 +41,44 @@ export function isHarnessPath(p: unknown): boolean {
   return n.startsWith('.harness/') || n.includes('/.harness/')
 }
 
+const unquote = (s: string) => s.replace(/^(["'])(.*)\1$/, '$2')
+
+// Normalizes `p` against `base`: absolute result, no `.`/`..`/empty segments. A Windows drive path
+// (`C:\\x`, `c:/x`) is absolute too and reads as `/C:/x`, so git's `C:/repo` and the engine's `C:\\repo` meet.
+export function resolvePath(base: string, p: string): string {
+  const abs = (x: string) => x.replace(/\\/g, '/').replace(/^\/?([A-Za-z]):(?=\/|$)/, (_m, d: string) => `/${d.toUpperCase()}:`)
+  const n = abs(p)
+  const out: string[] = []
+  for (const seg of (n.startsWith('/') ? n : `${abs(base)}/${n}`).split('/')) {
+    if (seg === '..') out.pop()
+    else if (seg && seg !== '.') out.push(seg)
+  }
+  return `/${out.join('/')}`
+}
+
+// Back to the platform's form for git and fs calls: `/C:/x` -> `C:/x`; POSIX paths unchanged.
+export const native = (p: string) => p.replace(/^\/([A-Z]):/, '$1:')
+
+// Directory a git commit (or a gate) at offset `at` runs in: each `cd <dir>` before `at` moves it
+// (relative to the previous one; a bare `cd` goes home), then `git -C <dir>` on the commit itself
+// resolves against that. `home` expands a leading `~`.
+// ponytail: shell parsing by regex; pushd, `cd -`, env-var dirs and `--git-dir` resolve wrong and fail open.
+export function commandDir(command: string, cwd: string, home: string, at = command.length): string {
+  let dir = cwd
+  const expand = (d: string) => resolvePath(dir, unquote(d).replace(/^~(?=\/|$)/, home))
+  for (const m of command.slice(0, at).matchAll(/(?:^|[;&|(\n]\s*|\bthen\s+)cd(?:\s+("[^"]*"|'[^']*'|[^\s;&|)]+))?(?=\s*(?:$|[;&|)\n]))/g)) {
+    dir = m[1] === undefined ? (home || dir) : expand(m[1])
+  }
+  const c = /^git\s+-C\s+("[^"]*"|'[^']*'|\S+)\s+/.exec(command.slice(at))
+  return c ? expand(c[1] ?? '.') : dir
+}
+
+// Offset of the first gate command in `command`, or -1.
+function gateAt(command: string, projectGates: string[]): number {
+  const hits = [GENERIC_GATE.exec(command)?.index ?? -1, ...projectGates.map(g => command.indexOf(g))].filter(i => i >= 0)
+  return hits.length ? Math.min(...hits) : -1
+}
+
 const MSG = {
   en: {
     ai: 'dev-harness: commit/PR text mentions AI/Claude. Remove the mention and retry.',
@@ -63,13 +102,34 @@ export function taskStatus(taskMd: string): 'done' | 'blocked' | 'open' {
 }
 
 // ponytail: module-level state; a mod reload resets gate/agents (current session only).
-let dirtySinceGate = false
+// Absolute paths edited since the last green gate of their repository.
+const dirty = new Set<string>()
+const inside = (f: string, root: string) => f === root || f.startsWith(root === '/' ? '/' : `${root}/`)
 const running = new Map<string, string>()
 const warned = new Set<number>()
 
-async function readProject($: EngineInterface): Promise<{ gates: string[]; lang: 'en' | 'pt-br' }> {
+async function home($: EngineInterface): Promise<string> {
+  try { return (await $.env.get('HOME')) ?? '' } catch { return '' }
+}
+
+// Repository root of `dir` from git; `dir` itself when git does not answer.
+async function repoRoot($: EngineInterface, dir: string): Promise<string> {
   try {
-    const y = await $.fs.read(`${await $.session.cwd()}/.harness/project.yaml`) as string
+    const r = await $.process.run(['git', '-C', native(dir), 'rev-parse', '--show-toplevel'], { timeoutMs: 2_000 })
+    const top = r.exitCode === 0 ? r.stdout.trim() : ''
+    return /^(\/|[A-Za-z]:)/.test(top) ? resolvePath('/', top) : dir
+  } catch {
+    return dir
+  }
+}
+
+async function rootOf($: EngineInterface, command: string, at?: number): Promise<string> {
+  return repoRoot($, commandDir(command, await $.session.cwd(), await home($), at))
+}
+
+async function readProject($: EngineInterface, root?: string): Promise<{ gates: string[]; lang: 'en' | 'pt-br' }> {
+  try {
+    const y = await $.fs.read(`${root ?? await $.session.cwd()}/.harness/project.yaml`) as string
     return { gates: parseGateCommands(y), lang: parseLanguage(y) }
   } catch {
     return { gates: [], lang: 'en' }
@@ -103,7 +163,8 @@ async function refresh($: EngineInterface): Promise<void> {
   if (running.size) parts.push(`agents ${running.size}`)
   const dh = await dhProgress($)
   if (dh) parts.push(dh)
-  if (dirtySinceGate) parts.push('gate pending')
+  const cwd = await $.session.cwd()
+  if ([...dirty].some(f => inside(f, resolvePath('/', cwd)))) parts.push('gate pending')
   for (const r of u.rateLimits) {
     const label = r.kind === 'five_hour' ? '5h' : r.kind === 'seven_day' ? 'wk' : undefined
     if (label) parts.push(`${label} ${Math.round(r.percentUsed)}%${r.percentUsed >= 80 ? ' 🔴' : ''}`)
@@ -119,9 +180,8 @@ async function refresh($: EngineInterface): Promise<void> {
 }
 
 // R20: fail-open on any read error; no tickets (or no readable PRDs) means no drift.
-async function driftNow($: EngineInterface): Promise<ReturnType<typeof findDrift>> {
+async function driftNow($: EngineInterface, cwd: string): Promise<ReturnType<typeof findDrift>> {
   try {
-    const cwd = await $.session.cwd()
     const tickets: { id: string; md: string }[] = []
     for (const entry of await $.fs.list(`${cwd}/.harness/tasks`)) {
       const file = `${cwd}/.harness/tasks/${entry.name}/TASK.md`
@@ -146,17 +206,22 @@ async function driftNow($: EngineInterface): Promise<ReturnType<typeof findDrift
 
 async function guardBash($: EngineInterface, command: string): Promise<string | undefined> {
   const aiHit = deniesAiMention(command)
-  const commit = COMMIT.test(command)
+  const commit = COMMIT.exec(command)
   if (!aiHit && !commit) return undefined
-  const { gates, lang } = await readProject($)
+  // The commit's repository, not the session's, decides the gate, the language and the drift check.
+  const root = commit ? await rootOf($, command, commit.index) : await $.session.cwd()
+  const { gates, lang } = await readProject($, native(root))
   if (aiHit) return MSG[lang].ai
-  if (dirtySinceGate) return MSG[lang].gate(gates.length ? gates.join(' && ') : MSG[lang].gateDefault)
-  const drift = await driftNow($)
-  return drift.length ? driftMessage(drift, lang, await $.session.cwd()) : undefined
+  if ([...dirty].some(f => inside(f, root))) return MSG[lang].gate(gates.length ? gates.join(' && ') : MSG[lang].gateDefault)
+  const drift = await driftNow($, native(root))
+  return drift.length ? driftMessage(drift, lang, native(root)) : undefined
 }
 
-function markDirty<R extends { deny?: unknown; isError?: boolean }>(r: R, e: any): R {
-  if (r.deny === undefined && r.isError !== true && !isHarnessPath(e.file_path ?? e.notebook_path)) dirtySinceGate = true
+async function markDirty<R extends { deny?: unknown; isError?: boolean }>($: EngineInterface, r: R, e: any): Promise<R> {
+  const p = e.file_path ?? e.notebook_path
+  if (r.deny === undefined && r.isError !== true && p && !isHarnessPath(p)) {
+    dirty.add(resolvePath(await $.session.cwd().catch(() => '/'), String(p)))
+  }
   return r
 }
 
@@ -193,16 +258,20 @@ export const register: Register = on => {
     return r
   })).catch(failOpen)
 
-  on('tool.call', { tool: 'Edit' }, ($, e, next) => guardFile({}, e, async (x: typeof e) => markDirty(await next(x), x))).catch(failOpen)
-  on('tool.call', { tool: 'Write' }, ($, e, next) => guardFile({}, e, async (x: typeof e) => markDirty(await next(x), x))).catch(failOpen)
-  on('tool.call', { tool: 'NotebookEdit' }, async ($, e, next) => markDirty(await next(e), e)).catch(failOpen)
+  on('tool.call', { tool: 'Edit' }, ($, e, next) => guardFile({}, e, async (x: typeof e) => markDirty($, await next(x), x))).catch(failOpen)
+  on('tool.call', { tool: 'Write' }, ($, e, next) => guardFile({}, e, async (x: typeof e) => markDirty($, await next(x), x))).catch(failOpen)
+  on('tool.call', { tool: 'NotebookEdit' }, async ($, e, next) => markDirty($, await next(e), e)).catch(failOpen)
 
   on('tool.call', { tool: 'Bash' }, async ($, e, next) => {
     const denied = await guardBash($, e.command).catch(() => undefined)
     if (denied) return { deny: denied }
     const r = await next(e)
-    if (r.deny === undefined && r.isError !== true && isGateCommand(e.command, (await readProject($)).gates)) {
-      dirtySinceGate = false
+    // ponytail: pre-filter by generic + session gates (no git spawn on plain Bash); a custom gate that only
+    // another repo's project.yaml names does not clear that repo.
+    const at = r.deny === undefined && r.isError !== true && dirty.size ? gateAt(e.command, (await readProject($)).gates) : -1
+    if (at >= 0) {
+      const root = await rootOf($, e.command, at)
+      for (const f of dirty) if (inside(f, root)) dirty.delete(f)
     }
     return r
   }).catch(failOpen)
