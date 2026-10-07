@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -30,17 +31,19 @@ type Config struct {
 	Stale       time.Duration
 	DoneDecay   time.Duration
 	Now         func() time.Time // tests only; nil = time.Now
+	CacheTTL    time.Duration    // built state is reused this long (Serve sets 1s when zero)
 }
 
 // Handler is the whole HTTP surface: GET only, loopback Host only, no write path anywhere.
 func Handler(cfg Config) http.Handler {
 	sprites := LoadSprites(cfg.SpritesDir)
+	cache := &stateCache{ttl: cfg.CacheTTL}
 	page, _ := pageFS.ReadFile("web/index.html")
 	// own routing instead of ServeMux: the mux 307-redirects unclean paths ("/sprite/../x"); here they are plain 404s
 	state := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
-		_ = json.NewEncoder(w).Encode(buildState(cfg, sprites))
+		_ = json.NewEncoder(w).Encode(cache.get(func() state { return buildState(cfg, sprites) }))
 	}
 	spriteH := func(w http.ResponseWriter, r *http.Request) {
 		pose := strings.TrimPrefix(r.URL.Path, "/sprite/")
@@ -105,6 +108,25 @@ func loopbackHost(hostport string) bool {
 	}
 	host = strings.ToLower(host)
 	return host == "127.0.0.1" || host == "localhost"
+}
+
+// stateCache keeps the built state for ttl so rapid or concurrent polls do not rescan the disk.
+type stateCache struct {
+	mu   sync.Mutex
+	ttl  time.Duration
+	at   time.Time
+	last *state
+}
+
+func (c *stateCache) get(build func() state) state {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.last != nil && time.Since(c.at) < c.ttl {
+		return *c.last
+	}
+	s := build()
+	c.last, c.at = &s, time.Now()
+	return s
 }
 
 type jsonBar struct {
@@ -176,9 +198,13 @@ func buildState(cfg Config, sprites *Sprites) state {
 		for _, b := range pr.Open {
 			jp.Open = append(jp.Open, jsonBar(b))
 		}
+		st.Warnings = append(st.Warnings, pr.Warnings...)
 		st.Projects = append(st.Projects, jp)
 	}
-	all := snapshot.LoadDir(cfg.SnapshotDir)
+	all, skipped := snapshot.LoadDirMax(cfg.SnapshotDir, MaxSnapshots)
+	if skipped > 0 {
+		st.Warnings = append(st.Warnings, fmt.Sprintf("More than %d snapshot files: reading the newest %d.", MaxSnapshots, MaxSnapshots))
+	}
 	open := OpenSessions(all, projects, now, cfg.Stale, cfg.DoneDecay)
 	for _, s := range open {
 		js := jsonSession{ID: s.SessionID, Name: s.SessionName, CWD: s.CWD, Agent: s.Agent, Project: s.Project,
@@ -213,6 +239,9 @@ func Listen(port int) (net.Listener, error) {
 
 // Serve blocks until ln closes.
 func Serve(ln net.Listener, cfg Config) error {
+	if cfg.CacheTTL == 0 {
+		cfg.CacheTTL = time.Second
+	}
 	srv := &http.Server{Handler: Handler(cfg), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second,
 		WriteTimeout: 10 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
 	err := srv.Serve(ln)

@@ -48,6 +48,8 @@ function world(on: any, o: Opts = {}) {
   return { files, registered, runs, clock }
 }
 
+// Hot-path hooks (prompt, tool, subagent) do not wait for their snapshot write: give the queue real time to drain.
+const settled = () => new Promise(r => setTimeout(r, 20))
 const snap = (w: any) => JSON.parse(w.files.get(FILE))
 const start = ($: any, extra: any = {}) => $.classic.SessionStart({ session_id: SID, source: 'startup', cwd: CWD, agent_type: 'coordinator', model: 'opus-x', ...extra })
 
@@ -68,6 +70,7 @@ for (const [name, fire, activity, state] of ROWS) {
   test(`R13 ${name} -> activity ${activity}, state ${state}`, async ($, on) => {
     const w = world(on)
     await fire($)
+    await settled()
     const s = snap(w)
     expect(s.schema).toBe(2)
     expect(s.session_id).toBe(SID)
@@ -88,15 +91,15 @@ test('waiting leaves on the next activity', async ($, on) => {
   const w = world(on)
   await $.classic.PermissionRequest({ session_id: SID, tool_name: 'Bash', tool_input: {} })
   expect(snap(w).activity).toBe('waiting')
-  await $.classic.PostToolUse({ session_id: SID, tool_name: 'Bash', tool_input: {}, tool_response: {}, tool_use_id: 't' })
+  await $.classic.PostToolUse({ session_id: SID, tool_name: 'Bash', tool_input: {}, tool_response: {}, tool_use_id: 't' }); await settled()
   expect(snap(w).activity).toBe('working')
 })
 
 test('activity_at moves only when activity changes; updated_at moves every event', async ($, on) => {
   const w = world(on)
-  await $.classic.UserPromptSubmit({ session_id: SID, prompt: 'x' })
+  await $.classic.UserPromptSubmit({ session_id: SID, prompt: 'x' }); await settled()
   await w.clock.advance(5000)
-  await $.classic.PostToolUse({ session_id: SID, tool_name: 'Bash', tool_input: {}, tool_response: {}, tool_use_id: 't' })
+  await $.classic.PostToolUse({ session_id: SID, tool_name: 'Bash', tool_input: {}, tool_response: {}, tool_use_id: 't' }); await settled()
   expect(snap(w).activity_at).toBe('2026-10-07T10:00:00Z')
   expect(snap(w).updated_at).toBe('2026-10-07T10:00:05Z')
   await w.clock.advance(5000)
@@ -106,7 +109,7 @@ test('activity_at moves only when activity changes; updated_at moves every event
 
 test('preserves unknown fields (tasks) and recovers from partial JSON', async ($, on) => {
   const w = world(on, { files: { [FILE]: JSON.stringify({ schema: 1, session_id: SID, tasks: [{ id: 't1' }], future: { a: 1 }, started_at: 'T0' }) } })
-  await $.classic.UserPromptSubmit({ session_id: SID, prompt: 'x' })
+  await $.classic.UserPromptSubmit({ session_id: SID, prompt: 'x' }); await settled()
   expect(snap(w).tasks).toEqual([{ id: 't1' }])
   expect(snap(w).future).toEqual({ a: 1 })
   expect(snap(w).started_at).toBe('T0')
@@ -120,10 +123,19 @@ test('partial JSON is left alone (write skipped), a missing file starts fresh', 
   expect(JSON.parse(w.files.get(`${SNAP}/fresh.json`)!).activity).toBe('done')
 })
 
+test('a file that stays unparseable is overwritten on the third skipped write', async ($, on) => {
+  const w = world(on, { files: { [FILE]: 'garbage' } })
+  await $.classic.Stop({ session_id: SID, stop_hook_active: false })
+  await $.classic.Stop({ session_id: SID, stop_hook_active: false })
+  expect(w.files.get(FILE)).toBe('garbage')
+  await $.classic.Stop({ session_id: SID, stop_hook_active: false })
+  expect(snap(w).activity).toBe('done')
+})
+
 test('SubagentStop keeps the current activity but still records the event', async ($, on) => {
   const w = world(on)
   await $.classic.Stop({ session_id: SID, stop_hook_active: false })
-  await $.classic.SubagentStop({ session_id: SID, agent_id: 'a1', agent_type: 'builder', stop_hook_active: false, agent_transcript_path: '' })
+  await $.classic.SubagentStop({ session_id: SID, agent_id: 'a1', agent_type: 'builder', stop_hook_active: false, agent_transcript_path: '' }); await settled()
   expect(snap(w).activity).toBe('done')
   expect(snap(w).events.length).toBe(1)
 })
@@ -157,6 +169,7 @@ test('R13b started_at only the first time; events ring of 50', async ($, on) => 
   await start($)
   expect(snap(w).started_at).toBe('2026-10-07T10:00:00Z')
   for (let i = 0; i < 60; i++) await $.classic.SubagentStart({ session_id: SID, agent_id: `a${i}`, agent_type: 'builder' })
+  await settled()
   const ev = snap(w).events
   expect(ev.length).toBe(50)
   expect(ev[49].agent_id).toBe('a59')
@@ -239,6 +252,29 @@ test('R6 mod registers the dashboard command and runs dh dashboard --detach, ret
   expect(r.text).toBe('http://127.0.0.1:4747/')
   expect(w.runs[0]!.slice(1)).toEqual(['dashboard', '--detach'])
   expect(w.runs[0]![0]).toMatch(/bin\/dh(\.cmd)?$/)
+})
+
+test('heartbeat refreshes rate_limits from usage and keeps them when usage fails', async ($, on) => {
+  const w = world(on, { files: { [FILE]: JSON.stringify({ schema: 2, session_id: SID, state: 'active', activity: 'working', rate_limits: { five_hour: 3 } }) }, limits: [{ kind: 'five_hour', percentUsed: 41 }] })
+  await $.classic.UserPromptSubmit({ session_id: SID, prompt: 'x' }); await settled()
+  expect(snap(w).rate_limits).toEqual({ five_hour: 41 })
+  const st = snap(w)
+  w.files.set(FILE, JSON.stringify({ ...st, rate_limits: { five_hour: 3 } })) // stale limit on disk
+  await w.clock.advance(30_000)
+  expect(snap(w).rate_limits).toEqual({ five_hour: 41 })
+  expect(snap(w).updated_at).toBe('2026-10-07T10:00:30Z')
+})
+
+test('R6 extra args with shell metacharacters run nothing', async ($, on) => {
+  const w = world(on)
+  for (const args of ['& calc', '--port=1;rm', '$(x)', '--a|b', '"q"']) {
+    const r: any = await $.command.run({ command: 'dashboard', args, origin: { kind: 'composer' }, presentation: { layout: 'main', columns: 80 } } as any)
+    expect(r.text).toContain('unsupported argument')
+  }
+  expect(w.runs.length).toBe(0)
+  const ok: any = await $.command.run({ command: 'dashboard', args: '--port=4748', origin: { kind: 'composer' }, presentation: { layout: 'main', columns: 80 } } as any)
+  expect(ok.text).toBe('http://127.0.0.1:4747/')
+  expect(w.runs[0]!.slice(1)).toEqual(['dashboard', '--detach', '--port=4748'])
 })
 
 test('R6 a failing dh is reported in the command text, not thrown', async ($, on) => {

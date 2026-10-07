@@ -70,6 +70,8 @@ export function applyEvent(prev: Snap, name: string, e: Ev, now: string, limits?
 let chain: Promise<unknown> = Promise.resolve()
 let beatSession = ''
 let beat: { cancel: () => void } | undefined
+const SKIP_LIMIT = 3
+const skips = new Map<string, number>() // consecutive skipped writes per session (unparseable file)
 
 async function snapshotDir($: EngineInterface): Promise<string> {
   const fixed = await $.env.get('DEV_HARNESS_SNAPSHOT_DIR')
@@ -98,25 +100,36 @@ function withTimeout<T>($: EngineInterface, p: Promise<T>): Promise<T> {
   return Promise.race([p, limit]).finally(() => t?.cancel())
 }
 
+async function usageLimits($: EngineInterface): Promise<Limits | undefined> {
+  try { return limitsFrom((await $.session.usage()).rateLimits) } catch { return undefined } // no usage: keep previous
+}
+
 async function touch($: EngineInterface): Promise<void> {
   const id = beatSession
   if (!id) return
   const path = `${await snapshotDir($)}/${id}.json`
   const prev = await readPrev($, path)
+  const limits = await usageLimits($) // a limit's age must reflect when it was measured
   const now = iso(await $.clock.now())
   // Re-checked after the last await, inside the serialized job: an ended session is never resurrected.
   if (!prev || beatSession !== id || !prev.session_id || prev.state === 'closed') return
-  await $.fs.write(path, JSON.stringify({ ...prev, updated_at: now }, null, 2) + '\n')
+  await $.fs.write(path, JSON.stringify({ ...prev, updated_at: now, ...(limits ? { rate_limits: limits } : {}) }, null, 2) + '\n')
 }
 
 async function write($: EngineInterface, name: string, e: Ev): Promise<void> {
   if (!SAFE_ID.test(String(e.session_id ?? ''))) return
   try {
     const path = `${await snapshotDir($)}/${e.session_id}.json`
-    let limits: Limits | undefined
-    try { limits = limitsFrom((await $.session.usage()).rateLimits) } catch { /* no usage: keep previous */ }
-    const prev = await readPrev($, path)
-    if (!prev) return // exists but unreadable/partial: do not overwrite what another writer is mid-way through
+    const limits = await usageLimits($)
+    let prev = await readPrev($, path)
+    if (!prev) {
+      // exists but unreadable/partial: do not overwrite what another writer is mid-way through,
+      // unless it stays unparseable for SKIP_LIMIT writes in a row (then it is corrupt, not partial)
+      const n = (skips.get(e.session_id) ?? 0) + 1
+      if (n < SKIP_LIMIT) { skips.set(e.session_id, n); return }
+      prev = {}
+    }
+    skips.delete(e.session_id)
     const next = applyEvent(prev, name, e, iso(await $.clock.now()), limits)
     if (!next) return
     await $.fs.write(path, JSON.stringify(next, null, 2) + '\n')
@@ -146,14 +159,15 @@ const failOpen = (_$: unknown, e: any, next: any) => next(e)
 
 export function registerSnapshot(on: On): void {
   on('classic.SessionStart', async ($, e, next) => { await record($, 'SessionStart', e); return next(e) }).catch(failOpen)
-  on('classic.UserPromptSubmit', async ($, e, next) => { await record($, 'UserPromptSubmit', e); return next(e) }).catch(failOpen)
-  on('classic.PostToolUse', async ($, e, next) => { await record($, 'PostToolUse', e); return next(e) }).catch(failOpen)
+  on('classic.UserPromptSubmit', async ($, e, next) => { void record($, 'UserPromptSubmit', e); return next(e) }).catch(failOpen)
+  on('classic.PostToolUse', async ($, e, next) => { void record($, 'PostToolUse', e); return next(e) }).catch(failOpen)
+  // Hot-path events (prompt, tool, subagent) do not wait for the write; chain keeps the order.
   // PermissionRequest/Notification record before next(): next waits for the person's answer.
   on('classic.PermissionRequest', async ($, e, next) => { await record($, 'PermissionRequest', e); return next(e) }).catch(failOpen)
   on('classic.Notification', async ($, e, next) => { await record($, 'Notification', e); return next(e) }).catch(failOpen)
   on('classic.StopFailure', async ($, e, next) => { await record($, 'StopFailure', e); return next(e) }).catch(failOpen)
   on('classic.Stop', async ($, e, next) => { await record($, 'Stop', e); return next(e) }).catch(failOpen)
-  on('classic.SubagentStart', async ($, e, next) => { await record($, 'SubagentStart', e); return next(e) }).catch(failOpen)
-  on('classic.SubagentStop', async ($, e, next) => { await record($, 'SubagentStop', e); return next(e) }).catch(failOpen)
+  on('classic.SubagentStart', async ($, e, next) => { void record($, 'SubagentStart', e); return next(e) }).catch(failOpen)
+  on('classic.SubagentStop', async ($, e, next) => { void record($, 'SubagentStop', e); return next(e) }).catch(failOpen)
   on('classic.SessionEnd', async ($, e, next) => { await record($, 'SessionEnd', e); return next(e) }).catch(failOpen)
 }

@@ -6,12 +6,19 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
 
 // ErrPartial means the file is empty or truncated JSON (a writer is mid-write); callers skip it for this cycle.
 var ErrPartial = errors.New("partial snapshot")
+
+// ErrTooLarge means the file is over MaxFileBytes and is not read (a snapshot is a few KB).
+var ErrTooLarge = errors.New("snapshot too large")
+
+// MaxFileBytes bounds what a poll reads from any one snapshot file.
+const MaxFileBytes = 1 << 20
 
 // Activity values of schema 2.
 const (
@@ -64,6 +71,9 @@ type rawSession struct {
 // Load reads one snapshot file. Truncated or empty JSON returns ErrPartial.
 // Unknown fields are ignored (the file also carries tasks, events, ...).
 func Load(path string) (Session, error) {
+	if st, err := os.Stat(path); err == nil && st.Size() > MaxFileBytes {
+		return Session{}, fmt.Errorf("%s: %w", filepath.Base(path), ErrTooLarge)
+	}
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return Session{}, err
@@ -93,14 +103,29 @@ func Load(path string) (Session, error) {
 
 // LoadDir loads every *.json in dir, skipping partial and unreadable files. A missing dir yields none.
 func LoadDir(dir string) []Session {
+	out, _ := LoadDirMax(dir, 0)
+	return out
+}
+
+// LoadDirMax is LoadDir keeping only the max newest files by mtime (max <= 0 = no cap); skipped counts the files left out.
+func LoadDirMax(dir string, max int) (out []Session, skipped int) {
 	files, _ := filepath.Glob(filepath.Join(dir, "*.json"))
-	var out []Session
+	if max > 0 && len(files) > max {
+		mt := map[string]time.Time{}
+		for _, f := range files {
+			if st, err := os.Stat(f); err == nil {
+				mt[f] = st.ModTime()
+			}
+		}
+		sort.Slice(files, func(i, j int) bool { return mt[files[i]].After(mt[files[j]]) })
+		skipped, files = len(files)-max, files[:max]
+	}
 	for _, f := range files {
 		if s, err := Load(f); err == nil {
 			out = append(out, s)
 		}
 	}
-	return out
+	return out, skipped
 }
 
 // EffectiveActivity decays `done` to `idle` once now - ActivityAt >= decay (a missing/unparseable ActivityAt counts as decayed; a future one clamps to now).

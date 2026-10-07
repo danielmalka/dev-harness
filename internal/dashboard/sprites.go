@@ -47,9 +47,13 @@ func LoadSprites(dir string) *Sprites {
 	if dir == "" {
 		return s
 	}
-	b, err := os.ReadFile(filepath.Join(dir, "poses.json"))
+	b, err := readCapped(filepath.Join(dir, "poses.json"))
 	if errors.Is(err, os.ErrNotExist) {
 		return s // absent is normal
+	}
+	if err == errTooLarge {
+		s.Warnings = append(s.Warnings, "poses.json over 1 MiB, using default map")
+		return s
 	}
 	if err != nil {
 		s.Warnings = append(s.Warnings, "poses.json unreadable, using default map")
@@ -120,7 +124,7 @@ func (s *Sprites) Frames(pose string) ([][]byte, bool) {
 
 func (s *Sprites) frames(pose string) ([][]byte, bool) {
 	if s.dir != "" {
-		if b, err := os.ReadFile(filepath.Join(s.dir, pose+".png")); err == nil {
+		if b, err := readCapped(filepath.Join(s.dir, pose+".png")); err == nil {
 			return [][]byte{b}, true
 		}
 		files, _ := filepath.Glob(filepath.Join(s.dir, pose+"_[0-9][0-9].png"))
@@ -128,7 +132,7 @@ func (s *Sprites) frames(pose string) ([][]byte, bool) {
 		var out [][]byte
 		for _, f := range files {
 			if m := frameName.FindStringSubmatch(filepath.Base(f)); m != nil && m[1] == pose {
-				if b, err := os.ReadFile(f); err == nil {
+				if b, err := readCapped(f); err == nil {
 					out = append(out, b)
 				}
 			}

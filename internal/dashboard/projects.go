@@ -2,6 +2,8 @@
 package dashboard
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -10,6 +12,24 @@ import (
 )
 
 const RootsEnv = "DH_DASHBOARD_ROOTS"
+
+// Bounds on what one poll reads (security round 1): per-file bytes and entry counts.
+const (
+	MaxFileBytes      = 1 << 20
+	MaxProjects       = 100
+	MaxTicketsPerProj = 1000
+	MaxSnapshots      = 500
+)
+
+// readCapped reads a file unless it is over MaxFileBytes (checked by stat before reading).
+func readCapped(path string) ([]byte, error) {
+	if st, err := os.Stat(path); err == nil && st.Size() > MaxFileBytes {
+		return nil, errTooLarge
+	}
+	return os.ReadFile(path)
+}
+
+var errTooLarge = errors.New("file too large")
 
 type Project struct {
 	Name string
@@ -52,6 +72,9 @@ func Projects(roots string) ([]Project, string) {
 	sort.Slice(out, func(i, j int) bool { return out[i].Path < out[j].Path })
 	if readable == 0 {
 		return nil, "None of the folders in DH_DASHBOARD_ROOTS could be read: no projects to show."
+	}
+	if len(out) > MaxProjects {
+		return out[:MaxProjects], fmt.Sprintf("More than %d projects found: showing the first %d.", MaxProjects, MaxProjects)
 	}
 	return out, ""
 }
@@ -109,6 +132,7 @@ type Bar struct {
 }
 
 type Progress struct {
+	Warnings  []string
 	Open      []Bar    // one per open PRD, sorted by id
 	Delivered []string // PRD ids whose Status starts with "entregue em" (100%)
 }
@@ -117,10 +141,19 @@ type Progress struct {
 func ProjectProgress(projectPath string) Progress {
 	type counts struct{ done, blocked, total int }
 	byPRD := map[string]*counts{}
+	var warns []string
+	name := filepath.Base(projectPath)
 	tasks, _ := filepath.Glob(filepath.Join(projectPath, ".harness", "tasks", "*", "TASK.md"))
+	if len(tasks) > MaxTicketsPerProj {
+		warns = append(warns, fmt.Sprintf("%s: more than %d tickets: counting the first %d.", name, MaxTicketsPerProj, MaxTicketsPerProj))
+		tasks = tasks[:MaxTicketsPerProj]
+	}
 	for _, f := range tasks {
-		b, err := os.ReadFile(f)
+		b, err := readCapped(f)
 		if err != nil {
+			if err == errTooLarge {
+				warns = append(warns, fmt.Sprintf("%s: skipped %s (over 1 MiB).", name, filepath.Base(filepath.Dir(f))))
+			}
 			continue
 		}
 		md := string(b)
@@ -145,8 +178,14 @@ func ProjectProgress(projectPath string) Progress {
 	for _, pat := range []string{"docs/prd/PRD-*.md", ".harness/prd/PRD-*.md"} {
 		files, _ := filepath.Glob(filepath.Join(projectPath, filepath.FromSlash(pat)))
 		for _, f := range files {
+			if strings.HasSuffix(f, ".review.md") {
+				continue
+			}
 			id := prdFile.FindString(filepath.Base(f))
-			b, err := os.ReadFile(f)
+			b, err := readCapped(f)
+			if err == errTooLarge {
+				warns = append(warns, fmt.Sprintf("%s: skipped %s (over 1 MiB).", name, filepath.Base(f)))
+			}
 			if id == "" || err != nil {
 				continue
 			}
@@ -155,7 +194,7 @@ func ProjectProgress(projectPath string) Progress {
 			}
 		}
 	}
-	var p Progress
+	p := Progress{Warnings: warns}
 	for id, st := range status {
 		if strings.HasPrefix(st, "entregue em") {
 			p.Delivered = append(p.Delivered, id)
