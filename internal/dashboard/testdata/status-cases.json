@@ -1,0 +1,13 @@
+[
+  {"name": "table done", "md": "| Status | concluída — 2026-10-07 |\n", "want": "done"},
+  {"name": "table done english", "md": "| Status | done |\n", "want": "done"},
+  {"name": "table ready-delivered", "md": "| Status | pronta, entregue na 0.5.0 |\n", "want": "done"},
+  {"name": "table blocked", "md": "| Status | bloqueada por T-1 |\n", "want": "blocked"},
+  {"name": "table ready", "md": "| Status | pronta |\n", "want": "open"},
+  {"name": "table in progress", "md": "| Status | em andamento |\n", "want": "open"},
+  {"name": "bold done", "md": "# T-1\n\n**Status:** Concluída\n", "want": "done"},
+  {"name": "bold colon outside", "md": "**Status**: bloqueado\n", "want": "blocked"},
+  {"name": "table wins over bold", "md": "| Status | pronta |\n\n**Status:** concluída\n", "want": "open"},
+  {"name": "no status", "md": "# T-1\n\nnothing\n", "want": "open"},
+  {"name": "mixed case", "md": "| Status | CONCLUÍDA |\n", "want": "done"}
+]

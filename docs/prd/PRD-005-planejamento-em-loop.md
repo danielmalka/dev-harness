@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | validado em 6 rodadas; aprovado pelo dono em 25/09/2026 |
+| Status | entregue em 2026-09-28 |
 | Dono | Daniel Malka |
 | Criado / atualizado | 2026-09-25 / 2026-09-25 |
 | Stories | a derivar |

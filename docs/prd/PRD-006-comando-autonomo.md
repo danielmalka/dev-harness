@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aprovado pelo dono em 26/09/2026 (branch por slice adiado para versão posterior) |
+| Status | entregue em 2026-09-26 |
 | Dono | Daniel Malka |
 | Criado / atualizado | 2026-09-25 / 2026-09-26 |
 | Stories | a derivar |

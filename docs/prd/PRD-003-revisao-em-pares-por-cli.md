@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aprovado pelo `document-validator` em 2026-09-21 (rodada 2/2); decisões pendentes fechadas pelo dono em 2026-09-21 |
+| Status | entregue em 2026-09-22 |
 | Dono | Daniel Malka |
 | Criado / atualizado | 2026-09-21 / 2026-09-21 |
 | Stories | a derivar |

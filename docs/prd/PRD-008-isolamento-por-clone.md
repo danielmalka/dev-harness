@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aprovado pelo dono em 29/09/2026 |
+| Status | entregue em 2026-09-30 |
 | Dono | Daniel Malka |
 | Criado / atualizado | 2026-09-29 / 2026-09-29 |
 | Tickets | a derivar |

@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aprovado com ressalvas: validador em 2 rodadas (`changes required` na 2ª, P16–P17 fechados por disposição do Coordenador por delegação do dono em 2026-09-22) |
+| Status | entregue em 2026-09-22 (aprovado com ressalvas) |
 | Dono | Daniel Malka |
 | Criado / atualizado | 2026-09-21 / 2026-09-21 |
 | Stories | a derivar |
