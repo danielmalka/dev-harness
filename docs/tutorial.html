@@ -646,12 +646,13 @@ footer.doc-foot {
       <div class="side__type">report</div>
       <nav>
         <a href="#instalacao"><b>01</b>Instalação</a>
-        <a href="#primeira-sessao"><b>02</b>Primeira sessão</a>
-        <a href="#harness"><b>03</b>O que vive em .harness/</a>
-        <a href="#fluxos"><b>04</b>Fluxos</a>
-        <a href="#configuracao"><b>05</b>Configuração</a>
-        <a href="#avancado"><b>06</b>Avançado</a>
-        <a href="#referencia"><b>07</b>Referência dos comandos</a>
+        <a href="#dashboard"><b>02</b>Dashboard local</a>
+        <a href="#primeira-sessao"><b>03</b>Primeira sessão</a>
+        <a href="#harness"><b>04</b>O que vive em .harness/</a>
+        <a href="#fluxos"><b>05</b>Fluxos</a>
+        <a href="#configuracao"><b>06</b>Configuração</a>
+        <a href="#avancado"><b>07</b>Avançado</a>
+        <a href="#referencia"><b>08</b>Referência dos comandos</a>
       </nav>
     </aside>
     <div class="wrap" id="conteudo">
@@ -685,7 +686,23 @@ footer.doc-foot {
       </ol>
       <p>O pacote inclui <code>settings.json</code> e <code>hooks/hooks.json</code>, que gravam snapshots por sessão em <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, só em arquivos locais e podados após 7 dias.</p>
 
-      <h2 id="primeira-sessao"><span class="n">02</span>Primeira sessão</h2>
+      <h2 id="dashboard"><span class="n">02</span>Dashboard local</h2>
+      <p>Uma página local mostra projetos em andamento, PRDs abertos, e sessões do Claude Code com seu estado (trabalhando, parado, esperando você, erro, pronto ou atenção). Rodar:</p>
+      <ol class="steps">
+        <li><strong><code>/dashboard</code></strong> dentro de uma sessão do Claude Code. O comando (registrado pelo mod, não é um <code>/dh:</code> tradicional) sobe um servidor na porta padrão 4747 em http://127.0.0.1:4747 e imprime a URL. Aceita argumentos:
+          <ul>
+            <li><code>--port N</code> para mudar a porta (ex: <code>/dashboard --port 4748</code>). Se a porta estiver ocupada, o comando avisa com clareza.</li>
+            <li><code>--detach</code> para desacoplar; por padrão o servidor roda enquanto a sessão ativa.</li>
+            <li><code>--stale D</code> e <code>--done-decay D</code> para tuning de exibição (padrões sensatos vêm pré-configurados).</li>
+          </ul>
+        </li>
+        <li><strong>Configurar projetos.</strong> A variável <code>DH_DASHBOARD_ROOTS</code> aponta para as pastas que contêm projetos. Projetos são subpastas diretas que têm um <code>.harness/</code>. Múltiplos caminhos separam-se por <code>;</code>:
+          <div class="table-wrap"><pre><code>export DH_DASHBOARD_ROOTS="/home/you/work;/home/you/side-projects"</code></pre></div>
+        </li>
+        <li><strong>Avatares customizados (opcional).</strong> <code>DH_DASHBOARD_SPRITES</code> aponta para uma pasta de ícones no formato jevmon: um arquivo por pose (<code>&lt;pose&gt;.png</code> ou frames <code>&lt;pose&gt;_01.png</code>, <code>&lt;pose&gt;_02.png</code>, etc.), mais um <code>poses.json</code> opcional que mapeia estados. O kit envia 6 ícones exemplo (parado, trabalhando, esperando, erro, pronto, atenção). Quando uma pose não existe na pasta do seu dono, o dashboard cai na padrão do kit. O servidor nunca serve ícone com caminho livre (sem nome de pose conhecido) por segurança.</li>
+      </ol>
+
+      <h2 id="primeira-sessao"><span class="n">03</span>Primeira sessão</h2>
       <p>Abra o Claude Code no projeto, com o Coordenador como agente principal (<code>--agent coordinator</code> quando carrega do clone), e rode:</p>
       <ol class="steps">
         <li><strong><code>/dh:doctor</code></strong> diagnostica kit, runtime e projeto. Não escreve nada. Sem o Claude, no clone: <code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code>.</li>
@@ -693,7 +710,7 @@ footer.doc-foot {
         <li><strong>Treino opcional.</strong> A fixture <code>evals/fixtures/slice-01</code> (clone do kit; Python 3, unittest, um critério vermelho de propósito) serve para um primeiro ciclo <code>plan</code>, <code>build</code>, <code>verify</code>, <code>review</code>, <code>handoff</code>. Não copie <code>expected/greet.py</code> no lugar do código.</li>
       </ol>
 
-      <h2 id="harness"><span class="n">03</span>O que vive em .harness/</h2>
+      <h2 id="harness"><span class="n">04</span>O que vive em .harness/</h2>
       <div class="table-wrap"><table>
         <thead><tr><th>Caminho</th><th>Para que serve</th></tr></thead>
         <tbody>
@@ -708,7 +725,7 @@ footer.doc-foot {
       </table></div>
       <div class="callout">Só o Coordenador escreve <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>. Os outros agentes devolvem propostas. O plugin Claude Code força essa regra em tempo de execução: um subagente que tenta escrever naqueles arquivos é bloqueado. O disco é a verdade: se você apagou registros, o Coordenador não os recria de memória da conversa.</div>
 
-      <h2 id="fluxos"><span class="n">04</span>Fluxos</h2>
+      <h2 id="fluxos"><span class="n">05</span>Fluxos</h2>
       <p>O kit tem 13 agentes e 19 comandos. Você fala com o Coordenador; ele despacha os especialistas e guarda a autorização: nada é instalado, commitado, publicado ou implantado sem você autorizar.</p>
       <h3>Feature, do pedido à release</h3>
       <ol class="steps">
@@ -739,7 +756,7 @@ footer.doc-foot {
       <h3>Entender antes de mexer: /dh:understand</h3>
       <p>Pergunte em forma de comportamento ("onde o reset de senha passa?"). O <code>repo-scout</code> devolve entradas, dependências e fluxo, só leitura.</p>
 
-      <h2 id="configuracao"><span class="n">05</span>Configuração</h2>
+      <h2 id="configuracao"><span class="n">06</span>Configuração</h2>
       <h3><code>.harness/project.yaml</code></h3>
       <p>Escrito pelo <code>/dh:setup</code> e ajustável à mão. Sem segredos nem caminhos absolutos. Campos:</p>
       <ul>
@@ -759,7 +776,7 @@ reviewers:
       <h3><code>.harness/local.yaml</code></h3>
       <p>Dados desta máquina: em <code>binaries</code>, onde achar cada CLI que não está no <code>PATH</code>; em <code>models</code>, os slugs medidos. Caminhos sempre relativos ao home (<code>~/.grok/bin/grok</code>) ou ao projeto, nunca o home expandido, para o arquivo servir em qualquer máquina. Um binário que não resolve deixa o revisor como não rodado, com o motivo. Modelo do arquivo: <code>.skills/external-clis/references/local.yaml.example</code> (no clone).</p>
 
-      <h2 id="avancado"><span class="n">06</span>Avançado</h2>
+      <h2 id="avancado"><span class="n">07</span>Avançado</h2>
       <h3>Planejamento em loop: /dh:plan-loop</h3>
       <p>Para feature nova, em vez de um plano só: o <code>implementation-planner</code> (Claude) disputa com um planejador de CLI externa em ondas. A rotação segue a ordem de <code>reviewers.document</code>; cada candidato é julgado pela lista completa de revisores, e o loop converge quando todos aprovam sem achado bloqueante, com pelo menos um revisor que não é Claude e não escreveu o candidato. Os tetos são <code>plan_loop.wave_cap</code> (padrão 6) e <code>plan_loop.dispatch_cap</code> (padrão 48) em <code>project.yaml</code>. Sem CLI elegível, cai no <code>/dh:plan</code>. Entregar o plano não autoriza construir.</p>
       <h3>Revisores de CLI externa e isolamento por clone</h3>
@@ -767,7 +784,7 @@ reviewers:
       <h3>Evals só a pedido</h3>
       <p>Medição paga de eval não faz parte do fluxo normal. Só roda quando você pede: direto, dentro do <code>/dh:improve</code> ou pelo teto de gasto do questionário do <code>/dh:auto</code>. Quando roda, é o mínimo que a mudança exige, uma execução por padrão.</p>
 
-      <h2 id="referencia"><span class="n">07</span>Referência dos comandos</h2>
+      <h2 id="referencia"><span class="n">08</span>Referência dos comandos</h2>
       <p>Um comando por arquivo de <code>.commands/</code>. Todos rodam como <code>/dh:&lt;comando&gt;</code>.</p>
       <div class="table-wrap">
       <table id="comandos">

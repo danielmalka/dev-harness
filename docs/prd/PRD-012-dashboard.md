@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aprovado pelo dono em 2026-10-07 (validador: 2 rodadas, P11/P12 dispostos pelo dono) |
+| Status | entregue em 2026-10-07 |
 | Dono | Daniel Malka |
 | Criado / atualizado | 2026-10-07 / 2026-10-07 |
 | Tickets | (ainda sem tickets; o plano vem depois) |
@@ -253,3 +253,36 @@ Contradições encontradas entre as decisões e o repositório
   carrega os estados do dashboard (schema 2 aditivo), então a extensão segue sem mudança.
 
 Tickets: nenhum nesta etapa; o plano começa pela sonda de H1 a H4.
+
+## Resumo executado
+
+- **Entregue**: `dh dashboard` serve uma página só leitura em `127.0.0.1:4747` com os projetos de `DH_DASHBOARD_ROOTS`, uma barra por PRD aberto, as sessões abertas com estado e o avatar com os limites 5h e semana; o mod do plugin grava os snapshots no schema 2, registra `/dashboard` e nega commit com deriva de status; `dh validate` barra a mesma deriva.
+- **Regras**:
+  - R1 Honrada: stdlib `net/http` + `go:embed`, `go.mod` sem diff (QA T-1308).
+  - R2 Honrada: `tcp4 127.0.0.1`, Host fora de `127.0.0.1`/`localhost` → 403 (`TestHostGuard`, `ss -ltn`, curl).
+  - R3 Honrada: não-GET → 405 com `Allow: GET` (`TestMethodsAreGetOnly`).
+  - R4 Honrada: JSON consultado a cada 2 s, sem websocket/SSE (Playwright).
+  - R5 Honrada: sem `X-Frame-Options`/`frame-ancestors`, zero requisição externa, página renderiza dentro de iframe (Playwright).
+  - R6 Honrada: `/dashboard` registrado pelo mod (o host não expõe `/dh:dashboard`, verificado com `claude -p`); `.commands/` segue com 19.
+  - R7 Honrada: `TestProjects`, `TestProjectsAbsDedupeAndAllFail`; 6 projetos reais listados.
+  - R8 Honrada: fixture compartilhado Go↔TS e `TestStatusCasesTSCopyMatches`.
+  - R9 Honrada: `TestPRDLink` e casos TS, os dois nomes de campo e "fora do PRD-008".
+  - R10 Honrada: `TestProjectProgress`, `TestReviewFilesDoNotEatThePRDCap`; entregues recolhidos.
+  - R11 Honrada: schema 2 aditivo, campos desconhecidos preservados em Go e TS; escrita do mod não atômica aceita como residual (`$.fs` sem rename).
+  - R12 Honrada: `hooks.json` só com `modules`; `subagentStatusLine` mantido.
+  - R13 Honrada: um teste TS por linha da tabela; `waiting` via `PermissionRequest` provado, `Notification` assinado sem prova em sessão real.
+  - R13b Honrada: teste de paridade com a saída real de `dh snapshot event`.
+  - R14 Honrada: limites por campo com idade; o batimento renova `rate_limits` (correção da revisão).
+  - R15 Honrada: batimento de 30 s (H3 provada), corte de 2 min, `--stale`.
+  - R16 Honrada: pasta real de sprites do jevmon renderizou sem alteração (QA).
+  - R17 Honrada: 6 ícones do kit (MIT), fallback por pose, `../x` → 404, leitura guardada (só arquivo regular, ≤ 1 MiB, sem seguir link).
+  - R18 Honrada: `TestAvatarPriorityPairs`; alerta só com limite de até 5 h.
+  - R19 Honrada: `TestStatusDrift`; `dh validate .` verde.
+  - R20 Honrada: testes TS e prova em clone temporário com sessão real (limpo passa, deriva nega).
+  - R21 Honrada: 9 PRDs marcados `entregue em` e 51 tickets `concluída`, lista aprovada pelo Coordenador por delegação do dono.
+  - R22 Honrada: sem banco de dados.
+  - R23 Honrada: Go no servidor, TS só no mod; binários de ~3,5 para ~7,3–8,1 MB, mantidos num binário só (decisão do Coordenador).
+  - R24 Honrada: nada fora de escopo entrou.
+- **Tickets**: T-1301 (backend, harness-maintainer) concluída, sondas H1/H3/H4 verdadeiras, H2 parcial, H5 not-run; T-1302 (backend) concluída; T-1303, T-1304, T-1306, T-1307 (backend, harness-maintainer) concluídas, dúvida no meio do build em cada uma; T-1305 (frontend, builder) concluída; T-1308 (teste, qa-verifier) APPROVED R1–R23; T-1309 (docs-guide) concluída; T-1310 revisão final: código aprovado na 3ª rodada (claude; codex na 2ª), segurança sem vulnerabilidade demonstrada (claude e codex; grok not-run por falha de transporte).
+- **Docs**: README.md, README.en.md, docs/tutorial.html, docs/en/tutorial.html, docs/roadmap.html, docs/en/roadmap.html, CHANGELOG.md, AGENTS.md, docs/prd/PRD-001-etapa-1.md (nota de remissão), THIRD_PARTY_NOTICES.md.
+- **Fora**: implementação na extensão VS Code (próximo PRD; H5 not-run); SQLite; OTEL; runtimes não-Claude; acesso remoto e autenticação. Residuais aceitos: leitura local de `/api/state` sem token, porta 4747 ocupável por outro programa, trava olha só o diretório da sessão.

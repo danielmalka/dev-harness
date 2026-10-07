@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-10-06</b></span>
-          <span class="chip">status <b>0.17.0 · vivo</b></span>
+           <span class="chip">data <b>2026-10-07</b></span>
+          <span class="chip">status <b>0.18.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,16 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.18.0 · Dashboard local e validação de PRD/tickets por mod</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-012 entregue. O plugin Claude Code ganha um comando <code>/dashboard</code> (registrado pelo mod <code>hooks/panel.ts</code> via <code>$.command.register</code> e <code>$.process.run</code>; sem arquivo em <code>.commands/</code>) que sobe <code>dh dashboard [--port N] [--stale D] [--done-decay D] [--detach]</code> desacoplado e devolve a URL. Página local em http://127.0.0.1:4747 (porta padrão, configurável com <code>--port</code>; porta ocupada dá erro claro). Mostra: projetos sob <code>DH_DASHBOARD_ROOTS</code> (caminhos separados por <code>;</code>), uma barra de progresso por PRD aberto (PRDs entregues contraem em contagem), sessões abertas do Claude Code por projeto com estado (trabalhando, parado, esperando, erro, pronto, atenção), avatar top-right com barras de limite 5h e semanal. Avatares: <code>DH_DASHBOARD_SPRITES</code> aponta para pasta em formato jevmon (<code>&lt;pose&gt;.png</code> ou frames <code>&lt;pose&gt;_NN.png</code>, <code>poses.json</code> opcional); kit envia 6 ícones exemplo; pose ausente cai no padrão do kit. Servidor serve sprite só por nome de pose conhecido (sem caminho livre). Snapshots de sessão (<code>~/.claude/dev-harness/sessions/&lt;id&gt;.json</code>, schema 2) ganham campos <code>activity</code>, <code>activity_at</code>, <code>rate_limits</code>, heartbeat a cada 30s; contrato VS Code (caminho, valores de <code>state</code>) fica igual. Validação (<code>dh validate</code>): novo check detecta ticket aberto sob PRD marcado <code>entregue em</code>, ou todos os tickets prontos mas PRD não marcado. Sem comando, agente ou skill nova. Os 19 comandos de arquivo continuam; 1 comando registrado pelo mod. Tamanho do binário: 3.5 MB → 7.3-8.1 MB por plataforma (stdlib net/http). Residuais aceitos: outro programa pode ocupar 4747; outro usuário local lê /api/state (loopback only, sem token); commit trap só confere diretório da sessão.</p>
+        <p><strong>Relações:</strong> PRD-012 (<code>docs/prd/PRD-012-dashboard.md</code>);
+          <code>adapters/claude-code/plugin/hooks/panel.ts</code>;
+          <code>cmd/dh</code> (subcomando <code>dashboard</code>), <code>internal/kit/dashboard.go</code>.</p>
+        <p><strong>Testado?</strong> validate, build e go test verdes; <code>claude plugin test</code> (82 pass) verde; nenhuma eval paga.</p>
+      </div>
 
       <div class="card">
         <h3>0.17.0 · Painel de status e travas de commit por mod</h3>
@@ -1629,7 +1639,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.17.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.18.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
