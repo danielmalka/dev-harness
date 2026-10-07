@@ -29,7 +29,14 @@ type Snapshot struct {
 	RateLimits  json.RawMessage `json:"rate_limits,omitempty"`
 	Tasks       []Task          `json:"tasks,omitempty"`
 	Events      []EventRecord   `json:"events,omitempty"`
+
+	// Extra carries top-level fields this writer does not know (activity, activity_at, future mod fields) through rewrites.
+	Extra map[string]json.RawMessage `json:"-"`
 }
+
+var knownKeys = map[string]bool{"schema": true, "session_id": true, "session_name": true, "cwd": true, "agent": true,
+	"model": true, "state": true, "started_at": true, "updated_at": true, "cost": true, "context": true,
+	"rate_limits": true, "tasks": true, "events": true}
 
 type Model struct {
 	ID          string `json:"id,omitempty"`
@@ -404,6 +411,18 @@ func loadSnapshot(dir, sessionID string) (*Snapshot, bool, error) {
 	if err := json.Unmarshal(data, &snapshot); err != nil {
 		return nil, false, err
 	}
+	var all map[string]json.RawMessage
+	if err := json.Unmarshal(data, &all); err != nil {
+		return nil, false, err
+	}
+	for k, v := range all {
+		if !knownKeys[k] {
+			if snapshot.Extra == nil {
+				snapshot.Extra = map[string]json.RawMessage{}
+			}
+			snapshot.Extra[k] = v
+		}
+	}
 	if snapshot.SessionID == "" {
 		snapshot.SessionID = sessionID
 	}
@@ -417,6 +436,18 @@ func writeSnapshot(dir string, snapshot Snapshot) error {
 	data, err := json.Marshal(snapshot)
 	if err != nil {
 		return err
+	}
+	if len(snapshot.Extra) > 0 {
+		var m map[string]json.RawMessage
+		if err := json.Unmarshal(data, &m); err != nil {
+			return err
+		}
+		for k, v := range snapshot.Extra {
+			m[k] = v
+		}
+		if data, err = json.Marshal(m); err != nil {
+			return err
+		}
 	}
 	data = append(data, '\n')
 	temporary, err := os.CreateTemp(dir, ".snapshot-*.tmp")

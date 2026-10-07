@@ -5,3 +5,5 @@ Kit content under `.agents/`, `.skills/`, `.commands/`, `templates/` and `profil
 This package does not include copies of third-party agent marketplaces.
 
 HTML documents load Google Fonts when a network is available (JetBrains Mono, Outfit, Plus Jakarta Sans). They remain readable with system fallbacks offline. Mermaid diagrams in some HTML docs use a CDN and degrade to the source text without a network. Neither font files nor the Mermaid runtime are shipped in this repository.
+
+The six example avatar sprites embedded by `dh dashboard` (`internal/dashboard/web/sprites/*.png`, named after jevmon poses) are simple geometric icons made for this kit and distributed under the same MIT license. They contain no third-party artwork. The pose names and the `poses.json` format follow the format documented by the jevmon project; no jevmon code or assets are copied.

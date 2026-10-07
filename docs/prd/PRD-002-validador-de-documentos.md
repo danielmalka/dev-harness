@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | implementado no kit em 20/09/2026; avaliação comportamental pendente |
+| Status | entregue em 2026-09-20; avaliação comportamental pendente |
 | Dono | Daniel Lemos |
 | Criado / atualizado | 2026-09-20 / 2026-09-20 |
 | Stories | a derivar |

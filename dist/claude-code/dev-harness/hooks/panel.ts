@@ -1,14 +1,15 @@
 import type { EngineInterface, Register } from 'claude-code'
 import { denySpawn, guardFile } from './runtime-guard.ts'
+import { DASHBOARD_COMMAND, registerDashboard } from './dashboard-command.ts'
+import { registerSnapshot } from './snapshot-writer.ts'
+import { driftMessage, findDrift, statusValue } from './status-drift.ts'
 
 // Commit/PR text that mentions AI: an empty `attribution` covers the default footer, this covers the rest.
 const AI_MENTION = /co-authored-by:\s*claude|generated with \[?claude|🤖|anthropic\.com|\bclaude code\b/i
 const SHIPS = /\b(git\s+commit|gh\s+pr\s+(create|edit)|gh\s+release\s+create)\b/
-const COMMIT = /\bgit\s+commit\b/
+const COMMIT = /\bgit\s+commit(?![\w-])/
 const GENERIC_GATE = /\b(make\s+(check|test|lint|ci|stan|gate)|go\s+(test|vet)|golangci-lint|pytest|ruff\s+check|cargo\s+(test|clippy)|(npm|pnpm|yarn|bun)\s+(run\s+)?(test|lint|check|typecheck)|tsc\b|phpstan|phpunit|pint)\b/
 const GATE_KEYS = /^ {2}(test|lint|vet|check|typecheck|stan|fmt[\w-]*):\s*\n\s+value:\s*(.+)$/gm
-const STATUS_ROW = /^\|\s*Status\s*\|\s*([^|]+)\|/m
-const STATUS_BOLD = /\*\*Status:?\*\*:?\s*([^\n]+)/
 
 export function bar(pct: number, width = 10): string {
   const full = Math.round((Math.min(Math.max(pct, 0), 100) / 100) * width)
@@ -55,7 +56,7 @@ const MSG = {
 }
 
 export function taskStatus(taskMd: string): 'done' | 'blocked' | 'open' {
-  const s = (taskMd.match(STATUS_ROW)?.[1] ?? taskMd.match(STATUS_BOLD)?.[1] ?? '').trim().toLowerCase()
+  const s = statusValue(taskMd)
   if (/^(conclu|pronta, entregue|done)/.test(s)) return 'done'
   if (/^bloque/.test(s)) return 'blocked'
   return 'open'
@@ -117,13 +118,41 @@ async function refresh($: EngineInterface): Promise<void> {
   }
 }
 
+// R20: fail-open on any read error; no tickets (or no readable PRDs) means no drift.
+async function driftNow($: EngineInterface): Promise<ReturnType<typeof findDrift>> {
+  try {
+    const cwd = await $.session.cwd()
+    const tickets: { id: string; md: string }[] = []
+    for (const entry of await $.fs.list(`${cwd}/.harness/tasks`)) {
+      const file = `${cwd}/.harness/tasks/${entry.name}/TASK.md`
+      if (entry.kind === 'dir' && (await $.fs.exists(file))) tickets.push({ id: entry.name, md: await $.fs.read(file) as string })
+    }
+    if (!tickets.length) return []
+    const prds = new Map<string, string>()
+    for (const dir of ['docs/prd', '.harness/prd']) {
+      try {
+        for (const f of (await $.fs.list(`${cwd}/${dir}`)).sort((a, b) => (a.name < b.name ? -1 : 1))) {
+          const id = /^(PRD-\d+)/.exec(f.name)?.[1]
+          if (!id || f.kind !== 'file' || !f.name.endsWith('.md') || f.name.endsWith('.review.md') || prds.has(id)) continue
+          prds.set(id, statusValue(await $.fs.read(`${cwd}/${dir}/${f.name}`) as string))
+        }
+      } catch { /* directory absent */ }
+    }
+    return findDrift(tickets, prds, taskStatus)
+  } catch {
+    return []
+  }
+}
+
 async function guardBash($: EngineInterface, command: string): Promise<string | undefined> {
   const aiHit = deniesAiMention(command)
-  if (!aiHit && !(COMMIT.test(command) && dirtySinceGate)) return undefined
+  const commit = COMMIT.test(command)
+  if (!aiHit && !commit) return undefined
   const { gates, lang } = await readProject($)
   if (aiHit) return MSG[lang].ai
-  return MSG[lang].gate(gates.length ? gates.join(' && ') : MSG[lang].gateDefault)
-  return undefined
+  if (dirtySinceGate) return MSG[lang].gate(gates.length ? gates.join(' && ') : MSG[lang].gateDefault)
+  const drift = await driftNow($)
+  return drift.length ? driftMessage(drift, lang, await $.session.cwd()) : undefined
 }
 
 function markDirty<R extends { deny?: unknown; isError?: boolean }>(r: R, e: any): R {
@@ -138,8 +167,12 @@ const failOpen = ($: EngineInterface, e: any, next: any) => next(e)
 // so panel.ts is the entry and chains the runtime-guard checks (ADR-005) ahead of its own.
 // They ignore $, and the loader refuses $ passed across an import, hence `{}`.
 export const register: Register = on => {
+  registerSnapshot(on)
+  registerDashboard(on)
+
   on('session.start', async ($, e, next) => {
     const r = await next(e)
+    await $.command.register(DASHBOARD_COMMAND).catch(() => undefined)
     await refresh($).catch(() => undefined)
     return r
   })

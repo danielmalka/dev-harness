@@ -87,6 +87,7 @@ func Validate(target string, options Options) (Report, error) {
 	checkTemplateRefs(dirs, &report.Errors)
 	checkDocumentedCounts(dirs["root"], report.Inventory, &report.Errors)
 	checkRoadmaps(dirs["root"], &report.Errors)
+	checkStatusDrift(dirs["root"], &report.Errors)
 	checkPrivatePaths(dirs["root"], &report.Errors)
 	if isDir(dirs["agents"]) && isDir(dirs["skills"]) {
 		checkAntiDelegationClause(dirs, &report.Errors)

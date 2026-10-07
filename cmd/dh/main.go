@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/danielmalka/dev-harness/internal/build"
+	"github.com/danielmalka/dev-harness/internal/dashboard"
 	"github.com/danielmalka/dev-harness/internal/doctor"
 	"github.com/danielmalka/dev-harness/internal/kit"
 	"github.com/danielmalka/dev-harness/internal/snapshot"
@@ -36,6 +37,9 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			target = args[1]
 		}
 		return doctor.Run(target, stdout)
+	}
+	if args[0] == "dashboard" {
+		return dashboard.Run(args[1:], stdout, stderr)
 	}
 	if args[0] == "build" {
 		return runBuild(args[1:], stdout, stderr)
@@ -158,7 +162,7 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 }
 
 func usage() string {
-	return "usage: dh <snapshot <event|subagents|statusline|prune>|validate [--source-only] [path]|build [--targets os/arch,...] [--no-binaries]|doctor [plugin-dir-or-kit-root]>"
+	return "usage: dh <snapshot <event|subagents|statusline|prune>|validate [--source-only] [path]|build [--targets os/arch,...] [--no-binaries]|doctor [plugin-dir-or-kit-root]|dashboard [--port N] [--stale D] [--done-decay D] [--detach]>"
 }
 
 func pruneDays(args []string) (int, error) {

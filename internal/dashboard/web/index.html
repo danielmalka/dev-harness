@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-br"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>dh dashboard</title>
+<style>
+:root{--bg:#fafafa;--fg:#1c1c1e;--mut:#5c5c63;--card:#fff;--bd:#d4d4d8;--bar:#e4e4e7;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--acc:#1d4ed8}
+@media(prefers-color-scheme:dark){:root{--bg:#18181b;--fg:#f4f4f5;--mut:#a1a1aa;--card:#222226;--bd:#3f3f46;--bar:#3f3f46;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171;--acc:#60a5fa}}
+*{box-sizing:border-box}
+body{margin:0;padding:12px;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif}
+h1{font-size:1.1rem;margin:0 0 4px}h2{font-size:1rem;margin:0 0 6px}h3{font-size:.85rem;margin:8px 0 2px;color:var(--mut)}
+header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+#side{width:120px;flex:none;text-align:center}
+#avatar{width:96px;height:96px;object-fit:contain;image-rendering:auto}
+.lim{margin-top:6px;font-size:.75rem;text-align:left}
+progress{width:100%;height:10px;accent-color:var(--acc)}
+progress.hot{accent-color:var(--bad)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;margin-bottom:10px}
+.row{margin:6px 0}.row .t{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;word-break:break-word}
+.mut{color:var(--mut);font-size:.8rem}
+ul{margin:4px 0;padding:0;list-style:none}li{margin:3px 0;word-break:break-word}
+.st{font-weight:600;font-size:.8rem;border:1px solid currentColor;border-radius:4px;padding:0 5px;margin-right:6px;white-space:nowrap}
+.working{color:var(--acc)}.waiting{color:var(--warn)}.error{color:var(--bad)}.done{color:var(--ok)}.idle{color:var(--mut)}
+details summary{cursor:pointer}
+#warn{color:var(--warn)}#off{color:var(--bad);font-weight:600}
+</style></head>
+<body>
+<header>
+<div><h1>dh dashboard</h1><div id="off" role="status" hidden>sem conexão (mostrando o último dado)</div><ul id="warn"></ul></div>
+<aside id="side" aria-label="Avatar e limites">
+<img id="avatar" alt="" width="96" height="96" hidden>
+<div id="avst" class="mut"></div>
+<div class="lim"><label for="p5">Limite 5h</label><progress id="p5" max="100" value="0"></progress><div id="t5" class="mut">sem dado</div></div>
+<div class="lim"><label for="p7">Limite semana</label><progress id="p7" max="100" value="0"></progress><div id="t7" class="mut">sem dado</div></div>
+</aside>
+</header>
+<main>
+<section aria-labelledby="hp"><h2 id="hp">Projetos</h2><div id="projects"><p class="mut">carregando...</p></div></section>
+</main>
+<script>
+"use strict";
+var $=function(i){return document.getElementById(i)};
+var LABEL={working:"trabalhando",idle:"parado",waiting:"esperando você",error:"erro",done:"concluído"};
+var AVLABEL={esperando:"esperando você",erro:"erro",trabalhando:"trabalhando",concluido:"concluído",atencao:"atenção",parado:"parado"};
+function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+function age(s){if(s<60)return"há "+s+" s";if(s<3600)return"há "+Math.round(s/60)+" min";if(s<86400)return"há "+Math.round(s/3600)+" h";return"há "+Math.round(s/86400)+" d"}
+function limit(bar,txt,v,a,ok){
+  if(!ok||v==null){bar.value=0;bar.classList.remove("hot");txt.textContent="sem dado";bar.setAttribute("aria-valuetext","sem dado");return}
+  bar.value=v;bar.classList.toggle("hot",v>=80);txt.textContent=Math.round(v)+"% · "+age(a);bar.setAttribute("aria-valuetext",Math.round(v)+"%")}
+var frame=0,timer=null,av=null;
+function setAvatar(a){
+  var img=$("avatar");
+  if(!a||!a.pose){img.hidden=true;return}
+  var changed=!av||av.pose!==a.pose||av.frames!==a.frames||av.fps!==a.fps;av=a;
+  $("avst").textContent=AVLABEL[a.state]||a.state;img.alt="Estado: "+(AVLABEL[a.state]||a.state);
+  if(!changed&&!img.hidden)return;
+  clearInterval(timer);frame=0;
+  var show=function(){img.src="sprite/"+encodeURIComponent(a.pose)+"?f="+frame;img.hidden=false};
+  show();
+  if(a.frames>1&&a.fps>0)timer=setInterval(function(){frame=(frame+1)%a.frames;show()},1000/a.fps)}
+function bar(b){
+  var r=el("div","row"),t=el("div","t");t.appendChild(el("span",null,b.prd));
+  if(b.no_tickets){t.appendChild(el("span","mut","sem tickets"));r.appendChild(t);return r}
+  t.appendChild(el("span","mut",b.done+"/"+b.total+(b.blocked?" · "+b.blocked+" bloqueado"+(b.blocked>1?"s":""):"")));
+  var p=el("progress");p.max=b.total||1;p.value=b.done;p.setAttribute("aria-label",b.prd);p.setAttribute("aria-valuetext",b.done+" de "+b.total+" concluídos");
+  r.appendChild(t);r.appendChild(p);return r}
+function render(s){
+  var w=$("warn");w.textContent="";(s.warnings||[]).forEach(function(x){w.appendChild(el("li",null,x))});
+  setAvatar(s.avatar);
+  var l=s.limits||{};
+  limit($("p5"),$("t5"),l.five_hour,l.five_hour_age_sec,l.ok);limit($("p7"),$("t7"),l.seven_day,l.seven_day_age_sec,l.ok);
+  var box=$("projects");box.textContent="";
+  var ps=s.projects||[],ss=s.sessions||[];
+  if(!ps.length)box.appendChild(el("p","mut","Nenhum projeto. Defina DH_DASHBOARD_ROOTS com as pastas dos projetos."));
+  var seen={};
+  function sessList(list){
+    var ul=el("ul");list.forEach(function(x){var li=el("li");
+      li.appendChild(el("span","st "+x.activity,LABEL[x.activity]||x.activity||"parado"));
+      li.appendChild(document.createTextNode((x.name||x.id)+(x.agent?" ("+x.agent+")":"")));ul.appendChild(li)});return ul}
+  ps.forEach(function(p){
+    var c=el("article","card"),h=el("h2",null,p.name);c.appendChild(h);
+    (p.open||[]).forEach(function(b){c.appendChild(bar(b))});
+    if(!(p.open||[]).length)c.appendChild(el("p","mut","Nenhum PRD aberto."));
+    var d=p.delivered||[];
+    if(d.length){var det=el("details"),sm=el("summary",null,d.length+" PRD"+(d.length>1?"s":"")+" entregue"+(d.length>1?"s":""));
+      det.appendChild(sm);det.appendChild(el("p","mut",d.join(", ")));c.appendChild(det)}
+    var mine=ss.filter(function(x){return x.project===p.path});mine.forEach(function(x){seen[x.id]=1});
+    c.appendChild(el("h3",null,"Sessões abertas"));
+    if(mine.length)c.appendChild(sessList(mine));else c.appendChild(el("p","mut","nenhuma"));
+    box.appendChild(c)});
+  var rest=ss.filter(function(x){return!seen[x.id]});
+  if(rest.length){var c=el("article","card");c.appendChild(el("h2",null,"Outras sessões"));c.appendChild(sessList(rest));box.appendChild(c)}
+}
+var busy=false;
+function tick(){
+  if(busy)return;busy=true;
+  fetch("api/state",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})
+  .then(function(s){$("off").hidden=true;render(s)})
+  .catch(function(){$("off").hidden=false}).then(function(){busy=false})}
+tick();setInterval(tick,2000);
+</script></body></html>

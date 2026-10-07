@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aprovado (grill de 20/09/2026, rodadas 1 a 3) |
+| Status | entregue em 2026-09-20 |
 | Dono | Daniel Lemos |
 | Criado / atualizado | 2026-09-20 / 2026-09-20 |
 | Stories | a derivar: ST-001 marketplace, ST-002 binário `dh`, ST-003 snapshot e hooks, ST-004 prova no danlemos |
