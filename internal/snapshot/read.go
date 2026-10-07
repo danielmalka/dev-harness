@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -16,6 +17,37 @@ var ErrPartial = errors.New("partial snapshot")
 
 // ErrTooLarge means the file is over MaxFileBytes and is not read (a snapshot is a few KB).
 var ErrTooLarge = errors.New("snapshot too large")
+
+// ErrNotRegular means the path is a symlink, FIFO, device or directory: never followed or read.
+var ErrNotRegular = errors.New("not a regular file")
+
+// ReadCapped reads a regular file of at most MaxFileBytes: Lstat rejects symlinks and special files (a /dev/zero
+// link reports size 0), and the read itself is bounded so a file that grows cannot slip past. Shared by the dashboard.
+func ReadCapped(path string) ([]byte, error) {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, ErrNotRegular
+	}
+	if info.Size() > MaxFileBytes {
+		return nil, ErrTooLarge
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	b, err := io.ReadAll(io.LimitReader(f, MaxFileBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(b) > MaxFileBytes {
+		return nil, ErrTooLarge
+	}
+	return b, nil
+}
 
 // MaxFileBytes bounds what a poll reads from any one snapshot file.
 const MaxFileBytes = 1 << 20
@@ -71,10 +103,7 @@ type rawSession struct {
 // Load reads one snapshot file. Truncated or empty JSON returns ErrPartial.
 // Unknown fields are ignored (the file also carries tasks, events, ...).
 func Load(path string) (Session, error) {
-	if st, err := os.Stat(path); err == nil && st.Size() > MaxFileBytes {
-		return Session{}, fmt.Errorf("%s: %w", filepath.Base(path), ErrTooLarge)
-	}
-	b, err := os.ReadFile(path)
+	b, err := ReadCapped(path)
 	if err != nil {
 		return Session{}, err
 	}

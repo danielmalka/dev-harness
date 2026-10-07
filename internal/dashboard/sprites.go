@@ -51,8 +51,8 @@ func LoadSprites(dir string) *Sprites {
 	if errors.Is(err, os.ErrNotExist) {
 		return s // absent is normal
 	}
-	if err == errTooLarge {
-		s.Warnings = append(s.Warnings, "poses.json over 1 MiB, using default map")
+	if skipped(err) {
+		s.Warnings = append(s.Warnings, "poses.json not a regular file or over 1 MiB, using default map")
 		return s
 	}
 	if err != nil {

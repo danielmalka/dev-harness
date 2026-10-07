@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
 
 const RootsEnv = "DH_DASHBOARD_ROOTS"
@@ -21,15 +23,13 @@ const (
 	MaxSnapshots      = 500
 )
 
-// readCapped reads a file unless it is over MaxFileBytes (checked by stat before reading).
-func readCapped(path string) ([]byte, error) {
-	if st, err := os.Stat(path); err == nil && st.Size() > MaxFileBytes {
-		return nil, errTooLarge
-	}
-	return os.ReadFile(path)
-}
+// readCapped is the shared guarded read (regular file, at most MaxFileBytes).
+func readCapped(path string) ([]byte, error) { return snapshot.ReadCapped(path) }
 
-var errTooLarge = errors.New("file too large")
+// skipped reports whether err means the file was refused (symlink/special/oversized), as opposed to absent or unreadable.
+func skipped(err error) bool {
+	return errors.Is(err, snapshot.ErrTooLarge) || errors.Is(err, snapshot.ErrNotRegular)
+}
 
 type Project struct {
 	Name string
@@ -151,8 +151,8 @@ func ProjectProgress(projectPath string) Progress {
 	for _, f := range tasks {
 		b, err := readCapped(f)
 		if err != nil {
-			if err == errTooLarge {
-				warns = append(warns, fmt.Sprintf("%s: skipped %s (over 1 MiB).", name, filepath.Base(filepath.Dir(f))))
+			if skipped(err) {
+				warns = append(warns, fmt.Sprintf("%s: skipped %s (not a regular file or over 1 MiB).", name, filepath.Base(filepath.Dir(f))))
 			}
 			continue
 		}
@@ -177,14 +177,18 @@ func ProjectProgress(projectPath string) Progress {
 	status := map[string]string{}
 	for _, pat := range []string{"docs/prd/PRD-*.md", ".harness/prd/PRD-*.md"} {
 		files, _ := filepath.Glob(filepath.Join(projectPath, filepath.FromSlash(pat)))
+		if len(files) > MaxTicketsPerProj {
+			warns = append(warns, fmt.Sprintf("%s: more than %d PRD files: reading the first %d.", name, MaxTicketsPerProj, MaxTicketsPerProj))
+			files = files[:MaxTicketsPerProj]
+		}
 		for _, f := range files {
 			if strings.HasSuffix(f, ".review.md") {
 				continue
 			}
 			id := prdFile.FindString(filepath.Base(f))
 			b, err := readCapped(f)
-			if err == errTooLarge {
-				warns = append(warns, fmt.Sprintf("%s: skipped %s (over 1 MiB).", name, filepath.Base(f)))
+			if skipped(err) {
+				warns = append(warns, fmt.Sprintf("%s: skipped %s (not a regular file or over 1 MiB).", name, filepath.Base(f)))
 			}
 			if id == "" || err != nil {
 				continue

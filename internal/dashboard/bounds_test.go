@@ -1,9 +1,11 @@
 package dashboard
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -94,5 +96,51 @@ func TestStateCache(t *testing.T) {
 	mk(t, filepath.Join(root, "b", ".harness", "x"), "")
 	if second := do(h, "GET", "127.0.0.1", "/api/state").Body.String(); second != first {
 		t.Fatal("state rebuilt inside the TTL")
+	}
+}
+
+func TestSymlinkToDevZeroIsSkippedPromptly(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlinks need privileges on Windows")
+	}
+	p := t.TempDir()
+	dir := filepath.Join(p, ".harness/tasks/T-1")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("/dev/zero", filepath.Join(dir, "TASK.md")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("/dev/zero", filepath.Join(p, "snap.json")); err != nil {
+		t.Fatal(err)
+	}
+	start := time.Now()
+	pr := ProjectProgress(p)
+	_, err := snapshot.Load(filepath.Join(p, "snap.json"))
+	if time.Since(start) > 2*time.Second || len(pr.Warnings) != 1 || err == nil {
+		t.Fatalf("slow or not skipped: %v %+v %v", time.Since(start), pr.Warnings, err)
+	}
+}
+
+func TestSnapshotLoadSizeBoundary(t *testing.T) {
+	d := t.TempDir()
+	mk(t, filepath.Join(d, "big.json"), strings.Repeat(" ", snapshot.MaxFileBytes+1))
+	if _, err := snapshot.Load(filepath.Join(d, "big.json")); !errors.Is(err, snapshot.ErrTooLarge) {
+		t.Fatalf("got %v", err)
+	}
+	mk(t, filepath.Join(d, "ok.json"), `{"session_id":"x"}`+strings.Repeat(" ", snapshot.MaxFileBytes-18))
+	if s, err := snapshot.Load(filepath.Join(d, "ok.json")); err != nil || s.SessionID != "x" {
+		t.Fatalf("at the limit must load: %v", err)
+	}
+}
+
+func TestPRDFileCap(t *testing.T) {
+	p := t.TempDir()
+	for i := 0; i < MaxTicketsPerProj+2; i++ {
+		mk(t, filepath.Join(p, "docs/prd", fmt.Sprintf("PRD-%04d-a.md", i)), "| Status | aprovado |\n")
+	}
+	pr := ProjectProgress(p)
+	if len(pr.Open) != MaxTicketsPerProj || len(pr.Warnings) != 1 {
+		t.Fatalf("open %d warns %v", len(pr.Open), pr.Warnings)
 	}
 }
