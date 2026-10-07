@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-07</b></span>
-          <span class="chip">status <b>0.18.0 · vivo</b></span>
+          <span class="chip">status <b>0.18.1 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,15 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.18.1 · Trava de commit por repositório e ajustes do dashboard</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> A trava de gate do <code>hooks/panel.ts</code> passa a julgar cada commit só pelas edições do repositório que o recebe. Antes, uma única marca por sessão negava commit em outro repositório depois de qualquer edição no da sessão, e <code>git -C &lt;dir&gt; commit</code> escapava da trava de gate e da de menção a IA. Agora os arquivos editados ficam por caminho absoluto; a pasta do commit vem do <code>git -C</code> do próprio commit ou do último <code>cd</code> antes dele (senão, a pasta da sessão); a raiz vem de <code>git rev-parse --show-toplevel</code>. O gate verde limpa só o próprio repositório; idioma, comandos de gate e checagem de deriva PRD/ticket vêm do repositório do commit; comando Bash comum não dispara <code>git</code>. Continua falhando aberto; <code>pushd</code>, <code>cd -</code>, pasta em variável, <code>--git-dir</code> e symlink caem na pasta errada e deixam passar. Dashboard: Projetos em 70% e avatar com limites em 30%, lado a lado (fixo ao rolar); abaixo de 640px uma coluna com avatar compacto no topo. A consulta a cada 2 s não fecha mais os blocos expansíveis abertos nem redesenha a lista quando nada mudou. <code>AGENTS.md</code>: todo trabalho terminado fecha com a tag anotada <code>v&lt;versão&gt;</code>. Sem comando, agente ou skill nova.</p>
+        <p><strong>Relações:</strong> <code>adapters/claude-code/plugin/hooks/panel.ts</code>, <code>panel.test.ts</code>, <code>panel.engine.test.ts</code>;
+          <code>internal/dashboard/web/index.html</code>; ADR-006 (<code>docs/adr/ADR-006-painel-e-travas-de-commit.md</code>).</p>
+        <p><strong>Testado?</strong> validate, build e go test verdes; <code>claude plugin test</code> (147 pass, 5 testes de motor novos 9a–9e) verde; layout e blocos expansíveis conferidos com Playwright headless; nenhuma eval paga.</p>
+      </div>
 
       <div class="card">
         <h3>0.18.0 · Dashboard local e validação de PRD/tickets por mod</h3>
@@ -1639,7 +1648,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.18.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.18.1, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

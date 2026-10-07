@@ -8,9 +8,12 @@
 *{box-sizing:border-box}
 body{margin:0;padding:12px;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif}
 h1{font-size:1.1rem;margin:0 0 4px}h2{font-size:1rem;margin:0 0 6px}h3{font-size:.85rem;margin:8px 0 2px;color:var(--mut)}
-header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
-#side{width:120px;flex:none;text-align:center}
-#avatar{width:96px;height:96px;object-fit:contain;image-rendering:auto}
+/* 70% projects, 30% avatar side by side; one column (avatar first, compact) on narrow screens and webviews. */
+#wrap{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,3fr);gap:16px;align-items:start}
+header{margin-bottom:12px}
+#side{position:sticky;top:12px;text-align:center}
+#avatar{width:100%;max-width:360px;height:auto;max-height:60vh;object-fit:contain;image-rendering:auto}
+@media(max-width:640px){#wrap{grid-template-columns:minmax(0,1fr)}#side{position:static;order:-1}#avatar{max-width:96px}}
 .lim{margin-top:6px;font-size:.75rem;text-align:left}
 progress{width:100%;height:10px;accent-color:var(--acc)}
 progress.hot{accent-color:var(--bad)}
@@ -24,18 +27,18 @@ details summary{cursor:pointer}
 #warn{color:var(--warn)}#off{color:var(--bad);font-weight:600}
 </style></head>
 <body>
-<header>
-<div><h1>dh dashboard</h1><div id="off" role="status" hidden>sem conexão (mostrando o último dado)</div><ul id="warn"></ul></div>
+<div id="wrap">
+<main>
+<header><h1>dh dashboard</h1><div id="off" role="status" hidden>sem conexão (mostrando o último dado)</div><ul id="warn"></ul></header>
+<section aria-labelledby="hp"><h2 id="hp">Projetos</h2><div id="projects"><p class="mut">carregando...</p></div></section>
+</main>
 <aside id="side" aria-label="Avatar e limites">
 <img id="avatar" alt="" width="96" height="96" hidden>
 <div id="avst" class="mut"></div>
 <div class="lim"><label for="p5">Limite 5h</label><progress id="p5" max="100" value="0"></progress><div id="t5" class="mut">sem dado</div></div>
 <div class="lim"><label for="p7">Limite semana</label><progress id="p7" max="100" value="0"></progress><div id="t7" class="mut">sem dado</div></div>
 </aside>
-</header>
-<main>
-<section aria-labelledby="hp"><h2 id="hp">Projetos</h2><div id="projects"><p class="mut">carregando...</p></div></section>
-</main>
+</div>
 <script>
 "use strict";
 var $=function(i){return document.getElementById(i)};
@@ -46,7 +49,7 @@ function age(s){if(s<60)return"há "+s+" s";if(s<3600)return"há "+Math.round(s/
 function limit(bar,txt,v,a,ok){
   if(!ok||v==null){bar.value=0;bar.classList.remove("hot");txt.textContent="sem dado";bar.setAttribute("aria-valuetext","sem dado");return}
   bar.value=v;bar.classList.toggle("hot",v>=80);txt.textContent=Math.round(v)+"% · "+age(a);bar.setAttribute("aria-valuetext",Math.round(v)+"%")}
-var frame=0,timer=null,av=null;
+var frame=0,timer=null,av=null,lastKey=null;
 function setAvatar(a){
   var img=$("avatar");
   if(!a||!a.pose){img.hidden=true;return}
@@ -68,8 +71,13 @@ function render(s){
   setAvatar(s.avatar);
   var l=s.limits||{};
   limit($("p5"),$("t5"),l.five_hour,l.five_hour_age_sec,l.ok);limit($("p7"),$("t7"),l.seven_day,l.seven_day_age_sec,l.ok);
-  var box=$("projects");box.textContent="";
-  var ps=s.projects||[],ss=s.sessions||[];
+  var box=$("projects"),ps=s.projects||[],ss=s.sessions||[];
+  // Rebuild the list only when what it shows changed, and keep each opened <details> open across rebuilds:
+  // polling every 2 s must not close what the owner is reading or drop a text selection.
+  var key=JSON.stringify([ps,ss.map(function(x){return[x.id,x.project,x.activity,x.name,x.agent]})]);
+  if(key===lastKey)return;lastKey=key;
+  var opened={};box.querySelectorAll("details[open]").forEach(function(d){opened[d.dataset.k]=1});
+  box.textContent="";
   if(!ps.length)box.appendChild(el("p","mut","Nenhum projeto. Defina DH_DASHBOARD_ROOTS com as pastas dos projetos."));
   var seen={};
   function sessList(list){
@@ -81,7 +89,7 @@ function render(s){
     (p.open||[]).forEach(function(b){c.appendChild(bar(b))});
     if(!(p.open||[]).length)c.appendChild(el("p","mut","Nenhum PRD aberto."));
     var d=p.delivered||[];
-    if(d.length){var det=el("details"),sm=el("summary",null,d.length+" PRD"+(d.length>1?"s":"")+" entregue"+(d.length>1?"s":""));
+    if(d.length){var det=el("details");det.dataset.k=p.path;det.open=!!opened[p.path];var sm=el("summary",null,d.length+" PRD"+(d.length>1?"s":"")+" entregue"+(d.length>1?"s":""));
       det.appendChild(sm);det.appendChild(el("p","mut",d.join(", ")));c.appendChild(det)}
     var mine=ss.filter(function(x){return x.project===p.path});mine.forEach(function(x){seen[x.id]=1});
     c.appendChild(el("h3",null,"Sessões abertas"));

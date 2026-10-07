@@ -7,7 +7,7 @@ import { expect, test } from 'claude-code/testing'
 const AI = 'Co-Authored' + '-By: Cla' + 'ude'
 const CWD = '/proj'
 
-type World = { editFails?: boolean; yaml?: string; tasks?: Record<string, string>; fsFails?: boolean }
+type World = { editFails?: boolean; yaml?: string; tasks?: Record<string, string>; fsFails?: boolean; roots?: Record<string, string> }
 
 function world(on: any, w: World = {}) {
   const statuses: string[] = []
@@ -26,6 +26,11 @@ function world(on: any, w: World = {}) {
     return { value: !!(m && w.tasks?.[m[1]] !== undefined) } as any
   })
   on('fs.list', () => ({ value: Object.keys(w.tasks ?? {}).map(name => ({ name, kind: 'dir', size: 0, mtimeMs: 0 })) }) as any)
+  // `git -C <dir> rev-parse --show-toplevel`: known dirs answer their root, others fail (the mod falls back to the dir).
+  on('process.run', (_$: any, e: any) => {
+    const root = w.roots?.[e.argv[2]]
+    return { value: { exitCode: root ? 0 : 128, stdout: root ? `${root}\n` : '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
+  })
   on('ui.status', (_$: any, e: any) => { statuses.push(e.text); return { value: undefined } as any })
   on('ui.toast', () => ({ value: undefined }) as any)
   on('session.start', () => ({ cwd: CWD }) as any)
@@ -37,7 +42,7 @@ function world(on: any, w: World = {}) {
 
 const bash = ($: any, command: string) => $.tool.call({ tool: 'Bash', command } as any) as Promise<any>
 const text = (r: any) => String(r.deny ?? r.text ?? '')
-const clean = ($: any) => bash($, 'go test ./...')
+const clean = async ($: any) => { await bash($, 'go test ./...'); await bash($, 'cd /other && go test ./...') }
 
 test('1 AI mention in commit is denied by the panel; clean commit is not', async ($, on) => {
   world(on)
@@ -144,4 +149,52 @@ test('8 fail-open: fs read failure does not block a commit or Bash', async ($, o
   expect(r.isError === true && /boom/.test(text(r))).toBe(false)
   const ls = await bash($, 'ls')
   expect(ls.deny).toBe(undefined)
+})
+
+// Bug (0.18.1): the gate trap judged every commit by the session's edits, so a commit in another repository
+// was denied after an edit here, and `git -C <dir> commit` escaped the trap altogether.
+test('9a edit here, commit in another repo (cd) is not gated', async ($, on) => {
+  world(on)
+  await clean($)
+  await $.tool.call({ tool: 'Edit', file_path: 'src/a.go' } as any)
+  expect(text(await bash($, 'cd /other && git add -A && git commit -m "docs: x"'))).not.toContain('green gate')
+  expect(text(await bash($, 'git commit -m "feat: x"'))).toContain('green gate')
+  await clean($)
+})
+
+test('9b git -C: other repo passes, edited repo is gated', async ($, on) => {
+  world(on)
+  await clean($)
+  await $.tool.call({ tool: 'Edit', file_path: 'src/a.go' } as any)
+  expect(text(await bash($, 'git -C /other commit -m "docs: x"'))).not.toContain('green gate')
+  expect(text(await bash($, 'git -C /proj commit -m "feat: x"'))).toContain('green gate')
+  await clean($)
+})
+
+test('9c edit in another repo gates only that repo; its own gate clears it', async ($, on) => {
+  world(on)
+  await clean($)
+  await $.tool.call({ tool: 'Write', file_path: '/other/x.go', content: 'x' } as any)
+  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('green gate')
+  expect(text(await bash($, 'cd /other && git commit -m "feat: x"'))).toContain('green gate')
+  await bash($, 'go test ./...')
+  expect(text(await bash($, 'cd /other && git commit -m "feat: x"'))).toContain('green gate')
+  await bash($, 'cd /other && go test ./...')
+  expect(text(await bash($, 'cd /other && git commit -m "feat: x"'))).not.toContain('green gate')
+})
+
+test('9d commit from a subdirectory resolves the repo root through git', async ($, on) => {
+  world(on, { roots: { '/proj/sub': '/proj', '/proj': '/proj' } })
+  await clean($)
+  await $.tool.call({ tool: 'Edit', file_path: '/proj/a.go' } as any)
+  expect(text(await bash($, 'cd sub && git commit -m "feat: x"'))).toContain('green gate')
+  await clean($)
+})
+
+test('9e a gate followed by cd clears the gate\'s repo, not the later one', async ($, on) => {
+  world(on)
+  await clean($)
+  await $.tool.call({ tool: 'Edit', file_path: 'src/a.go' } as any)
+  await bash($, 'go test ./... && cd /other')
+  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('green gate')
 })
