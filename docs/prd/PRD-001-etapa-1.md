@@ -108,6 +108,7 @@ Hoje o kit só entra num projeto por clone e `--plugin-dir`, e a única visão d
 - Decidido em 20/09/2026: o marketplace `dev-harness` fixa a versão do plugin por `ref` de tag (`v<versão do manifesto>`).
 - Decidido em 20/09/2026: `dh` substitui validate, build e doctor já nesta etapa; não haverá dois runtimes de manutenção.
 - **Remissão (0.18.0):** RF-03 `subagentStatusLine` e RF-04 Hooks, entregues nesta etapa (schema 1 do snapshot), ganham segunda vida na 0.18.0 (PRD-012, dashboard local) que lê o arquivo de snapshot para mostrar estado de sessões e tarefas numa página local (<code>http://127.0.0.1:4747</code>). Schema evolui para versão 2 com campos <code>activity</code>, <code>activity_at</code>, <code>rate_limits</code> adicionados pelo mod no painel de status (0.17.0), e o dashboard consome ambos.
+- **Remissão (0.19.0):** A extensão VS Code (`danielmalka/dev-harness-vscode`, PRD-013) consome o dashboard e os snapshots da etapa 1, entregando-os integrados no editor. Distribuição, settings e lançador de sessão são documentação do contrato de extensão (PRD-013).
 
 ## 9. Referências
 

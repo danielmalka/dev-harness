@@ -702,7 +702,22 @@ footer.doc-foot {
         <li><strong>Avatares customizados (opcional).</strong> <code>DH_DASHBOARD_SPRITES</code> aponta para uma pasta de ícones no formato jevmon: um arquivo por pose (<code>&lt;pose&gt;.png</code> ou frames <code>&lt;pose&gt;_01.png</code>, <code>&lt;pose&gt;_02.png</code>, etc.), mais um <code>poses.json</code> opcional que mapeia estados. O kit envia 6 ícones exemplo (parado, trabalhando, esperando, erro, pronto, atenção). Quando uma pose não existe na pasta do seu dono, o dashboard cai na padrão do kit. O servidor nunca serve ícone com caminho livre (sem nome de pose conhecido) por segurança.</li>
       </ol>
 
-      <h2 id="primeira-sessao"><span class="n">03</span>Primeira sessão</h2>
+      <h2 id="extensao-vscode"><span class="n">03</span>Extensão VS Code</h2>
+      <p>A extensão <code>dev-harness-vscode</code> traz o dashboard local para dentro do VS Code, mostra o estado das sessões na barra de status e abre um terminal para rodar um comando do dh sem sair do editor.</p>
+      <ol class="steps">
+        <li><strong>Instalar a extensão.</strong> Baixe <code>dev-harness-0.1.0.vsix</code> do release <a href="https://github.com/danielmalka/dev-harness-vscode/releases/tag/v0.1.0">v0.1.0</a> do repositório <code>danielmalka/dev-harness-vscode</code>. No VS Code, abra a paleta de comandos (<code>Ctrl+Shift+P</code> / <code>Cmd+Shift+P</code>), procure "Extensions: Install from VSIX..." e escolha o arquivo.</li>
+        <li><strong>Configurar o dashboard.</strong> Três configurações opcionais em Configurações (Ctrl+,) do VS Code:
+          <ul>
+            <li><code>dh.dashboard.port</code>: porta do servidor (padrão 4747).</li>
+            <li><code>dh.dashboard.roots</code>: lista de pastas raiz que contêm projetos do kit (ex: <code>["/home/you/work", "/home/you/side-projects"]</code>).</li>
+            <li><code>dh.dashboard.sprites</code>: pasta de ícones customizados (formato jevmon, igual ao dashboard).</li>
+          </ul>
+        </li>
+        <li><strong>Abrir o dashboard.</strong> Na barra de atividades (esquerda), clique no ícone "Dev Harness" para abrir a view. Se o servidor não está rodando, clique em "Iniciar dashboard" para subi-lo desacoplado. O dashboard carrega em um iframe.</li>
+        <li><strong>Abrir uma sessão.</strong> Abra a paleta de comandos e procure por "dh: abrir sessão". Escolha a pasta do projeto (subpastas sob as raízes, ou pastas abertas no workspace) e um comando <code>/dh:&lt;nome&gt;</code> da lista dos 19 (ex: <code>/dh:auto</code> ou <code>/dh:improve</code>). Um terminal integrado abrirá naquela pasta, rodará <code>claude</code> e digitará o comando — você pressiona Enter para enviar.</li>
+      </ol>
+
+      <h2 id="primeira-sessao"><span class="n">04</span>Primeira sessão</h2>
       <p>Abra o Claude Code no projeto, com o Coordenador como agente principal (<code>--agent coordinator</code> quando carrega do clone), e rode:</p>
       <ol class="steps">
         <li><strong><code>/dh:doctor</code></strong> diagnostica kit, runtime e projeto. Não escreve nada. Sem o Claude, no clone: <code>dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness</code>.</li>
@@ -710,7 +725,7 @@ footer.doc-foot {
         <li><strong>Treino opcional.</strong> A fixture <code>evals/fixtures/slice-01</code> (clone do kit; Python 3, unittest, um critério vermelho de propósito) serve para um primeiro ciclo <code>plan</code>, <code>build</code>, <code>verify</code>, <code>review</code>, <code>handoff</code>. Não copie <code>expected/greet.py</code> no lugar do código.</li>
       </ol>
 
-      <h2 id="harness"><span class="n">04</span>O que vive em .harness/</h2>
+      <h2 id="harness"><span class="n">05</span>O que vive em .harness/</h2>
       <div class="table-wrap"><table>
         <thead><tr><th>Caminho</th><th>Para que serve</th></tr></thead>
         <tbody>
@@ -725,7 +740,7 @@ footer.doc-foot {
       </table></div>
       <div class="callout">Só o Coordenador escreve <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>. Os outros agentes devolvem propostas. O plugin Claude Code força essa regra em tempo de execução: um subagente que tenta escrever naqueles arquivos é bloqueado. O disco é a verdade: se você apagou registros, o Coordenador não os recria de memória da conversa.</div>
 
-      <h2 id="fluxos"><span class="n">05</span>Fluxos</h2>
+      <h2 id="fluxos"><span class="n">06</span>Fluxos</h2>
       <p>O kit tem 13 agentes e 19 comandos. Você fala com o Coordenador; ele despacha os especialistas e guarda a autorização: nada é instalado, commitado, publicado ou implantado sem você autorizar.</p>
       <h3>Feature, do pedido à release</h3>
       <ol class="steps">
@@ -756,7 +771,7 @@ footer.doc-foot {
       <h3>Entender antes de mexer: /dh:understand</h3>
       <p>Pergunte em forma de comportamento ("onde o reset de senha passa?"). O <code>repo-scout</code> devolve entradas, dependências e fluxo, só leitura.</p>
 
-      <h2 id="configuracao"><span class="n">06</span>Configuração</h2>
+      <h2 id="configuracao"><span class="n">07</span>Configuração</h2>
       <h3><code>.harness/project.yaml</code></h3>
       <p>Escrito pelo <code>/dh:setup</code> e ajustável à mão. Sem segredos nem caminhos absolutos. Campos:</p>
       <ul>
@@ -776,7 +791,7 @@ reviewers:
       <h3><code>.harness/local.yaml</code></h3>
       <p>Dados desta máquina: em <code>binaries</code>, onde achar cada CLI que não está no <code>PATH</code>; em <code>models</code>, os slugs medidos. Caminhos sempre relativos ao home (<code>~/.grok/bin/grok</code>) ou ao projeto, nunca o home expandido, para o arquivo servir em qualquer máquina. Um binário que não resolve deixa o revisor como não rodado, com o motivo. Modelo do arquivo: <code>.skills/external-clis/references/local.yaml.example</code> (no clone).</p>
 
-      <h2 id="avancado"><span class="n">07</span>Avançado</h2>
+      <h2 id="avancado"><span class="n">08</span>Avançado</h2>
       <h3>Planejamento em loop: /dh:plan-loop</h3>
       <p>Para feature nova, em vez de um plano só: o <code>implementation-planner</code> (Claude) disputa com um planejador de CLI externa em ondas. A rotação segue a ordem de <code>reviewers.document</code>; cada candidato é julgado pela lista completa de revisores, e o loop converge quando todos aprovam sem achado bloqueante, com pelo menos um revisor que não é Claude e não escreveu o candidato. Os tetos são <code>plan_loop.wave_cap</code> (padrão 6) e <code>plan_loop.dispatch_cap</code> (padrão 48) em <code>project.yaml</code>. Sem CLI elegível, cai no <code>/dh:plan</code>. Entregar o plano não autoriza construir.</p>
       <h3>Revisores de CLI externa e isolamento por clone</h3>
@@ -784,7 +799,7 @@ reviewers:
       <h3>Evals só a pedido</h3>
       <p>Medição paga de eval não faz parte do fluxo normal. Só roda quando você pede: direto, dentro do <code>/dh:improve</code> ou pelo teto de gasto do questionário do <code>/dh:auto</code>. Quando roda, é o mínimo que a mudança exige, uma execução por padrão.</p>
 
-      <h2 id="referencia"><span class="n">08</span>Referência dos comandos</h2>
+      <h2 id="referencia"><span class="n">09</span>Referência dos comandos</h2>
       <p>Um comando por arquivo de <code>.commands/</code>. Todos rodam como <code>/dh:&lt;comando&gt;</code>.</p>
       <div class="table-wrap">
       <table id="comandos">
