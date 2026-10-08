@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
-           <span class="chip">date <b>2026-10-07</b></span>
-          <span class="chip">status <b>0.19.0 · live</b></span>
+           <span class="chip">date <b>2026-10-08</b></span>
+          <span class="chip">status <b>0.19.1 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
 
+      <div class="card">
+        <h3>0.19.1 · PRD-013 delivered: extension verified in a real VS Code</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-013 gets its "Resumo executado" and Status <code>entregue em 2026-10-08</code>. The owner's probe (T-1406) passed on Remote WSL and local Windows after extension v0.1.1, which turns on <code>enableScripts</code> in the view: with it off, VS Code removes <code>allow-scripts</code> from the frame and the dashboard <code>iframe</code> stayed on "carregando…". The view CSP still has no <code>script-src</code>; the extension-side relay (R7) was not needed. README and tutorial link the latest extension release. No <code>dh</code> behavior change (only the embedded version).</p>
+        <p><strong>Relations:</strong> PRD-013 (<code>docs/prd/PRD-013-extensao-vscode.md</code>); <code>danielmalka/dev-harness-vscode</code> releases v0.1.1 and v0.1.2.</p>
+        <p><strong>Tested?</strong> Owner's manual check in a real VS Code (Remote WSL and local Windows); <code>dh validate</code> and <code>go test</code> green; no paid eval.</p>
+      </div>
       <div class="card">
         <h3>0.19.0 · VS Code extension: dashboard view, status bar and session launcher</h3>
         <p><strong>Status:</strong> delivered.</p>
@@ -1657,7 +1664,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.19.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.19.1, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
