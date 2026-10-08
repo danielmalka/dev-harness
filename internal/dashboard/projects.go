@@ -36,6 +36,22 @@ type Project struct {
 	Path string
 }
 
+// RootList splits the roots value (separator ';'): trimmed, absolute, empties dropped, env order kept.
+func RootList(roots string) []string {
+	out := []string{}
+	for _, root := range strings.Split(roots, ";") {
+		root = strings.TrimSpace(root)
+		if root == "" {
+			continue
+		}
+		if abs, err := filepath.Abs(root); err == nil {
+			root = abs // Clean is implied; symlinks and WSL/Windows path mapping are out of scope
+		}
+		out = append(out, root)
+	}
+	return out
+}
+
 // Projects lists direct subfolders of each root (separator ';') that contain .harness/.
 // A missing/empty variable gives zero projects and a readable warning; a nonexistent root is skipped.
 func Projects(roots string) ([]Project, string) {
@@ -45,14 +61,7 @@ func Projects(roots string) ([]Project, string) {
 	var out []Project
 	seen := map[string]bool{}
 	readable := 0
-	for _, root := range strings.Split(roots, ";") {
-		root = strings.TrimSpace(root)
-		if root == "" {
-			continue
-		}
-		if abs, err := filepath.Abs(root); err == nil {
-			root = abs // Clean is implied; symlinks and WSL/Windows path mapping are out of scope
-		}
+	for _, root := range RootList(roots) {
 		entries, err := os.ReadDir(root)
 		if err != nil {
 			continue

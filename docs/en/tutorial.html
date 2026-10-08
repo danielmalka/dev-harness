@@ -700,6 +700,11 @@ footer.doc-foot {
           <div class="table-wrap"><pre><code>export DH_DASHBOARD_ROOTS="/home/you/work;/home/you/side-projects"</code></pre></div>
         </li>
         <li><strong>Custom avatars (optional).</strong> <code>DH_DASHBOARD_SPRITES</code> points to a folder of icons in jevmon format: one file per pose (<code>&lt;pose&gt;.png</code> or frames <code>&lt;pose&gt;_01.png</code>, <code>&lt;pose&gt;_02.png</code>, etc.), plus an optional <code>poses.json</code> that maps states. The kit ships 6 example icons (idle, working, waiting, error, ready, attention). When a pose does not exist in your owner folder, the dashboard falls back to the kit default. The server never serves an icon with a free path (without a known pose name) for safety.</li>
+        <li><strong>Stop the dashboard.</strong> <code>dh dashboard --stop</code> asks the dashboard on the default port to exit; use <code>--port N</code> for another port. It never kills a process: if the port is held by another program, the command exits with an error and the reason. It cannot be combined with <code>--detach</code>. A dashboard from before 0.20.0 has no such route: stop it manually once.
+          <div class="table-wrap"><pre><code>dh dashboard --stop --port 4748</code></pre></div>
+        </li>
+        <li><strong>Check the running configuration.</strong> <code>/api/state</code> returns a <code>config</code> field with the effective <code>DH_DASHBOARD_ROOTS</code> entries, the sprites folder and the port. The VS Code extension uses this field to tell whether the dashboard started with the same settings.</li>
+        <li><strong>Stop token.</strong> When it starts, the dashboard writes a random token to <code>~/.config/dev-harness/dashboard/stop-&lt;port&gt;.token</code> (or under <code>$XDG_CONFIG_HOME</code>; on macOS, under <code>~/Library/Application Support/dev-harness/dashboard/</code>; on Windows, under <code>%AppData%\dev-harness\dashboard\</code>). The folder is 0700 and the file 0600; on Windows, the per-user profile ACL is what protects it. The file stays on disk after exit, on purpose: an old token is useless, because the next start overwrites it. No web page or iframe can stop the dashboard: requests carrying an Origin header are refused.</li>
       </ol>
 
       <h2 id="vscode-extension"><span class="n">03</span>VS Code extension</h2>

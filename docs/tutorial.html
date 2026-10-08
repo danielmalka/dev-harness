@@ -700,6 +700,11 @@ footer.doc-foot {
           <div class="table-wrap"><pre><code>export DH_DASHBOARD_ROOTS="/home/you/work;/home/you/side-projects"</code></pre></div>
         </li>
         <li><strong>Avatares customizados (opcional).</strong> <code>DH_DASHBOARD_SPRITES</code> aponta para uma pasta de ícones no formato jevmon: um arquivo por pose (<code>&lt;pose&gt;.png</code> ou frames <code>&lt;pose&gt;_01.png</code>, <code>&lt;pose&gt;_02.png</code>, etc.), mais um <code>poses.json</code> opcional que mapeia estados. O kit envia 6 ícones exemplo (parado, trabalhando, esperando, erro, pronto, atenção). Quando uma pose não existe na pasta do seu dono, o dashboard cai na padrão do kit. O servidor nunca serve ícone com caminho livre (sem nome de pose conhecido) por segurança.</li>
+        <li><strong>Parar o dashboard.</strong> <code>dh dashboard --stop</code> pede ao dashboard da porta padrão que saia; use <code>--port N</code> para outra porta. Não mata processo: se a porta estiver ocupada por outro programa, o comando sai com erro e o motivo. Não combina com <code>--detach</code>. Dashboard anterior à 0.20.0 não tem essa rota: pare-o manualmente uma vez.
+          <div class="table-wrap"><pre><code>dh dashboard --stop --port 4748</code></pre></div>
+        </li>
+        <li><strong>Conferir a configuração em uso.</strong> <code>/api/state</code> traz o campo <code>config</code> com as raízes efetivas de <code>DH_DASHBOARD_ROOTS</code>, a pasta de sprites e a porta. A extensão VS Code usa esse campo para saber se o dashboard começou com as mesmas configurações.</li>
+        <li><strong>Token de parada.</strong> Ao subir, o dashboard grava um token aleatório em <code>~/.config/dev-harness/dashboard/stop-&lt;porta&gt;.token</code> (ou em <code>$XDG_CONFIG_HOME</code>; no macOS, em <code>~/Library/Application Support/dev-harness/dashboard/</code>; no Windows, em <code>%AppData%\dev-harness\dashboard\</code>). A pasta é 0700 e o arquivo 0600; no Windows, quem protege é o ACL do perfil do usuário. O arquivo fica no disco depois de sair, de propósito: um token antigo não serve, porque a próxima subida o sobrescreve. Nenhuma página web ou iframe para o dashboard: requisições com cabeçalho Origin são recusadas.</li>
       </ol>
 
       <h2 id="extensao-vscode"><span class="n">03</span>Extensão VS Code</h2>

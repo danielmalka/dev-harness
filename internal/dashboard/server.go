@@ -1,12 +1,15 @@
 package dashboard
 
 import (
+	"context"
+	"crypto/subtle"
 	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,6 +27,9 @@ const markerHeader = "X-Dh-Dashboard"
 
 const DefaultPort = 4747
 
+// stopHeader carries the stop token (custom header, so browsers must preflight it).
+const stopHeader = "X-Dh-Stop-Token"
+
 type Config struct {
 	Roots       string // DH_DASHBOARD_ROOTS value
 	SpritesDir  string // DH_DASHBOARD_SPRITES value
@@ -32,9 +38,17 @@ type Config struct {
 	DoneDecay   time.Duration
 	Now         func() time.Time // tests only; nil = time.Now
 	CacheTTL    time.Duration    // built state is reused this long (Serve sets 1s when zero)
+	Port        int              // listening port, reported in /api/state config
+	StopToken   string           // secret for POST /api/stop; empty = stop disabled (always 403)
+	OnStop      func()           // called after the 204 of an accepted stop (Serve wires it to Shutdown)
 }
 
-// Handler is the whole HTTP surface: GET only, loopback Host only, no write path anywhere.
+// Handler is the whole HTTP surface: loopback Host only, GET only except one write path, POST /api/stop.
+// That path only asks the process to exit, and is safe against a hostile web page because: it needs the
+// X-Dh-Stop-Token header, whose value lives in a file only the user can read; a custom header forces a CORS
+// preflight (OPTIONS), which is always 405 and never carries CORS headers, so a browser never sends the POST;
+// the loopback Host check blocks DNS rebinding; and any request carrying an Origin header (browsers always send
+// one, the CLI never does) is refused even with a valid token.
 func Handler(cfg Config) http.Handler {
 	sprites := LoadSprites(cfg.SpritesDir)
 	cache := &stateCache{ttl: cfg.CacheTTL}
@@ -64,8 +78,22 @@ func Handler(cfg Config) http.Handler {
 		w.Header().Set("Cache-Control", "no-cache")
 		_, _ = w.Write(b)
 	}
+	stop := func(w http.ResponseWriter, r *http.Request) {
+		got := r.Header.Get(stopHeader)
+		// defence in depth: browsers always send Origin, the CLI never does
+		if r.Header.Get("Origin") != "" || cfg.StopToken == "" || subtle.ConstantTimeCompare([]byte(got), []byte(cfg.StopToken)) != 1 {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent) // body is never read
+		if cfg.OnStop != nil {
+			go cfg.OnStop()
+		}
+	}
 	return guard(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
+		case r.URL.Path == "/api/stop":
+			stop(w, r)
 		case r.URL.Path == "/":
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			_, _ = w.Write(page)
@@ -91,8 +119,12 @@ func guard(next http.Handler) http.Handler {
 			http.Error(w, "forbidden host", http.StatusForbidden)
 			return
 		}
-		if r.Method != http.MethodGet {
-			h.Set("Allow", "GET")
+		want := http.MethodGet
+		if r.URL.Path == "/api/stop" {
+			want = http.MethodPost
+		}
+		if r.Method != want {
+			h.Set("Allow", want)
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
@@ -170,7 +202,14 @@ type jsonAvatar struct {
 	Frames int    `json:"frames"`
 }
 
+type jsonConfig struct {
+	Roots   []string `json:"roots"`
+	Sprites string   `json:"sprites"`
+	Port    int      `json:"port"`
+}
+
 type state struct {
+	Config   jsonConfig    `json:"config"`
 	Projects []jsonProject `json:"projects"`
 	Sessions []jsonSession `json:"sessions"`
 	Limits   jsonLimits    `json:"limits"`
@@ -183,7 +222,14 @@ func buildState(cfg Config, sprites *Sprites) state {
 	if cfg.Now != nil {
 		now = cfg.Now()
 	}
-	st := state{Projects: []jsonProject{}, Sessions: []jsonSession{}, Warnings: []string{}}
+	sp := ""
+	if cfg.SpritesDir != "" {
+		sp = cfg.SpritesDir
+		if abs, err := filepath.Abs(sp); err == nil {
+			sp = abs
+		}
+	}
+	st := state{Config: jsonConfig{Roots: RootList(cfg.Roots), Sprites: sp, Port: cfg.Port}, Projects: []jsonProject{}, Sessions: []jsonSession{}, Warnings: []string{}}
 	projects, warn := Projects(cfg.Roots)
 	if warn != "" {
 		st.Warnings = append(st.Warnings, warn)
@@ -241,10 +287,22 @@ func Serve(ln net.Listener, cfg Config) error {
 	if cfg.CacheTTL == 0 {
 		cfg.CacheTTL = time.Second
 	}
-	srv := &http.Server{Handler: Handler(cfg), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second,
+	var srv *http.Server
+	done := make(chan struct{})
+	var once sync.Once
+	cfg.OnStop = func() {
+		once.Do(func() {
+			defer close(done)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			_ = srv.Shutdown(ctx)
+		})
+	}
+	srv = &http.Server{Handler: Handler(cfg), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second,
 		WriteTimeout: 10 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
 	err := srv.Serve(ln)
 	if errors.Is(err, http.ErrServerClosed) {
+		<-done // Serve returns at once on Shutdown; wait so the 204 is flushed before the process exits
 		return nil
 	}
 	return err

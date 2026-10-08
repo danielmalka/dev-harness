@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-10-08</b></span>
-          <span class="chip">status <b>0.19.2 · live</b></span>
+          <span class="chip">status <b>0.20.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
 
+      <div class="card">
+        <h3>0.20.0 · Dashboard: safe stop and visible configuration</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> <code>dh dashboard --stop [--port N]</code> asks the dashboard on that port to exit; the token lives in the user profile and goes in <code>POST /api/stop</code>. It never kills a process. Requests carrying an Origin header are refused, so no web page or iframe can stop the dashboard. <code>/api/state</code> gains the additive <code>config</code> field (effective roots, sprites folder and port) so the VS Code extension can compare with its own settings. A dashboard from before 0.20.0 has no stop route: stop it manually once. Accepted residual: <code>/api/state</code> exposes absolute paths to local readers of the same user, as it has since 0.18.0.</p>
+        <p><strong>Relations:</strong> <code>internal/dashboard</code> (stop route and <code>config</code> field); tutorial section "Local dashboard"; README (pt/en).</p>
+        <p><strong>Tested?</strong> Security review with the full list (claude/fable + codex), no demonstrated vulnerability. <code>go test -race ./...</code> (token, Origin, preflight, Host, double stop, symlink and busy-port cases), <code>go vet</code> linux/windows/darwin and <code>dh validate</code> green; QA ran the <code>--detach</code> → <code>--stop</code> → <code>--detach</code> flow on Linux; Windows and macOS compiled only; no paid eval.</p>
+      </div>
       <div class="card">
         <h3>0.19.2 · Install without cloning the repository</h3>
         <p><strong>Status:</strong> done.</p>
@@ -1671,7 +1678,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.19.2, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.20.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

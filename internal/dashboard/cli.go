@@ -13,7 +13,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
 
-// Run implements `dh dashboard [--port N] [--stale D] [--done-decay D] [--detach]`.
+// Run implements `dh dashboard [--port N] [--stale D] [--done-decay D] [--detach|--stop]`.
 func Run(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("dh dashboard", flag.ContinueOnError)
 	fs.SetOutput(stderr)
@@ -21,8 +21,9 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	stale := fs.Duration("stale", DefaultStale, "a session whose snapshot is older than this is not shown as open")
 	decay := fs.Duration("done-decay", snapshot.DefaultDoneDecay, "how long 'done' shows before reading as idle")
 	detach := fs.Bool("detach", false, "start in the background, print the URL and exit (no-op if already running)")
+	stop := fs.Bool("stop", false, "ask the dashboard on --port to exit (never kills a process)")
 	fs.Usage = func() {
-		fmt.Fprintln(stderr, "usage: dh dashboard [--port N] [--stale D] [--done-decay D] [--detach]")
+		fmt.Fprintln(stderr, "usage: dh dashboard [--port N] [--stale D] [--done-decay D] [--detach | --stop]")
 		fmt.Fprintln(stderr, "env: DH_DASHBOARD_ROOTS (folders separated by ';'), DH_DASHBOARD_SPRITES (optional sprite folder)")
 		fs.PrintDefaults()
 	}
@@ -36,6 +37,14 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		fs.Usage()
 		return 1
 	}
+	if *stop && *detach {
+		fmt.Fprintln(stderr, "--stop and --detach are mutually exclusive")
+		fs.Usage()
+		return 1
+	}
+	if *stop {
+		return Stop(*port, stdout, stderr)
+	}
 	url := fmt.Sprintf("http://127.0.0.1:%d/", *port)
 	if *detach {
 		return startDetached(*port, url, childArgs(*port, *stale, *decay), stdout, stderr)
@@ -47,7 +56,12 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintln(stdout, url)
 	cfg := Config{Roots: os.Getenv(RootsEnv), SpritesDir: os.Getenv(SpritesEnv), SnapshotDir: snapshot.SnapshotDir(),
-		Stale: *stale, DoneDecay: *decay}
+		Stale: *stale, DoneDecay: *decay, Port: *port}
+	if tok, _, err := newStopToken(*port); err != nil {
+		fmt.Fprintln(stderr, "warning: --stop disabled, cannot write the stop token:", err)
+	} else {
+		cfg.StopToken = tok
+	}
 	if err := Serve(ln, cfg); err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
