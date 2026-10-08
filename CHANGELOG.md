@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.19.2 — 2026-10-08
+
+- **Instalação sem clonar o repositório**: README (pt/en) e tutorial (pt/en) passam a indicar `/plugin marketplace add https://raw.githubusercontent.com/danielmalka/dev-harness/main/.claude-plugin/marketplace.json`, que baixa só o `marketplace.json` (0,9 s contra 26 s da forma `danielmalka/dev-harness`, medido em config isolado; o `install` depois baixa só a pasta do plugin, na tag fixada). A forma curta segue documentada: ela clona o repositório inteiro (cerca de 90 MB, por causa dos binários `dh` de cada versão) e falhou numa máquina nova com `fetch-pack: invalid index-pack output`, sem reprodução depois. O caminho de um clone local fica como terceira opção.
+- `.claude-plugin/marketplace.json`: a descrição dizia "18 specialist agents"; o kit tem o Coordenador e 12 especialistas.
+- Binário `dh`: sem mudança de comportamento (só a versão embutida). Sem comando, agente ou skill nova.
+
 ## 0.19.1 — 2026-10-08
 
 - **PRD-013 entregue** (`docs/prd/PRD-013-extensao-vscode.md`): seção "Resumo executado" e Status `entregue em 2026-10-08`. A sonda do dono (T-1406) num VS Code real passou no Remote WSL e no Windows local, depois da extensão [v0.1.1](https://github.com/danielmalka/dev-harness-vscode/releases/tag/v0.1.1): na v0.1.0 a view ficava em "carregando…" porque, com `enableScripts: false`, o VS Code tira `allow-scripts` do frame de conteúdo e o `iframe` do dashboard herda. A v0.1.1 liga `enableScripts`, com a CSP da view ainda sem `script-src`; o repasse pela extensão (R7) não foi necessário.

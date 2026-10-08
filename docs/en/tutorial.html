@@ -672,10 +672,10 @@ footer.doc-foot {
       <h2 id="install"><span class="n">01</span>Install</h2>
       <p>Prerequisites: Git and an authenticated Claude Code with access to a model. The package ships the <code>dh</code> binary; no interpreter is needed. Go 1.22+ only for people who maintain the kit.</p>
       <ol class="steps">
-        <li><strong>From the marketplace.</strong> Inside a Claude Code session, in the project you will work on:
-          <div class="table-wrap"><pre><code>/plugin marketplace add danielmalka/dev-harness
+        <li><strong>From the marketplace.</strong> Inside a Claude Code session, in the project you will work on. The URL form downloads only <code>marketplace.json</code>, without cloning the repository:
+          <div class="table-wrap"><pre><code>/plugin marketplace add https://raw.githubusercontent.com/danielmalka/dev-harness/main/.claude-plugin/marketplace.json
 /plugin install dh@dev-harness</code></pre></div>
-          The version comes from the tag pinned in <code>.claude-plugin/marketplace.json</code>. For a team, the project can declare the marketplace under <code>extraKnownMarketplaces</code> and the plugin under <code>enabledPlugins</code> in <code>.claude/settings.json</code>.
+          The short form <code>/plugin marketplace add danielmalka/dev-harness</code> also works, but it clones the whole repository (about 90 MB, because of the <code>dh</code> binaries of every version) and failed once with <code>fetch-pack: invalid index-pack output</code> (not reproduced). With a local clone, <code>/plugin marketplace add /path/to/clone</code> works too. In every form, <code>install</code> downloads only the plugin folder, at the tag pinned in <code>.claude-plugin/marketplace.json</code>, which sets the version. For a team, the project can declare the marketplace under <code>extraKnownMarketplaces</code> and the plugin under <code>enabledPlugins</code> in <code>.claude/settings.json</code>.
         </li>
         <li><strong>Or from the clone (development).</strong> Clone the repository and load the generated package, in the target project:
           <div class="table-wrap"><pre><code>claude --plugin-dir "/absolute/path/to/clone/dist/claude-code/dev-harness" --agent coordinator</code></pre></div>

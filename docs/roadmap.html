@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-08</b></span>
-          <span class="chip">status <b>0.19.1 · vivo</b></span>
+          <span class="chip">status <b>0.19.2 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
 
+      <div class="card">
+        <h3>0.19.2 · Instalação sem clonar o repositório</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> README e tutorial indicam o <code>marketplace add</code> pela URL do <code>marketplace.json</code>, que não clona o repositório (0,9 s contra 26 s da forma <code>danielmalka/dev-harness</code>, que baixa cerca de 90 MB e falhou numa máquina nova com <code>fetch-pack: invalid index-pack output</code>). A forma curta e o caminho de um clone local seguem documentados. A descrição do <code>marketplace.json</code> passa de "18 specialist agents" para 12. Sem mudança de comportamento do <code>dh</code> (só a versão embutida).</p>
+        <p><strong>Relações:</strong> <code>.claude-plugin/marketplace.json</code>; README e tutorial.</p>
+        <p><strong>Testado?</strong> <code>marketplace add</code> pela URL e <code>install</code> conferidos em config isolado do Claude Code 2.1.294; <code>dh validate</code> e <code>go test</code> verdes; nenhuma eval paga.</p>
+      </div>
       <div class="card">
         <h3>0.19.1 · PRD-013 entregue: extensão verificada em VS Code real</h3>
         <p><strong>Status:</strong> concluído.</p>
@@ -1663,7 +1670,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.19.1, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.19.2, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
