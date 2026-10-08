@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-07</b></span>
-          <span class="chip">status <b>0.18.1 · vivo</b></span>
+          <span class="chip">status <b>0.19.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.19.0 · Extensão VS Code: dashboard, status e lançador</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-013 entregue. Extensão TypeScript no repositório <code>danielmalka/dev-harness-vscode</code>, distribuída como <code>.vsix</code> em release v0.1.0. Três recursos: (1) View lateral com ícone "Dev Harness" na barra de atividades que embute o dashboard local (http://127.0.0.1:&lt;porta&gt;, padrão 4747, configurável em <code>dh.dashboard.port</code>). Se o dashboard não responde, botão "Iniciar dashboard" roda <code>dh dashboard --detach</code> do plugin instalado (variáveis <code>DH_DASHBOARD_ROOTS</code> e <code>DH_DASHBOARD_SPRITES</code> passadas como env). (2) Item na barra de status mostrando estado do avatar e limites 5h/semana lidos de <code>/api/state</code> consultado a cada ~5s; click revela a view; mostra "dashboard parado" quando servidor inativo. Configurações: <code>dh.dashboard.port</code> (padrão 4747), <code>dh.dashboard.roots</code> (lista de caminhos raiz), <code>dh.dashboard.sprites</code> (pasta de ícones). (3) Comando paleta "dh: abrir sessão" que pergunta a pasta do projeto (pastas do workspace e subpastas com <code>.harness/</code> sob raízes) e um comando <code>/dh:&lt;nome&gt;</code> da lista dos 19, abre terminal integrado nessa pasta rodando <code>claude</code> e digita o comando. Sem sobreposição flutuante, chat nem controle de sessão. Marketplace adiado. <code>AGENTS.md</code>: extensão é só visualizador e lançador, nunca runtime nem orquestra. Documentação: README (pt/en) com link v0.1.0, roadmap card 0.19.0, tutorial seção "Extensão VS Code", PRD-001 nota de remissão para PRD-013, PRD-013 campo Tickets. Sem mudança de comportamento do <code>dh</code> (só a versão embutida).</p>
+        <p><strong>Relações:</strong> PRD-013 (<code>docs/prd/PRD-013-extensao-vscode.md</code>); repositório <code>danielmalka/dev-harness-vscode</code>, release v0.1.0; <code>AGENTS.md</code>.</p>
+        <p><strong>Testado?</strong> 60 testes unitários e integração sob xvfb em verde; empacotamento <code>.vsix</code> sucesso. Não verificado em VS Code real nem Remote WSL; verificação pendente (T-1406 do dono).</p>
+      </div>
 
       <div class="card">
         <h3>0.18.1 · Trava de commit por repositório e ajustes do dashboard</h3>
@@ -1648,7 +1656,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.18.1, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.19.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
