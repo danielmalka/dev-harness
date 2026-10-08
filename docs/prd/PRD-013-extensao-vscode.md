@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aprovado em 2026-10-07 |
+| Status | entregue em 2026-10-08 |
 | Dono | Daniel Malka |
 | Criado / atualizado | 2026-10-07 / 2026-10-07 |
 | Tickets | T-1401..T-1407 (`.harness/tasks/`) |
@@ -194,3 +194,28 @@ Decisões pendentes (todas com recomendação; nenhuma bloqueia a sonda H1). Dec
 
 Tickets: nenhum nesta etapa. O plano começa pela sonda de H1/H2 no VS Code do dono (Linux e Remote WSL), antes de qualquer
 código de view. A extensão tem CI próprio e tag anotada própria por trabalho concluído.
+
+## Resumo executado
+
+- **Entregue**: a extensão `dev-harness-vscode` (v0.1.0, corrigida na v0.1.1), distribuída como `.vsix` na release do GitHub, embute o dashboard numa view lateral, mostra estado e limites na barra de status a partir de `/api/state` e abre sessão com "dh: abrir sessão", que digita `/dh:<comando>` sem Enter; confirmada pelo dono num VS Code real (Remote WSL e Windows local).
+- **Regras**:
+  - R1 Honrada: `viewsContainers`/`views` no `package.json`, registro conferido sob `xvfb-run`; view aberta e movida pelo dono (T-1406).
+  - R2 Honrada: projetos, sessões e avatar com limites visíveis na view, em captura de tela enviada pelo dono no Remote WSL; no Windows local, confirmado pelo dono sem captura. Na v0.1.0 a página ficava em "carregando…": com `enableScripts: false` o VS Code tira `allow-scripts` do frame de conteúdo e o `iframe` herda; corrigido na v0.1.1 (`enableScripts: true`, CSP da view sem `script-src`).
+  - R3 Honrada: teste da porta e do CSP; URL montada só em `src/dashboardUrl.ts`.
+  - R4 Honrada: teste com porta sem servidor; mensagem e botão "Iniciar dashboard".
+  - R5 Honrada: testes da localização do `dh` (versão mais nova, ausência) e do ambiente montado.
+  - R6 Honrada: testes com servidor que sobe depois de 1 s e que nunca sobe (prazo único de 10 s).
+  - R7 Honrada: H1 verdadeira depois da v0.1.1 (o `iframe` local carrega no webview); o proxy não foi necessário.
+  - R8 Honrada: teste de formatação com resposta real de `/api/state` para os seis ids, id desconhecido, arredondamento e limite ausente; item da barra de status visível nas capturas do dono nas duas janelas (Remote WSL e Windows local; nesta, a extensão ainda estava na v0.1.0, que já lia `/api/state` corretamente).
+  - R9 Honrada: teste com servidor ausente; o código não acessa `~/.claude/dev-harness/sessions`.
+  - R10 Honrada: teste de integração do comando do item.
+  - R11 Honrada: testes de cancelamento, escolha completa e caso sem pasta nem raízes; lista fixa dos 19 com teste de deriva contra `.commands/`.
+  - R12 Honrada: mock registra as duas chamadas de `sendText` e o `cwd`; o dono rodou o lançador e o comando apareceu digitado depois de o `claude` abrir, com o atraso fixo de 3 s do código (H4).
+  - R13 Honrada: testes com caminho inexistente, `../x`, symlink fora da raiz e comando fora da lista.
+  - R14 Honrada: `extensionKind: ["workspace"]`; no Remote WSL o terminal abriu no WSL e o dashboard foi lido do lado WSL (dono).
+  - R15 Honrada: `package.json` sem `dependencies`; `.vsix` com 19 arquivos, sem binário.
+  - R16 Honrada: CI verde em push e PR; tags `v0.1.0` e `v0.1.1` anexaram a `.vsix` às releases; o dono instalou a `.vsix` da v0.1.0, e a v0.1.1 entrou por `code --install-extension` e por atualização manual do dono.
+  - R17 Honrada: revisão final contra o diff; sem notificação proativa (mensagens só em resposta a uma ação do dono).
+- **Tickets**: T-1401 (infra, builder) concluída; T-1402, T-1403, T-1404 (frontend, builder) concluídas, revisão de código por ticket; T-1405 (teste, qa-verifier) APPROVED R1–R17, 60 testes unitários estáveis e integração sob xvfb; T-1406 (sonda do dono) concluída: H1 a H4 verdadeiras depois da v0.1.1 (H2 no Remote WSL; Remote SSH não testado); H5 coberta só por teste unitário, porque o botão "Iniciar dashboard" não foi exercido na sonda (o dashboard já estava no ar); T-1407 (docs, docs-guide) concluída; revisão final FEATURE APROVADA; segurança sem vulnerabilidade demonstrada (claude e codex) na v0.1.0 e na v0.1.1.
+- **Docs**: AGENTS.md, README.md, README.en.md, docs/roadmap.html, docs/en/roadmap.html, docs/tutorial.html, docs/en/tutorial.html, CHANGELOG.md, docs/prd/PRD-001-etapa-1.md (nota de remissão), e no dev-harness-vscode README.md e CHANGELOG.md.
+- **Fora**: Marketplace, OTEL, Agent SDK, chat, controle de sessão e runtimes não-Claude. Residuais aceitos: a view só percebe um dashboard subido por fora ao abrir, mudar configuração ou clicar no botão; leitura de `/api/state` sem teto de tamanho (timeout de 2 s); um processo que ocupe a porta antes do dashboard roda JavaScript dentro do painel, com o alcance da própria origem; numa janela local do Windows a view lê o dashboard do WSL pelo loopback espelhado (`networkingMode=mirrored`), e o botão "Iniciar dashboard" não deve conseguir subir o `dh` do WSL (esperado por R5, não exercido).
