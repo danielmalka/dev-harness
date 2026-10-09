@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-10-08</b></span>
-          <span class="chip">status <b>0.21.0 · vivo</b></span>
+           <span class="chip">data <b>2026-10-09</b></span>
+          <span class="chip">status <b>0.22.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -676,13 +676,13 @@ footer.doc-foot {
   .skills/                21 skills — fonte canônica
   .commands/              19 comandos — fonte canônica
   templates/{en,pt-br}/   7 templates espelhados por idioma — fonte canônica
-  profiles/               4 perfis de stack — fonte canônica
+  profiles/               7 perfis de stack — fonte canônica
   dist/                   pacote gerado por `dh build` — não se edita à mão
   docs/                   PRDs, ADRs, tutoriais, plano de produto, este roadmap
   evals/                  cases, baselines, rubrics, fixtures de avaliação
   adapters/               guias de uso manual por outras IAs (generic) e o pacote Claude Code (claude-code)</code></pre>
       </div>
-      <p>Contagem atual (<code>harness-manifest.json</code>): 13 agentes, 19 comandos, 21 skills, 4 perfis, 14 templates
+      <p>Contagem atual (<code>harness-manifest.json</code>): 13 agentes, 19 comandos, 21 skills, 7 perfis, 14 templates
         (7 en + 7 pt-br), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
       <pre class="mermaid">
 flowchart LR
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
 
+      <div class="card">
+        <h3>0.22.0 · Profiles de linguagem: Kotlin, Python e TypeScript API</h3>
+        <p><strong>Status:</strong> concluído (prova de campo pendente).</p>
+        <p><strong>Resumo:</strong> PRD-015. Três profiles novos: <code>kotlin</code> (seções Spring Boot, Quarkus e Micronaut), <code>python</code> (Django e FastAPI) e <code>typescript-api</code> (serviços Node/TypeScript, com desempate contra <code>typescript-web</code> e a regra de monorepo). Seções de framework valem só com evidência nos arquivos do repositório. <code>dh validate</code> passa a exigi-los (4 → 7 profiles). Pendente: o dono roda <code>/dh:setup</code> em modo proposta num repositório real de cada stack.</p>
+        <p><strong>Relações:</strong> PRD-015 (<code>docs/prd/PRD-015-linguagens.md</code>); <code>profiles/README.md</code>; README (pt/en).</p>
+        <p><strong>Testado?</strong> <code>go test -race ./...</code> (inclui o teste de profile obrigatório ausente), <code>go vet</code> e <code>dh validate</code> verdes; QA por regra (R1–R11) com greps de conteúdo; prova de campo do <code>/dh:setup</code> num projeto Kotlin/Python/TypeScript real pendente com o dono; nenhuma eval paga.</p>
+      </div>
       <div class="card">
         <h3>0.21.0 · Pasta global do harness (<code>~/.harness</code>)</h3>
         <p><strong>Status:</strong> concluído.</p>
@@ -1684,7 +1691,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.21.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.22.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

@@ -340,7 +340,7 @@ func checkCounts(inv Inventory, errors *[]string) {
 	if len(inv.Skills) < MinSkills {
 		*errors = append(*errors, fmt.Sprintf("skills: %d < %d", len(inv.Skills), MinSkills))
 	}
-	for _, required := range []string{"base", "go-api", "typescript-web"} {
+	for _, required := range []string{"base", "go-api", "typescript-web", "kotlin", "python", "typescript-api"} {
 		if !contains(inv.Profiles, required) {
 			*errors = append(*errors, "missing profile: "+required)
 		}

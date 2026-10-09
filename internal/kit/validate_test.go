@@ -325,7 +325,7 @@ func syntheticRoot(t *testing.T) string {
 	writeFixture(t, filepath.Join(root, ".commands", "run.md"), commandFixture())
 	writeFixture(t, filepath.Join(root, ".commands", "check.md"), commandFixtureWithName("check"))
 	writeFixture(t, filepath.Join(root, ".skills", "sample", "SKILL.md"), skillFixture())
-	for _, profile := range []string{"base", "go-api", "typescript-web"} {
+	for _, profile := range []string{"base", "go-api", "typescript-web", "kotlin", "python", "typescript-api"} {
 		writeFixture(t, filepath.Join(root, "profiles", profile+".yaml"), "id: "+profile+"\n")
 	}
 	for _, lang := range []string{"en", "pt-br"} {
@@ -404,7 +404,7 @@ func TestCheckCountsAgentMinimum(t *testing.T) {
 			Agents:   make([]string, agents),
 			Commands: make([]string, MinCommands),
 			Skills:   make([]string, MinSkills),
-			Profiles: []string{"base", "go-api", "typescript-web"},
+			Profiles: []string{"base", "go-api", "typescript-web", "kotlin", "python", "typescript-api"},
 		}
 	}
 	var errs []string
@@ -415,5 +415,30 @@ func TestCheckCountsAgentMinimum(t *testing.T) {
 	checkCounts(inventory(12), &errs)
 	if len(errs) != 1 || errs[0] != "agents: 12 < 13" {
 		t.Fatalf("12 agents: errors = %v, want [agents: 12 < 13]", errs)
+	}
+}
+
+// TestCheckCountsRequiresNewProfiles pins PRD-015 R8: dropping any of the
+// three language profiles yields "missing profile: <name>".
+func TestCheckCountsRequiresNewProfiles(t *testing.T) {
+	all := []string{"base", "go-api", "typescript-web", "kotlin", "python", "typescript-api"}
+	for _, drop := range []string{"kotlin", "python", "typescript-api"} {
+		var profiles []string
+		for _, p := range all {
+			if p != drop {
+				profiles = append(profiles, p)
+			}
+		}
+		inv := Inventory{
+			Agents:   make([]string, MinAgents),
+			Commands: make([]string, MinCommands),
+			Skills:   make([]string, MinSkills),
+			Profiles: profiles,
+		}
+		var errs []string
+		checkCounts(inv, &errs)
+		if len(errs) != 1 || errs[0] != "missing profile: "+drop {
+			t.Fatalf("drop %s: errors = %v", drop, errs)
+		}
 	}
 }

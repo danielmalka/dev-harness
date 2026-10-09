@@ -10,11 +10,14 @@ A profile is a starting point for `.harness/project.yaml` in a consumer project.
 | --- | --- |
 | `base.yaml` | Every project. Shared harness rules. |
 | `go-api.yaml` | Go modules that expose an HTTP or RPC API. |
-| `typescript-web.yaml` | TypeScript apps with a user interface. |
+| `typescript-web.yaml` | TypeScript apps with a rendered user interface. |
 | `php.yaml` | PHP projects managed by Composer, with or without a framework or CMS. |
+| `kotlin.yaml` | Kotlin services on the JVM (Gradle or Maven), with Spring Boot, Quarkus or Micronaut sections gated by build evidence. |
+| `python.yaml` | Python services and packages, with Django and FastAPI sections gated by dependency evidence. |
+| `typescript-api.yaml` | TypeScript or Node services without a rendered UI. |
 | `examples/project.yaml` | Shape of a consumer `.harness/project.yaml`. Not a stack profile. |
 
-Python, Electron and other stacks are out of v1 until a real consumer needs them. `php` entered on 2026-09-20 for the first PHP consumer (a Craft CMS site).
+Electron and other stacks are out until a real consumer needs them. `php` entered on 2026-09-20 for the first PHP consumer (a Craft CMS site). `kotlin`, `python` and `typescript-api` entered on 2026-10-09 for the owner's work projects, the first Kotlin, Python and TypeScript backend consumers.
 
 ## Schema
 
@@ -46,13 +49,15 @@ Rules:
 ## Matching
 
 1. Read the consumer tree (manifests, languages, UI presence).
-2. Pick `go-api`, `typescript-web` or `php` when the stack evidence is direct.
+2. Pick `go-api`, `typescript-web`, `php`, `kotlin`, `python` or `typescript-api` when the stack evidence is direct.
+   - `package.json` with a rendered UI present (UI framework dependency such as react, vue, svelte, next, nuxt or angular, `index.html`, or a `public/` folder): `typescript-web`. A service without a UI: `typescript-api`.
+   - Monorepo with a UI and an API: one rule. `setup` run at the root picks `typescript-web` and records in `notes:` of `project.yaml` the API folder and the profile `typescript-api`; `setup` run inside the API folder picks `typescript-api`.
 3. Otherwise use `base` and record `none, custom` for stack-specific commands.
 4. Existing project instructions outrank the profile.
 
 ## Consumer-only fields in `.harness/project.yaml`
 
-These fields exist only in a consumer's `.harness/project.yaml`, never in a `profiles/*.yaml` stack profile — `base.yaml`, `go-api.yaml`, `typescript-web.yaml` and `php.yaml` never carry them.
+These fields exist only in a consumer's `.harness/project.yaml`, never in a `profiles/*.yaml` stack profile — `base.yaml`, `go-api.yaml`, `typescript-web.yaml`, `php.yaml`, `kotlin.yaml`, `python.yaml` and `typescript-api.yaml` never carry them.
 
 `reviewers:` is optional. Absent, the flow is Claude-only and there is no other CLI to rotate. When present, it maps a stage to a list of reviewers for that stage. On the `code` stage the first entry of a task is `claude` when that list includes it, otherwise the first entry; each later entry of the same task advances one entry. The `security` stage still runs its full list. The full `code` list runs only when the owner asks for that stage.
 
