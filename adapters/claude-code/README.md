@@ -23,7 +23,7 @@ Do not present `.agents/`, `.commands/` or `.skills/` as directories Claude disc
 | `profiles/` | `profiles/` | Not auto-discovered. Referenced by project-onboarding. |
 | `cmd/dh`, `internal/` (Go) | `bin/<os>_<arch>/dh` plus `bin/dh` wrapper | Mechanical diagnosis, validation, build and session snapshots. `/dh:doctor` runs `bin/dh doctor` from the plugin directory. |
 | `adapters/claude-code/plugin/settings.json` | `settings.json` | `subagentStatusLine` calling `bin/dh snapshot subagents`. |
-| `adapters/claude-code/plugin/hooks/hooks.json` | `hooks/hooks.json` | Session and subagent hooks calling `bin/dh snapshot event`. |
+| `adapters/claude-code/plugin/hooks/hooks.json` | `hooks/hooks.json` | Declares only the `./panel.ts` mod, with no command hooks. The mod writes the session snapshot from engine events (session, prompt, tool, agent and turn events); `dh snapshot event` is not called by the plugin. On Team accounts the engine bypasses plugin `classic.*` hooks, so the mod does not use them. |
 | generated | `.claude-plugin/plugin.json` | Plugin identity. `name` is `dh`, `license` is `MIT`. |
 | generated | `harness-manifest.json` | Inventory derived from sources at build time. |
 | generated | `GENERATED.txt` | Marker that this tree is not a source. |

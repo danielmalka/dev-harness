@@ -685,10 +685,10 @@ footer.doc-foot {
         <li><strong>Migrando de antes da 0.8.0.</strong> <code>/plugin uninstall dev-harness@dev-harness</code>, depois <code>/plugin install dh@dev-harness</code>; troque <code>/dev-harness:</code> por <code>/dh:</code> em scripts e anotações próprias.</li>
         <li><strong>Desativar.</strong> Encerre a sessão sem o <code>--plugin-dir</code> ou desinstale o plugin. Os arquivos em <code>.harness/</code> do projeto ficam: o kit não apaga trabalho seu.</li>
       </ol>
-      <p>O pacote inclui <code>settings.json</code> e <code>hooks/hooks.json</code>, que gravam snapshots por sessão em <code>~/.harness/sessions/&lt;session_id&gt;.json</code> (a pasta global, ver <a href="#modo-global">Modo global</a>), só em arquivos locais e podados após 7 dias.</p>
+      <p>O pacote inclui o mod <code>hooks/panel.ts</code> (listado em <code>hooks/hooks.json</code>) e o <code>settings.json</code>. O mod grava snapshots por sessão em <code>~/.harness/sessions/&lt;session_id&gt;.json</code> (a pasta global, ver <a href="#modo-global">Modo global</a>) a partir de eventos do motor, não de hooks de comando; são só arquivos locais, e nada os apaga sozinho: <code>dh snapshot prune</code> remove os com mais de 7 dias (padrão).</p>
 
       <h2 id="dashboard"><span class="n">02</span>Dashboard local</h2>
-      <p>Uma página local mostra projetos em andamento, PRDs abertos, e sessões do Claude Code com seu estado (trabalhando, parado, esperando você, erro, pronto ou atenção). Rodar:</p>
+      <p>Uma página local mostra projetos em andamento, PRDs abertos, e sessões do Claude Code com seu estado (trabalhando, parado, erro, pronto ou atenção). O estado "esperando você" (permissão pendente) não é gravado na 0.24.1: em conta Team o motor contorna os hooks que o detectavam, e não há outro evento que o substitua (residual D2 no <code>CHANGELOG.md</code>, 0.24.1). Rodar:</p>
       <ol class="steps">
         <li><strong><code>/dashboard</code></strong> dentro de uma sessão do Claude Code. O comando (registrado pelo mod, não é um <code>/dh:</code> tradicional) sobe um servidor na porta padrão 4747 em http://127.0.0.1:4747 e imprime a URL. Aceita argumentos:
           <ul>
