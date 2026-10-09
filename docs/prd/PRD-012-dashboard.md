@@ -7,6 +7,9 @@
 | Criado / atualizado | 2026-10-07 / 2026-10-07 |
 | Tickets | (ainda sem tickets; o plano vem depois) |
 
+
+> Nota (0.21.0, PRD-014): `DH_DASHBOARD_ROOTS` e `DH_DASHBOARD_SPRITES`, `config.roots`, o caminho dos snapshots de sessão e o do token de parada mudaram. Os projetos vêm do `config.yaml` da pasta global (`~/.harness`) e `/api/state.config` é `{home, sprites, port}`. Ver `docs/prd/PRD-014-harness-global.md` e o `CHANGELOG.md`.
+
 ## 1. Problema
 
 O dono trabalha com vários projetos que usam o kit e vários terminais do Claude Code abertos ao mesmo tempo. Hoje não há um

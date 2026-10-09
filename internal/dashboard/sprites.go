@@ -12,8 +12,6 @@ import (
 	"sort"
 )
 
-const SpritesEnv = "DH_DASHBOARD_SPRITES"
-
 //go:embed web/sprites/*.png
 var embedded embed.FS
 

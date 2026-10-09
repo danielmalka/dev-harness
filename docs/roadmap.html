@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-08</b></span>
-          <span class="chip">status <b>0.20.0 · vivo</b></span>
+          <span class="chip">status <b>0.21.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
 
+      <div class="card">
+        <h3>0.21.0 · Pasta global do harness (<code>~/.harness</code>)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-014. Pasta global por máquina e por ambiente (<code>DH_HOME</code> muda o lugar) com <code>config.yaml</code> (registro de todos os projetos e padrões), <code>projects/&lt;nome&gt;/</code>, <code>sessions/</code> e <code>dashboard/</code>. Resolução única: <code>.harness/</code> interno vence; senão a pasta global pelo mapa; senão <code>none</code>. Subcomandos novos <code>dh harness-path</code>, <code>dh link</code> e <code>dh projects</code>. Trava de memória nos dois lugares; a sessão recebe a pasta resolvida; o dashboard lê o <code>config.yaml</code>. Cinco quebras com migração no CHANGELOG: as variáveis de ambiente do dashboard (raízes e sprites) removidas, <code>/api/state.config</code> vira <code>{home, sprites, port}</code>, snapshots e token de parada passam para <code>~/.harness</code>, e projetos antigos só aparecem depois de <code>dh link</code>. A extensão VS Code muda em versão própria.</p>
+        <p><strong>Relações:</strong> PRD-014 (<code>docs/prd/PRD-014-harness-global.md</code>); ADR-007; PRD-012 e PRD-013 (notas de remissão); tutorial seção "Modo global"; README (pt/en).</p>
+        <p><strong>Testado?</strong> <code>go test -race ./...</code>, <code>go vet</code> linux/windows/darwin, <code>claude plugin test</code> (219) e <code>dh validate</code> verdes; QA por regra (R1–R20) e uma sessão real <code>claude -p</code> com <code>DH_HOME</code> temporário (modo none → <code>dh link</code> → modo global, sessão gravada em <code>~/.harness/sessions</code>, repositório intocado); revisão de segurança com a lista completa (claude + codex) sem vulnerabilidade demonstrada; Windows e macOS só compilados; nenhuma eval paga.</p>
+      </div>
       <div class="card">
         <h3>0.20.0 · Dashboard: parada segura e configuração visível</h3>
         <p><strong>Status:</strong> concluído.</p>
@@ -1677,7 +1684,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.20.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.21.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

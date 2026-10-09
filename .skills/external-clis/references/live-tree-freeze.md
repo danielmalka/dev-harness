@@ -107,10 +107,12 @@ section 1, not by this rule.
 
 ## 1. Freeze the live tree (R5)
 
+RISK-002 prevention: nothing writes to the tree or to the `<harness dir>` between the freeze and the comparison, the Coordinator included. Detection and revert below apply to the `<harness dir>` as to `.harness/`.
+
 Run from `<project>`. Record all of these, before the call:
 
 - The trust paths, as bytes and mode, saved with non-git tools (`cp -p`, or
-  `tar` from an explicit NUL list, below): everything under `.harness/`;
+  `tar` from an explicit NUL list, below): everything under the `<harness dir>` (in mode `global`, `<home>/projects/<name>/`, outside the tree) and under `.harness/` when it exists;
   `.claude/settings.json` and `.claude/settings.local.json` (each when
   present, and the list of those absent); from the live `.git`, `hooks/`,
   `config`, `info/`, `HEAD` and `packed-refs`; and every `.gitattributes` file
@@ -354,7 +356,7 @@ altered ignored path is reported as `not revertible: <path>`.
 The residual of clone-isolation.md section 7 applies unchanged: disposable
 clone; writes outside it are detected on the live tree (R5), never prevented;
 writes outside the project are not detected. It also holds for the freeze
-directory. It contains copies of `.harness/`, of `.claude/settings*.json` and of
+directory. It contains copies of the `<harness dir>`, of `.harness/`, of `.claude/settings*.json` and of
 the dirty or untracked non-ignored files, it sits in `<tmp root>`, and a
 CLI that runs as the same user can read and alter it (mode 0700 does not stop
 that). Tampering with the copies falls under the residual (a), a write outside

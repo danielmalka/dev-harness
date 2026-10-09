@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/danielmalka/dev-harness/internal/harness"
 	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
 
@@ -18,7 +19,7 @@ type OpenSession struct {
 }
 
 // OpenSessions drops closed and stale sessions and attributes the rest to the deepest project containing the cwd.
-func OpenSessions(all []snapshot.Session, projects []Project, now time.Time, stale, decay time.Duration) []OpenSession {
+func OpenSessions(all []snapshot.Session, projects []harness.Project, now time.Time, stale, decay time.Duration) []OpenSession {
 	var out []OpenSession
 	for _, s := range all {
 		if s.State == "closed" || s.UpdatedAt.IsZero() || now.Sub(s.UpdatedAt) > stale {

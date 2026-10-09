@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/danielmalka/dev-harness/internal/harness"
 	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
 
@@ -37,20 +38,6 @@ func TestStatusCasesFixture(t *testing.T) {
 	}
 }
 
-func TestProjects(t *testing.T) {
-	if p, w := Projects(""); len(p) != 0 || w == "" {
-		t.Fatal("empty variable must warn with zero projects")
-	}
-	r1, r2 := t.TempDir(), t.TempDir()
-	mk(t, filepath.Join(r1, "a", ".harness", "x"), "")
-	mk(t, filepath.Join(r1, "nope", "file"), "")
-	mk(t, filepath.Join(r2, "b", ".harness", "x"), "")
-	p, w := Projects(r1 + ";" + filepath.Join(r2, "missing") + ";" + r2)
-	if w != "" || len(p) != 2 {
-		t.Fatalf("got %v warn %q", p, w)
-	}
-}
-
 func TestPRDLink(t *testing.T) {
 	cases := map[string]string{
 		"| Story / PRD | PRD-003 (RF-1) |":              "PRD-003",
@@ -76,7 +63,7 @@ func TestProjectProgress(t *testing.T) {
 	mk(t, filepath.Join(p, ".harness/tasks/T-2/TASK.md"), "| Status | concluída |\n| PRD (RF-<n>) | PRD-002 |\n")
 	mk(t, filepath.Join(p, ".harness/tasks/T-3/TASK.md"), "| Status | bloqueada |\n| PRD (RF-<n>) | PRD-002 |\n")
 	mk(t, filepath.Join(p, ".harness/tasks/T-4/TASK.md"), "| Status | pronta |\n| PRD (RF-<n>) | fora do PRD-003 |\n")
-	pr := ProjectProgress(p)
+	pr := ProjectProgress(p, filepath.Join(p, ".harness"))
 	if len(pr.Delivered) != 1 || pr.Delivered[0] != "PRD-001" || len(pr.Open) != 2 {
 		t.Fatalf("%+v", pr)
 	}
@@ -92,7 +79,7 @@ func f(v float64) *float64 { return &v }
 
 func TestOpenSessionsAndLimits(t *testing.T) {
 	now := time.Date(2026, 10, 7, 12, 0, 0, 0, time.UTC)
-	projs := []Project{{Name: "p", Path: "/w/p"}, {Name: "sub", Path: "/w/p/sub"}, {Name: "q", Path: "/w/pq"}}
+	projs := []harness.Project{{Name: "p", Path: "/w/p"}, {Name: "sub", Path: "/w/p/sub"}, {Name: "q", Path: "/w/pq"}}
 	all := []snapshot.Session{
 		{SessionID: "fresh", State: "active", Activity: "working", CWD: "/w/p/src/deep", UpdatedAt: now.Add(-10 * time.Second)},
 		{SessionID: "old", State: "active", Activity: "working", CWD: "/w/p", UpdatedAt: now.Add(-3 * time.Minute)},
@@ -177,18 +164,6 @@ func TestUnknownActivityIsIdle(t *testing.T) {
 	got := AvatarState([]OpenSession{{Activity: ""}, {Activity: "bogus"}, {Activity: "done"}}, AccountLimits{})
 	if got != StateDone || !HigherPriority(StateDone, "") || HigherPriority("", StateIdle) {
 		t.Fatalf("got %s", got)
-	}
-}
-
-func TestProjectsAbsDedupeAndAllFail(t *testing.T) {
-	r := t.TempDir()
-	mk(t, filepath.Join(r, "a", ".harness", "x"), "")
-	p, _ := Projects(r + ";" + r + string(filepath.Separator) + ".")
-	if len(p) != 1 {
-		t.Fatalf("dedupe: %v", p)
-	}
-	if p, w := Projects(filepath.Join(r, "no1") + ";" + filepath.Join(r, "no2")); len(p) != 0 || w == "" {
-		t.Fatal("all roots failing must warn")
 	}
 }
 

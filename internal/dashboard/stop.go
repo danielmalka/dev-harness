@@ -3,6 +3,7 @@ package dashboard
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -13,20 +14,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/danielmalka/dev-harness/internal/harness"
 	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
 
-// userConfigDir is a var so tests can point the token file at a temp dir.
-var userConfigDir = os.UserConfigDir
-
-// tokenPath is the stop-token file of the dashboard on port. It lives in the per-user config dir
+// tokenPath is the stop-token file of the dashboard on port: <home>/dashboard/stop-<port>.token
 // (0700 dir, 0600 file); on Windows the mode bits do not restrict access, but the user profile does.
 func tokenPath(port int) (string, error) {
-	base, err := userConfigDir()
-	if err != nil {
-		return "", err
+	dir := harness.DashboardDir()
+	if dir == "" {
+		return "", errors.New("cannot determine the harness home: set DH_HOME, HOME or USERPROFILE")
 	}
-	return filepath.Join(base, "dev-harness", "dashboard", "stop-"+strconv.Itoa(port)+".token"), nil
+	return filepath.Join(dir, "stop-"+strconv.Itoa(port)+".token"), nil
 }
 
 // newStopToken creates a fresh token and publishes it atomically. The temp file is random-named and O_EXCL

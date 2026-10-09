@@ -24,7 +24,7 @@ func Run(target string, out io.Writer) int {
 	targetForDisplay := absolutePath(target)
 
 	fmt.Fprintln(out, "## Mode")
-	fmt.Fprintln(out, "diagnosis (no writes)")
+	fmt.Fprintln(out, "diagnosis (read-only; creates <home> and <home>/sessions only when missing)")
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "## Kit")
 	fmt.Fprintf(out, "target: %s\n", targetForDisplay)
@@ -51,8 +51,8 @@ func Run(target string, out io.Writer) int {
 	probe(out, "runtime", "claude", "claude", "--version")
 
 	fmt.Fprintln(out)
-	fmt.Fprintln(out, "## Harness records in current directory")
-	printHarnessRecords(out)
+	fmt.Fprintln(out, "## Harness")
+	printHarness(out)
 
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "## Limits")
@@ -89,30 +89,6 @@ func probe(out io.Writer, layer, check string, args ...string) {
 	fmt.Fprintf(out, "| %s | %s | %s | present | %s |\n", layer, check, command, trimmed)
 }
 
-func printHarnessRecords(out io.Writer) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		fmt.Fprintln(out, ".harness/: unavailable")
-		return
-	}
-	harness := filepath.Join(cwd, ".harness")
-	if !isDir(harness) {
-		fmt.Fprintln(out, ".harness/: missing")
-		return
-	}
-	fmt.Fprintln(out, ".harness/: present")
-	for _, name := range []string{"project.yaml", "MEMORY.md", "EPOCHAL.md", "RISKS.md"} {
-		if isFile(filepath.Join(harness, name)) {
-			fmt.Fprintf(out, ".harness/%s: present\n", name)
-		} else {
-			fmt.Fprintf(out, ".harness/%s: missing\n", name)
-		}
-	}
-	if ignoredByGit(cwd) {
-		fmt.Fprintln(out, "warning: .harness/ is ignored by git")
-	}
-}
-
 func printRF07(out io.Writer, target string) {
 	packageRoot := target
 	if !isDir(filepath.Join(packageRoot, "agents")) || !isDir(filepath.Join(packageRoot, ".claude-plugin")) {
@@ -139,13 +115,12 @@ func printRF07(out io.Writer, target string) {
 	}
 
 	snapshotDir := snapshot.SnapshotDir()
-	if err := probeSnapshotDir(snapshotDir); err != nil {
+	if snapshotDir == "" {
+		fmt.Fprintln(out, "- snapshot directory: skipped (harness home unknown)")
+	} else if err := probeSnapshotDir(snapshotDir); err != nil {
 		fmt.Fprintf(out, "- snapshot directory: not writable (%s: %v)\n", snapshotDir, err)
 	} else {
 		fmt.Fprintf(out, "- snapshot directory: writable (%s)\n", snapshotDir)
-	}
-	if ignored, _ := harnessIgnored(); ignored {
-		fmt.Fprintln(out, "- warning: .harness/ is ignored by git")
 	}
 }
 
@@ -176,24 +151,6 @@ func probeSnapshotDir(directory string) error {
 		return err
 	}
 	return os.Remove(name)
-}
-
-func ignoredByGit(directory string) bool {
-	git, err := exec.LookPath("git")
-	if err != nil {
-		return false
-	}
-	command := exec.Command(git, "check-ignore", "-q", ".harness")
-	command.Dir = directory
-	return command.Run() == nil
-}
-
-func harnessIgnored() (bool, error) {
-	cwd, err := os.Getwd()
-	if err != nil || !isDir(filepath.Join(cwd, ".harness")) {
-		return false, err
-	}
-	return ignoredByGit(cwd), nil
 }
 
 func absolutePath(path string) string {

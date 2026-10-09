@@ -63,6 +63,22 @@ test('.harness/ paths do not dirty the gate, other paths do', () => {
   expect(isHarnessPath(undefined)).toBe(false)
 })
 
+test('PRD-014 R19 isHarnessPath(p, home): absolute paths under <home>/projects/ are bookkeeping', () => {
+  expect(isHarnessPath('/h/projects/x/tasks/T-1/TASK.md', '/h')).toBe(true)
+  expect(isHarnessPath('C:\\h\\projects\\x\\MEMORY.md', '/C:/h')).toBe(true)
+  expect(isHarnessPath('/h/projects/x/MEMORY.md', '')).toBe(false)
+  expect(isHarnessPath('/h/notes.md', '/h')).toBe(false)
+  expect(isHarnessPath('/hx/projects/x/a.md', '/h')).toBe(false)
+  expect(isHarnessPath('projects/x/a.md', '/h')).toBe(false)
+})
+
+test('isHarnessPath normalizes first: .harness/../src/a.go is code', () => {
+  expect(isHarnessPath('.harness/../src/a.go')).toBe(false)
+  expect(isHarnessPath('/p/.harness/../src/a.go')).toBe(false)
+  expect(isHarnessPath('/h/projects/../src/a.go', '/h')).toBe(false)
+  expect(isHarnessPath('./.harness/tasks/T-1/TASK.md')).toBe(true)
+})
+
 test('resolvePath normalizes relative, dot and dot-dot segments', () => {
   expect(resolvePath('/proj', 'src/a.go')).toBe('/proj/src/a.go')
   expect(resolvePath('/proj', '/x/./y/../z')).toBe('/x/z')

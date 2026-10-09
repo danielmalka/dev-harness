@@ -649,6 +649,7 @@ footer.doc-foot {
         <a href="#dashboard"><b>02</b>Dashboard local</a>
         <a href="#primeira-sessao"><b>03</b>Primeira sessão</a>
         <a href="#harness"><b>04</b>O que vive em .harness/</a>
+        <a href="#modo-global"><b>04b</b>Modo global</a>
         <a href="#fluxos"><b>05</b>Fluxos</a>
         <a href="#configuracao"><b>06</b>Configuração</a>
         <a href="#avancado"><b>07</b>Avançado</a>
@@ -684,7 +685,7 @@ footer.doc-foot {
         <li><strong>Migrando de antes da 0.8.0.</strong> <code>/plugin uninstall dev-harness@dev-harness</code>, depois <code>/plugin install dh@dev-harness</code>; troque <code>/dev-harness:</code> por <code>/dh:</code> em scripts e anotações próprias.</li>
         <li><strong>Desativar.</strong> Encerre a sessão sem o <code>--plugin-dir</code> ou desinstale o plugin. Os arquivos em <code>.harness/</code> do projeto ficam: o kit não apaga trabalho seu.</li>
       </ol>
-      <p>O pacote inclui <code>settings.json</code> e <code>hooks/hooks.json</code>, que gravam snapshots por sessão em <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, só em arquivos locais e podados após 7 dias.</p>
+      <p>O pacote inclui <code>settings.json</code> e <code>hooks/hooks.json</code>, que gravam snapshots por sessão em <code>~/.harness/sessions/&lt;session_id&gt;.json</code> (a pasta global, ver <a href="#modo-global">Modo global</a>), só em arquivos locais e podados após 7 dias.</p>
 
       <h2 id="dashboard"><span class="n">02</span>Dashboard local</h2>
       <p>Uma página local mostra projetos em andamento, PRDs abertos, e sessões do Claude Code com seu estado (trabalhando, parado, esperando você, erro, pronto ou atenção). Rodar:</p>
@@ -696,26 +697,23 @@ footer.doc-foot {
             <li><code>--stale D</code> e <code>--done-decay D</code> para tuning de exibição (padrões sensatos vêm pré-configurados).</li>
           </ul>
         </li>
-        <li><strong>Configurar projetos.</strong> A variável <code>DH_DASHBOARD_ROOTS</code> aponta para as pastas que contêm projetos. Projetos são subpastas diretas que têm um <code>.harness/</code>. Múltiplos caminhos separam-se por <code>;</code>:
-          <div class="table-wrap"><pre><code>export DH_DASHBOARD_ROOTS="/home/you/work;/home/you/side-projects"</code></pre></div>
-        </li>
-        <li><strong>Avatares customizados (opcional).</strong> <code>DH_DASHBOARD_SPRITES</code> aponta para uma pasta de ícones no formato jevmon: um arquivo por pose (<code>&lt;pose&gt;.png</code> ou frames <code>&lt;pose&gt;_01.png</code>, <code>&lt;pose&gt;_02.png</code>, etc.), mais um <code>poses.json</code> opcional que mapeia estados. O kit envia 6 ícones exemplo (parado, trabalhando, esperando, erro, pronto, atenção). Quando uma pose não existe na pasta do seu dono, o dashboard cai na padrão do kit. O servidor nunca serve ícone com caminho livre (sem nome de pose conhecido) por segurança.</li>
+        <li><strong>Projetos.</strong> O dashboard lista os projetos registrados em <code>~/.harness/config.yaml</code>, em modo <code>repo</code> ou <code>global</code>. Registre cada um com <code>/dh:setup</code> ou <code>dh link</code> dentro do repositório; o arquivo é relido a cada atualização, sem reiniciar. Projeto de antes da 0.21.0 só aparece depois de <code>dh link</code>. A lista sem servidor sai de <code>dh projects --json</code>.</li>
+        <li><strong>Avatares customizados (opcional).</strong> A chave <code>dashboard.sprites</code> do <code>config.yaml</code> aponta para uma pasta de ícones no formato jevmon: um arquivo por pose (<code>&lt;pose&gt;.png</code> ou frames <code>&lt;pose&gt;_01.png</code>, <code>&lt;pose&gt;_02.png</code>, etc.), mais um <code>poses.json</code> opcional que mapeia estados. O kit envia 6 ícones exemplo (parado, trabalhando, esperando, erro, pronto, atenção). Quando uma pose não existe na sua pasta, o dashboard cai na padrão do kit. O servidor nunca serve ícone com caminho livre (sem nome de pose conhecido) por segurança.</li>
         <li><strong>Parar o dashboard.</strong> <code>dh dashboard --stop</code> pede ao dashboard da porta padrão que saia; use <code>--port N</code> para outra porta. Não mata processo: se a porta estiver ocupada por outro programa, o comando sai com erro e o motivo. Não combina com <code>--detach</code>. Dashboard anterior à 0.20.0 não tem essa rota: pare-o manualmente uma vez.
           <div class="table-wrap"><pre><code>dh dashboard --stop --port 4748</code></pre></div>
         </li>
-        <li><strong>Conferir a configuração em uso.</strong> <code>/api/state</code> traz o campo <code>config</code> com as raízes efetivas de <code>DH_DASHBOARD_ROOTS</code>, a pasta de sprites e a porta. A extensão VS Code usa esse campo para saber se o dashboard começou com as mesmas configurações.</li>
-        <li><strong>Token de parada.</strong> Ao subir, o dashboard grava um token aleatório em <code>~/.config/dev-harness/dashboard/stop-&lt;porta&gt;.token</code> (ou em <code>$XDG_CONFIG_HOME</code>; no macOS, em <code>~/Library/Application Support/dev-harness/dashboard/</code>; no Windows, em <code>%AppData%\dev-harness\dashboard\</code>). A pasta é 0700 e o arquivo 0600; no Windows, quem protege é o ACL do perfil do usuário. O arquivo fica no disco depois de sair, de propósito: um token antigo não serve, porque a próxima subida o sobrescreve. Nenhuma página web ou iframe para o dashboard: requisições com cabeçalho Origin são recusadas.</li>
+        <li><strong>Conferir a configuração em uso.</strong> <code>/api/state</code> traz o campo <code>config</code> com <code>{home, sprites, port}</code> (a pasta global, a pasta de sprites e a porta); cada item de <code>projects[]</code> traz <code>name</code>, <code>path</code>, <code>mode</code> (<code>repo</code> ou <code>global</code>) e <code>harness</code> (a pasta resolvida). A extensão VS Code usa esses campos.</li>
+        <li><strong>Token de parada.</strong> Ao subir, o dashboard grava um token aleatório em <code>~/.harness/dashboard/stop-&lt;porta&gt;.token</code> (a pasta global; <code>DH_HOME</code> muda o lugar). A pasta é 0700 e o arquivo 0600; no Windows, quem protege é o ACL do perfil do usuário. O arquivo fica no disco depois de sair, de propósito: um token antigo não serve, porque a próxima subida o sobrescreve. Nenhuma página web ou iframe para o dashboard: requisições com cabeçalho Origin são recusadas. As pastas antigas <code>~/.claude/dev-harness/sessions</code> e <code>&lt;pasta de configuração do usuário&gt;/dev-harness/dashboard</code> ficam órfãs na 0.21.0 e podem ser apagadas. Um dashboard anterior à 0.21.0 ainda em execução tem de ser parado à mão uma vez (ele não conhece o token novo).</li>
       </ol>
 
       <h2 id="extensao-vscode"><span class="n">03</span>Extensão VS Code</h2>
       <p>A extensão <code>dev-harness-vscode</code> traz o dashboard local para dentro do VS Code, mostra o estado das sessões na barra de status e abre um terminal para rodar um comando do dh sem sair do editor.</p>
       <ol class="steps">
         <li><strong>Instalar a extensão.</strong> Baixe <code>dev-harness-&lt;versão&gt;.vsix</code> do release <a href="https://github.com/danielmalka/dev-harness-vscode/releases/latest">mais recente</a> do repositório <code>danielmalka/dev-harness-vscode</code>. No VS Code, abra a paleta de comandos (<code>Ctrl+Shift+P</code> / <code>Cmd+Shift+P</code>), procure "Extensions: Install from VSIX..." e escolha o arquivo.</li>
-        <li><strong>Configurar o dashboard.</strong> Três configurações opcionais em Configurações (Ctrl+,) do VS Code:
+        <li><strong>Configurar o dashboard.</strong> Configurações opcionais em Configurações (Ctrl+,) do VS Code:
           <ul>
             <li><code>dh.dashboard.port</code>: porta do servidor (padrão 4747).</li>
-            <li><code>dh.dashboard.roots</code>: lista de pastas raiz que contêm projetos do kit (ex: <code>["/home/you/work", "/home/you/side-projects"]</code>).</li>
-            <li><code>dh.dashboard.sprites</code>: pasta de ícones customizados (formato jevmon, igual ao dashboard).</li>
+            <li><code>dh.dashboard.roots</code> e <code>dh.dashboard.sprites</code>: deixam de valer na 0.21.0 (os projetos e os sprites vêm do <code>config.yaml</code>); saem na próxima versão da extensão.</li>
           </ul>
         </li>
         <li><strong>Abrir o dashboard.</strong> Na barra de atividades (esquerda), clique no ícone "Dev Harness" para abrir a view. Se o servidor não está rodando, clique em "Iniciar dashboard" para subi-lo desacoplado. O dashboard carrega em um iframe.</li>
@@ -744,6 +742,34 @@ footer.doc-foot {
         </tbody>
       </table></div>
       <div class="callout">Só o Coordenador escreve <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>. Os outros agentes devolvem propostas. O plugin Claude Code força essa regra em tempo de execução: um subagente que tenta escrever naqueles arquivos é bloqueado. O disco é a verdade: se você apagou registros, o Coordenador não os recria de memória da conversa.</div>
+
+      <h2 id="modo-global"><span class="n">05b</span>Modo global</h2>
+      <p>Para quem não pode deixar pasta do dh na árvore do repositório (por exemplo, colegas que não usam o dh), o estado do projeto vive em uma pasta global por máquina e por ambiente, <code>~/.harness/</code> (<code>DH_HOME</code> muda o lugar; no Windows, <code>%USERPROFILE%\.harness</code>). O <code>dh</code> a cria no primeiro uso:</p>
+      <div class="table-wrap"><pre><code>~/.harness/
+  config.yaml        # padrões (language, reviewers, mode, dashboard.sprites) e o mapa projects:
+  projects/&lt;nome&gt;/   # MEMORY, EPOCHAL, RISKS, project.yaml, local.yaml, tasks/, prd/ (direto, sem subpasta)
+  sessions/          # snapshots de todas as sessões
+  dashboard/         # token de parada do dashboard</code></pre></div>
+      <p>Todo projeto fica registrado em <code>projects:</code> (caminho do repositório para nome, o nome da pasta do repositório), com <code>.harness/</code> interno ou global. Só o <code>dh</code> escreve o <code>config.yaml</code>; mods e scripts perguntam a <code>dh harness-path</code>. A resolução é única: <code>&lt;repo&gt;/.harness/</code> se existir (modo <code>repo</code>, vence sempre); senão <code>~/.harness/projects/&lt;nome&gt;/</code> pelo mapa (modo <code>global</code>); senão <code>none</code>, e o <code>/dh:setup</code> oferece criar. A sessão recebe o modo e a pasta resolvidos ao abrir. A trava que impede subagentes de escrever <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code> vale nos dois lugares.</p>
+      <ol class="steps">
+        <li><strong>Instalar no trabalho.</strong> Instale o plugin como na seção Instalação. Cada ambiente (WSL, Windows, macOS) tem a sua pasta global; o kit não traduz caminhos entre eles.</li>
+        <li><strong>Permitir a pasta global.</strong> Você mesmo adiciona <code>~/.harness</code> em <code>additionalDirectories</code> no <code>~/.claude/settings.json</code>, para o Claude Code poder escrever lá. O <code>/dh:doctor</code> só sugere a entrada; nunca grava.
+          <div class="table-wrap"><pre><code>{ "permissions": { "additionalDirectories": ["~/.harness"] } }</code></pre></div>
+        </li>
+        <li><strong>Rodar o setup.</strong> <code>/dh:setup</code> pergunta uma vez, para o projeto, se o modo é <code>repo</code> ou <code>global</code> (ou usa <code>mode</code> do <code>config.yaml</code>), copia <code>language</code> e <code>reviewers</code> do <code>config.yaml</code> para o <code>project.yaml</code> novo e registra o projeto. Em <code>global</code> nada é escrito na árvore: sem pasta, sem arquivo, sem linha de <code>.gitignore</code>. O <code>.harness/</code> interno é versionado; só o <code>local.yaml</code> deve ficar ignorado.</li>
+        <li><strong>Registrar ou religar com <code>dh link</code>.</strong> <code>dh link [nome] [--off] [dir]</code> registra o repositório (padrão: a pasta atual) e, sem <code>.harness/</code> interno, cria <code>~/.harness/projects/&lt;nome&gt;/</code> ou reaproveita a que existe. Dois repositórios com a mesma pasta-base: o segundo exige nome explícito. <code>--off</code> tira a entrada do mapa e não apaga a pasta do projeto. <code>dh harness-path [dir] [--json]</code> mostra o modo e a pasta resolvidos.</li>
+        <li><strong>Abrir o dashboard.</strong> Ver a seção Dashboard local; ele lê o mapa e as pastas globais.</li>
+        <li><strong>Mover ou renomear o repositório.</strong> O mapa fica velho: <code>/dh:doctor</code> mostra <code>mode: none</code>. Rode <code>dh link</code> na pasta nova (com o mesmo nome, para reaproveitar a pasta do projeto; a entrada do caminho antigo, que já não existe, é substituída).</li>
+      </ol>
+      <h3>Migrar de <code>repo</code> para <code>global</code></h3>
+      <div class="table-wrap"><pre><code>1. mkdir -p ~/.harness/projects/&lt;nome&gt; &amp;&amp; cp -r .harness/. ~/.harness/projects/&lt;nome&gt;/
+2. git rm -r .harness   # ou rm -rf, se não era versionado; commite se for o caso
+3. dh link &lt;nome&gt;; dh harness-path   # deve mostrar mode: global</code></pre></div>
+      <h3>Migrar de <code>global</code> para <code>repo</code></h3>
+      <div class="table-wrap"><pre><code>1. cp -r ~/.harness/projects/&lt;nome&gt;/. .harness/   # na raiz do repositório
+2. dh harness-path   # deve mostrar mode: repo (o interno vence); o projeto segue registrado
+3. rm -rf ~/.harness/projects/&lt;nome&gt;   # só depois de conferir a cópia</code></pre></div>
+      <div class="callout">Não existe comando de migração: são só essas linhas.</div>
 
       <h2 id="fluxos"><span class="n">06</span>Fluxos</h2>
       <p>O kit tem 13 agentes e 19 comandos. Você fala com o Coordenador; ele despacha os especialistas e guarda a autorização: nada é instalado, commitado, publicado ou implantado sem você autorizar.</p>

@@ -11,6 +11,7 @@ import (
 )
 
 func TestRunReportsRequiredSectionsAndMatchesValidator(t *testing.T) {
+	t.Setenv("DH_HOME", t.TempDir())
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("runtime.Caller failed")
@@ -31,7 +32,7 @@ func TestRunReportsRequiredSectionsAndMatchesValidator(t *testing.T) {
 			if status != wantStatus {
 				t.Fatalf("status = %d, want %d; output:\n%s", status, wantStatus, output.String())
 			}
-			for _, section := range []string{"## Mode", "## Kit", "## Environment", "## Harness records in current directory", "## Limits"} {
+			for _, section := range []string{"## Mode", "## Kit", "## Environment", "## Harness", "## Limits"} {
 				if !strings.Contains(output.String(), section) {
 					t.Errorf("output missing %q", section)
 				}

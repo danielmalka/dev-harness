@@ -4,7 +4,6 @@ package dashboard
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -14,11 +13,8 @@ import (
 	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
 
-const RootsEnv = "DH_DASHBOARD_ROOTS"
-
 // Bounds on what one poll reads (security round 1): per-file bytes and entry counts.
 const (
-	MaxProjects       = 100
 	MaxTicketsPerProj = 1000
 	MaxSnapshots      = 500
 )
@@ -29,63 +25,6 @@ func readCapped(path string) ([]byte, error) { return snapshot.ReadCapped(path) 
 // skipped reports whether err means the file was refused (symlink/special/oversized), as opposed to absent or unreadable.
 func skipped(err error) bool {
 	return errors.Is(err, snapshot.ErrTooLarge) || errors.Is(err, snapshot.ErrNotRegular)
-}
-
-type Project struct {
-	Name string
-	Path string
-}
-
-// RootList splits the roots value (separator ';'): trimmed, absolute, empties dropped, env order kept.
-func RootList(roots string) []string {
-	out := []string{}
-	for _, root := range strings.Split(roots, ";") {
-		root = strings.TrimSpace(root)
-		if root == "" {
-			continue
-		}
-		if abs, err := filepath.Abs(root); err == nil {
-			root = abs // Clean is implied; symlinks and WSL/Windows path mapping are out of scope
-		}
-		out = append(out, root)
-	}
-	return out
-}
-
-// Projects lists direct subfolders of each root (separator ';') that contain .harness/.
-// A missing/empty variable gives zero projects and a readable warning; a nonexistent root is skipped.
-func Projects(roots string) ([]Project, string) {
-	if strings.TrimSpace(roots) == "" {
-		return nil, "DH_DASHBOARD_ROOTS is not set: no projects to show. Set it to folders separated by ';'."
-	}
-	var out []Project
-	seen := map[string]bool{}
-	readable := 0
-	for _, root := range RootList(roots) {
-		entries, err := os.ReadDir(root)
-		if err != nil {
-			continue
-		}
-		readable++
-		for _, e := range entries {
-			p := filepath.Join(root, e.Name())
-			if seen[p] {
-				continue
-			}
-			if st, err := os.Stat(filepath.Join(p, ".harness")); err == nil && st.IsDir() {
-				seen[p] = true
-				out = append(out, Project{Name: e.Name(), Path: p})
-			}
-		}
-	}
-	sort.Slice(out, func(i, j int) bool { return out[i].Path < out[j].Path })
-	if readable == 0 {
-		return nil, "None of the folders in DH_DASHBOARD_ROOTS could be read: no projects to show."
-	}
-	if len(out) > MaxProjects {
-		return out[:MaxProjects], fmt.Sprintf("More than %d projects found: showing the first %d.", MaxProjects, MaxProjects)
-	}
-	return out, ""
 }
 
 var (
@@ -146,13 +85,14 @@ type Progress struct {
 	Delivered []string // PRD ids whose Status starts with "entregue em" (100%)
 }
 
-// ProjectProgress builds the bars for one project from docs/prd, .harness/prd and .harness/tasks.
-func ProjectProgress(projectPath string) Progress {
+// ProjectProgress builds the bars for one project: tickets from <harnessDir>/tasks, PRDs from
+// <repoPath>/docs/prd and <harnessDir>/prd. harnessDir is the resolved harness folder (repo or global mode).
+func ProjectProgress(repoPath, harnessDir string) Progress {
 	type counts struct{ done, blocked, total int }
 	byPRD := map[string]*counts{}
 	var warns []string
-	name := filepath.Base(projectPath)
-	tasks, _ := filepath.Glob(filepath.Join(projectPath, ".harness", "tasks", "*", "TASK.md"))
+	name := filepath.Base(repoPath)
+	tasks, _ := filepath.Glob(filepath.Join(harnessDir, "tasks", "*", "TASK.md"))
 	if len(tasks) > MaxTicketsPerProj {
 		warns = append(warns, fmt.Sprintf("%s: more than %d tickets: counting the first %d.", name, MaxTicketsPerProj, MaxTicketsPerProj))
 		tasks = tasks[:MaxTicketsPerProj]
@@ -184,8 +124,8 @@ func ProjectProgress(projectPath string) Progress {
 		}
 	}
 	status := map[string]string{}
-	for _, pat := range []string{"docs/prd/PRD-*.md", ".harness/prd/PRD-*.md"} {
-		files, _ := filepath.Glob(filepath.Join(projectPath, filepath.FromSlash(pat)))
+	for _, pat := range []string{filepath.Join(repoPath, "docs", "prd", "PRD-*.md"), filepath.Join(harnessDir, "prd", "PRD-*.md")} {
+		files, _ := filepath.Glob(pat)
 		files = slices.DeleteFunc(files, func(f string) bool { return strings.HasSuffix(f, ".review.md") }) // before the cap
 		if len(files) > MaxTicketsPerProj {
 			warns = append(warns, fmt.Sprintf("%s: more than %d PRD files: reading the first %d.", name, MaxTicketsPerProj, MaxTicketsPerProj))

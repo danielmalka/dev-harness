@@ -10,9 +10,12 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/danielmalka/dev-harness/internal/harness"
 )
 
 var ErrMissingSessionID = errors.New("missing session_id")
+var errNoHome = errors.New("cannot determine the harness home: set DH_HOME, HOME or USERPROFILE")
 
 type Snapshot struct {
 	Schema      int             `json:"schema"`
@@ -145,6 +148,9 @@ type outputTask struct {
 }
 
 func Event(dir string, r io.Reader) error {
+	if dir == "" {
+		return errNoHome
+	}
 	var input eventInput
 	if err := decodeJSON(r, &input); err != nil {
 		return err
@@ -208,6 +214,9 @@ func Event(dir string, r io.Reader) error {
 }
 
 func Subagents(dir string, r io.Reader, w io.Writer) error {
+	if dir == "" {
+		return errNoHome
+	}
 	var input subagentsInput
 	if err := decodeJSON(r, &input); err != nil {
 		return err
@@ -244,6 +253,9 @@ func Subagents(dir string, r io.Reader, w io.Writer) error {
 }
 
 func Statusline(dir string, r io.Reader, w io.Writer) error {
+	if dir == "" {
+		return errNoHome
+	}
 	var input statuslineInput
 	if err := decodeJSON(r, &input); err != nil {
 		return err
@@ -328,6 +340,9 @@ func Statusline(dir string, r io.Reader, w io.Writer) error {
 }
 
 func Prune(dir string, days int) (int, error) {
+	if dir == "" {
+		return 0, errNoHome
+	}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return 0, err
@@ -370,19 +385,8 @@ func Prune(dir string, days int) (int, error) {
 	return pruned, nil
 }
 
-func SnapshotDir() string {
-	if dir := os.Getenv("DEV_HARNESS_SNAPSHOT_DIR"); dir != "" {
-		return dir
-	}
-	if configDir := os.Getenv("CLAUDE_CONFIG_DIR"); configDir != "" {
-		return filepath.Join(configDir, "dev-harness", "sessions")
-	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return filepath.Join(".", ".claude", "dev-harness", "sessions")
-	}
-	return filepath.Join(home, ".claude", "dev-harness", "sessions")
-}
+// SnapshotDir is <home>/sessions; DH_HOME is the only control (PRD-014 R10).
+func SnapshotDir() string { return harness.SessionsDir() }
 
 func decodeJSON(r io.Reader, dst any) error {
 	decoder := json.NewDecoder(r)
@@ -468,55 +472,6 @@ func writeSnapshot(dir string, snapshot Snapshot) error {
 		return err
 	}
 	return os.Rename(temporaryName, filepath.Join(dir, snapshot.SessionID+".json"))
-}
-
-func taskFromInput(source taskInput) Task {
-	task := Task{}
-	if source.ID != nil {
-		task.ID = *source.ID
-	}
-	if source.Name != nil {
-		task.Name = *source.Name
-	}
-	if source.Type != nil {
-		task.Type = *source.Type
-	}
-	if source.Status != nil {
-		task.Status = *source.Status
-	}
-	if source.Model != nil {
-		task.Model = *source.Model
-	}
-	if source.Effort != nil {
-		task.Effort = *source.Effort
-	}
-	if source.TokenCount != nil {
-		task.TokenCount = *source.TokenCount
-	}
-	if source.ContextWindowSize != nil {
-		task.ContextWindowSize = *source.ContextWindowSize
-	}
-	if source.StartTime != nil {
-		task.StartTime = *source.StartTime
-	}
-	return task
-}
-
-func taskContent(source taskInput) string {
-	parts := make([]string, 0, 4)
-	if source.Name != nil {
-		parts = append(parts, *source.Name)
-	}
-	if source.Model != nil {
-		parts = append(parts, *source.Model)
-	}
-	if source.TokenCount != nil {
-		parts = append(parts, fmt.Sprintf("%d tok", *source.TokenCount))
-	}
-	if source.Status != nil {
-		parts = append(parts, *source.Status)
-	}
-	return strings.Join(parts, " · ")
 }
 
 func writeStatusline(w io.Writer, snapshot Snapshot, hasContextPercentage, hasCost bool) error {

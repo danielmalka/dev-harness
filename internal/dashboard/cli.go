@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/danielmalka/dev-harness/internal/harness"
 	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
 
@@ -24,7 +25,6 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	stop := fs.Bool("stop", false, "ask the dashboard on --port to exit (never kills a process)")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: dh dashboard [--port N] [--stale D] [--done-decay D] [--detach | --stop]")
-		fmt.Fprintln(stderr, "env: DH_DASHBOARD_ROOTS (folders separated by ';'), DH_DASHBOARD_SPRITES (optional sprite folder)")
 		fs.PrintDefaults()
 	}
 	if err := fs.Parse(args); err != nil {
@@ -55,7 +55,12 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	fmt.Fprintln(stdout, url)
-	cfg := Config{Roots: os.Getenv(RootsEnv), SpritesDir: os.Getenv(SpritesEnv), SnapshotDir: snapshot.SnapshotDir(),
+	home, err := harness.EnsureHome()
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	cfg := Config{Home: home, SnapshotDir: snapshot.SnapshotDir(),
 		Stale: *stale, DoneDecay: *decay, Port: *port}
 	if tok, _, err := newStopToken(*port); err != nil {
 		fmt.Fprintln(stderr, "warning: --stop disabled, cannot write the stop token:", err)

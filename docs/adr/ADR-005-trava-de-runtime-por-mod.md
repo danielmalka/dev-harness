@@ -7,7 +7,7 @@
 | Decisor | Daniel Lemos (dono) |
 | Origem | PRD-011; RISK-001 (subagente ignorou `disallowedTools` e despachou outro agente) |
 | Reversibilidade | barata, mas ver ADR-006: o `runtime-guard.ts` é encadeado por `panel.ts`, então reverter exige tirar o import e o encadeamento de lá |
-| Alterado por | ADR-006 (composição em `panel.ts`; `runtime-guard.ts` não é mais declarado em `modules`) |
+| Alterado por | ADR-006 (composição em `panel.ts`; `runtime-guard.ts` não é mais declarado em `modules`); ADR-007 (a trava casa também `<home>/projects/*/`) |
 
 ## 1. Contexto
 

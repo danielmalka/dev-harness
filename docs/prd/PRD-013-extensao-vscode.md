@@ -7,6 +7,9 @@
 | Criado / atualizado | 2026-10-07 / 2026-10-07 |
 | Tickets | T-1401..T-1407 (`.harness/tasks/`) |
 
+
+> Nota (0.21.0, PRD-014): `DH_DASHBOARD_ROOTS` e `DH_DASHBOARD_SPRITES`, `config.roots`, o caminho dos snapshots de sessão e o do token de parada mudaram. Os projetos vêm do `config.yaml` da pasta global (`~/.harness`) e `/api/state.config` é `{home, sprites, port}`. O contrato novo da extensão (R13 do PRD-014) é `config` `{home, sprites, port}`, `projects[]` com `mode` e `harness` e `dh projects --json`; ela muda em versão própria. Ver `docs/prd/PRD-014-harness-global.md` e o `CHANGELOG.md`.
+
 ## 1. Problema
 
 O dono trabalha no VS Code com vários projetos do kit e vários terminais do Claude Code. O dashboard local (PRD-012,

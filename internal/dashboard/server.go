@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/danielmalka/dev-harness/internal/harness"
 	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
 
@@ -31,8 +33,7 @@ const DefaultPort = 4747
 const stopHeader = "X-Dh-Stop-Token"
 
 type Config struct {
-	Roots       string // DH_DASHBOARD_ROOTS value
-	SpritesDir  string // DH_DASHBOARD_SPRITES value
+	Home        string // harness home; config.yaml is re-read on every state build
 	SnapshotDir string
 	Stale       time.Duration
 	DoneDecay   time.Duration
@@ -50,7 +51,8 @@ type Config struct {
 // the loopback Host check blocks DNS rebinding; and any request carrying an Origin header (browsers always send
 // one, the CLI never does) is refused even with a valid token.
 func Handler(cfg Config) http.Handler {
-	sprites := LoadSprites(cfg.SpritesDir)
+	sprites := &spriteHolder{}
+	sprites.refresh(func() string { d, _ := spritesDirOf(cfg.Home); return d }())
 	cache := &stateCache{ttl: cfg.CacheTTL}
 	page, _ := pageFS.ReadFile("web/index.html")
 	// own routing instead of ServeMux: the mux 307-redirects unclean paths ("/sprite/../x"); here they are plain 404s
@@ -69,7 +71,7 @@ func Handler(cfg Config) http.Handler {
 				return
 			}
 		}
-		b, ok := sprites.Frame(pose, idx) // Frame rejects any name outside PoseNames, so "../x" is 404
+		b, ok := sprites.current().Frame(pose, idx) // Frame rejects any name outside PoseNames, so "../x" is 404
 		if !ok {
 			http.NotFound(w, r)
 			return
@@ -172,6 +174,8 @@ type jsonBar struct {
 type jsonProject struct {
 	Name      string    `json:"name"`
 	Path      string    `json:"path"`
+	Mode      string    `json:"mode"`
+	Harness   string    `json:"harness"`
 	Open      []jsonBar `json:"open"`
 	Delivered []string  `json:"delivered"`
 }
@@ -203,9 +207,9 @@ type jsonAvatar struct {
 }
 
 type jsonConfig struct {
-	Roots   []string `json:"roots"`
-	Sprites string   `json:"sprites"`
-	Port    int      `json:"port"`
+	Home    string `json:"home"`
+	Sprites string `json:"sprites"`
+	Port    int    `json:"port"`
 }
 
 type state struct {
@@ -217,27 +221,73 @@ type state struct {
 	Warnings []string      `json:"warnings"`
 }
 
-func buildState(cfg Config, sprites *Sprites) state {
+// spritesDirOf reads dashboard.sprites from <home>/config.yaml. A leading "~/" expands to the user home; the
+// result must be an absolute existing directory, else "" (default set) plus a warning. Unset or unreadable config = "".
+func spritesDirOf(home string) (string, string) {
+	if home == "" {
+		return "", ""
+	}
+	c, err := harness.LoadConfig(home) // an invalid file is reported by harness.Projects
+	if err != nil || c.Sprites == "" {
+		return "", ""
+	}
+	v := c.Sprites
+	if strings.HasPrefix(v, "~/") {
+		if uh, err := os.UserHomeDir(); err == nil && uh != "" {
+			v = filepath.Join(uh, v[2:])
+		}
+	}
+	if fi, err := os.Stat(v); !filepath.IsAbs(v) || err != nil || !fi.IsDir() {
+		return "", fmt.Sprintf("dashboard.sprites %q is not an absolute existing directory: using the default set", c.Sprites)
+	}
+	return filepath.Clean(v), ""
+}
+
+// spriteHolder reloads the sprite set only when dashboard.sprites changes between state builds.
+type spriteHolder struct {
+	mu  sync.Mutex
+	dir string
+	s   *Sprites
+}
+
+func (h *spriteHolder) refresh(dir string) *Sprites {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.s == nil || dir != h.dir {
+		h.dir, h.s = dir, LoadSprites(dir)
+	}
+	return h.s
+}
+
+func (h *spriteHolder) current() *Sprites {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.s
+}
+
+func buildState(cfg Config, holder *spriteHolder) state {
 	now := time.Now()
 	if cfg.Now != nil {
 		now = cfg.Now()
 	}
-	sp := ""
-	if cfg.SpritesDir != "" {
-		sp = cfg.SpritesDir
-		if abs, err := filepath.Abs(sp); err == nil {
-			sp = abs
-		}
+	spDir, spWarn := spritesDirOf(cfg.Home)
+	sprites := holder.refresh(spDir)
+	st := state{Config: jsonConfig{Home: cfg.Home, Sprites: spDir, Port: cfg.Port}, Projects: []jsonProject{}, Sessions: []jsonSession{}, Warnings: []string{}}
+	var projects []harness.Project
+	if cfg.Home == "" {
+		st.Warnings = append(st.Warnings, "harness home unknown: no projects to show.")
+	} else {
+		var warns []string
+		projects, warns = harness.Projects(cfg.Home)
+		st.Warnings = append(st.Warnings, warns...)
 	}
-	st := state{Config: jsonConfig{Roots: RootList(cfg.Roots), Sprites: sp, Port: cfg.Port}, Projects: []jsonProject{}, Sessions: []jsonSession{}, Warnings: []string{}}
-	projects, warn := Projects(cfg.Roots)
-	if warn != "" {
-		st.Warnings = append(st.Warnings, warn)
+	if spWarn != "" {
+		st.Warnings = append(st.Warnings, spWarn)
 	}
 	st.Warnings = append(st.Warnings, sprites.Warnings...)
 	for _, p := range projects {
-		pr := ProjectProgress(p.Path)
-		jp := jsonProject{Name: p.Name, Path: p.Path, Open: []jsonBar{}, Delivered: pr.Delivered}
+		pr := ProjectProgress(p.Path, p.Harness)
+		jp := jsonProject{Name: p.Name, Path: p.Path, Mode: p.Mode, Harness: p.Harness, Open: []jsonBar{}, Delivered: pr.Delivered}
 		if jp.Delivered == nil {
 			jp.Delivered = []string{}
 		}
