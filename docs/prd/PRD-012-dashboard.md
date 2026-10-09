@@ -9,6 +9,8 @@
 
 
 > Nota (0.21.0, PRD-014): `DH_DASHBOARD_ROOTS` e `DH_DASHBOARD_SPRITES`, `config.roots`, o caminho dos snapshots de sessão e o do token de parada mudaram. Os projetos vêm do `config.yaml` da pasta global (`~/.harness`) e `/api/state.config` é `{home, sprites, port}`. Ver `docs/prd/PRD-014-harness-global.md` e o `CHANGELOG.md`.
+>
+> Nota (0.23.0, PRD-016): `/api/state` ganha o campo `metrics` por projeto e o dashboard ganha as rotas `/metrics.js` e `GET /api/memory`. Ver `docs/prd/PRD-016-metricas-dashboard.md` e o `CHANGELOG.md`.
 
 ## 1. Problema
 

@@ -24,6 +24,7 @@ Delete the comments when finished. -->
 | Blocks | T-000 |
 | Authorization | <what may be written; commit/push/deploy require explicit authorization> |
 | Created / updated | YYYY-MM-DD / YYYY-MM-DD |
+| Done on | YYYY-MM-DD |
 
 ## 1. Lane
 

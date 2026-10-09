@@ -22,7 +22,7 @@ Título com ID estável do lote.
 Data/hora da consolidação em ISO 8601 com fuso.
 Origem: MEMORY.md, relativo a este diretório.
 Tarefas abrangidas e intervalo de datas conhecido.
-Delimitação inequívoca do início e fim do conteúdo bruto.
+Delimitação inequívoca do início e fim do conteúdo bruto: uma linha `<!-- INICIO-BRUTO lote <id> -->` e uma linha `<!-- FIM-BRUTO lote <id> -->`.
 Cópia integral de MEMORY.md sem alteração interna.
 Comentários opcionais do Coordenador, separados e datados.
 Não criar um lote apenas para arquivar este template vazio. -->

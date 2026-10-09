@@ -49,7 +49,7 @@ This procedure turns acceptance criteria into executed checks and returns a matr
 8. **Build the acceptance matrix.** One row per criterion with the exact command, the literal result, and the evidence path. Identify required checks from the acceptance and task context; do not silently downgrade them. Criteria you could not verify keep a not-run row with the blocking reason. Use verified only when all required checks pass on the current stable state; otherwise report partial or blocked. QA's result does not replace independent code review.
 9. **Report defects, do not fix them.** For each defect give reproduction, expected, actual, the criterion it violates, and a severity. Hand it to the implementer through the Coordinator.
 10. **Stop your own loop at three.** If your test code fails three times for reasons inside the test rather than the product, stop and report the blocker instead of grinding. This cap applies to your own test code only. The correction loop between implementer and QA still stops at six rounds and returns to the Coordinator.
-11. **Report, do not record.** Results, defects, and any incident go to the Coordinator, the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`. Detailed evidence belongs under `.harness/tasks/<id>/`.
+11. **Report, do not record.** Results, defects, and any incident go to the Coordinator, the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`. Detailed evidence belongs under `.harness/tasks/<id>/`. When a ticket is marked done, its `Concluído em` (`Done on` in en) header line is filled with today's date, `AAAA-MM-DD`.
 
 ## Output format
 

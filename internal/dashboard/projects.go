@@ -22,6 +22,11 @@ const (
 // readCapped is the shared guarded read (regular file, at most MaxFileBytes).
 func readCapped(path string) ([]byte, error) { return snapshot.ReadCapped(path) }
 
+// readCappedIn is readCapped for dir/name where dir may be swapped for a symlink: the open is relative to dir.
+func readCappedIn(dir, name string) ([]byte, error) {
+	return snapshot.ReadCappedIn(dir, name, snapshot.MaxFileBytes)
+}
+
 // skipped reports whether err means the file was refused (symlink/special/oversized), as opposed to absent or unreadable.
 func skipped(err error) bool {
 	return errors.Is(err, snapshot.ErrTooLarge) || errors.Is(err, snapshot.ErrNotRegular)
@@ -82,16 +87,20 @@ type Bar struct {
 type Progress struct {
 	Warnings  []string
 	Open      []Bar    // one per open PRD, sorted by id
-	Delivered []string // PRD ids whose Status starts with "entregue em" (100%)
+	Delivered []string // PRD ids whose Status starts with "entregue em" or "delivered on" (100%)
+	Metrics   Metrics  // PRDs and PRD averages; buildState adds the file metrics
 }
 
 // ProjectProgress builds the bars for one project: tickets from <harnessDir>/tasks, PRDs from
 // <repoPath>/docs/prd and <harnessDir>/prd. harnessDir is the resolved harness folder (repo or global mode).
 func ProjectProgress(repoPath, harnessDir string) Progress {
-	type counts struct{ done, blocked, total int }
+	return projectProgress(filepath.Base(repoPath), repoPath, harnessDir)
+}
+
+// projectProgress is ProjectProgress with the registered project name used in warnings.
+func projectProgress(name, repoPath, harnessDir string) Progress {
 	byPRD := map[string]*counts{}
 	var warns []string
-	name := filepath.Base(repoPath)
 	tasks, _ := filepath.Glob(filepath.Join(harnessDir, "tasks", "*", "TASK.md"))
 	if len(tasks) > MaxTicketsPerProj {
 		warns = append(warns, fmt.Sprintf("%s: more than %d tickets: counting the first %d.", name, MaxTicketsPerProj, MaxTicketsPerProj))
@@ -119,11 +128,15 @@ func ProjectProgress(repoPath, harnessDir string) Progress {
 		switch TaskStatus(md) {
 		case "done":
 			c.done++
+			if w := c.addDone(md, name, filepath.Base(filepath.Dir(f))); w != "" {
+				warns = append(warns, w)
+			}
 		case "blocked":
 			c.blocked++
 		}
 	}
 	status := map[string]string{}
+	dates := map[string][2]string{}
 	for _, pat := range []string{filepath.Join(repoPath, "docs", "prd", "PRD-*.md"), filepath.Join(harnessDir, "prd", "PRD-*.md")} {
 		files, _ := filepath.Glob(pat)
 		files = slices.DeleteFunc(files, func(f string) bool { return strings.HasSuffix(f, ".review.md") }) // before the cap
@@ -142,12 +155,17 @@ func ProjectProgress(repoPath, harnessDir string) Progress {
 			}
 			if _, seen := status[id]; !seen {
 				status[id] = statusValue(string(b))
+				st, dl := prdDates(string(b))
+				dates[id] = [2]string{st, dl}
 			}
 		}
 	}
 	p := Progress{Warnings: warns}
+	var mw []string
+	p.Metrics, mw = prdMetrics(status, dates, byPRD, name)
+	p.Warnings = append(p.Warnings, mw...)
 	for id, st := range status {
-		if strings.HasPrefix(st, "entregue em") {
+		if isDelivered(st) {
 			p.Delivered = append(p.Delivered, id)
 			continue
 		}
