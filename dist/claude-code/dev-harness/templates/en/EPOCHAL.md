@@ -22,7 +22,7 @@ Stable batch ID and title.
 Consolidation date/time in ISO 8601 with timezone offset.
 Source: MEMORY.md, relative to this directory.
 Tasks covered and known date range.
-Unambiguous delimitation of the raw content's beginning and end.
+Unambiguous delimitation of the raw content's beginning and end: a `<!-- BEGIN-RAW batch <id> -->` line and an `<!-- END-RAW batch <id> -->` line.
 Verbatim copy of MEMORY.md without internal changes.
 Optional Coordinator comments, separated and dated.
 Do not create a batch just to archive this empty template. -->

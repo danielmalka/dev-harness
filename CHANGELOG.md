@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.23.0 — 2026-10-09
+
+- **Métricas no card do projeto do dashboard** (PRD-016), campo aditivo `metrics` em `/api/state`, calculadas dos arquivos do projeto (granularidade de dia, sem armazenamento novo): duração média de ticket e de PRD, cada uma com o `n` usado e o contador "sem data" para o que não tem data de conclusão; tickets por PRD; datas de início e entrega por PRD; número de incidentes (`RISKS.md`); tamanho da memória (linhas e KB); última consolidação (do `EPOCHAL.md`); e dois gráficos SVG ("dias por PRD entregue" e "tickets por PRD aberto"). Script `/metrics.js` servido pelo binário; sem biblioteca nem dependência Go nova.
+- **`GET /api/memory?project=<nome>&file=memory|risks`**: devolve o `MEMORY.md` ou o `RISKS.md` de um projeto registrado, sob demanda (a página só pede quando o `<details>` é aberto). Só leitura, lista fechada de dois arquivos, nome só do registro; as demais rotas novas também só aceitam GET.
+- **Linha nova no ticket**: `Concluído em` (pt-br) / `Done on` (en), `AAAA-MM-DD`, preenchida ao marcar o ticket concluído (`templates/*/TASK.md`; `qa-verifier`, `coordinator` e `regression-testing` ganham a frase). Ticket sem a linha fica fora das médias e entra em "sem data"; ticket antigo não é preenchido à mão por esta versão.
+- **`entregue em` passa a contar como entregue** no status do PRD lido pelo dashboard.
+- **Marcadores da cópia bruta do `EPOCHAL.md`** nomeados na skill `context-handoff` e nos templates (`<!-- INICIO-BRUTO` / `<!-- FIM-BRUTO` em pt-br, `<!-- BEGIN-RAW` / `<!-- END-RAW` em en).
+- **Residual novo aceito pelo dono em 2026-10-09**: qualquer processo local do mesmo usuário que alcance `127.0.0.1:<porta>` lê o texto do `MEMORY.md` e do `RISKS.md` de todo projeto registrado, sem token (antes só lia status, caminhos e sessões). Mitigação: só loopback, só GET, só nome registrado, lista fechada de arquivos. O `/dh:secure` rodou (claude + codex) e as correções entraram nesta versão.
+- Tamanho dos binários: crescimento entre 0,4 % e 0,8 % por alvo (linux/amd64 7.966.844 → 8.007.804 bytes; darwin/arm64 7.537.522 → 7.571.314; windows/amd64 8.212.480 → 8.253.440), abaixo do teto de 15 % do R13.
+- Binário `dh`: muda o comportamento (campo `metrics`, rota `/api/memory`, `/metrics.js`). Sem agente, skill ou comando novo (seguem 19 + 1).
+
 ## 0.22.0 — 2026-10-09
 
 - **Três profiles de stack novos** (PRD-015), todos `extends: base`, em inglês, sem campo de framework: seções de framework dentro do arquivo, aplicadas só com evidência nos arquivos do repositório.

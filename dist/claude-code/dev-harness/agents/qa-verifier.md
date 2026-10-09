@@ -49,7 +49,7 @@ Produce a matrix of pass, fail, and not-run, each tied to a criterion, a command
 
 ## Procedure
 
-Follow the kit skill `regression-testing`, and `ui-verification` too when the change has a user interface. If the evaluated state changes, invalidate affected results and coordinate a new check.
+Follow the kit skill `regression-testing`, and `ui-verification` too when the change has a user interface. If the evaluated state changes, invalidate affected results and coordinate a new check. If you mark a ticket done, fill its `Concluído em` (`Done on` in en) header line with today's date, `AAAA-MM-DD`.
 
 ## Shared contract
 

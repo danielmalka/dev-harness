@@ -21,7 +21,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
 
-//go:embed web/index.html
+//go:embed web/index.html web/metrics.js
 var pageFS embed.FS
 
 // Marker header lets --detach recognise a running dh dashboard on the port.
@@ -55,6 +55,8 @@ func Handler(cfg Config) http.Handler {
 	sprites.refresh(func() string { d, _ := spritesDirOf(cfg.Home); return d }())
 	cache := &stateCache{ttl: cfg.CacheTTL}
 	page, _ := pageFS.ReadFile("web/index.html")
+	metricsJS, _ := pageFS.ReadFile("web/metrics.js")
+	memory := memoryH(cfg)
 	// own routing instead of ServeMux: the mux 307-redirects unclean paths ("/sprite/../x"); here they are plain 404s
 	state := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -101,6 +103,12 @@ func Handler(cfg Config) http.Handler {
 			_, _ = w.Write(page)
 		case r.URL.Path == "/api/state":
 			state(w, r)
+		case r.URL.Path == "/api/memory":
+			memory(w, r)
+		case r.URL.Path == "/metrics.js":
+			w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+			w.Header().Set("Cache-Control", "no-cache")
+			_, _ = w.Write(metricsJS)
 		case strings.HasPrefix(r.URL.Path, "/sprite/"):
 			spriteH(w, r)
 		default:
@@ -178,6 +186,7 @@ type jsonProject struct {
 	Harness   string    `json:"harness"`
 	Open      []jsonBar `json:"open"`
 	Delivered []string  `json:"delivered"`
+	Metrics   Metrics   `json:"metrics"`
 }
 
 type jsonSession struct {
@@ -286,8 +295,9 @@ func buildState(cfg Config, holder *spriteHolder) state {
 	}
 	st.Warnings = append(st.Warnings, sprites.Warnings...)
 	for _, p := range projects {
-		pr := ProjectProgress(p.Path, p.Harness)
-		jp := jsonProject{Name: p.Name, Path: p.Path, Mode: p.Mode, Harness: p.Harness, Open: []jsonBar{}, Delivered: pr.Delivered}
+		pr := projectProgress(p.Name, p.Path, p.Harness)
+		jp := jsonProject{Name: p.Name, Path: p.Path, Mode: p.Mode, Harness: p.Harness, Open: []jsonBar{}, Delivered: pr.Delivered, Metrics: pr.Metrics}
+		pr.Warnings = append(pr.Warnings, fileMetrics(&jp.Metrics, p.Name, p.Harness)...)
 		if jp.Delivered == nil {
 			jp.Delivered = []string{}
 		}

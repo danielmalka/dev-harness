@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-09</b></span>
-          <span class="chip">status <b>0.22.0 · vivo</b></span>
+          <span class="chip">status <b>0.23.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
 
+      <div class="card">
+        <h3>0.23.0 · Dashboard: métricas por projeto</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-016. O card do projeto mostra duração média de ticket e de PRD (com <code>n</code> e contador "sem data"), tickets por PRD, datas de início e entrega, incidentes, tamanho da memória, última consolidação e dois gráficos SVG. <code>GET /api/memory</code> lê <code>MEMORY.md</code> e <code>RISKS.md</code> de projetos registrados, sob demanda e só leitura. Ticket ganha a linha <code>Concluído em</code>; <code>entregue em</code> conta como entregue. Residual novo aceito pelo dono em 2026-10-09: processo local do mesmo usuário lê a memória e os incidentes dos projetos registrados via 127.0.0.1, sem token.</p>
+        <p><strong>Relações:</strong> PRD-016 (<code>docs/prd/PRD-016-metricas-dashboard.md</code>); PRD-012 (nota de remissão); tutorial seção "Dashboard local"; README (pt/en).</p>
+        <p><strong>Testado?</strong> <code>go test -race ./...</code>, <code>go vet</code> linux/windows/darwin e <code>dh validate</code> verdes; testes Go por regra com provas de mutação; Playwright headless 80/80 (cartão, gráficos, 640 e 1280 px, <code>/api/memory</code> sob demanda); <code>/dh:secure</code> com a lista completa (claude + codex), correções aplicadas; binários +0,4 % a +0,8 %; Windows e macOS só compilados; nenhuma eval paga.</p>
+      </div>
       <div class="card">
         <h3>0.22.0 · Profiles de linguagem: Kotlin, Python e TypeScript API</h3>
         <p><strong>Status:</strong> concluído (prova de campo pendente).</p>
@@ -1691,7 +1698,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.22.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.23.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

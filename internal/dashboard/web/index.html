@@ -39,6 +39,7 @@ details summary{cursor:pointer}
 <div class="lim"><label for="p7">Limite semana</label><progress id="p7" max="100" value="0"></progress><div id="t7" class="mut">sem dado</div></div>
 </aside>
 </div>
+<script src="metrics.js"></script>
 <script>
 "use strict";
 var $=function(i){return document.getElementById(i)};
@@ -91,6 +92,7 @@ function render(s){
     var d=p.delivered||[];
     if(d.length){var det=el("details");det.dataset.k=p.path;det.open=!!opened[p.path];var sm=el("summary",null,d.length+" PRD"+(d.length>1?"s":"")+" entregue"+(d.length>1?"s":""));
       det.appendChild(sm);det.appendChild(el("p","mut",d.join(", ")));c.appendChild(det)}
+    if(window.dhMetrics)window.dhMetrics(c,p);
     var mine=ss.filter(function(x){return x.project===p.path});mine.forEach(function(x){seen[x.id]=1});
     c.appendChild(el("h3",null,"Sessões abertas"));
     if(mine.length)c.appendChild(sessList(mine));else c.appendChild(el("p","mut","nenhuma"));

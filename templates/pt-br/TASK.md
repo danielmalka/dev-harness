@@ -23,6 +23,7 @@ Apague os comentários ao finalizar. -->
 | Bloqueia | T-000 |
 | Autorização | <o que pode ser escrito; commit/push/deploy exigem autorização explícita> |
 | Criado / atualizado | AAAA-MM-DD / AAAA-MM-DD |
+| Concluído em | AAAA-MM-DD |
 
 ## 1. Lane
 
