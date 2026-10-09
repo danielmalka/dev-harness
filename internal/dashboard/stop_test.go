@@ -2,7 +2,6 @@ package dashboard
 
 import (
 	"bytes"
-	"encoding/json"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -16,11 +15,9 @@ import (
 )
 
 // startServing runs Serve on a free port with a published stop token; returns the port and the Serve result channel.
-func startServing(t *testing.T, roots string) (int, string, chan error) {
+func startServing(t *testing.T) (int, string, chan error) {
 	t.Helper()
-	cfgDir := t.TempDir()
-	userConfigDir = func() (string, error) { return cfgDir, nil }
-	t.Cleanup(func() { userConfigDir = os.UserConfigDir })
+	t.Setenv("DH_HOME", t.TempDir())
 	ln, err := Listen(0)
 	if err != nil {
 		t.Fatal(err)
@@ -32,7 +29,7 @@ func startServing(t *testing.T, roots string) (int, string, chan error) {
 	}
 	done := make(chan error, 1)
 	go func() {
-		done <- Serve(ln, Config{Roots: roots, SnapshotDir: t.TempDir(), Stale: DefaultStale, DoneDecay: time.Minute, Port: port, StopToken: tok})
+		done <- Serve(ln, Config{Home: os.Getenv("DH_HOME"), SnapshotDir: t.TempDir(), Stale: DefaultStale, DoneDecay: time.Minute, Port: port, StopToken: tok})
 	}()
 	return port, tok, done
 }
@@ -55,29 +52,6 @@ func post(t *testing.T, port int, token string, hdr map[string]string) int {
 }
 
 func itoa(n int) string { return strconv.Itoa(n) }
-
-func TestConfigInState(t *testing.T) {
-	a, b := t.TempDir(), t.TempDir()
-	get := func(cfg Config) jsonConfig {
-		cfg.SnapshotDir = t.TempDir()
-		var st struct{ Config jsonConfig }
-		if err := json.Unmarshal(do(Handler(cfg), "GET", "127.0.0.1:1", "/api/state").Body.Bytes(), &st); err != nil {
-			t.Fatal(err)
-		}
-		return st.Config
-	}
-	c := get(Config{Roots: " " + a + ";;" + b + " ", SpritesDir: "", Port: 4799})
-	if len(c.Roots) != 2 || c.Roots[0] != a || c.Roots[1] != b || c.Sprites != "" || c.Port != 4799 {
-		t.Fatalf("config: %+v", c)
-	}
-	w := do(Handler(Config{SnapshotDir: t.TempDir()}), "GET", "127.0.0.1:1", "/api/state")
-	if !strings.Contains(w.Body.String(), `"roots":[]`) {
-		t.Fatalf("roots must be [] when unset: %s", w.Body.String())
-	}
-	if c := get(Config{SpritesDir: "rel/sprites"}); !filepath.IsAbs(c.Sprites) {
-		t.Fatalf("sprites not absolute: %q", c.Sprites)
-	}
-}
 
 func TestStopGuards(t *testing.T) {
 	h := Handler(Config{SnapshotDir: t.TempDir(), StopToken: "secret"})
@@ -105,7 +79,7 @@ func TestStopGuards(t *testing.T) {
 }
 
 func TestStopTokenAndShutdown(t *testing.T) {
-	port, tok, done := startServing(t, "")
+	port, tok, done := startServing(t)
 	if c := post(t, port, "", nil); c != 403 {
 		t.Fatalf("missing token: %d", c)
 	}
@@ -132,7 +106,7 @@ func TestStopTokenAndShutdown(t *testing.T) {
 }
 
 func TestStopCommand(t *testing.T) {
-	port, _, done := startServing(t, "")
+	port, _, done := startServing(t)
 	var out, errb bytes.Buffer
 	if rc := Stop(port, &out, &errb); rc != 0 || !strings.Contains(out.String(), "stopped dashboard on port") {
 		t.Fatalf("rc=%d out=%q err=%q", rc, out.String(), errb.String())
@@ -159,9 +133,7 @@ func TestStopRefusesForeignAndOldServers(t *testing.T) {
 		}
 	}))
 	defer old.Close()
-	cfgDir := t.TempDir()
-	userConfigDir = func() (string, error) { return cfgDir, nil }
-	t.Cleanup(func() { userConfigDir = os.UserConfigDir })
+	t.Setenv("DH_HOME", t.TempDir())
 	if _, _, err := newStopToken(portOf(t, old)); err != nil {
 		t.Fatal(err)
 	}
@@ -176,9 +148,7 @@ func TestStopRefusesForeignAndOldServers(t *testing.T) {
 }
 
 func TestRestartOverwritesToken(t *testing.T) {
-	cfgDir := t.TempDir()
-	userConfigDir = func() (string, error) { return cfgDir, nil }
-	t.Cleanup(func() { userConfigDir = os.UserConfigDir })
+	t.Setenv("DH_HOME", t.TempDir())
 	t1, p, err := newStopToken(4801)
 	if err != nil {
 		t.Fatal(err)
@@ -200,9 +170,7 @@ func TestTokenPublishIgnoresPlantedSymlinkAndTightensDir(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("no unix symlink/mode semantics")
 	}
-	cfgDir := t.TempDir()
-	userConfigDir = func() (string, error) { return cfgDir, nil }
-	t.Cleanup(func() { userConfigDir = os.UserConfigDir })
+	t.Setenv("DH_HOME", t.TempDir())
 	p, _ := tokenPath(4802)
 	dir := filepath.Dir(p)
 	if err := os.MkdirAll(dir, 0o777); err != nil {
@@ -231,7 +199,7 @@ func TestStopRefusesSymlinkedTokenFile(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("symlinks need privileges on windows")
 	}
-	port, tok, done := startServing(t, "")
+	port, tok, done := startServing(t)
 	p, _ := tokenPath(port)
 	real := p + ".real"
 	_ = os.Rename(p, real)
@@ -247,7 +215,7 @@ func TestStopRefusesSymlinkedTokenFile(t *testing.T) {
 }
 
 func TestDoubleStopNoPanic(t *testing.T) {
-	port, tok, done := startServing(t, "")
+	port, tok, done := startServing(t)
 	res := make(chan int, 2)
 	for i := 0; i < 2; i++ {
 		go func() {
@@ -274,7 +242,7 @@ func TestDoubleStopNoPanic(t *testing.T) {
 }
 
 func TestOriginWithValidTokenKeepsServerUp(t *testing.T) {
-	port, tok, done := startServing(t, "")
+	port, tok, done := startServing(t)
 	if c := post(t, port, tok, map[string]string{"Origin": "http://evil.example"}); c != 403 {
 		t.Fatalf("got %d", c)
 	}
@@ -288,7 +256,7 @@ func TestOriginWithValidTokenKeepsServerUp(t *testing.T) {
 }
 
 func TestStopWithoutTokenFile(t *testing.T) {
-	port, tok, done := startServing(t, "")
+	port, tok, done := startServing(t)
 	p, _ := tokenPath(port)
 	_ = os.Remove(p)
 	var out, errb bytes.Buffer
@@ -300,7 +268,7 @@ func TestStopWithoutTokenFile(t *testing.T) {
 }
 
 func TestStopWithRejectedToken(t *testing.T) {
-	port, tok, done := startServing(t, "")
+	port, tok, done := startServing(t)
 	p, _ := tokenPath(port)
 	_ = os.WriteFile(p, []byte("not-the-token"), 0o600)
 	var out, errb bytes.Buffer

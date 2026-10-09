@@ -53,7 +53,7 @@ Follow the kit skill `delivery-readiness`, checking readiness against the projec
 
 ## Shared contract
 
-- Work and reply in English regardless of the owner's language; the coordinator translates for the owner. When you produce a template-based artifact, use `templates/<lang>/` and write it in the language recorded as `language` in `.harness/project.yaml` (English when absent).
+- Work and reply in English regardless of the owner's language; the coordinator translates for the owner. When you produce a template-based artifact, use `templates/<lang>/` and write it in the `language` recorded in `project.yaml` of the harness dir named in the dispatch (`.harness/` when none is named). Any `.harness/` path in a skill or template means the harness dir named in the dispatch.
 - Read project instructions and the assigned task record before acting.
 - Cite evidence with relative paths. Label each claim as fact, hypothesis, or decision.
 - Record limitations. Do not invent tests, checks, or commands that were not run.

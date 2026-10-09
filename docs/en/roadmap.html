@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-10-08</b></span>
-          <span class="chip">status <b>0.20.0 · live</b></span>
+          <span class="chip">status <b>0.21.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
 
+      <div class="card">
+        <h3>0.21.0 · Global harness folder (<code>~/.harness</code>)</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-014. One global folder per machine and per environment (<code>DH_HOME</code> moves it) with <code>config.yaml</code> (registry of all projects and defaults), <code>projects/&lt;name&gt;/</code>, <code>sessions/</code> and <code>dashboard/</code>. Single resolution: an internal <code>.harness/</code> wins; else the global folder via the map; else <code>none</code>. New subcommands <code>dh harness-path</code>, <code>dh link</code> and <code>dh projects</code>. Memory guard in both places; the session receives the resolved folder; the dashboard reads <code>config.yaml</code>. Five breaking changes with migration in the CHANGELOG: the dashboard environment variables (roots and sprites) removed, <code>/api/state.config</code> becomes <code>{home, sprites, port}</code>, snapshots and the stop token move to <code>~/.harness</code>, and old projects only show up after <code>dh link</code>. The VS Code extension changes in its own release.</p>
+        <p><strong>Relations:</strong> PRD-014 (<code>docs/prd/PRD-014-harness-global.md</code>); ADR-007; PRD-012 and PRD-013 (cross-reference notes); tutorial "Global mode" section; README (pt/en).</p>
+        <p><strong>Tested?</strong> <code>go test -race ./...</code>, <code>go vet</code> linux/windows/darwin, <code>claude plugin test</code> (219) and <code>dh validate</code> green; QA per rule (R1–R20) and one real <code>claude -p</code> session with a temporary <code>DH_HOME</code> (mode none → <code>dh link</code> → mode global, session written to <code>~/.harness/sessions</code>, repository untouched); security review with the full list (claude + codex), no demonstrated vulnerability; Windows and macOS compiled only; no paid eval.</p>
+      </div>
       <div class="card">
         <h3>0.20.0 · Dashboard: safe stop and visible configuration</h3>
         <p><strong>Status:</strong> done.</p>
@@ -1678,7 +1685,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.20.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.21.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

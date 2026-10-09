@@ -23,7 +23,7 @@ func TestOversizedFilesAreSkipped(t *testing.T) {
 	mk(t, filepath.Join(p, "docs/prd/PRD-001-a.md"), "| Status | aprovado |\n")
 	big(t, filepath.Join(p, "docs/prd/PRD-002-b.md"))
 	big(t, filepath.Join(p, ".harness/tasks/T-1/TASK.md"))
-	pr := ProjectProgress(p)
+	pr := ProjectProgress(p, filepath.Join(p, ".harness"))
 	if len(pr.Open) != 1 || pr.Open[0].PRD != "PRD-001" || len(pr.Warnings) != 2 {
 		t.Fatalf("%+v", pr)
 	}
@@ -47,26 +47,19 @@ func TestReviewFilesAreNotPRDs(t *testing.T) {
 	p := t.TempDir()
 	mk(t, filepath.Join(p, "docs/prd/PRD-001-a.md"), "| Status | aprovado |\n")
 	mk(t, filepath.Join(p, "docs/prd/PRD-001-a.review.md"), "| Status | entregue em 2026-01-01 |\n")
-	pr := ProjectProgress(p)
+	pr := ProjectProgress(p, filepath.Join(p, ".harness"))
 	if len(pr.Delivered) != 0 || len(pr.Open) != 1 {
 		t.Fatalf("%+v", pr)
 	}
 }
 
 func TestCountCaps(t *testing.T) {
-	root := t.TempDir()
-	for i := 0; i < MaxProjects+1; i++ {
-		mk(t, filepath.Join(root, fmt.Sprintf("p%03d", i), ".harness", "x"), "")
-	}
-	if p, w := Projects(root); len(p) != MaxProjects || w == "" {
-		t.Fatalf("projects %d warn %q", len(p), w)
-	}
 	pp := t.TempDir()
 	for i := 0; i < MaxTicketsPerProj+1; i++ {
 		mk(t, filepath.Join(pp, ".harness/tasks", fmt.Sprintf("T-%d", i), "TASK.md"), "| Status | pronta |\n| PRD (RF-<n>) | PRD-001 |\n")
 	}
 	mk(t, filepath.Join(pp, "docs/prd/PRD-001-a.md"), "| Status | aprovado |\n")
-	pr := ProjectProgress(pp)
+	pr := ProjectProgress(pp, filepath.Join(pp, ".harness"))
 	if pr.Open[0].Total != MaxTicketsPerProj || len(pr.Warnings) != 1 {
 		t.Fatalf("%+v", pr)
 	}
@@ -89,11 +82,14 @@ func TestCountCaps(t *testing.T) {
 }
 
 func TestStateCache(t *testing.T) {
-	root, snaps := t.TempDir(), t.TempDir()
-	mk(t, filepath.Join(root, "a", ".harness", "x"), "")
-	h := Handler(Config{Roots: root, SnapshotDir: snaps, Stale: DefaultStale, DoneDecay: time.Minute, CacheTTL: time.Hour})
+	home, snaps := t.TempDir(), t.TempDir()
+	a, b := t.TempDir(), t.TempDir()
+	mk(t, filepath.Join(a, ".harness", "x"), "")
+	mk(t, filepath.Join(b, ".harness", "x"), "")
+	register(t, home, a)
+	h := Handler(Config{Home: home, SnapshotDir: snaps, Stale: DefaultStale, DoneDecay: time.Minute, CacheTTL: time.Hour})
 	first := do(h, "GET", "127.0.0.1", "/api/state").Body.String()
-	mk(t, filepath.Join(root, "b", ".harness", "x"), "")
+	register(t, home, a, b)
 	if second := do(h, "GET", "127.0.0.1", "/api/state").Body.String(); second != first {
 		t.Fatal("state rebuilt inside the TTL")
 	}
@@ -115,7 +111,7 @@ func TestSymlinkToDevZeroIsSkippedPromptly(t *testing.T) {
 		t.Fatal(err)
 	}
 	start := time.Now()
-	pr := ProjectProgress(p)
+	pr := ProjectProgress(p, filepath.Join(p, ".harness"))
 	_, err := snapshot.Load(filepath.Join(p, "snap.json"))
 	if time.Since(start) > 2*time.Second || len(pr.Warnings) != 1 || err == nil {
 		t.Fatalf("slow or not skipped: %v %+v %v", time.Since(start), pr.Warnings, err)
@@ -139,7 +135,7 @@ func TestPRDFileCap(t *testing.T) {
 	for i := 0; i < MaxTicketsPerProj+2; i++ {
 		mk(t, filepath.Join(p, "docs/prd", fmt.Sprintf("PRD-%04d-a.md", i)), "| Status | aprovado |\n")
 	}
-	pr := ProjectProgress(p)
+	pr := ProjectProgress(p, filepath.Join(p, ".harness"))
 	if len(pr.Open) != MaxTicketsPerProj || len(pr.Warnings) != 1 {
 		t.Fatalf("open %d warns %v", len(pr.Open), pr.Warnings)
 	}
@@ -151,7 +147,7 @@ func TestReviewFilesDoNotEatThePRDCap(t *testing.T) {
 		mk(t, filepath.Join(p, "docs/prd", fmt.Sprintf("PRD-%04d-a.review.md", i)), "| Status | aprovado |\n")
 	}
 	mk(t, filepath.Join(p, "docs/prd", "PRD-9999-real.md"), "| Status | aprovado |\n")
-	pr := ProjectProgress(p)
+	pr := ProjectProgress(p, filepath.Join(p, ".harness"))
 	if len(pr.Open) != 1 || pr.Open[0].PRD != "PRD-9999" || len(pr.Warnings) != 0 {
 		t.Fatalf("%+v", pr)
 	}

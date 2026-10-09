@@ -1,4 +1,5 @@
 import type { EngineInterface, On } from 'claude-code'
+import { homeFrom } from './runtime-guard.ts'
 
 // PRD-012 R11/R13/R13b/R14/R15: the mod writes the per-session snapshot (schema 2) that
 // `dh snapshot event` used to write, plus activity/rate_limits, and keeps updated_at alive.
@@ -73,13 +74,11 @@ let beat: { cancel: () => void } | undefined
 const SKIP_LIMIT = 3
 const skips = new Map<string, number>() // consecutive skipped writes per session (unparseable file)
 
+// R10: <home>/sessions, <home> by the ADR-007 rule (DH_HOME is the only control); '' when no home is known.
+// $.fs.write creates missing parent directories (engine type doc), so a clean machine needs no `dh` call first.
 async function snapshotDir($: EngineInterface): Promise<string> {
-  const fixed = await $.env.get('DEV_HARNESS_SNAPSHOT_DIR')
-  if (fixed) return fixed
-  const cfg = await $.env.get('CLAUDE_CONFIG_DIR')
-  if (cfg) return `${cfg}/dev-harness/sessions`
-  const home = (await $.env.get('HOME')) ?? (await $.env.get('USERPROFILE')) ?? '.'
-  return `${home}/.claude/dev-harness/sessions`
+  const home = homeFrom(await $.env.get('DH_HOME'), await $.env.get('HOME'), await $.env.get('USERPROFILE'), await $.session.cwd().catch(() => '/'))
+  return home ? `${home.replace(/^\/([A-Z]):/, '$1:')}/sessions` : ''
 }
 
 // {} when the file does not exist; undefined when it exists but cannot be read or parsed (the caller skips the write).
@@ -106,8 +105,9 @@ async function usageLimits($: EngineInterface): Promise<Limits | undefined> {
 
 async function touch($: EngineInterface): Promise<void> {
   const id = beatSession
-  if (!id) return
-  const path = `${await snapshotDir($)}/${id}.json`
+  const dir = await snapshotDir($)
+  if (!id || !dir) return
+  const path = `${dir}/${id}.json`
   const prev = await readPrev($, path)
   const limits = await usageLimits($) // a limit's age must reflect when it was measured
   const now = iso(await $.clock.now())
@@ -119,7 +119,9 @@ async function touch($: EngineInterface): Promise<void> {
 async function write($: EngineInterface, name: string, e: Ev): Promise<void> {
   if (!SAFE_ID.test(String(e.session_id ?? ''))) return
   try {
-    const path = `${await snapshotDir($)}/${e.session_id}.json`
+    const dir = await snapshotDir($)
+    if (!dir) return
+    const path = `${dir}/${e.session_id}.json`
     const limits = await usageLimits($)
     let prev = await readPrev($, path)
     if (!prev) {

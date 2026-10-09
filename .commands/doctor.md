@@ -18,13 +18,13 @@ Run the diagnosis yourself; do not dispatch a specialist. Load the kit skill `pr
 None beyond a resolvable kit package. List the agents, commands and skills actually discovered by name from the agents, skills and templates bundled with this kit; if the kit location cannot be resolved, report the kit as unverified and stop. Ask the owner nothing: this command only observes.
 
 ## Output
-The `project-onboarding` diagnosis report: kit inventory (commands, roles, skills found by name, unresolved references), the environment table by layer with command or observation, status and evidence, capability impact, whether `.harness/` and `.harness/project.yaml` exist, which tools are available, limitations and next step. Include the `bin/dh doctor` status when it ran. Write no files. When `.harness/MEMORY.md` already exists, record that the diagnosis ran and what was found missing.
+The `project-onboarding` diagnosis report: kit inventory (commands, roles, skills found by name, unresolved references), the environment table by layer with command or observation, status and evidence, capability impact, the `mode` and `dir` that `dh doctor` prints (and its warnings: both folders present, project not registered, `local.yaml` not ignored, `additionalDirectories` hint), whether the harness dir and its `project.yaml` exist, which tools are available, limitations and next step. Include the `bin/dh doctor` status when it ran. Write no files. When `.harness/MEMORY.md` already exists, record that the diagnosis ran and what was found missing.
 
 ## Limits
 - Never install, upgrade or configure anything; report only what was observed.
 - Never report a layer as present without the observed output that shows it; unknown stays unknown.
-- Do not create `.harness/` or any record here; `/dh:setup` owns that.
+- Do not create the harness dir or any record here; `/dh:setup` owns that.
 - Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next
-`/dh:setup` when `.harness/` or the project profile is missing; otherwise the work command for the task at hand.
+`dh link` when `mode: none` but a global folder for this project already exists; `/dh:setup` when nothing exists or the project profile is missing; otherwise the work command for the task at hand.

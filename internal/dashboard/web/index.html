@@ -78,7 +78,7 @@ function render(s){
   if(key===lastKey)return;lastKey=key;
   var opened={};box.querySelectorAll("details[open]").forEach(function(d){opened[d.dataset.k]=1});
   box.textContent="";
-  if(!ps.length)box.appendChild(el("p","mut","Nenhum projeto. Defina DH_DASHBOARD_ROOTS com as pastas dos projetos."));
+  if(!ps.length)box.appendChild(el("p","mut","Nenhum projeto registrado. Rode `dh link` no repositório."));
   var seen={};
   function sessList(list){
     var ul=el("ul");list.forEach(function(x){var li=el("li");

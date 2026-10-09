@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.21.0 — 2026-10-08
+
+- **Pasta global `~/.harness`** (PRD-014, ADR-007). Uma pasta por máquina e por ambiente (WSL, Windows e macOS têm cada um a sua; o kit não traduz caminhos), criada pelo `dh` no primeiro uso; `DH_HOME` muda o lugar. Layout: `config.yaml` (registro de todos os projetos em `projects:`, mais os padrões `language`, `reviewers`, `mode` e `dashboard.sprites`), `projects/<nome>/` (MEMORY, EPOCHAL, RISKS, `project.yaml`, `local.yaml`, `tasks/`, `prd/`, direto na pasta), `sessions/` e `dashboard/`. Em modo `global` nada do dh é escrito na árvore do repositório (sem pasta, arquivo ou linha de `.gitignore`). Só o `dh` lê e escreve o `config.yaml`.
+- **Resolução única**: `<repo>/.harness/` se existir (modo `repo`, vence sempre); senão `<home>/projects/<nome>/` pelo mapa (modo `global`); senão `none`, e o `setup` oferece criar. Novos subcomandos do `dh` (nenhum comando `/dh:` novo; seguem 19 + 1): `dh harness-path [dir] [--json]` (modo e pasta resolvidos), `dh link [nome] [--off] [dir]` (registra ou religa; `--off` tira a entrada e não apaga a pasta) e `dh projects [--json]` (a lista do dashboard sem servidor).
+- **Trava de memória nos dois lugares**: subagente não escreve `MEMORY.md`, `EPOCHAL.md` e `RISKS.md` em `<repo>/.harness/` nem em `<home>/projects/*/`. A sessão recebe o modo e a pasta resolvidos ao abrir (seção `dh:harness` injetada pelo mod). O dashboard lê os projetos do `config.yaml` (relido a cada atualização) e os sprites de `dashboard.sprites`. `setup` e `doctor` mostram o modo, o `setup` registra o projeto e nenhum dos dois sugere ignorar ou commitar o `.harness/` (só o `local.yaml` mantém o aviso). Permissão: no trabalho, `~/.harness` em `additionalDirectories` do `~/.claude/settings.json`, escrito pelo usuário; o `doctor` só sugere.
+- **Quebras (cinco) e migração**:
+  1. `DH_DASHBOARD_ROOTS` e `DH_DASHBOARD_SPRITES` foram removidas. Migração: rode `dh link` (ou `/dh:setup`) em cada repositório que o dashboard listava; ponha a pasta de sprites em `dashboard.sprites` do `config.yaml`.
+  2. `/api/state.config` perde `roots` e ganha `home`: agora é `{home, sprites, port}`. Migração: leitores trocam `roots` por `/api/state.projects[]` ou `dh projects --json`.
+  3. Snapshots saem de `~/.claude/dev-harness/sessions` (ou `$CLAUDE_CONFIG_DIR/dev-harness/sessions`, ou `DEV_HARNESS_SNAPSHOT_DIR`) para `<home>/sessions/`; `DEV_HARNESS_SNAPSHOT_DIR` e `CLAUDE_CONFIG_DIR` deixam de escolher a pasta, e `DH_HOME` é o único controle. Migração: nenhuma (sessões novas já gravam no lugar novo).
+  4. O token de parada do dashboard sai de `<pasta de configuração do usuário>/dev-harness/dashboard` para `<home>/dashboard/`. Migração: nenhuma.
+  5. Projetos em repositório configurados antes da 0.21.0 só aparecem no dashboard depois de `dh link` (ou `/dh:setup`) em cada um; o `doctor` aponta isso. Um dashboard anterior à 0.21.0 em execução tem de ser parado à mão uma vez (não conhece o token novo).
+- **Pastas órfãs**: `~/.claude/dev-harness/sessions` e `<pasta de configuração do usuário>/dev-harness/dashboard` não são mais lidas nem escritas e podem ser apagadas.
+- **Migrar `repo` ↔ `global`** é só documentação, em três linhas por sentido, sem comando (nenhum `dh migrate`): tutorial, seção "Modo global".
+- **Extensão VS Code** (`dev-harness-vscode`), em versão e tag próprias, fora desta versão: o contrato novo é `/api/state.config` = `{home, sprites, port}`, `projects[]` com `mode` (`repo` ou `global`) e `harness`, `dh projects --json`, e o fim de `dh.dashboard.roots` e `dh.dashboard.sprites`. Até a extensão atualizar, essas duas configurações não têm efeito.
+- Binário `dh`: muda o comportamento (três subcomandos, resolução, `config.yaml`, caminhos de sessão e token). Sem agente ou skill nova.
+
 ## 0.20.0 — 2026-10-08
 
 - **Parar o dashboard com `dh dashboard --stop [--port N]`**. Pede ao dashboard da porta que saia; nunca mata processo, e não combina com `--detach`. Sai 0 com "no dashboard on port N" (nada escutando) ou "stopped dashboard on port N" (porta livre em até 5 s). Sai 1 com o motivo em stderr: porta ocupada por programa que não é dh; dashboard anterior à 0.20.0, sem rota de parada ("pare manualmente uma vez"); token de parada não encontrado ou recusado; porta não liberou a tempo.

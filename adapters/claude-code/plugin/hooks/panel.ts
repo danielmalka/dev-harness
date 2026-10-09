@@ -1,6 +1,6 @@
 import type { EngineInterface, Register } from 'claude-code'
-import { denySpawn, guardFile } from './runtime-guard.ts'
-import { DASHBOARD_COMMAND, registerDashboard } from './dashboard-command.ts'
+import { denySpawn, guardFile, homeFrom, resolvePath } from './runtime-guard.ts'
+import { DASHBOARD_COMMAND, dhPath, registerDashboard } from './dashboard-command.ts'
 import { registerSnapshot } from './snapshot-writer.ts'
 import { driftMessage, findDrift, statusValue } from './status-drift.ts'
 
@@ -35,26 +35,19 @@ export function parseLanguage(projectYaml: string): 'en' | 'pt-br' {
   return /^language:\s*(\S+)/m.exec(projectYaml)?.[1]?.replace(/^["']|["']$/g, '').toLowerCase() === 'pt-br' ? 'pt-br' : 'en'
 }
 
-// D5: dh bookkeeping under .harness/ is not code churn, so it does not dirty the gate.
-export function isHarnessPath(p: unknown): boolean {
+// D5: dh bookkeeping under .harness/ (or, global mode, under <home>/projects/) is not code churn,
+// so it does not dirty the gate. `home` is resolvePath-normalized; '' skips the global check.
+export function isHarnessPath(p: unknown, home = ''): boolean {
   const n = String(p ?? '').replace(/\\/g, '/')
-  return n.startsWith('.harness/') || n.includes('/.harness/')
+  const abs = /^(\/|[A-Za-z]:)/.test(n)
+  const r = resolvePath('/', n) // `.harness/../src/a.go` is code, not bookkeeping
+  if (r.includes('/.harness/')) return true
+  return !!home && abs && r.startsWith(`${home === '/' ? '' : home}/projects/`)
 }
 
 const unquote = (s: string) => s.replace(/^(["'])(.*)\1$/, '$2')
 
-// Normalizes `p` against `base`: absolute result, no `.`/`..`/empty segments. A Windows drive path
-// (`C:\\x`, `c:/x`) is absolute too and reads as `/C:/x`, so git's `C:/repo` and the engine's `C:\\repo` meet.
-export function resolvePath(base: string, p: string): string {
-  const abs = (x: string) => x.replace(/\\/g, '/').replace(/^\/?([A-Za-z]):(?=\/|$)/, (_m, d: string) => `/${d.toUpperCase()}:`)
-  const n = abs(p)
-  const out: string[] = []
-  for (const seg of (n.startsWith('/') ? n : `${abs(base)}/${n}`).split('/')) {
-    if (seg === '..') out.pop()
-    else if (seg && seg !== '.') out.push(seg)
-  }
-  return `/${out.join('/')}`
-}
+export { resolvePath }
 
 // Back to the platform's form for git and fs calls: `/C:/x` -> `C:/x`; POSIX paths unchanged.
 export const native = (p: string) => p.replace(/^\/([A-Z]):/, '$1:')
@@ -127,9 +120,111 @@ async function rootOf($: EngineInterface, command: string, at?: number): Promise
   return repoRoot($, commandDir(command, await $.session.cwd(), await home($), at))
 }
 
+// <home> by the ADR-007 rule, plus the user home for `~`; literal names so `claude plugin validate` lists them.
+async function homes($: EngineInterface): Promise<{ home: string; user: string; cwd: string }> {
+  try {
+    const cwd = await $.session.cwd().catch(() => '/')
+    const dh = await $.env.get('DH_HOME'), hm = await $.env.get('HOME'), up = await $.env.get('USERPROFILE')
+    return { home: homeFrom(dh, hm, up, cwd), user: hm || up || '', cwd }
+  } catch {
+    return { home: '', user: '', cwd: '/' }
+  }
+}
+
+// R8: <home> is read here and passed in; guardFile cannot take $ across the import.
+async function guardWrite($: EngineInterface, e: any, next: any): Promise<any> {
+  const { home, user, cwd } = await homes($)
+  return guardFile(home, e, async (x: typeof e) => markDirty($, await next(x), x), cwd, user)
+}
+
+// R20: `dh harness-path --json <dir>`, the only resolver (R2: the mod never reads the global registry file).
+// undefined = dh failed (missing binary, exit != 0, bad JSON, timeout).
+type Harness = { mode: 'repo' | 'global' | 'none'; dir: string }
+const harnesses = new Map<string, Harness | undefined>()
+
+// The argv for `dh harness-path`, or undefined when spawning is unsafe: on Windows dhPath is a .cmd that
+// cmd.exe parses, so a directory with a cmd metacharacter is never passed (treated as a dh failure).
+export function harnessArgv(pluginRoot: string, dir: string): string[] | undefined {
+  const dh = dhPath(pluginRoot)
+  const d = native(dir)
+  if (dh.endsWith('.cmd') && /[&|<>^%!"()\r\n]/.test(d)) return undefined
+  return [dh, 'harness-path', '--json', d]
+}
+
+// What `dh harness-path --json` printed, or undefined when it is not a usable answer: the dir must be
+// absolute, at most 4096 chars, and free of control/line-separator characters (it is shown to the model).
+export function parseHarness(stdout: string): Harness | undefined {
+  try {
+    const o = JSON.parse(stdout)
+    if (o?.mode === 'none') return { mode: 'none', dir: '' }
+    const d = o?.dir
+    if ((o?.mode === 'repo' || o?.mode === 'global') && typeof d === 'string' && d.length <= 4096
+      && /^(\/|[A-Za-z]:|\\\\)/.test(d) && !/[\u0000-\u001f\u007f\u2028\u2029]/.test(d)) return { mode: o.mode, dir: d }
+  } catch { /* fail open */ }
+  return undefined
+}
+
+async function resolveHarness($: EngineInterface, dir: string): Promise<Harness | undefined> {
+  try {
+    const argv = harnessArgv($.plugin.root, dir)
+    if (!argv) return undefined
+    const r = await $.process.run(argv, { timeoutMs: 2_000 })
+    return r.exitCode === 0 ? parseHarness(r.stdout) : undefined
+  } catch {
+    return undefined // fail open
+  }
+}
+
+// Cached per directory. repo/global stick for the session; none and failures are dropped by every
+// prompt.compose (so /dh:setup or dh link apply without a restart) and re-resolved on the next read.
+// ponytail: readers between two composes reuse a none/failed answer, so a gate or status line never spawns dh per call.
+// Resolved from the repository root (as the commit gate does), so a session opened in a subfolder
+// finds its repo's harness; a non-git dir resolves as itself. Roots are cached per directory.
+// ponytail: a `git init` mid-session is not seen for a dir already cached as non-git.
+const roots = new Map<string, string>()
+async function rootFor($: EngineInterface, dir: string): Promise<string> {
+  const key = resolvePath('/', dir)
+  let root = roots.get(key)
+  if (root === undefined) roots.set(key, root = await repoRoot($, key))
+  return root
+}
+
+async function harnessOf($: EngineInterface, dir: string): Promise<{ root: string; h: Harness | undefined }> {
+  const root = await rootFor($, dir)
+  if (!harnesses.has(root)) harnesses.set(root, await resolveHarness($, root))
+  return { root, h: harnesses.get(root) }
+}
+
+// The folder holding project.yaml, tasks/ and prd/ for `dir`: the resolved one, else `<dir>/.harness` when it exists, else `<root>/.harness`.
+async function harnessDir($: EngineInterface, dir: string): Promise<string> {
+  try {
+    const { root, h } = await harnessOf($, dir)
+    if (h && h.mode !== 'none') return h.dir
+    // 0.20.0 read `<cwd>/.harness`; keep it when that folder exists below the git toplevel.
+    const own = `${dir}/.harness`
+    return (await $.fs.exists(own).catch(() => false)) ? own : `${native(root)}/.harness`
+  } catch {
+    return `${dir}/.harness`
+  }
+}
+
+export const HARNESS_SECTION = 'dh:harness'
+
+export function harnessText(h: Harness): string {
+  return h.mode === 'none'
+    ? 'Dev Harness: no harness for this project (mode none). Run /dh:setup to create one, or dh link if it already exists.'
+    : `Dev Harness: mode ${h.mode}; harness dir ${JSON.stringify(h.dir)}. Records (MEMORY.md, EPOCHAL.md, RISKS.md, project.yaml, tasks/, prd/) live there.`
+}
+
+async function composeSection($: EngineInterface): Promise<{ id: string; text: string; scope: 'session' } | undefined> {
+  for (const [k, v] of harnesses) if (!v || v.mode === 'none') harnesses.delete(k)
+  const { h } = await harnessOf($, await $.session.cwd())
+  return h ? { id: HARNESS_SECTION, text: harnessText(h), scope: 'session' } : undefined
+}
+
 async function readProject($: EngineInterface, root?: string): Promise<{ gates: string[]; lang: 'en' | 'pt-br' }> {
   try {
-    const y = await $.fs.read(`${root ?? await $.session.cwd()}/.harness/project.yaml`) as string
+    const y = await $.fs.read(`${await harnessDir($, root ?? await $.session.cwd())}/project.yaml`) as string
     return { gates: parseGateCommands(y), lang: parseLanguage(y) }
   } catch {
     return { gates: [], lang: 'en' }
@@ -137,8 +232,8 @@ async function readProject($: EngineInterface, root?: string): Promise<{ gates: 
 }
 
 async function dhProgress($: EngineInterface): Promise<string | undefined> {
-  const dir = `${await $.session.cwd()}/.harness/tasks`
   try {
+    const dir = `${await harnessDir($, await $.session.cwd())}/tasks`
     let done = 0, blocked = 0, total = 0
     for (const entry of await $.fs.list(dir)) {
       if (entry.kind !== 'dir') continue
@@ -182,19 +277,20 @@ async function refresh($: EngineInterface): Promise<void> {
 // R20: fail-open on any read error; no tickets (or no readable PRDs) means no drift.
 async function driftNow($: EngineInterface, cwd: string): Promise<ReturnType<typeof findDrift>> {
   try {
+    const hdir = await harnessDir($, cwd)
     const tickets: { id: string; md: string }[] = []
-    for (const entry of await $.fs.list(`${cwd}/.harness/tasks`)) {
-      const file = `${cwd}/.harness/tasks/${entry.name}/TASK.md`
+    for (const entry of await $.fs.list(`${hdir}/tasks`)) {
+      const file = `${hdir}/tasks/${entry.name}/TASK.md`
       if (entry.kind === 'dir' && (await $.fs.exists(file))) tickets.push({ id: entry.name, md: await $.fs.read(file) as string })
     }
     if (!tickets.length) return []
     const prds = new Map<string, string>()
-    for (const dir of ['docs/prd', '.harness/prd']) {
+    for (const dir of [`${cwd}/docs/prd`, `${hdir}/prd`]) {
       try {
-        for (const f of (await $.fs.list(`${cwd}/${dir}`)).sort((a, b) => (a.name < b.name ? -1 : 1))) {
+        for (const f of (await $.fs.list(dir)).sort((a, b) => (a.name < b.name ? -1 : 1))) {
           const id = /^(PRD-\d+)/.exec(f.name)?.[1]
           if (!id || f.kind !== 'file' || !f.name.endsWith('.md') || f.name.endsWith('.review.md') || prds.has(id)) continue
-          prds.set(id, statusValue(await $.fs.read(`${cwd}/${dir}/${f.name}`) as string))
+          prds.set(id, statusValue(await $.fs.read(`${dir}/${f.name}`) as string))
         }
       } catch { /* directory absent */ }
     }
@@ -219,7 +315,7 @@ async function guardBash($: EngineInterface, command: string): Promise<string | 
 
 async function markDirty<R extends { deny?: unknown; isError?: boolean }>($: EngineInterface, r: R, e: any): Promise<R> {
   const p = e.file_path ?? e.notebook_path
-  if (r.deny === undefined && r.isError !== true && p && !isHarnessPath(p)) {
+  if (r.deny === undefined && r.isError !== true && p && !isHarnessPath(p, (await homes($)).home)) {
     dirty.add(resolvePath(await $.session.cwd().catch(() => '/'), String(p)))
   }
   return r
@@ -230,7 +326,7 @@ const failOpen = ($: EngineInterface, e: any, next: any) => next(e)
 
 // hooks.json `modules` accepts one entry per plugin and a duplicate on(event) is refused,
 // so panel.ts is the entry and chains the runtime-guard checks (ADR-005) ahead of its own.
-// They ignore $, and the loader refuses $ passed across an import, hence `{}`.
+// The loader refuses $ passed across an import: denySpawn gets `{}`, guardFile gets <home> as a string.
 export const register: Register = on => {
   registerSnapshot(on)
   registerDashboard(on)
@@ -258,9 +354,16 @@ export const register: Register = on => {
     return r
   })).catch(failOpen)
 
-  on('tool.call', { tool: 'Edit' }, ($, e, next) => guardFile({}, e, async (x: typeof e) => markDirty($, await next(x), x))).catch(failOpen)
-  on('tool.call', { tool: 'Write' }, ($, e, next) => guardFile({}, e, async (x: typeof e) => markDirty($, await next(x), x))).catch(failOpen)
+  on('tool.call', { tool: 'Edit' }, guardWrite).catch(failOpen)
+  on('tool.call', { tool: 'Write' }, guardWrite).catch(failOpen)
   on('tool.call', { tool: 'NotebookEdit' }, async ($, e, next) => markDirty($, await next(e), e)).catch(failOpen)
+
+  // R20: tell the session where its harness lives; a dh failure adds nothing (fail-open).
+  on('prompt.compose', async ($, e, next) => {
+    const r = await next(e)
+    const section = await composeSection($).catch(() => undefined)
+    return section ? { sections: [...r.sections, section] } : r
+  }).catch(failOpen)
 
   on('tool.call', { tool: 'Bash' }, async ($, e, next) => {
     const denied = await guardBash($, e.command).catch(() => undefined)

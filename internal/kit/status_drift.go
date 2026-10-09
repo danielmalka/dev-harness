@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/danielmalka/dev-harness/internal/dashboard"
+	"github.com/danielmalka/dev-harness/internal/harness"
 )
 
 var driftPRDFile = regexp.MustCompile(`^(PRD-\d+)`)
@@ -16,16 +17,22 @@ var driftPRDFile = regexp.MustCompile(`^(PRD-\d+)`)
 // checkStatusDrift (PRD-012, R19) fails when tickets and their PRD disagree:
 // (a) an open ticket links to a PRD whose Status starts with "entregue em";
 // (b) every linked ticket (at least one) is done but the PRD is not "entregue em".
-// Classification and linking come from internal/dashboard. Silent when
-// .harness/tasks is absent (the directory is gitignored, so CI never has it).
+// Classification and linking come from internal/dashboard. Tickets and extra PRDs are read from
+// the resolved harness folder (<repo>/.harness or <home>/projects/<name>, PRD-014 R19); silent
+// when it has no tasks (CI never has them).
 func checkStatusDrift(root string, errors *[]string) {
-	tasks, _ := filepath.Glob(filepath.Join(root, ".harness", "tasks", "*", "TASK.md"))
+	cfg, _ := harness.LoadConfig(harness.Home()) // a broken config only means "not registered"
+	dir := harness.Resolve(root, cfg).Dir
+	if dir == "" {
+		return
+	}
+	tasks, _ := filepath.Glob(filepath.Join(dir, "tasks", "*", "TASK.md"))
 	if len(tasks) == 0 {
 		return
 	}
 	status := map[string]string{}
-	for _, pat := range []string{"docs/prd/PRD-*.md", ".harness/prd/PRD-*.md"} {
-		files, _ := filepath.Glob(filepath.Join(root, filepath.FromSlash(pat)))
+	for _, pat := range []string{filepath.Join(root, "docs", "prd", "PRD-*.md"), filepath.Join(dir, "prd", "PRD-*.md")} {
+		files, _ := filepath.Glob(pat)
 		for _, f := range files {
 			base := filepath.Base(f)
 			id := driftPRDFile.FindString(base)

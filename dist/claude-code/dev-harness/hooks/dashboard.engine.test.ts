@@ -4,20 +4,21 @@ import { applyEvent } from './snapshot-writer'
 // Engine-level tests of the mod's snapshot writer, /dh:dashboard command and R20 commit trap.
 // The world is an in-memory filesystem under the plugin; mock.clock moves only when told.
 const CWD = '/proj'
-const SNAP = '/snap'
+const DH = '/dh-home' // DH_HOME of every test: nothing touches a real ~/.harness
+const SNAP = `${DH}/sessions`
 const SID = 'sess-1'
 const FILE = `${SNAP}/${SID}.json`
 const T0 = Date.parse('2026-10-07T10:00:00Z')
 
 const CLASSIC = ['SessionStart', 'UserPromptSubmit', 'PostToolUse', 'PermissionRequest', 'Notification', 'StopFailure', 'Stop', 'SubagentStart', 'SubagentStop', 'SessionEnd']
 
-type Opts = { files?: Record<string, string>; limits?: { kind: string; percentUsed: number }[]; writeFails?: boolean; procFails?: boolean }
+type Opts = { files?: Record<string, string>; limits?: { kind: string; percentUsed: number }[]; writeFails?: boolean; procFails?: boolean; env?: Record<string, string>; harness?: string }
 
 function world(on: any, o: Opts = {}) {
   const files = new Map(Object.entries(o.files ?? {}))
   const registered: any[] = []
   const runs: string[][] = []
-  mock.env(on, { DEV_HARNESS_SNAPSHOT_DIR: SNAP })
+  mock.env(on, o.env ?? { DH_HOME: DH })
   const clock = mock.clock(on, { now: T0 })
   on('session.cwd', () => ({ value: CWD }) as any)
   on('session.usage', () => ({ value: { startedAt: 0, context: { window: 100, percent: 1, tokens: 1 }, rateLimits: o.limits ?? [] } }) as any)
@@ -36,8 +37,12 @@ function world(on: any, o: Opts = {}) {
   })
   on('command.register', (_$: any, e: any) => { registered.push(e); return { value: undefined } as any })
   on('process.run', (_$: any, e: any) => {
-    runs.push(e.argv)
     if (o.procFails) throw new Error('spawn failed')
+    // `dh harness-path --json <dir>` answers o.harness (JSON) or fails like a dh without the subcommand.
+    // git (repo root lookups) answers "not a repository": the mod falls back to the dir itself.
+    if (e.argv[0] === 'git') return { value: { exitCode: 128, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
+    if (e.argv[1] === 'harness-path') return { value: { exitCode: o.harness ? 0 : 2, stdout: o.harness ?? '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
+    runs.push(e.argv)
     return { value: { exitCode: 0, stdout: 'http://127.0.0.1:4747/\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
   })
   on('ui.status', () => ({ value: undefined }) as any)
@@ -200,8 +205,32 @@ test('unsafe session id writes nothing', async ($, on) => {
   expect([...w.files.keys()]).toEqual([])
 })
 
+// PRD-014 R10: <home>/sessions only; DEV_HARNESS_SNAPSHOT_DIR and CLAUDE_CONFIG_DIR no longer pick the folder.
+test('R10 with DH_HOME the snapshot goes to $DH_HOME/sessions, old variables ignored', async ($, on) => {
+  const w = world(on, { env: { DH_HOME: '/x/h', HOME: '/u', DEV_HARNESS_SNAPSHOT_DIR: '/old', CLAUDE_CONFIG_DIR: '/cfg' } })
+  await start($)
+  expect([...w.files.keys()]).toEqual([`/x/h/sessions/${SID}.json`])
+})
+test('R10 without DH_HOME the snapshot goes to $HOME/.harness/sessions', async ($, on) => {
+  const w = world(on, { env: { HOME: '/u', DEV_HARNESS_SNAPSHOT_DIR: '/old', CLAUDE_CONFIG_DIR: '/cfg' } })
+  await start($)
+  expect([...w.files.keys()]).toEqual([`/u/.harness/sessions/${SID}.json`])
+})
+test('R10 USERPROFILE is the last fallback', async ($, on) => {
+  const w = world(on, { env: { USERPROFILE: 'C:\\Users\\u' } })
+  await start($)
+  // On Linux the engine reads `C:/...` as relative to the working directory; on Windows it is absolute.
+  expect([...w.files.keys()].every(k => k.endsWith(`C:/Users/u/.harness/sessions/${SID}.json`))).toBe(true)
+  expect(w.files.size).toBe(1)
+})
+test('R10 no home variable writes nothing', async ($, on) => {
+  const w = world(on, { env: {} })
+  await $.classic.Stop({ session_id: 'none', stop_hook_active: false })
+  expect([...w.files.keys()]).toEqual([])
+})
+
 // R13b parity with `dh snapshot event`. GOLDEN is the time-stripped output of the Go binary for this same
-// input sequence (printf '<json>' | dh snapshot event, DEV_HARNESS_SNAPSHOT_DIR=tmp), captured 2026-10-07.
+// input sequence (printf '<json>' | dh snapshot event, then with its snapshot dir in a temp folder), captured 2026-10-07.
 const SEQ: [string, any][] = [
   ['SessionStart', { session_id: 's1', cwd: '/p', agent_type: 'coordinator', model: 'opus-x', session_name: 'nm' }],
   ['UserPromptSubmit', { session_id: 's1' }],
@@ -320,5 +349,35 @@ test('non-commit commands are never checked', async ($, on) => {
 
 test('R20 read error does not deny (fail open)', async ($, on) => {
   world(on, { files: {} })
+  expect(String((await commit($)).deny ?? '')).not.toContain('drift')
+})
+
+// PRD-014 R19: global mode reads tickets, project.yaml and PRDs from the resolved folder.
+// Last in the file: the mod caches a global answer for CWD for the rest of the module's life.
+const G = `${DH}/projects/proj`
+const GLOBAL = JSON.stringify({ mode: 'global', dir: G, defaults: {} })
+test('R19 global drift: tickets under <home>/projects/<name>/tasks are checked', async ($, on) => {
+  world(on, { harness: GLOBAL, files: {
+    [`${G}/tasks/T-1/TASK.md`]: '| Status | pronta |\n| PRD (RF-<n>) | PRD-001 (R1) |\n',
+    [`${CWD}/docs/prd/PRD-001-x.md`]: '| Status | entregue em 2026-01-01 |\n',
+    [`${G}/project.yaml`]: 'language: pt-br\n',
+  } })
+  const r = await commit($)
+  expect(String(r.deny ?? r.text)).toContain('T-1')
+  expect(String(r.deny ?? r.text)).toContain('commite de novo')
+})
+test('R19 global drift: PRDs under <home>/projects/<name>/prd count too', async ($, on) => {
+  world(on, { harness: GLOBAL, files: {
+    [`${G}/tasks/T-1/TASK.md`]: '| Status | concluída |\n| PRD (RF-<n>) | PRD-001 (R1) |\n',
+    [`${G}/prd/PRD-001-x.md`]: '| Status | aprovado |\n',
+  } })
+  expect(String((await commit($)).deny ?? '')).toContain('PRD-001')
+})
+test('R19 global mode ignores <repo>/.harness/tasks (the resolved folder wins)', async ($, on) => {
+  world(on, { harness: GLOBAL, files: TASKS('pronta', 'entregue em 2026-01-01') })
+  expect(String((await commit($)).deny ?? '')).not.toContain('drift')
+})
+test('R19 no tickets in either place is no drift (CI case)', async ($, on) => {
+  world(on, { harness: GLOBAL, files: { [`${CWD}/docs/prd/PRD-001-x.md`]: '| Status | entregue em 2026-01-01 |\n' } })
   expect(String((await commit($)).deny ?? '')).not.toContain('drift')
 })

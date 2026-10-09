@@ -11,9 +11,15 @@ import (
 
 func testSnapshotDir(t *testing.T) string {
 	t.Helper()
-	dir := t.TempDir()
-	t.Setenv("DEV_HARNESS_SNAPSHOT_DIR", dir)
-	return dir
+	home := t.TempDir()
+	t.Setenv("DH_HOME", home)
+	t.Setenv("DEV_HARNESS_SNAPSHOT_DIR", t.TempDir()) // ignored since 0.21.0
+	t.Setenv("CLAUDE_CONFIG_DIR", t.TempDir())
+	if got, want := SnapshotDir(), filepath.Join(home, "sessions"); got != want {
+		t.Fatalf("SnapshotDir() = %q, want %q", got, want)
+	}
+	os.MkdirAll(SnapshotDir(), 0o700)
+	return SnapshotDir()
 }
 
 func readTestSnapshot(t *testing.T, dir, sessionID string) Snapshot {
@@ -182,5 +188,20 @@ func TestMissingSessionIDAndAtomicWrite(t *testing.T) {
 	}
 	if len(tmp) != 0 {
 		t.Fatalf("temporary files remain: %v", tmp)
+	}
+}
+
+func TestNoHomeFailsClearly(t *testing.T) {
+	t.Setenv("DH_HOME", "")
+	t.Setenv("HOME", "")
+	t.Setenv("USERPROFILE", "")
+	if dir := SnapshotDir(); dir != "" {
+		t.Fatalf("SnapshotDir = %q", dir)
+	}
+	if err := Event("", strings.NewReader(`{"session_id":"s"}`)); err == nil {
+		t.Fatal("Event: want error")
+	}
+	if _, err := Prune("", 1); err == nil {
+		t.Fatal("Prune: want error")
 	}
 }

@@ -649,6 +649,7 @@ footer.doc-foot {
         <a href="#dashboard"><b>02</b>Local dashboard</a>
         <a href="#first-session"><b>03</b>First session</a>
         <a href="#harness"><b>04</b>What lives in .harness/</a>
+        <a href="#global-mode"><b>04b</b>Global mode</a>
         <a href="#flows"><b>05</b>Flows</a>
         <a href="#config"><b>06</b>Configuration</a>
         <a href="#advanced"><b>07</b>Advanced</a>
@@ -684,7 +685,7 @@ footer.doc-foot {
         <li><strong>Migrating from before 0.8.0.</strong> <code>/plugin uninstall dev-harness@dev-harness</code>, then <code>/plugin install dh@dev-harness</code>; replace <code>/dev-harness:</code> with <code>/dh:</code> in your own scripts and notes.</li>
         <li><strong>Deactivate.</strong> End the session without <code>--plugin-dir</code>, or uninstall the plugin. The <code>.harness/</code> files in your project stay: the kit never deletes your work.</li>
       </ol>
-      <p>The package includes <code>settings.json</code> and <code>hooks/hooks.json</code>, which write per-session snapshots to <code>~/.claude/dev-harness/sessions/&lt;session_id&gt;.json</code>, local files only, pruned after 7 days.</p>
+      <p>The package includes <code>settings.json</code> and <code>hooks/hooks.json</code>, which write per-session snapshots to <code>~/.harness/sessions/&lt;session_id&gt;.json</code> (the global folder, see <a href="#global-mode">Global mode</a>), local files only, pruned after 7 days.</p>
 
       <h2 id="dashboard"><span class="n">02</span>Local dashboard</h2>
       <p>A local page shows projects in progress, open PRDs, and Claude Code sessions with their state (working, idle, waiting, error, ready, attention). To run:</p>
@@ -696,26 +697,23 @@ footer.doc-foot {
             <li><code>--stale D</code> and <code>--done-decay D</code> for display tuning (sensible defaults come pre-configured).</li>
           </ul>
         </li>
-        <li><strong>Configure projects.</strong> The <code>DH_DASHBOARD_ROOTS</code> variable points to folders that contain projects. Projects are direct subfolders that have a <code>.harness/</code>. Multiple paths separate by <code>;</code>:
-          <div class="table-wrap"><pre><code>export DH_DASHBOARD_ROOTS="/home/you/work;/home/you/side-projects"</code></pre></div>
-        </li>
-        <li><strong>Custom avatars (optional).</strong> <code>DH_DASHBOARD_SPRITES</code> points to a folder of icons in jevmon format: one file per pose (<code>&lt;pose&gt;.png</code> or frames <code>&lt;pose&gt;_01.png</code>, <code>&lt;pose&gt;_02.png</code>, etc.), plus an optional <code>poses.json</code> that maps states. The kit ships 6 example icons (idle, working, waiting, error, ready, attention). When a pose does not exist in your owner folder, the dashboard falls back to the kit default. The server never serves an icon with a free path (without a known pose name) for safety.</li>
+        <li><strong>Projects.</strong> The dashboard lists the projects registered in <code>~/.harness/config.yaml</code>, in <code>repo</code> or <code>global</code> mode. Register each one with <code>/dh:setup</code> or <code>dh link</code> inside the repository; the file is re-read on every refresh, no restart needed. A project set up before 0.21.0 only shows up after <code>dh link</code>. The list without a server comes from <code>dh projects --json</code>.</li>
+        <li><strong>Custom avatars (optional).</strong> The <code>dashboard.sprites</code> key of <code>config.yaml</code> points to a folder of icons in jevmon format: one file per pose (<code>&lt;pose&gt;.png</code> or frames <code>&lt;pose&gt;_01.png</code>, <code>&lt;pose&gt;_02.png</code>, etc.), plus an optional <code>poses.json</code> that maps states. The kit ships 6 example icons (idle, working, waiting, error, ready, attention). When a pose does not exist in your folder, the dashboard falls back to the kit default. The server never serves an icon with a free path (without a known pose name) for safety.</li>
         <li><strong>Stop the dashboard.</strong> <code>dh dashboard --stop</code> asks the dashboard on the default port to exit; use <code>--port N</code> for another port. It never kills a process: if the port is held by another program, the command exits with an error and the reason. It cannot be combined with <code>--detach</code>. A dashboard from before 0.20.0 has no such route: stop it manually once.
           <div class="table-wrap"><pre><code>dh dashboard --stop --port 4748</code></pre></div>
         </li>
-        <li><strong>Check the running configuration.</strong> <code>/api/state</code> returns a <code>config</code> field with the effective <code>DH_DASHBOARD_ROOTS</code> entries, the sprites folder and the port. The VS Code extension uses this field to tell whether the dashboard started with the same settings.</li>
-        <li><strong>Stop token.</strong> When it starts, the dashboard writes a random token to <code>~/.config/dev-harness/dashboard/stop-&lt;port&gt;.token</code> (or under <code>$XDG_CONFIG_HOME</code>; on macOS, under <code>~/Library/Application Support/dev-harness/dashboard/</code>; on Windows, under <code>%AppData%\dev-harness\dashboard\</code>). The folder is 0700 and the file 0600; on Windows, the per-user profile ACL is what protects it. The file stays on disk after exit, on purpose: an old token is useless, because the next start overwrites it. No web page or iframe can stop the dashboard: requests carrying an Origin header are refused.</li>
+        <li><strong>Check the running configuration.</strong> <code>/api/state</code> returns a <code>config</code> field with <code>{home, sprites, port}</code> (the global folder, the sprites folder and the port); each <code>projects[]</code> item carries <code>name</code>, <code>path</code>, <code>mode</code> (<code>repo</code> or <code>global</code>) and <code>harness</code> (the resolved folder). The VS Code extension uses these fields.</li>
+        <li><strong>Stop token.</strong> When it starts, the dashboard writes a random token to <code>~/.harness/dashboard/stop-&lt;port&gt;.token</code> (the global folder; <code>DH_HOME</code> moves it). The folder is 0700 and the file 0600; on Windows, the per-user profile ACL is what protects it. The file stays on disk after exit, on purpose: an old token is useless, because the next start overwrites it. No web page or iframe can stop the dashboard: requests carrying an Origin header are refused. The old folders <code>~/.claude/dev-harness/sessions</code> and <code>&lt;user config dir&gt;/dev-harness/dashboard</code> are orphaned in 0.21.0 and can be deleted. A dashboard from before 0.21.0 that is still running must be stopped by hand once (it does not know the new token).</li>
       </ol>
 
       <h2 id="vscode-extension"><span class="n">03</span>VS Code extension</h2>
       <p>The <code>dev-harness-vscode</code> extension brings the local dashboard into VS Code, shows session state in the status bar, and opens a terminal to run a dh command without leaving the editor.</p>
       <ol class="steps">
         <li><strong>Install the extension.</strong> Download <code>dev-harness-&lt;version&gt;.vsix</code> from release <a href="https://github.com/danielmalka/dev-harness-vscode/releases/latest">latest</a> of the <code>danielmalka/dev-harness-vscode</code> repository. In VS Code, open the command palette (<code>Ctrl+Shift+P</code> / <code>Cmd+Shift+P</code>), search for "Extensions: Install from VSIX..." and select the file.</li>
-        <li><strong>Configure the dashboard.</strong> Three optional settings in VS Code Settings (<code>Ctrl+,</code>):
+        <li><strong>Configure the dashboard.</strong> Optional settings in VS Code Settings (<code>Ctrl+,</code>):
           <ul>
             <li><code>dh.dashboard.port</code>: server port (default 4747).</li>
-            <li><code>dh.dashboard.roots</code>: list of root folders that contain kit projects (e.g., <code>["/home/you/work", "/home/you/side-projects"]</code>).</li>
-            <li><code>dh.dashboard.sprites</code>: folder of custom icons (jevmon format, same as dashboard).</li>
+            <li><code>dh.dashboard.roots</code> and <code>dh.dashboard.sprites</code>: no longer take effect in 0.21.0 (projects and sprites come from <code>config.yaml</code>); they go away in the next extension release.</li>
           </ul>
         </li>
         <li><strong>Open the dashboard.</strong> In the activity bar (left side), click the "Dev Harness" icon to open the view. If the server is not running, click "Start dashboard" to bring it up in detached mode. The dashboard loads in an iframe.</li>
@@ -744,6 +742,34 @@ footer.doc-foot {
         </tbody>
       </table></div>
       <div class="callout">Only the Coordinator writes <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code>. Other agents return proposals. The Claude Code plugin enforces this rule at runtime: a subagent that tries to write those files is blocked. The disk is the truth: if you deleted records, the Coordinator does not recreate them from what it remembers of the conversation.</div>
+
+      <h2 id="global-mode"><span class="n">05b</span>Global mode</h2>
+      <p>For people who cannot leave a dh folder in the repository tree (for example, colleagues who do not use dh), the project state lives in one global folder per machine and per environment, <code>~/.harness/</code> (<code>DH_HOME</code> moves it; on Windows, <code>%USERPROFILE%\.harness</code>). <code>dh</code> creates it on first use:</p>
+      <div class="table-wrap"><pre><code>~/.harness/
+  config.yaml        # defaults (language, reviewers, mode, dashboard.sprites) and the projects: map
+  projects/&lt;name&gt;/   # MEMORY, EPOCHAL, RISKS, project.yaml, local.yaml, tasks/, prd/ (directly, no subfolder)
+  sessions/          # snapshots of all sessions
+  dashboard/         # dashboard stop token</code></pre></div>
+      <p>Every project is registered in <code>projects:</code> (repository path to name, the name being the repository folder name), with an internal or a global <code>.harness/</code>. Only <code>dh</code> writes <code>config.yaml</code>; mods and scripts ask <code>dh harness-path</code>. Resolution is single: <code>&lt;repo&gt;/.harness/</code> if it exists (mode <code>repo</code>, always wins); else <code>~/.harness/projects/&lt;name&gt;/</code> via the map (mode <code>global</code>); else <code>none</code>, and <code>/dh:setup</code> offers to create it. The session receives the resolved mode and folder when it opens. The guard that keeps subagents from writing <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code> applies in both places.</p>
+      <ol class="steps">
+        <li><strong>Install at work.</strong> Install the plugin as in the Install section. Each environment (WSL, Windows, macOS) has its own global folder; the kit does not translate paths between them.</li>
+        <li><strong>Allow the global folder.</strong> You add <code>~/.harness</code> to <code>additionalDirectories</code> in <code>~/.claude/settings.json</code> yourself, so Claude Code can write there. <code>/dh:doctor</code> only suggests the entry; it never writes it.
+          <div class="table-wrap"><pre><code>{ "permissions": { "additionalDirectories": ["~/.harness"] } }</code></pre></div>
+        </li>
+        <li><strong>Run setup.</strong> <code>/dh:setup</code> asks once, for the project, whether the mode is <code>repo</code> or <code>global</code> (or uses <code>mode</code> from <code>config.yaml</code>), copies <code>language</code> and <code>reviewers</code> from <code>config.yaml</code> into the new <code>project.yaml</code>, and registers the project. In <code>global</code> nothing is written to the tree: no folder, no file, no <code>.gitignore</code> line. The internal <code>.harness/</code> is versioned; only <code>local.yaml</code> should stay ignored.</li>
+        <li><strong>Register or relink with <code>dh link</code>.</strong> <code>dh link [name] [--off] [dir]</code> registers the repository (default: the current folder) and, with no internal <code>.harness/</code>, creates <code>~/.harness/projects/&lt;name&gt;/</code> or reuses the existing one. Two repositories with the same base folder name: the second needs an explicit name. <code>--off</code> removes the map entry and does not delete the project folder. <code>dh harness-path [dir] [--json]</code> shows the resolved mode and folder.</li>
+        <li><strong>Open the dashboard.</strong> See the Local dashboard section; it reads the map and the global folders.</li>
+        <li><strong>Move or rename the repository.</strong> The map goes stale: <code>/dh:doctor</code> shows <code>mode: none</code>. Run <code>dh link</code> in the new folder (same name, to reuse the project folder; the entry for the old path, which no longer exists, is replaced).</li>
+      </ol>
+      <h3>Migrate from <code>repo</code> to <code>global</code></h3>
+      <div class="table-wrap"><pre><code>1. mkdir -p ~/.harness/projects/&lt;name&gt; &amp;&amp; cp -r .harness/. ~/.harness/projects/&lt;name&gt;/
+2. git rm -r .harness   # or rm -rf if it was not versioned; commit if needed
+3. dh link &lt;name&gt;; dh harness-path   # must show mode: global</code></pre></div>
+      <h3>Migrate from <code>global</code> to <code>repo</code></h3>
+      <div class="table-wrap"><pre><code>1. cp -r ~/.harness/projects/&lt;name&gt;/. .harness/   # at the repository root
+2. dh harness-path   # must show mode: repo (the internal one wins); the project stays registered
+3. rm -rf ~/.harness/projects/&lt;name&gt;   # only after checking the copy</code></pre></div>
+      <div class="callout">There is no migration command: these lines are all there is.</div>
 
       <h2 id="flows"><span class="n">06</span>Flows</h2>
       <p>The kit has 13 agents and 19 commands. You talk to the Coordinator; it dispatches the specialists and holds the authorization: nothing is installed, committed, published or deployed without you authorizing it.</p>

@@ -7,6 +7,7 @@
 | Decisor | Daniel Lemos (dono) |
 | Origem | pedido do dono 2026-10-06 (T-1201); mod pessoal "painel" como especificação executável |
 | Reversibilidade | barata: remover `panel.ts`, `panel.test.ts` e `panel.engine.test.ts` e voltar `modules` do `hooks.json` para `runtime-guard.ts` |
+| Alterado por | ADR-007 (D2: `language` da pasta resolvida; D5: escrita em `<home>/projects/*/` não marca o gate; PRD-014 R19) |
 
 ## 1. Contexto
 

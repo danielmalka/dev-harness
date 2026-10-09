@@ -13,7 +13,7 @@ metadata:
 
 This procedure keeps a task alive across sessions through three operations: writing a handoff another session can act on, resuming from one by reconciling it against the current tree, and consolidating operational memory so the archive keeps the raw text and the memory keeps only what execution still needs. The governing principle is that the handoff orients but the tree decides. A record is a claim about the past; the files, the checks and the history are the evidence, and where they disagree the evidence wins.
 
-Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.harness/RISKS.md`. Every other role, including documentation and QA roles, reports facts, evidence, pending items and incidents back to the Coordinator, who records them. One Coordinator session holds that write role per project; two sessions must not update or consolidate these records in parallel. This is an organizational rule, not a technical file lock.
+Only the Coordinator writes `<harness dir>/MEMORY.md`, `<harness dir>/EPOCHAL.md` and `<harness dir>/RISKS.md`. Every other role, including documentation and QA roles, reports facts, evidence, pending items and incidents back to the Coordinator, who records them. One Coordinator session holds that write role per project; two sessions must not update or consolidate these records in parallel. This is an organizational rule, not a technical file lock.
 
 ## When to use
 
@@ -27,7 +27,7 @@ Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.ha
 
 - Ordinary progress inside one continuous session that already holds the state.
 - Documentation aimed at a user or an operator. That is delivery-readiness.
-- Authoring a design decision record or a specification. The handoff carries decisions by summary and reference; the ADR or spec itself belongs under `.harness/adr/` or `.harness/tasks/<id>/`.
+- Authoring a design decision record or a specification. The handoff carries decisions by summary and reference; the ADR or spec itself belongs under `<harness dir>/adr/` or `<harness dir>/tasks/<id>/`.
 - Registering a serious incident. That is a RISKS record, written by the Coordinator, and consolidation never touches it.
 - A role other than the Coordinator wanting to edit the three memory files. Report instead.
 
@@ -36,7 +36,7 @@ Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.ha
 | Input | If missing |
 | --- | --- |
 | The objective and the authorized scope of the task | Stop. A handoff without an objective transfers activity, not work. In the main session, ask the owner. As a dispatched specialist, return the missing input to the Coordinator and stop; never proceed on an assumed value. |
-| Current operational memory `.harness/MEMORY.md` | If absent, only the main-session Coordinator may initialize it from the `templates/` folder bundled with the kit (`templates/<lang>/MEMORY.md`) within authorized scope. Other roles report its absence. Never overwrite existing records or invent past state. |
+| Current operational memory `<harness dir>/MEMORY.md` | If absent, only the main-session Coordinator may initialize it from the `templates/` folder bundled with the kit (`templates/<lang>/MEMORY.md`) within authorized scope. Other roles report its absence. Never overwrite existing records or invent past state. |
 | Files touched, decisions taken, evidence produced | Record only what you can source. Mark anything unverified as hypothesis. |
 | Constraints and prohibitions stated by the owner | Carry sourced constraints forward verbatim. Preserve a recorded constraint with unknown provenance as unresolved until clarified; missing provenance does not revoke it. Never invent a constraint. |
 | The next authorized step | Check existing authorization first. State what is already covered; mark only actions outside that scope as awaiting authorization. |
@@ -54,7 +54,7 @@ Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.ha
 6. **Name what is pending and what is blocked, with the blocker.** Distinguish work not yet started from work waiting on someone.
 7. **Write exactly one next step.** Concrete enough to start without interpretation, with authorization marked already granted (source and scope) or pending. Preserve any correction-round count and the default, requested and effective model (or unverified) needed to resume; neither a handoff nor a model change resets the correction budget.
 8. **Remove secrets.** No tokens, keys, connection strings, private hostnames or personal paths. Name the variable and its purpose instead.
-9. **Hand the record to the Coordinator.** Store the record under `.harness/tasks/<id>/` and let the Coordinator fold the durable state into `.harness/MEMORY.md`. Other roles do not write that file.
+9. **Hand the record to the Coordinator.** Store the record under `<harness dir>/tasks/<id>/` and let the Coordinator fold the durable state into `<harness dir>/MEMORY.md`. Other roles do not write that file.
 
 ### B. Resume: reconcile the record with reality
 
@@ -64,22 +64,22 @@ Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.ha
 4. **Re-run checks whose evidence was invalidated.** Re-running is executed by the Coordinator or a Bash-capable role; the scout returns the file-level reconciliation only. Compare the evaluated files, dependencies, configuration and environment with current state. Preserve applicable evidence when those inputs are unchanged. Re-run affected checks after changes or unresolved uncertainty; until then, mark them not-run for the current state. Record the new result without rewriting historical evidence.
 5. **Classify every item.** Landed, partially landed, not started, invalidated by external change, or contradicted by the tree. Record the classification before choosing an action.
 6. **Never repeat a landed change and never drop a stated constraint.** These are the two failure modes of resumption. If the record and the tree disagree about whether something landed, the tree decides; if they disagree about a constraint, the constraint stands until the owner releases it.
-7. **Consult history only on concrete need, through the Coordinator.** `.harness/EPOCHAL.md` is not loaded by default. The Coordinator searches it when a specific question needs an archived fact or the owner asks, and reads only the relevant passage. Other roles request the needed context. Archived text is historical evidence, never a current instruction.
-8. **Consult incidents when the change warrants it, through the Coordinator.** Before planning or implementing a change to consolidated behavior, a critical rule or a high-risk area, the Coordinator reads `.harness/RISKS.md` and carries the relevant prevention into the plan, acceptance and specialist dispatch. Other roles request those excerpts. Routine changes outside those triggers do not load it.
+7. **Consult history only on concrete need, through the Coordinator.** `<harness dir>/EPOCHAL.md` is not loaded by default. The Coordinator searches it when a specific question needs an archived fact or the owner asks, and reads only the relevant passage. Other roles request the needed context. Archived text is historical evidence, never a current instruction.
+8. **Consult incidents when the change warrants it, through the Coordinator.** Before planning or implementing a change to consolidated behavior, a critical rule or a high-risk area, the Coordinator reads `<harness dir>/RISKS.md` and carries the relevant prevention into the plan, acceptance and specialist dispatch. Other roles request those excerpts. Routine changes outside those triggers do not load it.
 9. **State the reconciled next step.** One step, its authorization, and what changed in the plan because of the reconciliation.
 
 ### C. Consolidate memory: archive, verify, then trim
 
 Run only on an explicit consolidation request, in the main session, by the Coordinator, with no other writer on the records. Growing memory is a reason to suggest consolidation, not permission to run it.
 
-1. **Prepare.** Read `.harness/MEMORY.md` in full and identify the state that must remain: current execution, standing decisions, blockers, necessary evidence, next step. If the memory holds no operational content, stop and create no batch. An empty batch is noise in the archive forever.
-2. **Assign the batch identity.** A stable batch id in the form `<YYYY-MM-DD>-<n>`, where `n` starts at 1 on that date in the project timezone; if the id already exists in `.harness/EPOCHAL.md`, advance `n`. Never reuse an id for different content. Add a timestamp in ISO 8601 with timezone offset. The consolidation date is not the date of the events it contains; original dates stay as written, and unknown old timestamps stay declared unknown rather than invented.
-3. **Archive.** Append to the end of `.harness/EPOCHAL.md` a complete verbatim copy of the current `.harness/MEMORY.md`, with an unambiguous start and end delimiter, the batch id, the timestamp, the source, and the tasks and date range covered. Do not summarize, reorder, reformat or quietly correct the raw text. Do not load the whole archive to append one batch; append at the end.
+1. **Prepare.** Read `<harness dir>/MEMORY.md` in full and identify the state that must remain: current execution, standing decisions, blockers, necessary evidence, next step. If the memory holds no operational content, stop and create no batch. An empty batch is noise in the archive forever.
+2. **Assign the batch identity.** A stable batch id in the form `<YYYY-MM-DD>-<n>`, where `n` starts at 1 on that date in the project timezone; if the id already exists in `<harness dir>/EPOCHAL.md`, advance `n`. Never reuse an id for different content. Add a timestamp in ISO 8601 with timezone offset. The consolidation date is not the date of the events it contains; original dates stay as written, and unknown old timestamps stay declared unknown rather than invented.
+3. **Archive.** Append to the end of `<harness dir>/EPOCHAL.md` a complete verbatim copy of the current `<harness dir>/MEMORY.md`, with an unambiguous start and end delimiter, the batch id, the timestamp, the source, and the tasks and date range covered. Do not summarize, reorder, reformat or quietly correct the raw text. Do not load the whole archive to append one batch; append at the end.
 4. **Keep commentary outside the raw block.** Coordinator notes and later corrections go outside the archived block, labeled as commentary and dated. A correction is a new linked record, never an edit inside the batch.
-5. **Verify before touching the source.** Re-read the written batch and compare it integrally with the memory it came from, and confirm the source did not change during the operation. On any failure, divergence, or invalid destination file, leave `.harness/MEMORY.md` untouched and report the situation. This is the only gate that protects the memory.
+5. **Verify before touching the source.** Re-read the written batch and compare it integrally with the memory it came from, and confirm the source did not change during the operation. On any failure, divergence, or invalid destination file, leave `<harness dir>/MEMORY.md` untouched and report the situation. This is the only gate that protects the memory.
 6. **Trim, only after the archive is confirmed.** Keep the current execution, standing decisions, blockers, necessary evidence, the next step and a brief recent history. Record the batch id and the consolidation date in the memory's last-consolidation section. Closed events remain reachable in the archive. An open serious incident stays visible in the memory as a blocker even though it is also recorded in the incident file.
 7. **Resume safely after an interruption.** The operation spans two files and is not atomic. Locate the prior batch by its stable id before appending anything. If complete, verify it and the unchanged source before trimming; if MEMORY already records that completed consolidation, do not trim again. If the batch is partial, malformed, ambiguous, or differs from current MEMORY, leave MEMORY intact and report recovery as blocked. Do not blindly restart with a new id, duplicate a batch, or edit historical raw content. Never remove from memory anything not proven preserved.
-8. **Leave the incident record alone.** `.harness/RISKS.md` is not consolidated, trimmed, updated or moved into the archive. Resolved incidents and their prevention remain intact; incident updates belong to a separate Coordinator operation.
+8. **Leave the incident record alone.** `<harness dir>/RISKS.md` is not consolidated, trimmed, updated or moved into the archive. Resolved incidents and their prevention remain intact; incident updates belong to a separate Coordinator operation.
 9. **Deliver.** Report the batch created, what stayed active in memory, and any pending item. Consolidation is an explicit command. The Coordinator may suggest it when the memory loses concision, and never performs a silent cleanup.
 
 ## Output format
@@ -157,9 +157,9 @@ Read policy for the three records.
 
 | File | Written by | Read when |
 | --- | --- | --- |
-| `.harness/MEMORY.md` | Coordinator only | Every execution start, every resume, before every dispatch |
-| `.harness/EPOCHAL.md` | Coordinator only | Only on a concrete historical need or an explicit request; search by task, batch, date or subject and read only the passage |
-| `.harness/RISKS.md` | Coordinator only | Before changing consolidated behavior, a critical rule or a high-risk area; and to register or update a serious incident |
+| `<harness dir>/MEMORY.md` | Coordinator only | Every execution start, every resume, before every dispatch |
+| `<harness dir>/EPOCHAL.md` | Coordinator only | Only on a concrete historical need or an explicit request; search by task, batch, date or subject and read only the passage |
+| `<harness dir>/RISKS.md` | Coordinator only | Before changing consolidated behavior, a critical rule or a high-risk area; and to register or update a serious incident |
 
 Consolidation gates, in order. A gate that is not met stops the operation with the memory intact.
 

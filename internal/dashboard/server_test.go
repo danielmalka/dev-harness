@@ -13,12 +13,9 @@ import (
 
 func testHandler(t *testing.T, sprites string) http.Handler {
 	t.Helper()
-	root := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(root, "proj", ".harness"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	return Handler(Config{Roots: root, SpritesDir: sprites, SnapshotDir: t.TempDir(),
-		Stale: DefaultStale, DoneDecay: 5 * time.Minute})
+	home := t.TempDir()
+	writeCfg(t, home, sprites)
+	return Handler(Config{Home: home, SnapshotDir: t.TempDir(), Stale: DefaultStale, DoneDecay: 5 * time.Minute})
 }
 
 func do(h http.Handler, method, host, path string) *httptest.ResponseRecorder {

@@ -9,6 +9,7 @@ import (
 
 func driftTree(t *testing.T, prdStatus string, tickets map[string]string) string {
 	t.Helper()
+	t.Setenv("DH_HOME", t.TempDir())
 	root := t.TempDir()
 	w := func(rel, body string) {
 		p := filepath.Join(root, filepath.FromSlash(rel))
@@ -67,10 +68,35 @@ func TestStatusDrift(t *testing.T) {
 }
 
 func TestStatusDriftNoTasksDir(t *testing.T) {
+	t.Setenv("DH_HOME", t.TempDir())
 	root := t.TempDir()
 	os.MkdirAll(filepath.Join(root, "docs", "prd"), 0o755)
 	os.WriteFile(filepath.Join(root, "docs", "prd", "PRD-001-a.md"), []byte("| Status | entregue em 1 |\n"), 0o644)
 	if errs := drift(root); len(errs) != 0 {
 		t.Fatalf("got %v", errs)
+	}
+}
+
+func TestStatusDriftGlobalProject(t *testing.T) {
+	home, root := t.TempDir(), t.TempDir()
+	t.Setenv("DH_HOME", home)
+	w := func(p, body string) {
+		os.MkdirAll(filepath.Dir(p), 0o755)
+		if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	w(filepath.Join(root, "docs", "prd", "PRD-003-x.md"), "| Status | aprovado |\n")
+	w(filepath.Join(home, "projects", "p", "tasks", "T-1", "TASK.md"), "| Status | concluída |\n| Story / PRD | PRD-003 |\n")
+	if errs := drift(root); len(errs) != 0 { // not registered: none, silent
+		t.Fatalf("unregistered: got %v", errs)
+	}
+	w(filepath.Join(home, "config.yaml"), "projects:\n  \""+root+"\": p\n")
+	if errs := drift(root); len(errs) != 1 || !strings.Contains(errs[0], "all 1 linked tickets are done") {
+		t.Fatalf("global drift: got %v", errs)
+	}
+	os.RemoveAll(filepath.Join(home, "projects", "p", "tasks"))
+	if errs := drift(root); len(errs) != 0 {
+		t.Fatalf("no tasks: got %v", errs)
 	}
 }
