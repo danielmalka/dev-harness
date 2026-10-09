@@ -62,7 +62,7 @@ func TestR3_AdditiveStateContract(t *testing.T) {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	if want := []string{"delivered", "harness", "metrics", "mode", "name", "open", "path"}; !reflect.DeepEqual(keys, want) {
+	if want := []string{"delivered", "docs", "harness", "metrics", "mode", "name", "open", "path"}; !reflect.DeepEqual(keys, want) {
 		t.Fatalf("keys %v want %v", keys, want)
 	}
 	if string(s.Projects[0]["delivered"]) != `["PRD-001"]` {

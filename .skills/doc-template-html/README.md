@@ -22,7 +22,7 @@ bash <skill-folder>/scripts/stamp.sh \
   --out docs/slug.html
 ```
 
-Types: `catalogo` `plano` `feature` `melhoria` `bug` `report`.
+Types: `catalogo` `plano` `feature` `melhoria` `bug` `report` `projeto`.
 
 `--type bug` already comes with `.banner.warn`.
 
@@ -64,6 +64,7 @@ Open the file in `file://`. Fill every “ainda não fechado”. A hole stays �
 | `assets/skeletons/<lang>/<tipo>.html` | sections the stamp injects |
 | `assets/modelo.html` | filled feature |
 | `assets/catalogo-preview.html` | filled catalog (strip, price) |
+| `assets/projeto-modelo.<lang>.html` | filled project overview, no shell needed |
 | `assets/shell.css` + `shell.js` | tokens; do not link, the stamp inlines |
 
 Palette: charcoal `#0C0D10`, paper `#F1EFE8`, neon `#3DFF9A` on highlights, sand `#E2D2A8` on links and banners. Stamp refuses to overwrite the skill examples without `--force`.

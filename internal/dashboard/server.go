@@ -57,6 +57,7 @@ func Handler(cfg Config) http.Handler {
 	page, _ := pageFS.ReadFile("web/index.html")
 	metricsJS, _ := pageFS.ReadFile("web/metrics.js")
 	memory := memoryH(cfg)
+	pdocs := pdocsH(cfg)
 	// own routing instead of ServeMux: the mux 307-redirects unclean paths ("/sprite/../x"); here they are plain 404s
 	state := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -105,6 +106,8 @@ func Handler(cfg Config) http.Handler {
 			state(w, r)
 		case r.URL.Path == "/api/memory":
 			memory(w, r)
+		case strings.HasPrefix(r.URL.Path, "/pdocs/"):
+			pdocs(w, r)
 		case r.URL.Path == "/metrics.js":
 			w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
 			w.Header().Set("Cache-Control", "no-cache")
@@ -127,6 +130,12 @@ func guard(next http.Handler) http.Handler {
 		h.Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'")
 		if !loopbackHost(r.Host) {
 			http.Error(w, "forbidden host", http.StatusForbidden)
+			return
+		}
+		// browsers send these; a sandboxed/cross-site page must not read /api/state or /api/memory
+		if strings.HasPrefix(r.URL.Path, "/api/") && r.URL.Path != "/api/stop" &&
+			(r.Header.Get("Origin") == "null" || r.Header.Get("Sec-Fetch-Site") == "cross-site") {
+			http.Error(w, "forbidden origin", http.StatusForbidden)
 			return
 		}
 		want := http.MethodGet
@@ -187,6 +196,7 @@ type jsonProject struct {
 	Open      []jsonBar `json:"open"`
 	Delivered []string  `json:"delivered"`
 	Metrics   Metrics   `json:"metrics"`
+	Docs      bool      `json:"docs"`
 }
 
 type jsonSession struct {
@@ -298,6 +308,10 @@ func buildState(cfg Config, holder *spriteHolder) state {
 		pr := projectProgress(p.Name, p.Path, p.Harness)
 		jp := jsonProject{Name: p.Name, Path: p.Path, Mode: p.Mode, Harness: p.Harness, Open: []jsonBar{}, Delivered: pr.Delivered, Metrics: pr.Metrics}
 		pr.Warnings = append(pr.Warnings, fileMetrics(&jp.Metrics, p.Name, p.Harness)...)
+		var dw string
+		if jp.Docs, dw = docsFlag(cfg.Home, p.Name); dw != "" {
+			pr.Warnings = append(pr.Warnings, dw)
+		}
 		if jp.Delivered == nil {
 			jp.Delivered = []string{}
 		}

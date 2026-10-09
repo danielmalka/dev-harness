@@ -157,3 +157,34 @@ func TestSettingsHintSuggestsCustomHome(t *testing.T) {
 		t.Errorf("default home: %s", h)
 	}
 }
+
+func TestHarnessPdocsOnlyNoBothWarning(t *testing.T) {
+	repo, home := t.TempDir(), t.TempDir()
+	mk(t, filepath.Join(repo, ".harness", "project.yaml"), "x\n")
+	mk(t, filepath.Join(home, "config.yaml"), "projects:\n  \""+repo+"\": p\n")
+	os.MkdirAll(filepath.Join(home, "projects", "p", "pdocs"), 0o755)
+	out := report(t, repo, home, "")
+	if strings.Contains(out, "both ") {
+		t.Errorf("unexpected both warning:\n%s", out)
+	}
+	mk(t, filepath.Join(home, "projects", "p", "project.yaml"), "x\n")
+	if out = report(t, repo, home, ""); !strings.Contains(out, "warning: both ") {
+		t.Errorf("no both warning:\n%s", out)
+	}
+}
+
+func TestHarnessSymlinkedCwd(t *testing.T) {
+	real, home := t.TempDir(), t.TempDir()
+	real, _ = filepath.EvalSymlinks(real)
+	link := filepath.Join(t.TempDir(), "ln")
+	if err := os.Symlink(real, link); err != nil {
+		t.Skip("symlinks unavailable")
+	}
+	mk(t, filepath.Join(real, ".harness", "project.yaml"), "x\n")
+	mk(t, filepath.Join(home, "config.yaml"), "projects:\n  \""+real+"\": p\n")
+	os.MkdirAll(filepath.Join(home, "projects", "p"), 0o755)
+	out := report(t, link, home, "")
+	if strings.Contains(out, "is not registered") || !strings.Contains(out, "warning: both ") {
+		t.Errorf("symlinked cwd:\n%s", out)
+	}
+}

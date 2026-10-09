@@ -273,3 +273,25 @@ func TestR15_NoMigrateCommand(t *testing.T) {
 		t.Error("dh migrate exists")
 	}
 }
+
+// PRD-017 R1 (QA, T-1703-05): the field is chained from the builder test; the git proof is new.
+func TestR1_PdocsFieldAndNoTraceInRepo(t *testing.T) {
+	TestHarnessPathPdocsField(t)
+	home, _ := env(t)
+	repo := t.TempDir()
+	gitRepo(t, repo)
+	os.MkdirAll(filepath.Join(repo, ".harness"), 0o755)
+	if c, _, e := dh(t, "link", "pj", repo); c != 0 {
+		t.Fatal(e)
+	}
+	_, out, _ := dh(t, "harness-path", "--json", repo)
+	var g struct{ Mode, Pdocs string }
+	if json.Unmarshal([]byte(out), &g) != nil || g.Mode != "repo" || g.Pdocs != filepath.Join(home, "projects", "pj", "pdocs") {
+		t.Fatalf("%q", out)
+	}
+	os.MkdirAll(g.Pdocs, 0o755)
+	os.WriteFile(filepath.Join(g.Pdocs, "index.html"), []byte("x"), 0o644)
+	if b, _ := exec.Command("git", "-C", repo, "status", "--porcelain", "-uall").Output(); len(strings.TrimSpace(string(b))) != 0 {
+		t.Errorf("repo dirty: %q", b)
+	}
+}

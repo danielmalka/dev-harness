@@ -7,7 +7,7 @@
 @media(prefers-color-scheme:dark){:root{--bg:#18181b;--fg:#f4f4f5;--mut:#a1a1aa;--card:#222226;--bd:#3f3f46;--bar:#3f3f46;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171;--acc:#60a5fa}}
 *{box-sizing:border-box}
 body{margin:0;padding:12px;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif}
-h1{font-size:1.1rem;margin:0 0 4px}h2{font-size:1rem;margin:0 0 6px}h3{font-size:.85rem;margin:8px 0 2px;color:var(--mut)}
+h1{font-size:1.1rem;margin:0 0 4px}h2{font-size:1rem;margin:0 0 6px}a.docs{display:inline-block;margin:0 0 6px;font-size:.85rem}h3{font-size:.85rem;margin:8px 0 2px;color:var(--mut)}
 /* 70% projects, 30% avatar side by side; one column (avatar first, compact) on narrow screens and webviews. */
 #wrap{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,3fr);gap:16px;align-items:start}
 header{margin-bottom:12px}
@@ -87,6 +87,7 @@ function render(s){
       li.appendChild(document.createTextNode((x.name||x.id)+(x.agent?" ("+x.agent+")":"")));ul.appendChild(li)});return ul}
   ps.forEach(function(p){
     var c=el("article","card"),h=el("h2",null,p.name);c.appendChild(h);
+    if(p.docs){var d=el("a","docs","documentação");d.href="pdocs/"+encodeURIComponent(p.name)+"/";d.target="_blank";d.rel="noopener";c.appendChild(d)}
     (p.open||[]).forEach(function(b){c.appendChild(bar(b))});
     if(!(p.open||[]).length)c.appendChild(el("p","mut","Nenhum PRD aberto."));
     var d=p.delivered||[];

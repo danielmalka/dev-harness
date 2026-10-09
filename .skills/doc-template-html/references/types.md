@@ -89,6 +89,20 @@ Use: report of actions taken. It does not replace `protocolo/templates/report.ht
 6. Pendências (Open items)
 7. Próximo passo (Next step)
 
+## projeto
+
+Use: living overview of a whole project (the `pdocs/index.html` of a repository). Copy `assets/projeto-modelo.<lang>.html` when there is no shell, or run the stamp with `--type projeto`. Markup: `.table-wrap`, a list and `<pre class="mermaid">`, all from Primitives below. Every slot without a fact stays “ainda não fechado”.
+
+1. Motivação (Motivation)
+2. Como rodar local (How to run locally)
+3. Planejado e desenvolvido (Planned and delivered)
+4. Changelog (Changelog)
+5. Diagrama macro (Macro diagram)
+6. Domínios e bounded contexts (Domains and bounded contexts)
+7. Referências (References)
+
+Ids: `motivacao`, `como-rodar`, `planejado-desenvolvido`, `changelog`, `diagrama-macro`, `dominios`, `referencias`, the same in both languages. “Diagrama macro” is mandatory and holds at least one `<pre class="mermaid">` drawn from the repository's first-level folders. “Planejado e desenvolvido” is a `.table-wrap` with `id`, title and `Status`, plus a “gerado em AAAA-MM-DD” line.
+
 ## Primitives
 
 Copy the markup. Do not invent a neighboring class.
@@ -182,21 +196,16 @@ Tag, price, process, table, callouts:
 | `.callout.stop` | do not do / blocker |
 | `code` | path, command, id |
 
-Diagram: Mermaid source in `<pre class="mermaid">`, rendered by the Mermaid CDN. This is the only CDN exception in this skill. Never embed pre-rendered SVG; the owner edits the diagram later. A Mermaid diagram needs network: on `file://` without network the page must still show the diagram source, and you never claim the diagram rendered unless you saw it rendered.
+Diagram: Mermaid source in `<pre class="mermaid">`, rendered by the Mermaid CDN. Two CDN exceptions, Mermaid (origin and exact version pinned in `stamp.sh`) and Google Fonts; everything else inline. Never embed pre-rendered SVG; the owner edits the diagram later. A Mermaid diagram needs network: on `file://` without network the page must still show the diagram source, and you never claim the diagram rendered unless you saw it rendered.
 
 ```html
 <pre class="mermaid">
 flowchart LR
     A[Entrada] --> B[Saída]
 </pre>
-<!-- depois do <script> do shell, no fim do body -->
-<script type="module">
-  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-  mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: {
-    fontFamily: "Plus Jakarta Sans, system-ui, sans-serif", background: "#0C0D10",
-    primaryColor: "#1A1C22", primaryTextColor: "#F1EFE8", primaryBorderColor: "#3DFF9A",
-    secondaryColor: "#131418", tertiaryColor: "#131418", lineColor: "#E2D2A8", textColor: "#F1EFE8",
-    clusterBkg: "#131418", clusterBorder: "#3DFF9A", edgeLabelBackground: "#1A1C22", mainBkg: "#1A1C22"
-  } });
+<!-- emitted by stamp.sh after the shell <script>, at the end of the body; origin and exact version are pinned there, never typed here -->
+<script src="<origin, exact version and SRI hash pinned in stamp.sh>" crossorigin="anonymous"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: { /* theme variables: see stamp.sh */ } });
 </script>
 ```

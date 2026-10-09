@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.24.0 — 2026-10-09
+
+- **Documentação por projeto, `pdocs`** (PRD-017): pasta `<home>/projects/<nome>/pdocs/`, sempre global nos dois modos (nunca dentro do repositório), criada sob pedido por `/dh:document pdocs` (`docs-guide`) e atualizada ao fim de cada lote quando existe. Tipo novo de documento `projeto` na skill `doc-template-html`: sete seções e diagrama macro Mermaid obrigatório.
+- **`dh harness-path --json` ganha o campo `pdocs`** (aditivo): caminho absoluto da pasta, vazio sem registro. Pasta global só com `pdocs/` não conta como harness para o resolvedor nem para o `doctor`.
+- **Dashboard serve `/pdocs/<nome>/<arquivo>`** (só GET, só nome registrado, `.html`/`.svg`/`.png` até 8 MiB, sem symlink) com CSP próprio e `sandbox`, e liga a documentação no card (campo aditivo `docs` em `/api/state`).
+- **Regra de CDN agora com duas exceções**: Mermaid (versão exata 11.17.2 com SRI, fixada no `stamp.sh`) e Google Fonts; tudo o mais inline.
+- **Endurecimento de `/api/*`**: recusa `Origin: null` e requisições de navegador entre sites. O `/dh:secure` rodou (claude + codex) e as correções entraram nesta versão.
+- Tamanho dos binários: crescimento de até 0,1 % por alvo (linux/amd64 8.007.804 → 8.015.996 bytes; darwin/arm64 7.571.314 → 7.571.346; windows/amd64 8.253.440 → 8.262.144).
+- Binário `dh`: muda o comportamento (campo `pdocs`, rota `/pdocs`, campo `docs`, recusa de `Origin`). Sem agente, skill ou comando novo (seguem 19 + 1).
+
 ## 0.23.0 — 2026-10-09
 
 - **Métricas no card do projeto do dashboard** (PRD-016), campo aditivo `metrics` em `/api/state`, calculadas dos arquivos do projeto (granularidade de dia, sem armazenamento novo): duração média de ticket e de PRD, cada uma com o `n` usado e o contador "sem data" para o que não tem data de conclusão; tickets por PRD; datas de início e entrega por PRD; número de incidentes (`RISKS.md`); tamanho da memória (linhas e KB); última consolidação (do `EPOCHAL.md`); e dois gráficos SVG ("dias por PRD entregue" e "tickets por PRD aberto"). Script `/metrics.js` servido pelo binário; sem biblioteca nem dependência Go nova.

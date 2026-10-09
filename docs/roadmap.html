@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-09</b></span>
-          <span class="chip">status <b>0.23.0 · vivo</b></span>
+          <span class="chip">status <b>0.24.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
 
+      <div class="card">
+        <h3>0.24.0 · Documentação por projeto (pdocs)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-017. Pasta <code>&lt;home&gt;/projects/&lt;nome&gt;/pdocs/</code> (sempre global) criada por <code>/dh:document pdocs</code> e atualizada ao fim do lote; tipo de documento <code>projeto</code> (sete seções, diagrama macro Mermaid); <code>dh harness-path --json</code> ganha <code>pdocs</code>; o dashboard serve <code>/pdocs/&lt;nome&gt;/</code> com CSP próprio e sandbox e liga no card. CDN com duas exceções (Mermaid fixado e Google Fonts). <code>/api/*</code> recusa <code>Origin: null</code>.</p>
+        <p><strong>Relações:</strong> PRD-017 (<code>docs/prd/PRD-017-pdocs.md</code>); PRD-012 e PRD-014 (notas de remissão); tutorial seção "Dashboard local"; README (pt/en).</p>
+        <p><strong>Testado?</strong> <code>go test -race ./...</code>, <code>go vet</code> linux/windows/darwin, <code>claude plugin test</code> (220) e <code>dh validate</code> verdes; testes por regra com provas de mutação; Playwright headless 20/20 (Mermaid com SRI renderiza pela rota, texto visível sem CDN, página isolada não lê <code>/api/state</code>); <code>/dh:secure</code> com a lista completa (claude + codex) e endurecimentos; pdocs real deste repositório gerado numa pasta global temporária; Windows e macOS só compilados; nenhuma eval paga.</p>
+      </div>
       <div class="card">
         <h3>0.23.0 · Dashboard: métricas por projeto</h3>
         <p><strong>Status:</strong> concluído.</p>
@@ -1698,7 +1705,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.23.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.24.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
