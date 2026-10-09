@@ -148,3 +148,36 @@ func TestUsageListsNewCommands(t *testing.T) {
 		}
 	}
 }
+
+func TestHarnessPathPdocsField(t *testing.T) {
+	home, repo := env(t)
+	get := func() (mode, dir, pdocs string) {
+		code, out, _ := dh(t, "harness-path", "--json", repo)
+		var g struct{ Mode, Dir, Pdocs string }
+		if code != 0 || json.Unmarshal([]byte(out), &g) != nil {
+			t.Fatalf("%d %q", code, out)
+		}
+		return g.Mode, g.Dir, g.Pdocs
+	}
+	if m, d, p := get(); m != "none" || d != "" || p != "" {
+		t.Errorf("unregistered: %s %q %q", m, d, p)
+	}
+	name := "proj"
+	if c, _, e := dh(t, "link", name, repo); c != 0 {
+		t.Fatal(e)
+	}
+	want := filepath.Join(home, "projects", name, "pdocs")
+	if m, _, p := get(); m != "global" || p != want {
+		t.Errorf("global: %s %q want %q", m, p, want)
+	}
+	os.MkdirAll(filepath.Join(repo, ".harness"), 0o755)
+	if m, d, p := get(); m != "repo" || p != want || d != filepath.Join(repo, ".harness") {
+		t.Errorf("repo: %s %q %q", m, d, p)
+	}
+	if _, out, _ := dh(t, "harness-path", repo); strings.Contains(out, "pdocs") {
+		t.Errorf("text output has pdocs: %q", out)
+	}
+	if _, out, _ := dh(t, "link", "--json", repo); strings.Contains(out, "pdocs") {
+		t.Errorf("link --json has pdocs: %q", out)
+	}
+}

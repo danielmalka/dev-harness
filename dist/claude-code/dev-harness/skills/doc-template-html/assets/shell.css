@@ -613,3 +613,20 @@ footer.doc-foot {
   .card, .table-wrap, .banner { break-inside: avoid; }
   a { color: inherit; }
 }
+
+/* Mermaid: source stays visible and legible until (and unless) the CDN script renders it. */
+pre.mermaid {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  color: var(--text);
+  background: var(--void);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+pre.mermaid[data-processed] { background: transparent; border-color: transparent; padding: 0; white-space: normal; text-align: center; }
+pre.mermaid svg { max-width: 100%; height: auto; }

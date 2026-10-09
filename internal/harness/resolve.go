@@ -39,7 +39,7 @@ func resolveIn(home, repo string, c Config) Resolved {
 		return Resolved{"repo", d}
 	}
 	if name, ok := c.Projects[repo]; ok && validName(name) && home != "" {
-		if d := filepath.Join(home, "projects", name); isDir(d) {
+		if d := filepath.Join(home, "projects", name); IsHarness(d) {
 			return Resolved{"global", d}
 		}
 	}

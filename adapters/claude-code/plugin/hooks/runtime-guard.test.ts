@@ -149,3 +149,14 @@ test('engine: spawn from the test (no parent) is not denied', async ($, on) => {
   const r: any = await $.agent.spawn({ prompt: 'hi' })
   expect(r.deny).toBe(undefined)
 })
+
+// PRD-017 R3: pdocs/ is writable by a subagent; the records next to it stay protected.
+test('R3 pdocs: subagent may write under projects/x/pdocs/, records outside it stay denied', () => {
+  const h = '/h'
+  expect(protectedHit(h, '/h/projects/x/pdocs/index.html')).toBe(undefined)
+  expect(protectedHit(h, '/h/projects/x/pdocs/d.svg')).toBe(undefined)
+  expect(protectedHit(h, '/h/projects/x/pdocs/MEMORY.md')).toBe(undefined)
+  expect(protectedHit(h, '~/.harness/projects/x/pdocs/EPOCHAL.md', '/', '/u')).toBe(undefined)
+  expect(guardFile(h, { file_path: '/h/projects/x/pdocs/index.html', agentId: 's' }, next)).toBe(NEXT)
+  expect(guardFile(h, { file_path: '/h/projects/x/MEMORY.md', agentId: 's' }, next).deny).toContain('Coordinator')
+})

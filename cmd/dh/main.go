@@ -268,10 +268,15 @@ func runHarnessPath(args []string, stdout, stderr io.Writer) int {
 		Mode      string `json:"mode"`
 		Reviewers string `json:"reviewers"`
 	}
+	key := repo
+	if cr, err := filepath.EvalSymlinks(repo); err == nil {
+		key = cr
+	}
 	writeJSON(stdout, struct {
 		harness.Resolved
+		Pdocs    string   `json:"pdocs"`
 		Defaults defaults `json:"defaults"`
-	}{r, defaults{c.Language, c.Mode, c.ReviewersRaw}})
+	}{r, harness.PdocsDir(home, c.Projects[key]), defaults{c.Language, c.Mode, c.ReviewersRaw}})
 	return 0
 }
 

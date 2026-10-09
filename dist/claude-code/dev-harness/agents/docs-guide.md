@@ -52,7 +52,7 @@ Leave tutorials, examples, and handoff that match the tree. Distinguish planned 
 1. Read the current docs and the evidence of what actually shipped.
 2. Update only the pages the change needs. Check commands and paths against the tree.
 3. Write a handoff: objective, constraints, files, evidence, next step.
-4. Use relative paths. Do not depend on a personal home directory.
+4. Use relative paths. Do not depend on a personal home directory, except for `pdocs`: its absolute path comes from `dh harness-path --json` (`pdocs`) in the dispatch and is never typed or inferred. On a `pdocs` dispatch, create or update `<pdocs>/index.html` from `assets/projeto-modelo.<lang>.html` of `doc-template-html`; in an end-of-batch dispatch, only update it when it already exists. Replace every row and fact of the model with the target project's facts; keep "ainda não fechado" / "not yet settled" where unknown.
 
 ## Shared contract
 

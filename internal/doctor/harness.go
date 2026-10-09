@@ -30,6 +30,9 @@ func printHarness(out io.Writer) {
 
 func printHarnessFor(out io.Writer, cwd, home, settings string) {
 	repo := absolutePath(cwd)
+	if r, err := filepath.EvalSymlinks(repo); err == nil {
+		repo = r
+	}
 	cfg, cfgErr := harness.LoadConfig(home)
 	if cfgErr != nil {
 		fmt.Fprintf(out, "warning: %v\n", cfgErr)
@@ -54,7 +57,7 @@ func printHarnessFor(out io.Writer, cwd, home, settings string) {
 	}
 	name, registered := cfg.Projects[repo]
 	if res.Mode == "repo" {
-		if registered && isDir(filepath.Join(home, "projects", name)) {
+		if registered && harness.IsHarness(filepath.Join(home, "projects", name)) {
 			fmt.Fprintf(out, "warning: both %s and %s exist: the internal one wins\n",
 				res.Dir, filepath.Join(home, "projects", name))
 		}

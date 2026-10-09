@@ -7,6 +7,8 @@
 | Criado / atualizado | 2026-10-08 / 2026-10-08 |
 | Tickets | T-1601 (este PRD); T-1601-01 a T-1601-08 (plano em `.harness/tasks/T-1601/PLAN.md`) |
 
+> Nota (0.24.0, PRD-017): o dashboard ganha a rota `/pdocs/<nome>/` e o campo `docs` em `/api/state`; `dh harness-path --json` ganha `pdocs`. Ver `docs/prd/PRD-017-pdocs.md` e o `CHANGELOG.md`.
+
 ## 1. Problema
 
 Hoje o estado do dh de cada projeto vive em `<repo>/.harness/`. No trabalho os colegas não usam o dh e pediram ao dono

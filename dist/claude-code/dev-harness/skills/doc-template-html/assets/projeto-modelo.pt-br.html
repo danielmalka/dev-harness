@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Harness · Mapa do kit Dev Harness (não publicar)</title>
+  <title>Harness · dev-harness (não publicar)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -659,136 +659,113 @@ pre.mermaid svg { max-width: 100%; height: auto; }
         </svg>
         Harness<span>.</span>
       </div>
-      <div class="side__sub">Doc interno</div>
-      <div class="side__type">catalogo</div>
+       <div class="side__sub">Doc interno</div>
+      <div class="side__type">projeto</div>
       <nav>
-        <a href="#posicionamento"><b>01</b>Posicionamento</a>
-        <a href="#linha-a"><b>02</b>Agents</a>
-        <a href="#linha-b"><b>03</b>Commands</a>
-        <a href="#jornada"><b>04</b>Jornada</a>
-        <a href="#tabela"><b>05</b>Tabela consolidada</a>
-        <a href="#pacotes"><b>06</b>Pacotes compostos</a>
-        <a href="#aberto"><b>07</b>Mapeado vs. em aberto</a>
+        <a href="#motivacao"><b>01</b>Motivação</a>
+        <a href="#como-rodar"><b>02</b>Como rodar local</a>
+        <a href="#planejado-desenvolvido"><b>03</b>Planejado e desenvolvido</a>
+        <a href="#changelog"><b>04</b>Changelog</a>
+        <a href="#diagrama-macro"><b>05</b>Diagrama macro</a>
+        <a href="#dominios"><b>06</b>Domínios e bounded contexts</a>
+        <a href="#referencias"><b>07</b>Referências</a>
       </nav>
     </aside>
     <div class="wrap" id="conteudo">
-      <div class="banner">Modelo da skill doc-template-html. Catálogo ilustrativo do próprio kit.</div>
+      <div class="banner">Doc interno. Não publicar.</div>
       <header class="hero">
-        <div class="eyebrow">Catálogo · modelo</div>
-        <h1>Mapa do kit Dev Harness</h1>
-        <p class="lead">O kit leva agentes, comandos e skills para outra máquina. Não inclui o runtime de IA, credenciais nem compiladores de cada projeto.</p>
+        <div class="eyebrow">Projeto · modelo</div>
+        <h1>dev-harness</h1>
+        <p class="lead">Modelo preenchido do tipo projeto, com fatos estáveis do próprio kit dev-harness. Copie, troque os fatos pelos do seu projeto e deixe “ainda não fechado” no que não souber.</p>
         <div class="chips">
-          <span class="chip">data <b>2026-09-20</b></span>
+           <span class="chip">data <b>2026-10-09</b></span>
           <span class="chip">status <b>modelo</b></span>
-          <span class="chip">dono <b>harness-maintainer</b></span>
-          <span class="chip">path <b>assets/catalogo-preview.html</b></span>
+          <span class="chip">path <b>pdocs/index.html</b></span>
         </div>
       </header>
 
-      <div class="strip">
-        <a href="#linha-a"><span>Âncora</span><strong>Agents</strong>18 papéis</a>
-        <a href="#linha-b"><span>Operação</span><strong>Commands</strong>16 entradas</a>
-      </div>
-
-      <h2 id="posicionamento"><span class="n">01</span>Posicionamento</h2>
+      <h2 id="motivacao"><span class="n">01</span>Motivação</h2>
       <div class="card">
-        <h3>O que isto é</h3>
-        <p>Kit portátil de desenvolvimento assistido. O clone carrega fontes em <code>.agents/</code>, <code>.commands/</code> e <code>.skills/</code>, mais um pacote nativo para o primeiro runtime. Autenticação, modelo e toolchain do projeto ficam fora do pacote e entram no diagnóstico.</p>
+        <h3>Por que o projeto existe</h3>
+        <p>Kit portátil de desenvolvimento assistido por IA. Instale no Claude Code, desenvolva. (README.md do repositório.)</p>
       </div>
 
-      <h2 id="linha-a"><span class="n">02</span>Agents</h2>
-      <span class="tag">Kit · papéis</span>
-      <p>Dezoito papéis do ciclo: coordenador na sessão principal e dezessete especialistas. Cada arquivo traz missão, gatilho, limites e formato de saída.</p>
-      <p>Inclusão: <span class="price">no clone</span></p>
-      <div class="grid-2">
-        <div class="card in">
-          <h3>Entra</h3>
-          <ul>
-            <li>Definições em inglês, author <code>malka</code>.</li>
-            <li>Ferramentas restritas por papel (leitura vs. escrita).</li>
-          </ul>
-        </div>
-        <div class="card out">
-          <h3>Fica de fora</h3>
-          <ul>
-            <li>Modelo ou runtime copiado de outra máquina.</li>
-            <li>MCP pessoal e credenciais.</li>
-          </ul>
-        </div>
-      </div>
-
-      <h2 id="linha-b"><span class="n">03</span>Commands</h2>
-      <span class="tag">Kit · operação</span>
-      <p>Dezesseis entradas de trabalho com prefixo proposto <code>/dh:</code>. O comando roteia; o método fica na skill.</p>
-      <p>Inclusão: <span class="price">no clone</span></p>
-      <div class="grid-2">
-        <div class="card in">
-          <h3>Entra</h3>
-          <ul>
-            <li>doctor, setup, plan, build, review, verify e o restante do ciclo.</li>
-            <li>Contrato de saída por comando.</li>
-          </ul>
-        </div>
-        <div class="card out">
-          <h3>Fica de fora</h3>
-          <ul>
-            <li>Instalação automática de ferramentas faltantes.</li>
-            <li>Publish ou deploy sem autorização.</li>
-          </ul>
-        </div>
-      </div>
-
-      <h2 id="jornada"><span class="n">04</span>Jornada</h2>
-      <ol class="steps">
-        <li><strong>Obter o kit</strong> por clone ou arquivo.</li>
-        <li><strong>Diagnosticar</strong> runtime, pacote e toolchain. Não instalar sozinho.</li>
-        <li><strong>Percorrer uma fatia</strong> com plano, implementação, teste, revisão e handoff.</li>
-      </ol>
-
-      <h2 id="tabela"><span class="n">05</span>Tabela consolidada</h2>
+      <h2 id="como-rodar"><span class="n">02</span>Como rodar local</h2>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Linha</th><th>Promessa</th><th>Inclusão</th></tr>
+            <tr><th>Comando</th><th>O que faz</th></tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Agents</td>
-              <td>Papéis do ciclo com limites explícitos</td>
-              <td><span class="price">no clone</span></td>
-            </tr>
-            <tr>
-              <td>Commands</td>
-              <td>Entradas de trabalho roteadas</td>
-              <td><span class="price">no clone</span></td>
-            </tr>
+            <tr><td><code>go run ./cmd/dh validate</code></td><td>valida as fontes do kit</td></tr>
+            <tr><td><code>go run ./cmd/dh build</code></td><td>gera o pacote em dist/ a partir das fontes</td></tr>
+            <tr><td><code>go run ./cmd/dh doctor</code></td><td>diagnostica o ambiente</td></tr>
+            <tr><td><code>go run ./cmd/dh dashboard</code></td><td>abre o painel local</td></tr>
           </tbody>
         </table>
       </div>
 
-      <h2 id="pacotes"><span class="n">06</span>Pacotes compostos</h2>
-      <p>O pacote Claude Code em <code>dist/</code> é gerado das fontes. Edição manual em <code>dist/</code> não é o fluxo de manutenção.</p>
+      <h2 id="planejado-desenvolvido"><span class="n">03</span>Planejado e desenvolvido</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>id</th><th>Título</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>PRD-016</td><td>Métricas, gráficos e leitura da memória no dashboard</td><td>entregue em 2026-10-09</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>gerado em 2026-10-09</p>
 
-      <h2 id="aberto"><span class="n">07</span>Mapeado vs. em aberto</h2>
-      <div class="grid-2">
-        <div class="card in">
-          <h3>Mapeado</h3>
-          <ul>
-            <li>18 agentes em <code>.agents/</code>.</li>
-            <li>Esta skill de HTML interno.</li>
-          </ul>
-        </div>
-        <div class="card out">
-          <h3>Em aberto</h3>
-          <ul>
-            <li>Os 16 comandos ainda não estão todos operacionais.</li>
-            <li>Adaptador e empacotador determinístico.</li>
-          </ul>
-        </div>
+      <h2 id="changelog"><span class="n">04</span>Changelog</h2>
+      <ul>
+        <li><strong>0.23.0 — 2026-10-09</strong>: Métricas no card do projeto do dashboard</li>
+        <li><strong>0.22.0 — 2026-10-09</strong>: Três profiles de stack novos</li>
+        <li><strong>0.21.0 — 2026-10-08</strong>: Pasta global ~/.harness</li>
+      </ul>
+
+      <h2 id="diagrama-macro"><span class="n">05</span>Diagrama macro</h2>
+      <p>Pastas de primeiro nível do repositório.</p>
+      <pre class="mermaid">
+flowchart LR
+    repo["dev-harness"]
+    repo --> n0[".agents"]
+    repo --> n1[".skills"]
+    repo --> n2[".commands"]
+    repo --> n3["templates"]
+    repo --> n4["profiles"]
+    repo --> n5["cmd"]
+    repo --> n6["internal"]
+    repo --> n7["dist"]
+    repo --> n8["docs"]
+</pre>
+
+      <h2 id="dominios"><span class="n">06</span>Domínios e bounded contexts</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Domínio</th><th>Responsabilidade</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ainda não fechado</td><td>ainda não fechado</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="referencias"><span class="n">07</span>Referências</h2>
+      <div class="card">
+        <ul>
+          <li><code>README.md</code>: visão geral e instalação</li>
+          <li><code>AGENTS.md</code>: regras vigentes do repositório</li>
+          <li><code>CHANGELOG.md</code>: notas de cada versão</li>
+          <li><code>docs/plano-produto.html</code>: plano de produto</li>
+          <li><code>docs/tutorial.html</code>: tutorial</li>
+        </ul>
       </div>
       <footer class="doc-foot">
-        <div>Arquivo: <code>assets/catalogo-preview.html</code> · tipo <code>catalogo</code></div>
-        <div>Próximo passo: <code>scripts/stamp.sh --type … --out …</code> e preencher os “ainda não fechado”.</div>
+        <div>Arquivo: <code>pdocs/index.html</code> · tipo <code>projeto</code></div>
+        <div>Próximo passo: trocar cada “ainda não fechado” por fato. Buraco continua “ainda não fechado”.</div>
       </footer>
     </div>
   </div>
@@ -821,5 +798,14 @@ pre.mermaid svg { max-width: 100%; height: auto; }
   document.querySelectorAll("h2[id]").forEach(function (h) { io.observe(h); });
 })();
 </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js" integrity="sha384-EOXBFmc3gx5mb+vn0vPvvGqACToJD24hhacX5Yx+8NUUQrHIle/Qi5Bg9o3zKwW2" crossorigin="anonymous"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: {
+      fontFamily: "Plus Jakarta Sans, system-ui, sans-serif", background: "#0C0D10",
+      primaryColor: "#1A1C22", primaryTextColor: "#F1EFE8", primaryBorderColor: "#3DFF9A",
+      secondaryColor: "#131418", tertiaryColor: "#131418", lineColor: "#E2D2A8", textColor: "#F1EFE8",
+      clusterBkg: "#131418", clusterBorder: "#3DFF9A", edgeLabelBackground: "#1A1C22", mainBkg: "#1A1C22"
+    } });
+  </script>
 </body>
 </html>

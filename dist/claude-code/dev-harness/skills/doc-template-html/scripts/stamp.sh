@@ -16,7 +16,7 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(sys.argv[1])
-TYPES = ("catalogo", "plano", "feature", "melhoria", "bug", "report")
+TYPES = ("catalogo", "plano", "feature", "melhoria", "bug", "report", "projeto")
 LANG = {
     "pt-br": {
         "html_lang": "pt-BR",
@@ -65,6 +65,7 @@ LABELS = {
         "melhoria": "Melhoria",
         "bug": "Bug",
         "report": "Report",
+        "projeto": "Projeto",
     },
     "en": {
         "catalogo": "Catalog",
@@ -73,6 +74,7 @@ LABELS = {
         "melhoria": "Improvement",
         "bug": "Bug",
         "report": "Report",
+        "projeto": "Project",
     },
 }
 FONTS = (
@@ -80,6 +82,16 @@ FONTS = (
     "&family=Outfit:wght@500;600;700;800"
     "&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
 )
+# Mermaid: the one place that pins origin, exact version and SRI hash (types.md quotes this, without the number).
+MERMAID_TAG = """  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js" integrity="sha384-EOXBFmc3gx5mb+vn0vPvvGqACToJD24hhacX5Yx+8NUUQrHIle/Qi5Bg9o3zKwW2" crossorigin="anonymous"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: {
+      fontFamily: "Plus Jakarta Sans, system-ui, sans-serif", background: "#0C0D10",
+      primaryColor: "#1A1C22", primaryTextColor: "#F1EFE8", primaryBorderColor: "#3DFF9A",
+      secondaryColor: "#131418", tertiaryColor: "#131418", lineColor: "#E2D2A8", textColor: "#F1EFE8",
+      clusterBkg: "#131418", clusterBorder: "#3DFF9A", edgeLabelBackground: "#1A1C22", mainBkg: "#1A1C22"
+    } });
+  </script>"""
 MARK = """        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
           <defs>
             <linearGradient id="mark-grad" x1="4" y1="2" x2="28" y2="30">
@@ -98,6 +110,8 @@ SCRIPT_RE = re.compile(r"<script>.*?</script>", re.S)
 PROTECTED = {
     (ROOT / "assets" / "modelo.html").resolve(),
     (ROOT / "assets" / "catalogo-preview.html").resolve(),
+    (ROOT / "assets" / "projeto-modelo.pt-br.html").resolve(),
+    (ROOT / "assets" / "projeto-modelo.en.html").resolve(),
     (ROOT / "assets" / "shell.css").resolve(),
     (ROOT / "assets" / "shell.js").resolve(),
 }
@@ -146,7 +160,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 
 def sync_examples(css: str, js: str) -> None:
-    for name in ("modelo.html", "catalogo-preview.html"):
+    for name in ("modelo.html", "catalogo-preview.html", "projeto-modelo.pt-br.html", "projeto-modelo.en.html"):
         path = ROOT / "assets" / name
         if not path.is_file():
             continue
@@ -248,6 +262,7 @@ def render(ns: argparse.Namespace, css: str, js: str) -> str:
   <script>
 {js.rstrip()}
   </script>
+{MERMAID_TAG}
 </body>
 </html>
 """
