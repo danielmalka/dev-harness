@@ -1,0 +1,28 @@
+id: python
+name: Python
+summary: Python services and packages managed by pip, uv or poetry, including Django and FastAPI backends, with tests under tests/.
+extends: base
+stack:
+  - python
+commands:
+  test: null
+  lint: null
+  build: null
+  run: null
+conventions:
+  - Read pyproject.toml, requirements*.txt, tox.ini or noxfile.py and any Makefile first; a repo-defined target outranks the raw invocation and is the value recorded in .harness/project.yaml. Use the repo's environment manager (uv, poetry, venv) as already configured.
+  - Typical observed values, recorded only with evidence: test pytest or python manage.py test (Django); lint ruff check or flake8; type check mypy or pyright; format check ruff format --check or black --check; run uvicorn <module>:app (FastAPI) or python manage.py runserver (Django).
+  - Style source is PEP 8 and the formatter and linter configuration already in pyproject.toml, setup.cfg or tox.ini, which outranks it. Apply to the files the slice touches, not to untouched code.
+  - Follow the layout already present (src/ layout or flat package, or the Django app layout). Do not introduce a new module, package or layer for a one-file change.
+  - Add type hints to new public functions when the repo already uses them; run the configured type checker at the configured strictness, not a stricter one.
+  - Tests go in tests/ (or the app's tests module) using the runner the repo already uses; when the repo has tests, a new behavior ships with a test at the level the repo already uses.
+  - Django section, applies only when django appears in the dependencies or manage.py exists: follow the layering already present (logic in models and services rather than views when that is the repo's pattern), use the ORM and the app structure already present, keep settings split as the repo has it, and never hard-code SECRET_KEY or database credentials. Commands from this section are recorded only with evidence.
+  - FastAPI section, applies only when fastapi appears in the dependencies: declare request and response shapes with Pydantic models, follow the layering already present (thin route functions when that is the repo's pattern), use Depends for shared resources, and keep async routes free of blocking calls. Commands from this section are recorded only with evidence.
+  - Only when the slice changes a public endpoint, HTTP changes go through the architect contract (skill api-contracts) before implementation.
+  - The dependency manifest and lock file (pyproject.toml, uv.lock, poetry.lock, requirements*.txt) stay in the write set of any slice that adds, updates or removes a package.
+  - Database work uses the builder role in lane dados and the data-migrations skill; migrations (Django migrate, Alembic) run only against a disposable database during verification.
+limits:
+  - Do not install or switch the Python version, uv, poetry, pip or a virtual environment, and do not run a dependency install or upgrade, without authorization recorded for the slice.
+  - Do not assume ruff, mypy, pytest, flake8, black, Docker or a Makefile are present; probe the manifests and repo root and record unknown.
+  - Do not edit virtual environments, site-packages or generated files; fixes go in the project sources or configuration.
+  - Do not apply migrations or load fixtures against a non-disposable database.

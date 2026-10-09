@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.22.0 — 2026-10-09
+
+- **Três profiles de stack novos** (PRD-015), todos `extends: base`, em inglês, sem campo de framework: seções de framework dentro do arquivo, aplicadas só com evidência nos arquivos do repositório.
+  - `kotlin`: serviços Kotlin na JVM (Gradle ou Maven), com seções **Spring Boot** (`org.springframework.boot`), **Quarkus** (`io.quarkus`) e **Micronaut** (`io.micronaut`), cada uma ativa só quando a dependência aparece nos arquivos de build.
+  - `python`: serviços Python, com seções **Django** e **FastAPI**, também condicionadas à evidência.
+  - `typescript-api`: serviços Node/TypeScript sem interface. Desempate com `typescript-web` (interface renderizada) e a regra de monorepo no `profiles/README.md`, seção Matching.
+- Comandos de teste, lint, build e run seguem a regra do kit: valores típicos, gravados em `project.yaml` só quando observados no repositório.
+- **`dh validate` passa a exigir os três profiles** (`internal/kit/validate.go`, com teste); a contagem do kit vai de 4 para 7 profiles.
+- "Python fora da v1" deixa de valer: `profiles/README.md` não adia mais Python.
+- **Prova de campo pendente** (R6 e R10 do PRD-015): o dono roda `/dh:setup` em modo proposta (sem escrita) num repositório real de cada stack na máquina do trabalho, e confere que o profile certo é nomeado e nenhum comando é inventado. Até lá o PRD fica "entregue (prova de campo pendente)".
+- Fora de escopo: Kotlin Android e Multiplatform, Electron, frameworks além dos cinco nomeados, fixture nova, eval paga. Sem comando, agente ou skill nova (seguem 19 + 1).
+
 ## 0.21.0 — 2026-10-08
 
 - **Pasta global `~/.harness`** (PRD-014, ADR-007). Uma pasta por máquina e por ambiente (WSL, Windows e macOS têm cada um a sua; o kit não traduz caminhos), criada pelo `dh` no primeiro uso; `DH_HOME` muda o lugar. Layout: `config.yaml` (registro de todos os projetos em `projects:`, mais os padrões `language`, `reviewers`, `mode` e `dashboard.sprites`), `projects/<nome>/` (MEMORY, EPOCHAL, RISKS, `project.yaml`, `local.yaml`, `tasks/`, `prd/`, direto na pasta), `sessions/` e `dashboard/`. Em modo `global` nada do dh é escrito na árvore do repositório (sem pasta, arquivo ou linha de `.gitignore`). Só o `dh` lê e escreve o `config.yaml`.

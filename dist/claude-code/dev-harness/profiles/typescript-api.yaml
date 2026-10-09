@@ -1,0 +1,29 @@
+id: typescript-api
+name: TypeScript API
+summary: TypeScript or Node services without a rendered user interface (HTTP APIs, workers, CLIs), verified through their tests and contracts.
+extends: base
+stack:
+  - typescript
+  - node
+commands:
+  test: null
+  lint: null
+  build: null
+  run: null
+conventions:
+  - Read package.json scripts and use those names. Do not assume npm over pnpm or yarn; the lock file in the repo names the package manager. A repo-defined script outranks the raw invocation and is the value recorded in .harness/project.yaml.
+  - Typical observed values, recorded only with evidence: test npm test (vitest, jest or node --test); lint npm run lint; typecheck tsc --noEmit; build npm run build; run npm start or npm run dev. Names come from the scripts block, not from this list.
+  - Style source is the lint and format configuration the repo already carries (eslint config, prettier, biome, tsconfig.json), referenced by package.json scripts; it outranks personal preference. No framework is assumed; read dependencies for Express, Fastify, NestJS, Hono or other and follow that framework's idioms only when it appears there.
+  - Follow the folder layout and module system already present (ESM or CommonJS). Do not introduce a new module, package or layer for a one-file change.
+  - Typecheck is a quality gate, not acceptance. Respect the strictness in tsconfig.json when it exists; do not loosen it or add any to silence an error without a stated reason.
+  - When the service takes external input, validate it at the service boundary with the validation approach already in the repo (zod, a framework schema); do not trust request bodies, query strings or environment variables unparsed.
+  - Only when the slice changes a public endpoint, HTTP changes go through the architect contract (skill api-contracts) before implementation; do not invent response shapes.
+  - Tests live where the repo already places them (next to the source or in test/); when the repo has tests, a new behavior ships with a test at the level the repo already uses.
+  - package.json and the lock file stay in the write set of any slice that adds, updates or removes a package; the lock file is committed with the change.
+  - Database work uses the builder role in lane dados and the data-migrations skill; migrations run only against a disposable database during verification.
+limits:
+  - Do not run npm install, pnpm install, yarn or change the Node version or package manager without authorization recorded for the slice.
+  - Do not assume eslint, prettier, biome, vitest, jest, Docker or a Makefile are present; probe package.json and the repo root and record unknown.
+  - Do not edit node_modules/, dist/ or generated files; fixes go in the project sources or configuration.
+  - Do not apply migrations against a non-disposable database.
+  - A project with a rendered user interface belongs to typescript-web, see profiles/README.md (Matching).
