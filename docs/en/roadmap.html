@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
-           <span class="chip">date <b>2026-10-09</b></span>
-          <span class="chip">status <b>0.24.0 · live</b></span>
+           <span class="chip">date <b>2026-10-12</b></span>
+          <span class="chip">status <b>0.25.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
 
+      <div class="card">
+        <h3>0.25.0 · Configuration command (dh config)</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-018. The <code>dh config</code> subcommand shows <code>language</code>, <code>mode</code> and <code>dashboard.sprites</code> and, with <code>set</code> and <code>unset</code>, writes those three keys. <code>reviewers</code> and <code>projects</code> stay out (edit by hand or <code>dh link</code>). Writes under <code>config.lock</code>, other lines preserved, invalid input leaves the file untouched. A running dashboard picks up the new <code>dashboard.sprites</code> on its next refresh, no restart. No new agent, skill or command; no new dependency.</p>
+        <p><strong>Relations:</strong> PRD-018 (<code>docs/prd/PRD-018-config.md</code>); tutorial sections "Global mode" and "Local dashboard"; README (pt/en).</p>
+        <p><strong>Tested?</strong> QA of all PRD rules, reported by the coordinator; this record did not rerun the commands. <code>go test</code> and <code>dh validate</code> are not recorded here: see the delivery.</p>
+      </div>
       <div class="card">
         <h3>0.24.0 · Per-project documentation (pdocs)</h3>
         <p><strong>Status:</strong> done.</p>
@@ -1706,7 +1713,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.24.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.25.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

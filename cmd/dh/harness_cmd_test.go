@@ -181,3 +181,32 @@ func TestHarnessPathPdocsField(t *testing.T) {
 		t.Errorf("link --json has pdocs: %q", out)
 	}
 }
+
+func TestConfigCommand(t *testing.T) {
+	env(t)
+	code, out, _ := dh(t, "config")
+	if code != 0 || out != "language: \nmode: \ndashboard.sprites: \n" {
+		t.Fatalf("empty: %d %q", code, out)
+	}
+	sp := t.TempDir()
+	for _, a := range [][]string{{"language", "pt-br"}, {"mode", "global"}, {"dashboard.sprites", sp}} {
+		if code, _, e := dh(t, "config", "set", a[0], a[1]); code != 0 {
+			t.Fatalf("set %v: %s", a, e)
+		}
+	}
+	if _, out, _ = dh(t, "config"); out != "language: pt-br\nmode: global\ndashboard.sprites: "+sp+"\n" {
+		t.Errorf("text: %q", out)
+	}
+	if _, out, _ = dh(t, "config", "--json"); out != `{"language":"pt-br","mode":"global","dashboard.sprites":"`+sp+"\"}\n" {
+		t.Errorf("json: %q", out)
+	}
+	if code, _, e := dh(t, "config", "set", "mode", "foo"); code != 1 || e == "" {
+		t.Errorf("invalid: %d %q", code, e)
+	}
+	if code, _, _ := dh(t, "config", "unset", "dashboard.sprites"); code != 0 {
+		t.Error("unset")
+	}
+	if _, out, _ = dh(t, "config"); !strings.HasSuffix(out, "dashboard.sprites: \n") {
+		t.Errorf("after unset: %q", out)
+	}
+}

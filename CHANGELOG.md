@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.25.0 — 2026-10-12
+
+- **`dh config` para as chaves escalares** (PRD-018): `dh config` mostra `language`, `mode` e `dashboard.sprites` (`--json`: `{"language","mode","dashboard.sprites"}`); `dh config set <chave> <valor>` e `dh config unset <chave>` gravam essas três. `language` aceita `en` ou `pt-br`; `mode` aceita `repo` ou `global`; `dashboard.sprites` aceita caminho absoluto ou `~/…`, precisa ser pasta existente e é gravado como digitado. `reviewers` e `projects` são recusados (edite à mão ou use `dh link`).
+- Entrada inválida sai com código 1 e não altera o arquivo; a escrita usa `config.lock` e preserva as demais linhas do `config.yaml`.
+- Dashboard em execução pega o novo `dashboard.sprites` no próximo refresh (alguns segundos, sem reiniciar).
+- Motivação: depois da 0.21.0, a única forma de trocar os sprites era editar o `config.yaml` à mão.
+- Binário `dh`: muda o comportamento (subcomando `config`). Sem agente, skill ou comando novo (seguem 19 + 1) e sem dependência nova.
+
 ## 0.24.0 — 2026-10-09
 
 - **Documentação por projeto, `pdocs`** (PRD-017): pasta `<home>/projects/<nome>/pdocs/`, sempre global nos dois modos (nunca dentro do repositório), criada sob pedido por `/dh:document pdocs` (`docs-guide`) e atualizada ao fim de cada lote quando existe. Tipo novo de documento `projeto` na skill `doc-template-html`: sete seções e diagrama macro Mermaid obrigatório.
