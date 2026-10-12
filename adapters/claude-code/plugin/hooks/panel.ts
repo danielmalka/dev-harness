@@ -1,7 +1,7 @@
 import type { EngineInterface, Register } from 'claude-code'
 import { denySpawn, guardFile, homeFrom, resolvePath } from './runtime-guard.ts'
 import { DASHBOARD_COMMAND, dhPath, registerDashboard } from './dashboard-command.ts'
-import { registerSnapshot } from './snapshot-writer.ts'
+import { applyEvent, iso, limitsFrom, type Ev, type Limits, type Snap } from './snapshot-writer.ts'
 import { driftMessage, findDrift, statusValue } from './status-drift.ts'
 
 // Commit/PR text that mentions AI: an empty `attribution` covers the default footer, this covers the rest.
@@ -321,6 +321,142 @@ async function markDirty<R extends { deny?: unknown; isError?: boolean }>($: Eng
   return r
 }
 
+// BUG-001 snapshot writer (engine events, no classic.*): per-session file, serialized writes.
+const SAFE_ID = /^[\w-]{1,128}$/
+const BEAT_MS = 30_000
+const JOB_MS = 2_000
+const END_MS = 1_000 // session.end's whole budget is 1.5s: wait at most this long for the close write
+
+// ponytail: module-level state; a mod reload resets it (current session only).
+let chain: Promise<unknown> = Promise.resolve()
+let beatSession = ''
+let beat: { cancel: () => void } | undefined
+const SKIP_LIMIT = 3
+const closedHere = new Set<string>() // ids this module instance closed via session.end: a late record must not reopen them
+const skips = new Map<string, number>() // consecutive skipped writes per session (unparseable file)
+
+// R10: <home>/sessions, <home> by the ADR-007 rule (DH_HOME is the only control); '' when no home is known.
+// $.fs.write creates missing parent directories (engine type doc), so a clean machine needs no `dh` call first.
+async function snapshotDir($: EngineInterface): Promise<string> {
+  const home = homeFrom(await $.env.get('DH_HOME'), await $.env.get('HOME'), await $.env.get('USERPROFILE'), await $.session.cwd().catch(() => '/'))
+  return home ? `${home.replace(/^\/([A-Z]):/, '$1:')}/sessions` : ''
+}
+
+// {} when the file does not exist; undefined when it exists but cannot be read or parsed (the caller skips the write).
+async function readPrev($: EngineInterface, path: string): Promise<Snap | undefined> {
+  try {
+    if (!(await $.fs.exists(path))) return {}
+    const o = JSON.parse(await $.fs.read(path) as string)
+    return o && typeof o === 'object' && !Array.isArray(o) ? o : undefined
+  } catch {
+    return undefined
+  }
+}
+
+// A hung fs/usage call must never hold the session: each serialized job gets 2s.
+function withTimeout<T>($: EngineInterface, p: Promise<T>): Promise<T> {
+  let t: { cancel: () => void } | undefined
+  const limit = new Promise<never>((_, reject) => { t = $.clock.after(JOB_MS, () => reject(new Error('snapshot job timed out'))) })
+  return Promise.race([p, limit]).finally(() => t?.cancel())
+}
+
+async function usageLimits($: EngineInterface): Promise<Limits | undefined> {
+  try { return limitsFrom((await $.session.usage()).rateLimits) } catch { return undefined } // no usage: keep previous
+}
+
+async function touch($: EngineInterface): Promise<void> {
+  const id = beatSession
+  const dir = await snapshotDir($)
+  if (!id || !dir) return
+  const path = `${dir}/${id}.json`
+  const prev = await readPrev($, path)
+  const limits = await usageLimits($) // a limit's age must reflect when it was measured
+  const now = iso(await $.clock.now())
+  // Re-checked after the last await, inside the serialized job: an ended session is never resurrected.
+  if (!prev || beatSession !== id || !prev.session_id || prev.state === 'closed') return
+  await $.fs.write(path, JSON.stringify({ ...prev, updated_at: now, ...(limits ? { rate_limits: limits } : {}) }, null, 2) + '\n')
+}
+
+async function write($: EngineInterface, name: string, e: Ev): Promise<void> {
+  if (!SAFE_ID.test(String(e.session_id ?? ''))) return
+  {
+    const dir = await snapshotDir($)
+    if (!dir) return
+    const path = `${dir}/${e.session_id}.json`
+    const limits = await usageLimits($)
+    let prev = await readPrev($, path)
+    if (!prev) {
+      // exists but unreadable/partial: do not overwrite what another writer is mid-way through,
+      // unless it stays unparseable for SKIP_LIMIT writes in a row (then it is corrupt, not partial)
+      const n = (skips.get(e.session_id) ?? 0) + 1
+      if (n < SKIP_LIMIT) { skips.set(e.session_id, n); return }
+      prev = {}
+    }
+    skips.delete(e.session_id)
+    // A late record of a session this instance ended never reopens it. A SessionStart or a prompt (always
+    // user-initiated, e.g. an in-process /resume of the same id) lifts the mark; the file's own state is no signal.
+    if (name === 'SessionStart' || name === 'UserPromptSubmit') closedHere.delete(e.session_id)
+    else if (name !== 'SessionEnd' && closedHere.has(e.session_id)) return
+    const now = iso(await $.clock.now())
+    const next = applyEvent(prev, name, e, now, limits)
+    if (!next) return
+    // After /clear or a resume the process continues under a new id and no session.start fires:
+    // fill what only that event would have written, so the dashboard can attribute the file to a project.
+    if (name !== 'SessionEnd') {
+      if (!next.cwd) { const c = await $.session.cwd().catch(() => undefined); if (typeof c === 'string' && c) next.cwd = c }
+      if (!next.model?.id) { const m = await $.session.model().catch(() => undefined); if (typeof m === 'string' && m) next.model = { ...(next.model ?? {}), id: m } }
+      next.started_at ||= now
+    }
+    await $.fs.write(path, JSON.stringify(next, null, 2) + '\n')
+    if (name !== 'SessionEnd') {
+      beatSession = e.session_id
+      beat ??= $.clock.every(BEAT_MS, () => { chain = chain.then(() => withTimeout($, touch($))).catch(() => undefined) })
+    }
+  }
+}
+
+// Events are serialized so two quick hooks never read-modify-write the same file out of order.
+// A failed write is silent: a snapshot is a convenience, never a reason to disturb the session.
+// The session id is read when the event happens, before queueing, so a late record never lands on the next id.
+async function record($: EngineInterface, name: string, e0: Ev): Promise<void> {
+  const e: Ev = { ...e0, session_id: e0.session_id ?? await $.session.id().catch(() => undefined) }
+  const job = chain.then(() => withTimeout($, write($, name, e)))
+  chain = job.catch(() => undefined)
+  await job.catch(() => undefined)
+}
+
+// What panel.ts calls from its engine hooks. Each is fail-open and returns a promise that never rejects.
+// Hot-path events (prompt, tool, subagent) do not wait for the write; chain keeps the order.
+async function recordStart($: EngineInterface, e: { cwd?: string }): Promise<void> {
+  const model = await $.session.model().catch(() => undefined) // agent type: the engine does not expose it
+  await record($, 'SessionStart', { cwd: e.cwd, model })
+}
+function recordPrompt($: EngineInterface): void { void record($, 'UserPromptSubmit', {}) }
+function recordTool($: EngineInterface): void { void record($, 'PostToolUse', {}) }
+function recordSpawn($: EngineInterface, subagentType: string, agentId: string): void {
+  void record($, 'SubagentStart', { agent_type: subagentType, agent_id: agentId })
+}
+// A subagent's turn.complete is SubagentStop (keeps activity, does not wait); the main loop's is Stop/StopFailure.
+function recordTurn($: EngineInterface, e: { agentId?: string; reason?: string }): Promise<void> {
+  if (e.agentId) { void record($, 'SubagentStop', { agent_id: e.agentId }); return Promise.resolve() }
+  return record($, e.reason === 'error' ? 'StopFailure' : 'Stop', {})
+}
+// The close write stays last in the chain (ordering kept), but session.end has 1.5s in all: when the chain
+// is slow (a hung fs, a long queue) stop waiting after END_MS and let the job finish on its own, instead of
+// being cut by the engine and replayed through failOpen.
+async function recordEnd($: EngineInterface, e: { sessionId?: string }): Promise<void> {
+  // Synchronously, before anything is queued: a hung fs call in the close job cannot leave the beat running,
+  // and records still queued for this id are dropped as late (the close write follows them).
+  if (e.sessionId) {
+    closedHere.add(e.sessionId)
+    if (e.sessionId === beatSession) { beat?.cancel(); beat = undefined; beatSession = '' }
+  }
+  let t: { cancel: () => void } | undefined
+  const cap = new Promise<void>(resolve => { t = $.clock.after(END_MS, () => resolve()) })
+  await Promise.race([record($, 'SessionEnd', { session_id: e.sessionId }), cap])
+  t?.cancel()
+}
+
 // ponytail: a mod failure never blocks a tool (fail-open); the trap is a convenience, not security.
 const failOpen = ($: EngineInterface, e: any, next: any) => next(e)
 
@@ -328,12 +464,12 @@ const failOpen = ($: EngineInterface, e: any, next: any) => next(e)
 // so panel.ts is the entry and chains the runtime-guard checks (ADR-005) ahead of its own.
 // The loader refuses $ passed across an import: denySpawn gets `{}`, guardFile gets <home> as a string.
 export const register: Register = on => {
-  registerSnapshot(on)
   registerDashboard(on)
 
   on('session.start', async ($, e, next) => {
     const r = await next(e)
     await $.command.register(DASHBOARD_COMMAND).catch(() => undefined)
+    await recordStart($, e)
     await refresh($).catch(() => undefined)
     return r
   })
@@ -341,6 +477,7 @@ export const register: Register = on => {
   on('turn.complete', async ($, e, next) => {
     const r = await next(e)
     if (e.agentId) running.delete(e.agentId)
+    await recordTurn($, e)
     await refresh($).catch(() => undefined)
     return r
   })
@@ -349,10 +486,25 @@ export const register: Register = on => {
     const r = await next(x)
     if (r.agentId) {
       running.set(r.agentId, x.description)
+      recordSpawn($, x.subagentType, r.agentId)
       await refresh($).catch(() => undefined)
     }
     return r
   })).catch(failOpen)
+
+  on('prompt.submit', ($, e, next) => { recordPrompt($); return next(e) }).catch(failOpen)
+
+  // BUG-001: every other tool call is activity too; recorded after the guards beneath have answered.
+  on('tool.call', async ($, e, next) => {
+    const r = await next(e)
+    recordTool($)
+    return r
+  }).catch(failOpen)
+
+  on('session.end', async ($, e, next) => {
+    await recordEnd($, e)
+    return next(e)
+  }).catch(failOpen)
 
   on('tool.call', { tool: 'Edit' }, guardWrite).catch(failOpen)
   on('tool.call', { tool: 'Write' }, guardWrite).catch(failOpen)

@@ -706,6 +706,11 @@ profiles/"] --> B["dh build"]
         <p><strong>Resumo:</strong> PRD-018. Subcomando <code>dh config</code>: mostra <code>language</code>, <code>mode</code> e <code>dashboard.sprites</code> e, com <code>set</code> e <code>unset</code>, grava essas três chaves. <code>reviewers</code> e <code>projects</code> ficam fora (edição à mão ou <code>dh link</code>). Escrita sob <code>config.lock</code>, linhas alheias preservadas, entrada inválida não altera o arquivo. Dashboard em execução pega o novo <code>dashboard.sprites</code> no próximo refresh, sem reiniciar. Sem agente, skill ou comando novo; sem dependência nova.</p>
         <p><strong>Relações:</strong> PRD-018 (<code>docs/prd/PRD-018-config.md</code>); tutorial seção "Modo global" e "Dashboard local"; README (pt/en).</p>
         <p><strong>Testado?</strong> QA de todas as regras do PRD, relatado pelo coordenador; este registro não reexecutou os comandos. <code>go test</code> e <code>dh validate</code> não estão registrados aqui: ver a entrega.</p>
+        <h3>0.24.1 · Correção: snapshot da sessão em conta Team (BUG-001)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> numa organização Team o motor contorna todo hook de plugin em <code>classic.*</code>, então o snapshot por sessão nunca era escrito (dashboard sem limites e sem atividade). O escritor agora usa só eventos do motor (<code>session.start</code>, <code>prompt.submit</code>, <code>tool.call</code>, <code>agent.spawn</code>, <code>turn.complete</code>, <code>session.end</code>), com o mesmo esquema 2 e as travas inalteradas. Residuais aceitos: seção <code>dh:harness</code> do <code>prompt.compose</code> segue contornada em conta Team; o estado <code>waiting</code> deixa de existir.</p>
+        <p><strong>Relações:</strong> BUG-001; <code>CHANGELOG.md</code> 0.24.1; ADR-005 e ADR-006 (mods).</p>
+        <p><strong>Testado?</strong> <code>claude plugin test</code> (228), <code>claude plugin validate</code>, <code>go test ./...</code> e <code>dh validate</code>; ciclo completo coberto por teste de motor; prova ao vivo com <code>claude -p</code> e <code>DH_HOME</code> isolado; nenhuma eval paga.</p>
       </div>
       <div class="card">
         <h3>0.24.0 · Documentação por projeto (pdocs)</h3>

@@ -685,10 +685,10 @@ footer.doc-foot {
         <li><strong>Migrating from before 0.8.0.</strong> <code>/plugin uninstall dev-harness@dev-harness</code>, then <code>/plugin install dh@dev-harness</code>; replace <code>/dev-harness:</code> with <code>/dh:</code> in your own scripts and notes.</li>
         <li><strong>Deactivate.</strong> End the session without <code>--plugin-dir</code>, or uninstall the plugin. The <code>.harness/</code> files in your project stay: the kit never deletes your work.</li>
       </ol>
-      <p>The package includes <code>settings.json</code> and <code>hooks/hooks.json</code>, which write per-session snapshots to <code>~/.harness/sessions/&lt;session_id&gt;.json</code> (the global folder, see <a href="#global-mode">Global mode</a>), local files only, pruned after 7 days.</p>
+      <p>The package includes the <code>hooks/panel.ts</code> mod (listed in <code>hooks/hooks.json</code>) and <code>settings.json</code>. The mod writes per-session snapshots to <code>~/.harness/sessions/&lt;session_id&gt;.json</code> (the global folder, see <a href="#global-mode">Global mode</a>) from engine events, not from command hooks; they are local files only, and nothing deletes them on its own: <code>dh snapshot prune</code> removes those older than 7 days (default).</p>
 
       <h2 id="dashboard"><span class="n">02</span>Local dashboard</h2>
-      <p>A local page shows projects in progress, open PRDs, and Claude Code sessions with their state (working, idle, waiting, error, ready, attention). To run:</p>
+      <p>A local page shows projects in progress, open PRDs, and Claude Code sessions with their state (working, idle, error, ready, attention). The "waiting" state (permission pending) is not written in 0.24.1: on Team accounts the engine bypasses the hooks that detected it, and no other event replaces it (residual D2 in <code>CHANGELOG.md</code>, 0.24.1). To run:</p>
       <ol class="steps">
         <li><strong><code>/dashboard</code></strong> inside a Claude Code session. The command (registered by the mod, not a traditional <code>/dh:</code>) starts a server on the default port 4747 at http://127.0.0.1:4747 and prints the URL. It accepts arguments:
           <ul>

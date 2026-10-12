@@ -706,6 +706,11 @@ profiles/"] --> B["dh build"]
         <p><strong>Summary:</strong> PRD-018. The <code>dh config</code> subcommand shows <code>language</code>, <code>mode</code> and <code>dashboard.sprites</code> and, with <code>set</code> and <code>unset</code>, writes those three keys. <code>reviewers</code> and <code>projects</code> stay out (edit by hand or <code>dh link</code>). Writes under <code>config.lock</code>, other lines preserved, invalid input leaves the file untouched. A running dashboard picks up the new <code>dashboard.sprites</code> on its next refresh, no restart. No new agent, skill or command; no new dependency.</p>
         <p><strong>Relations:</strong> PRD-018 (<code>docs/prd/PRD-018-config.md</code>); tutorial sections "Global mode" and "Local dashboard"; README (pt/en).</p>
         <p><strong>Tested?</strong> QA of all PRD rules, reported by the coordinator; this record did not rerun the commands. <code>go test</code> and <code>dh validate</code> are not recorded here: see the delivery.</p>
+        <h3>0.24.1 · Fix: session snapshot on Team accounts (BUG-001)</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> in a Team organization the engine bypasses every plugin hook on <code>classic.*</code>, so the per-session snapshot was never written (dashboard without limits or activity). The writer now uses engine events only (<code>session.start</code>, <code>prompt.submit</code>, <code>tool.call</code>, <code>agent.spawn</code>, <code>turn.complete</code>, <code>session.end</code>), with the same schema 2 and unchanged guards. Accepted residuals: the <code>prompt.compose</code> <code>dh:harness</code> section stays bypassed on Team accounts; the <code>waiting</code> state no longer exists.</p>
+        <p><strong>Relations:</strong> BUG-001; <code>CHANGELOG.md</code> 0.24.1; ADR-005 and ADR-006 (mods).</p>
+        <p><strong>Tested?</strong> <code>claude plugin test</code> (228), <code>claude plugin validate</code>, <code>go test ./...</code> and <code>dh validate</code>; full cycle covered by an engine test; live proof with <code>claude -p</code> and an isolated <code>DH_HOME</code>; no paid eval.</p>
       </div>
       <div class="card">
         <h3>0.24.0 · Per-project documentation (pdocs)</h3>

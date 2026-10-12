@@ -10,9 +10,7 @@ const SID = 'sess-1'
 const FILE = `${SNAP}/${SID}.json`
 const T0 = Date.parse('2026-10-07T10:00:00Z')
 
-const CLASSIC = ['SessionStart', 'UserPromptSubmit', 'PostToolUse', 'PermissionRequest', 'Notification', 'StopFailure', 'Stop', 'SubagentStart', 'SubagentStop', 'SessionEnd']
-
-type Opts = { files?: Record<string, string>; limits?: { kind: string; percentUsed: number }[]; writeFails?: boolean; procFails?: boolean; env?: Record<string, string>; harness?: string }
+type Opts = { files?: Record<string, string>; limits?: { kind: string; percentUsed: number }[]; writeFails?: boolean; toolGate?: boolean; procFails?: boolean; env?: Record<string, string>; harness?: string }
 
 function world(on: any, o: Opts = {}) {
   const files = new Map(Object.entries(o.files ?? {}))
@@ -20,11 +18,14 @@ function world(on: any, o: Opts = {}) {
   const runs: string[][] = []
   mock.env(on, o.env ?? { DH_HOME: DH })
   const clock = mock.clock(on, { now: T0 })
+  const w: any = { exists: 0, sid: SID, writeGate: undefined, toolGate: undefined }
+  on('session.id', () => ({ value: w.sid }) as any)
+  on('session.model', () => ({ value: 'opus-x' }) as any)
   on('session.cwd', () => ({ value: CWD }) as any)
   on('session.usage', () => ({ value: { startedAt: 0, context: { window: 100, percent: 1, tokens: 1 }, rateLimits: o.limits ?? [] } }) as any)
   on('fs.read', (_$: any, e: any) => { if (!files.has(e.path)) throw new Error('ENOENT'); return { value: files.get(e.path) } as any })
-  on('fs.exists', (_$: any, e: any) => ({ value: files.has(e.path) }) as any)
-  on('fs.write', (_$: any, e: any) => { if (o.writeFails) throw new Error('EACCES'); files.set(e.path, e.text); return { value: undefined } as any })
+  on('fs.exists', (_$: any, e: any) => { w.exists++; return { value: files.has(e.path) } as any })
+  on('fs.write', async (_$: any, e: any) => { if (o.writeFails) throw new Error('EACCES'); if (w.writeGate) await w.writeGate; files.set(e.path, e.text); return { value: undefined } as any })
   on('fs.list', (_$: any, e: any) => {
     const prefix = e.path + '/'
     const seen = new Map<string, string>()
@@ -48,28 +49,39 @@ function world(on: any, o: Opts = {}) {
   on('ui.status', () => ({ value: undefined }) as any)
   on('ui.toast', () => ({ value: undefined }) as any)
   on('session.start', () => ({ cwd: CWD }) as any)
-  on('tool.call', () => ({ result: 'ok' }) as any)
-  for (const n of CLASSIC) on(`classic.${n}` as any, () => ({}) as any)
-  return { files, registered, runs, clock }
+  on('tool.call', async () => { if (o.toolGate && w.toolGate) await w.toolGate; return { result: 'ok' } as any })
+  // The engine's own handling of the events the mod records: nothing but an answer.
+  on('prompt.submit', (_$: any, e: any) => ({ text: e.text }) as any)
+  on('turn.complete', (_$: any, e: any) => ({ text: e.answer }) as any)
+  on('session.end', (_$: any, e: any) => ({ sessionId: e.sessionId }) as any)
+  on('agent.spawn', (_$: any, e: any) => ({ agentId: e.description, model: 'm' }) as any)
+  return Object.assign(w, { files, registered, runs, clock })
 }
 
 // Hot-path hooks (prompt, tool, subagent) do not wait for their snapshot write: give the queue real time to drain.
 const settled = () => new Promise(r => setTimeout(r, 20))
 const snap = (w: any) => JSON.parse(w.files.get(FILE))
-const start = ($: any, extra: any = {}) => $.classic.SessionStart({ session_id: SID, source: 'startup', cwd: CWD, agent_type: 'coordinator', model: 'opus-x', ...extra })
+// Engine events the mod maps onto the snapshot (BUG-001): no classic.* hook is involved.
+const start = ($: any, extra: any = {}) => $.session.start({ source: 'startup', cwd: CWD, ...extra })
+const prompt = ($: any) => $.prompt.submit({ text: 'x' })
+const toolUse = ($: any) => $.tool.call({ tool: 'Read', file_path: '/a' } as any)
+const TURN = { answer: '', durationMs: 1, isAborted: false, turnId: 't' }
+const stop = ($: any) => $.turn.complete({ ...TURN, reason: 'answer' } as any)
+const stopFail = ($: any) => $.turn.complete({ ...TURN, reason: 'error' } as any)
+const subStop = ($: any, id = 'a1') => $.turn.complete({ ...TURN, reason: 'answer', agentId: id } as any)
+const spawn = ($: any, d = 'a1') => $.agent.spawn({ tool_use_id: 't', prompt: 'p', description: d, subagentType: 'builder' } as any)
+const end = ($: any) => $.session.end({ reason: 'other', sessionId: SID, resume: {} } as any)
 
 // R13: one test per row of the event table.
 const ROWS: [string, ($: any) => Promise<any>, string, string][] = [
   ['SessionStart', $ => start($), 'idle', 'idle'],
-  ['UserPromptSubmit', $ => $.classic.UserPromptSubmit({ session_id: SID, prompt: 'x' }), 'working', 'active'],
-  ['PostToolUse (tool activity)', $ => $.classic.PostToolUse({ session_id: SID, tool_name: 'Bash', tool_input: {}, tool_response: {}, tool_use_id: 't' }), 'working', 'active'],
-  ['PermissionRequest', $ => $.classic.PermissionRequest({ session_id: SID, tool_name: 'Bash', tool_input: {} }), 'waiting', 'active'],
-  ['Notification permission_prompt', $ => $.classic.Notification({ session_id: SID, message: 'm', notification_type: 'permission_prompt' }), 'waiting', 'active'],
-  ['StopFailure', $ => $.classic.StopFailure({ session_id: SID, error: 'rate_limit' }), 'error', 'idle'],
-  ['Stop', $ => $.classic.Stop({ session_id: SID, stop_hook_active: false }), 'done', 'idle'],
-  ['SubagentStart', $ => $.classic.SubagentStart({ session_id: SID, agent_id: 'a1', agent_type: 'builder' }), 'working', 'active'],
-  ['SubagentStop', $ => $.classic.SubagentStop({ session_id: SID, agent_id: 'a1', agent_type: 'builder', stop_hook_active: false, agent_transcript_path: '' }), 'working', 'active'],
-  ['SessionEnd', $ => $.classic.SessionEnd({ session_id: SID, reason: 'other' }), 'idle', 'closed'],
+  ['prompt.submit', $ => prompt($), 'working', 'active'],
+  ['tool.call (tool activity)', $ => toolUse($), 'working', 'active'],
+  ['turn.complete reason error', $ => stopFail($), 'error', 'idle'],
+  ['turn.complete reason answer', $ => stop($), 'done', 'idle'],
+  ['agent.spawn', $ => spawn($), 'working', 'active'],
+  ['turn.complete of a subagent', $ => subStop($), 'working', 'active'],
+  ['session.end', $ => end($), 'idle', 'closed'],
 ]
 for (const [name, fire, activity, state] of ROWS) {
   test(`R13 ${name} -> activity ${activity}, state ${state}`, async ($, on) => {
@@ -86,35 +98,31 @@ for (const [name, fire, activity, state] of ROWS) {
   })
 }
 
-test('R13 Notification of another type writes nothing', async ($, on) => {
+test('BUG-001 the mod registers no classic.* hook: classic events write nothing', async ($, on) => {
   const w = world(on)
-  await $.classic.Notification({ session_id: SID, message: 'm', notification_type: 'idle_prompt' })
+  on('classic.Stop' as any, () => ({}) as any)
+  on('classic.UserPromptSubmit' as any, () => ({}) as any)
+  await ($ as any).classic.Stop({ session_id: SID, stop_hook_active: false })
+  await ($ as any).classic.UserPromptSubmit({ session_id: SID, prompt: 'x' })
+  await settled()
   expect(w.files.has(FILE)).toBe(false)
-})
-
-test('waiting leaves on the next activity', async ($, on) => {
-  const w = world(on)
-  await $.classic.PermissionRequest({ session_id: SID, tool_name: 'Bash', tool_input: {} })
-  expect(snap(w).activity).toBe('waiting')
-  await $.classic.PostToolUse({ session_id: SID, tool_name: 'Bash', tool_input: {}, tool_response: {}, tool_use_id: 't' }); await settled()
-  expect(snap(w).activity).toBe('working')
 })
 
 test('activity_at moves only when activity changes; updated_at moves every event', async ($, on) => {
   const w = world(on)
-  await $.classic.UserPromptSubmit({ session_id: SID, prompt: 'x' }); await settled()
+  await prompt($); await settled()
   await w.clock.advance(5000)
-  await $.classic.PostToolUse({ session_id: SID, tool_name: 'Bash', tool_input: {}, tool_response: {}, tool_use_id: 't' }); await settled()
+  await toolUse($); await settled()
   expect(snap(w).activity_at).toBe('2026-10-07T10:00:00Z')
   expect(snap(w).updated_at).toBe('2026-10-07T10:00:05Z')
   await w.clock.advance(5000)
-  await $.classic.Stop({ session_id: SID, stop_hook_active: false })
+  await stop($)
   expect(snap(w).activity_at).toBe('2026-10-07T10:00:10Z')
 })
 
 test('preserves unknown fields (tasks) and recovers from partial JSON', async ($, on) => {
   const w = world(on, { files: { [FILE]: JSON.stringify({ schema: 1, session_id: SID, tasks: [{ id: 't1' }], future: { a: 1 }, started_at: 'T0' }) } })
-  await $.classic.UserPromptSubmit({ session_id: SID, prompt: 'x' }); await settled()
+  await prompt($); await settled()
   expect(snap(w).tasks).toEqual([{ id: 't1' }])
   expect(snap(w).future).toEqual({ a: 1 })
   expect(snap(w).started_at).toBe('T0')
@@ -122,25 +130,26 @@ test('preserves unknown fields (tasks) and recovers from partial JSON', async ($
 
 test('partial JSON is left alone (write skipped), a missing file starts fresh', async ($, on) => {
   const w = world(on, { files: { [FILE]: '{"schema":2,"sess' } })
-  await $.classic.Stop({ session_id: SID, stop_hook_active: false })
+  await stop($)
   expect(w.files.get(FILE)).toBe('{"schema":2,"sess')
-  await $.classic.Stop({ session_id: 'fresh', stop_hook_active: false })
+  w.sid = 'fresh'
+  await stop($)
   expect(JSON.parse(w.files.get(`${SNAP}/fresh.json`)!).activity).toBe('done')
 })
 
 test('a file that stays unparseable is overwritten on the third skipped write', async ($, on) => {
   const w = world(on, { files: { [FILE]: 'garbage' } })
-  await $.classic.Stop({ session_id: SID, stop_hook_active: false })
-  await $.classic.Stop({ session_id: SID, stop_hook_active: false })
+  await stop($)
+  await stop($)
   expect(w.files.get(FILE)).toBe('garbage')
-  await $.classic.Stop({ session_id: SID, stop_hook_active: false })
+  await stop($)
   expect(snap(w).activity).toBe('done')
 })
 
 test('SubagentStop keeps the current activity but still records the event', async ($, on) => {
   const w = world(on)
-  await $.classic.Stop({ session_id: SID, stop_hook_active: false })
-  await $.classic.SubagentStop({ session_id: SID, agent_id: 'a1', agent_type: 'builder', stop_hook_active: false, agent_transcript_path: '' }); await settled()
+  await stop($)
+  await subStop($); await settled()
   expect(snap(w).activity).toBe('done')
   expect(snap(w).events.length).toBe(1)
 })
@@ -148,7 +157,7 @@ test('SubagentStop keeps the current activity but still records the event', asyn
 test('a heartbeat never resurrects a closed session or reopens a missing file', async ($, on) => {
   const w = world(on)
   await start($)
-  await $.classic.SessionEnd({ session_id: SID, reason: 'other' })
+  await end($)
   w.files.delete(FILE)
   await w.clock.advance(60_000)
   expect(w.files.has(FILE)).toBe(false)
@@ -173,7 +182,7 @@ test('R13b started_at only the first time; events ring of 50', async ($, on) => 
   await w.clock.advance(1000)
   await start($)
   expect(snap(w).started_at).toBe('2026-10-07T10:00:00Z')
-  for (let i = 0; i < 60; i++) await $.classic.SubagentStart({ session_id: SID, agent_id: `a${i}`, agent_type: 'builder' })
+  for (let i = 0; i < 60; i++) await spawn($, `a${i}`)
   await settled()
   const ev = snap(w).events
   expect(ev.length).toBe(50)
@@ -201,7 +210,8 @@ test('write failure and unsafe session id are silent no-ops', async ($, on) => {
 
 test('unsafe session id writes nothing', async ($, on) => {
   const w = world(on)
-  await $.classic.Stop({ session_id: '../evil', stop_hook_active: false })
+  w.sid = '../evil'
+  await stop($)
   expect([...w.files.keys()]).toEqual([])
 })
 
@@ -225,7 +235,8 @@ test('R10 USERPROFILE is the last fallback', async ($, on) => {
 })
 test('R10 no home variable writes nothing', async ($, on) => {
   const w = world(on, { env: {} })
-  await $.classic.Stop({ session_id: 'none', stop_hook_active: false })
+  w.sid = 'none'
+  await stop($)
   expect([...w.files.keys()]).toEqual([])
 })
 
@@ -267,7 +278,7 @@ test('heartbeat refreshes only updated_at every 30s and stops at SessionEnd', as
   const after = snap(w)
   expect(after.updated_at).toBe('2026-10-07T10:00:30Z')
   expect({ ...after, updated_at: '' }).toEqual({ ...before, updated_at: '' })
-  await $.classic.SessionEnd({ session_id: SID, reason: 'other' })
+  await end($)
   const closed = snap(w)
   await w.clock.advance(120_000)
   expect(snap(w)).toEqual(closed)
@@ -285,7 +296,7 @@ test('R6 mod registers the dashboard command and runs dh dashboard --detach, ret
 
 test('heartbeat refreshes rate_limits from usage and keeps them when usage fails', async ($, on) => {
   const w = world(on, { files: { [FILE]: JSON.stringify({ schema: 2, session_id: SID, state: 'active', activity: 'working', rate_limits: { five_hour: 3 } }) }, limits: [{ kind: 'five_hour', percentUsed: 41 }] })
-  await $.classic.UserPromptSubmit({ session_id: SID, prompt: 'x' }); await settled()
+  await prompt($); await settled()
   expect(snap(w).rate_limits).toEqual({ five_hour: 41 })
   const st = snap(w)
   w.files.set(FILE, JSON.stringify({ ...st, rate_limits: { five_hour: 3 } })) // stale limit on disk
@@ -380,4 +391,152 @@ test('R19 global mode ignores <repo>/.harness/tasks (the resolved folder wins)',
 test('R19 no tickets in either place is no drift (CI case)', async ($, on) => {
   world(on, { harness: GLOBAL, files: { [`${CWD}/docs/prd/PRD-001-x.md`]: '| Status | entregue em 2026-01-01 |\n' } })
   expect(String((await commit($)).deny ?? '')).not.toContain('drift')
+})
+
+// BUG-001: the cycle on engine events only (a Team account floors every classic.* hook).
+test('BUG-001 full cycle writes the snapshot with rate_limits and the expected activity transitions', async ($, on) => {
+  const w = world(on, { limits: [{ kind: 'five_hour', percentUsed: 12 }, { kind: 'seven_day', percentUsed: 34 }] })
+  await start($)
+  expect(snap(w)).toMatchObject({ schema: 2, session_id: SID, state: 'idle', activity: 'idle', cwd: CWD, model: { id: 'opus-x' }, rate_limits: { five_hour: 12, seven_day: 34 }, started_at: '2026-10-07T10:00:00Z' })
+  await prompt($); await settled()
+  expect(snap(w)).toMatchObject({ state: 'active', activity: 'working' })
+  await toolUse($); await settled()
+  expect(snap(w).activity).toBe('working')
+  await spawn($, 'a1'); await settled()
+  expect(snap(w).events).toMatchObject([{ event: 'SubagentStart', agent_type: 'builder', agent_id: 'a1' }])
+  await subStop($, 'a1'); await settled()
+  expect(snap(w).activity).toBe('working') // a subagent turn does not overwrite the main activity
+  expect(snap(w).events.map((e: any) => e.event)).toEqual(['SubagentStart', 'SubagentStop'])
+  await stop($)
+  expect(snap(w)).toMatchObject({ state: 'idle', activity: 'done' })
+  await subStop($, 'a2'); await settled()
+  expect(snap(w).activity).toBe('done')
+  await w.clock.advance(30_000)
+  expect(snap(w).updated_at).toBe('2026-10-07T10:00:30Z')
+  await end($)
+  expect(snap(w)).toMatchObject({ state: 'closed', activity: 'idle' })
+  const closed = snap(w)
+  await w.clock.advance(120_000)
+  expect(snap(w)).toEqual(closed)
+})
+
+test('BUG-001 guards are unchanged by the snapshot: Bash AI mention still denied, tool.call still recorded', async ($, on) => {
+  const w = world(on)
+  const r: any = await $.tool.call({ tool: 'Bash', command: 'git commit -m "Co-Authored' + '-By: Cla' + 'ude"' } as any)
+  expect(String(r.deny)).toContain('mentions AI')
+  await settled()
+  expect(snap(w).activity).toBe('working')
+})
+
+test('BUG-001 a failing snapshot write never changes a guard outcome', async ($, on) => {
+  world(on, { writeFails: true })
+  const r: any = await $.tool.call({ tool: 'Read', file_path: '/a' } as any)
+  expect(r.result).toBe('ok')
+  await settled()
+})
+
+const gate = () => { let open!: () => void; const p = new Promise<void>(r => { open = r }); return { p, open } }
+const fileOf = (w: any, id: string) => JSON.parse(w.files.get(`${SNAP}/${id}.json`))
+
+// BUG-001 round 1, finding 1: /clear continues the process under a new id and no session.start fires.
+test('BUG-001 after /clear the first write for the new id carries cwd, started_at and model; the old file stays closed; the heartbeat follows', async ($, on) => {
+  const w = world(on)
+  await start($)
+  await $.session.end({ reason: 'clear', sessionId: SID, resume: {} } as any)
+  expect(fileOf(w, SID).state).toBe('closed')
+  await w.clock.advance(5000)
+  w.sid = 'sess-2'
+  await prompt($); await settled()
+  expect(fileOf(w, 'sess-2')).toMatchObject({ session_id: 'sess-2', state: 'active', activity: 'working', cwd: CWD, model: { id: 'opus-x' }, started_at: '2026-10-07T10:00:05Z' })
+  expect(fileOf(w, SID).state).toBe('closed')
+  await w.clock.advance(30_000)
+  expect(fileOf(w, 'sess-2').updated_at).toBe('2026-10-07T10:00:35Z') // heartbeat moved to the new id
+  expect(fileOf(w, SID).updated_at).toBe('2026-10-07T10:00:00Z')
+})
+
+// Finding 2: id captured at event time; a closed file is never reopened by a non-start write.
+test('BUG-001 a record queued behind a slow job lands on the id it was raised under', async ($, on) => {
+  const w = world(on)
+  await start($)
+  const g = gate(); w.writeGate = g.p
+  await prompt($)  // job 1 hangs in fs.write
+  await toolUse($)  // queued behind it
+  w.sid = 'sess-2'
+  w.writeGate = undefined; g.open(); await settled()
+  expect([...w.files.keys()].sort()).toEqual([FILE])
+})
+
+test('BUG-001 a tool record that drains after session.end does not reopen the closed file', async ($, on) => {
+  const w = world(on, { toolGate: true })
+  await start($)
+  const g = gate(); w.toolGate = g.p
+  const call = toolUse($) // the tool is still running when the session ends
+  await end($)
+  expect(snap(w).state).toBe('closed')
+  g.open(); await call; await settled()
+  expect(snap(w)).toMatchObject({ state: 'closed', activity: 'idle' })
+})
+
+// Finding 3: session.end has 1.5s in all.
+test('BUG-001 session.end stops waiting for the chain after 1s and the close write still lands', async ($, on) => {
+  const w = world(on)
+  await start($)
+  const g = gate(); w.writeGate = g.p
+  let done = false
+  const ending = end($).then(() => { done = true })
+  await settled()
+  expect(done).toBe(false)
+  await w.clock.advance(1000)
+  await ending
+  expect(done).toBe(true)
+  w.writeGate = undefined; g.open(); await settled()
+  expect(snap(w).state).toBe('closed')
+  const closed = snap(w)
+  await w.clock.advance(60_000) // the heartbeat was cancelled on the capped path too
+  expect(snap(w)).toEqual(closed)
+})
+
+test('BUG-001 round 2: session.end cancels the heartbeat at once, a hung close job cannot leave it running', async ($, on) => {
+  const w = world(on)
+  await start($)
+  const g = gate(); w.writeGate = g.p
+  const ending = end($)
+  await w.clock.advance(1000); await ending
+  const before = w.exists
+  await w.clock.advance(60_000) // a live beat would queue touch jobs behind the hung close job
+  w.writeGate = undefined; g.open(); await settled()
+  expect(w.exists - before).toBe(0) // the close job read before it hung; a live beat would add a touch read
+  expect(snap(w).state).toBe('closed')
+})
+
+test('BUG-001 round 2: a file closed by another process does not freeze a session continued in-process', async ($, on) => {
+  const w = world(on, { files: { [`${SNAP}/sess-b.json`]: JSON.stringify({ schema: 2, session_id: 'sess-b', state: 'closed', activity: 'idle', started_at: 'T0', cwd: CWD, model: { id: 'm' } }) } })
+  await start($)
+  await end($)
+  w.sid = 'sess-b' // /resume of an old id: no session.start, file closed by the previous process
+  await prompt($); await settled()
+  expect(fileOf(w, 'sess-b')).toMatchObject({ state: 'active', activity: 'working', started_at: 'T0' })
+  await w.clock.advance(30_000)
+  expect(fileOf(w, 'sess-b').updated_at).toBe('2026-10-07T10:00:30Z') // heartbeat follows B
+})
+
+test('BUG-001 round 2: a prompt after session.end of the same id (in-process resume) reopens it; a late tool record does not', async ($, on) => {
+  const w = world(on)
+  await start($)
+  await end($)
+  await toolUse($); await settled()
+  expect(snap(w).state).toBe('closed') // late record of the id this instance closed
+  await prompt($); await settled()
+  expect(snap(w)).toMatchObject({ state: 'active', activity: 'working' })
+  await toolUse($); await settled()
+  expect(snap(w).state).toBe('active')
+  await w.clock.advance(30_000)
+  expect(snap(w).updated_at).toBe('2026-10-07T10:00:30Z')
+})
+
+test('BUG-001 session.end waits for the close write when the chain is quick', async ($, on) => {
+  const w = world(on)
+  await start($)
+  await end($)
+  expect(snap(w).state).toBe('closed') // awaited: written before end() resolved
 })
