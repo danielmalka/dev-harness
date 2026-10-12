@@ -3,96 +3,15 @@ import { denySpawn, guardFile, homeFrom, resolvePath } from './runtime-guard.ts'
 import { DASHBOARD_COMMAND, dhPath, registerDashboard } from './dashboard-command.ts'
 import { applyEvent, iso, limitsFrom, type Ev, type Limits, type Snap } from './snapshot-writer.ts'
 import { driftMessage, findDrift, statusValue } from './status-drift.ts'
-
-// Commit/PR text that mentions AI: an empty `attribution` covers the default footer, this covers the rest.
-const AI_MENTION = /co-authored-by:\s*claude|generated with \[?claude|🤖|anthropic\.com|\bclaude code\b/i
-const GIT_C = String.raw`(?:-C\s+(?:"[^"]*"|'[^']*'|\S+)\s+)?`
-const SHIPS = new RegExp(String.raw`\b(git\s+${GIT_C}commit|gh\s+pr\s+(create|edit)|gh\s+release\s+create)\b`)
-const COMMIT = new RegExp(String.raw`\bgit\s+${GIT_C}commit(?![\w-])`)
-const GENERIC_GATE = /\b(make\s+(check|test|lint|ci|stan|gate)|go\s+(test|vet)|golangci-lint|pytest|ruff\s+check|cargo\s+(test|clippy)|(npm|pnpm|yarn|bun)\s+(run\s+)?(test|lint|check|typecheck)|tsc\b|phpstan|phpunit|pint)\b/
-const GATE_KEYS = /^ {2}(test|lint|vet|check|typecheck|stan|fmt[\w-]*):\s*\n\s+value:\s*(.+)$/gm
-
-export function bar(pct: number, width = 10): string {
-  const full = Math.round((Math.min(Math.max(pct, 0), 100) / 100) * width)
-  return '▰'.repeat(full) + '▱'.repeat(width - full)
-}
-
-export function deniesAiMention(command: string): boolean {
-  return SHIPS.test(command) && AI_MENTION.test(command)
-}
-
-export function parseGateCommands(projectYaml: string): string[] {
-  return [...projectYaml.matchAll(GATE_KEYS)]
-    .map(m => (m[2] ?? '').trim().replace(/^["']|["']$/g, ''))
-    .filter(v => v && v !== 'null')
-}
-
-export function isGateCommand(command: string, projectGates: string[]): boolean {
-  return GENERIC_GATE.test(command) || projectGates.some(g => command.includes(g))
-}
-
-export function parseLanguage(projectYaml: string): 'en' | 'pt-br' {
-  return /^language:\s*(\S+)/m.exec(projectYaml)?.[1]?.replace(/^["']|["']$/g, '').toLowerCase() === 'pt-br' ? 'pt-br' : 'en'
-}
-
-// D5: dh bookkeeping under .harness/ (or, global mode, under <home>/projects/) is not code churn,
-// so it does not dirty the gate. `home` is resolvePath-normalized; '' skips the global check.
-export function isHarnessPath(p: unknown, home = ''): boolean {
-  const n = String(p ?? '').replace(/\\/g, '/')
-  const abs = /^(\/|[A-Za-z]:)/.test(n)
-  const r = resolvePath('/', n) // `.harness/../src/a.go` is code, not bookkeeping
-  if (r.includes('/.harness/')) return true
-  return !!home && abs && r.startsWith(`${home === '/' ? '' : home}/projects/`)
-}
-
-const unquote = (s: string) => s.replace(/^(["'])(.*)\1$/, '$2')
-
-export { resolvePath }
-
-// Back to the platform's form for git and fs calls: `/C:/x` -> `C:/x`; POSIX paths unchanged.
-export const native = (p: string) => p.replace(/^\/([A-Z]):/, '$1:')
-
-// Directory a git commit (or a gate) at offset `at` runs in: each `cd <dir>` before `at` moves it
-// (relative to the previous one; a bare `cd` goes home), then `git -C <dir>` on the commit itself
-// resolves against that. `home` expands a leading `~`.
-// ponytail: shell parsing by regex; pushd, `cd -`, env-var dirs and `--git-dir` resolve wrong and fail open.
-export function commandDir(command: string, cwd: string, home: string, at = command.length): string {
-  let dir = cwd
-  const expand = (d: string) => resolvePath(dir, unquote(d).replace(/^~(?=\/|$)/, home))
-  for (const m of command.slice(0, at).matchAll(/(?:^|[;&|(\n]\s*|\bthen\s+)cd(?:\s+("[^"]*"|'[^']*'|[^\s;&|)]+))?(?=\s*(?:$|[;&|)\n]))/g)) {
-    dir = m[1] === undefined ? (home || dir) : expand(m[1])
-  }
-  const c = /^git\s+-C\s+("[^"]*"|'[^']*'|\S+)\s+/.exec(command.slice(at))
-  return c ? expand(c[1] ?? '.') : dir
-}
-
-// Offset of the first gate command in `command`, or -1.
-function gateAt(command: string, projectGates: string[]): number {
-  const hits = [GENERIC_GATE.exec(command)?.index ?? -1, ...projectGates.map(g => command.indexOf(g))].filter(i => i >= 0)
-  return hits.length ? Math.min(...hits) : -1
-}
-
-const MSG = {
-  en: {
-    ai: 'dev-harness: commit/PR text mentions AI/Claude. Remove the mention and retry.',
-    gate: (hint: string) => `dev-harness: files were edited after the last green gate in this session. Run ${hint} and commit again.`,
-    gateDefault: "the project's quality gate (tests + lint)",
-    ctx: (p: number, hard: boolean) => `Context at ${p}% - ${hard ? 'time to /compact or /dh:handoff' : 'consider /compact at the next pause'}`,
-  },
-  'pt-br': {
-    ai: 'dev-harness: commit/PR menciona IA/Claude. Remova a menção e tente de novo.',
-    gate: (hint: string) => `dev-harness: houve edição depois do último gate verde nesta sessão. Rode ${hint} e commite de novo.`,
-    gateDefault: 'o quality gate do projeto (testes + lint)',
-    ctx: (p: number, hard: boolean) => `Contexto em ${p}% - ${hard ? 'hora de /compact ou /dh:handoff' : 'considere /compact no próximo ponto de pausa'}`,
-  },
-}
-
-export function taskStatus(taskMd: string): 'done' | 'blocked' | 'open' {
-  const s = statusValue(taskMd)
-  if (/^(conclu|pronta, entregue|done)/.test(s)) return 'done'
-  if (/^bloque/.test(s)) return 'blocked'
-  return 'open'
-}
+import { atom, read, update } from 'claude-code'
+import { ZEN_PROMPT } from './lib/zen.ts'
+import {
+  bar, COMMIT, commandDir, deniesAiMention, gateAt, type Harness, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand,
+  isHarnessPath, MSG, native, parseGateCommands, parseHarness, parseLanguage, taskStatus,
+} from './lib/gate.ts'
+import { registerMods } from './mods-menu.tsx'
+import { registerZen } from './mods-zen.tsx'
+export { bar, commandDir, deniesAiMention, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand, isHarnessPath, native, parseGateCommands, parseHarness, parseLanguage, resolvePath, taskStatus }
 
 // ponytail: module-level state; a mod reload resets gate/agents (current session only).
 // Absolute paths edited since the last green gate of their repository.
@@ -139,30 +58,7 @@ async function guardWrite($: EngineInterface, e: any, next: any): Promise<any> {
 
 // R20: `dh harness-path --json <dir>`, the only resolver (R2: the mod never reads the global registry file).
 // undefined = dh failed (missing binary, exit != 0, bad JSON, timeout).
-type Harness = { mode: 'repo' | 'global' | 'none'; dir: string }
 const harnesses = new Map<string, Harness | undefined>()
-
-// The argv for `dh harness-path`, or undefined when spawning is unsafe: on Windows dhPath is a .cmd that
-// cmd.exe parses, so a directory with a cmd metacharacter is never passed (treated as a dh failure).
-export function harnessArgv(pluginRoot: string, dir: string): string[] | undefined {
-  const dh = dhPath(pluginRoot)
-  const d = native(dir)
-  if (dh.endsWith('.cmd') && /[&|<>^%!"()\r\n]/.test(d)) return undefined
-  return [dh, 'harness-path', '--json', d]
-}
-
-// What `dh harness-path --json` printed, or undefined when it is not a usable answer: the dir must be
-// absolute, at most 4096 chars, and free of control/line-separator characters (it is shown to the model).
-export function parseHarness(stdout: string): Harness | undefined {
-  try {
-    const o = JSON.parse(stdout)
-    if (o?.mode === 'none') return { mode: 'none', dir: '' }
-    const d = o?.dir
-    if ((o?.mode === 'repo' || o?.mode === 'global') && typeof d === 'string' && d.length <= 4096
-      && /^(\/|[A-Za-z]:|\\\\)/.test(d) && !/[\u0000-\u001f\u007f\u2028\u2029]/.test(d)) return { mode: o.mode, dir: d }
-  } catch { /* fail open */ }
-  return undefined
-}
 
 async function resolveHarness($: EngineInterface, dir: string): Promise<Harness | undefined> {
   try {
@@ -208,14 +104,6 @@ async function harnessDir($: EngineInterface, dir: string): Promise<string> {
   }
 }
 
-export const HARNESS_SECTION = 'dh:harness'
-
-export function harnessText(h: Harness): string {
-  return h.mode === 'none'
-    ? 'Dev Harness: no harness for this project (mode none). Run /dh:setup to create one, or dh link if it already exists.'
-    : `Dev Harness: mode ${h.mode}; harness dir ${JSON.stringify(h.dir)}. Records (MEMORY.md, EPOCHAL.md, RISKS.md, project.yaml, tasks/, prd/) live there.`
-}
-
 async function composeSection($: EngineInterface): Promise<{ id: string; text: string; scope: 'session' } | undefined> {
   for (const [k, v] of harnesses) if (!v || v.mode === 'none') harnesses.delete(k)
   const { h } = await harnessOf($, await $.session.cwd())
@@ -251,6 +139,25 @@ async function dhProgress($: EngineInterface): Promise<string | undefined> {
   }
 }
 
+// The state the mods draw from, declared there too (same plugin and key): the loader reads atoms declared in the file that uses them.
+const dhSegments = atom({ plugin: 'dh', key: 'dhSegments' } as const, [])
+const zenOn = atom({ plugin: 'dh', key: 'zenOn' } as const, false)
+const task = atom({ plugin: 'dh', key: 'task' } as const, null)
+const now = atom({ plugin: 'dh', key: 'now' } as const, 0)
+
+// The mods status line (mods-menu.tsx) records when it has drawn; until then (and on surfaces without a
+// PromptHint) the bar below stays. Fail-open: no state library, no mods line.
+const statusDrawn = atom({ plugin: 'dh', key: 'statusDrawn' } as const, false)
+let barCleared = false
+async function statusLineDrew($: EngineInterface): Promise<boolean> {
+  try {
+    const drawn = await read($, statusDrawn)
+    if (!drawn) barCleared = false // off then on again in one session clears the bar again
+    else if (!barCleared) { barCleared = true; $.ui.status('') }
+    return drawn
+  } catch { return false }
+}
+
 async function refresh($: EngineInterface): Promise<void> {
   const u = await $.session.usage()
   const pct = u.context.percent ?? 0
@@ -259,19 +166,50 @@ async function refresh($: EngineInterface): Promise<void> {
   const dh = await dhProgress($)
   if (dh) parts.push(dh)
   const cwd = await $.session.cwd()
-  if ([...dirty].some(f => inside(f, resolvePath('/', cwd)))) parts.push('gate pending')
+  const pending = [...dirty].some(f => inside(f, resolvePath('/', cwd)))
+  if (pending) parts.push('gate pending')
   for (const r of u.rateLimits) {
     const label = r.kind === 'five_hour' ? '5h' : r.kind === 'seven_day' ? 'wk' : undefined
     if (label) parts.push(`${label} ${Math.round(r.percentUsed)}%${r.percentUsed >= 80 ? ' 🔴' : ''}`)
   }
   if (u.cost) parts.push(`$${u.cost.usd.toFixed(2)}`)
-  $.ui.status(parts.join(' · '))
+  // The mods status line (on by default) replaces this bar and ends with the dh segments.
+  const segments = [dh, pending ? 'gate pending' : '', running.size ? `agents ${running.size}` : ''].filter(Boolean) as string[]
+  // fail-open: the bar below is still set when the state library is not there
+  try { if (segments.join('|') !== (await read($, dhSegments)).join('|')) await update($, dhSegments, () => segments) } catch { /* no mods state */ }
+  if (!(await statusLineDrew($))) $.ui.status(parts.join(' · '))
   for (const t of [60, 80]) {
     if (pct >= t && !warned.has(t)) {
       warned.add(t)
       $.ui.toast(MSG[(await readProject($)).lang].ctx(pct, t >= 80))
     }
   }
+}
+
+// Zen (mods-zen.tsx) shares prompt.submit and turn.complete with this module: a typed prompt starts the band's
+// task and carries the Zen instructions; the turn ending marks it done, and the band clears a moment later.
+let zenTicker: { cancel: () => void } | undefined
+const stopZenTicker = () => { zenTicker?.cancel(); zenTicker = undefined }
+
+async function zenPrompt($: EngineInterface, e: any, next: any): Promise<any> {
+  const text = String(e.text ?? '').trim()
+  if (e.origin?.kind !== 'composer' || !text || text.startsWith('/') || !(await read($, zenOn))) return next(e)
+  const startedAt = await $.clock.now()
+  await update($, task, () => ({ title: (text.split('\n')[0] ?? '').slice(0, 200), startedAt, doneAt: null, steps: [] }))
+  await update($, now, () => startedAt)
+  stopZenTicker()
+  zenTicker = $.clock.every(1000, () => { void $.clock.now().then(t => update($, now, () => t)) })
+  return next({ ...e, context: [...(e.context ?? []), ZEN_PROMPT] })
+}
+
+async function zenDone($: EngineInterface): Promise<void> {
+  stopZenTicker()
+  const t = await read($, task)
+  if (!t || t.doneAt !== null) return
+  const doneAt = await $.clock.now()
+  await update($, task, c => (c ? { ...c, doneAt } : c))
+  await update($, now, () => doneAt)
+  $.clock.after(8000, () => { void update($, task, c => (c && c.doneAt === doneAt ? null : c)) })
 }
 
 // R20: fail-open on any read error; no tickets (or no readable PRDs) means no drift.
@@ -465,6 +403,8 @@ const failOpen = ($: EngineInterface, e: any, next: any) => next(e)
 // The loader refuses $ passed across an import: denySpawn gets `{}`, guardFile gets <home> as a string.
 export const register: Register = on => {
   registerDashboard(on)
+  registerMods(on)
+  registerZen(on)
 
   on('session.start', async ($, e, next) => {
     const r = await next(e)
@@ -478,6 +418,7 @@ export const register: Register = on => {
     const r = await next(e)
     if (e.agentId) running.delete(e.agentId)
     await recordTurn($, e)
+    if (!e.agentId) await zenDone($).catch(() => undefined)
     await refresh($).catch(() => undefined)
     return r
   })
@@ -492,7 +433,7 @@ export const register: Register = on => {
     return r
   })).catch(failOpen)
 
-  on('prompt.submit', ($, e, next) => { recordPrompt($); return next(e) }).catch(failOpen)
+  on('prompt.submit', ($, e, next) => { recordPrompt($); return zenPrompt($, e, next) }).catch(failOpen)
 
   // BUG-001: every other tool call is activity too; recorded after the guards beneath have answered.
   on('tool.call', async ($, e, next) => {
