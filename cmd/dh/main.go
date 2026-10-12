@@ -51,6 +51,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runLink(args[1:], stdout, stderr)
 	case "projects":
 		return runProjects(args[1:], stdout, stderr)
+	case "config":
+		return runConfig(args[1:], stdout, stderr)
 	}
 	if args[0] == "build" {
 		return runBuild(args[1:], stdout, stderr)
@@ -173,7 +175,7 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 }
 
 func usage() string {
-	return "usage: dh <snapshot <event|subagents|statusline|prune>|validate [--source-only] [path]|build [--targets os/arch,...] [--no-binaries]|doctor [plugin-dir-or-kit-root]|dashboard [--port N] [--stale D] [--done-decay D] [--detach]|harness-path [dir] [--json]|link [name] [--off] [dir] [--json]|projects [--json]>"
+	return "usage: dh <snapshot <event|subagents|statusline|prune>|validate [--source-only] [path]|build [--targets os/arch,...] [--no-binaries]|doctor [plugin-dir-or-kit-root]|dashboard [--port N] [--stale D] [--done-decay D] [--detach]|harness-path [dir] [--json]|link [name] [--off] [dir] [--json]|projects [--json]|config [--json]|config set <key> <value>|config unset <key>>"
 }
 
 func pruneDays(args []string) (int, error) {
@@ -347,5 +349,44 @@ func runProjects(args []string, stdout, stderr io.Writer) int {
 	for _, p := range list {
 		fmt.Fprintf(stdout, "%s\t%s\t%s\t%s\n", p.Name, p.Mode, p.Path, p.Harness)
 	}
+	return 0
+}
+
+func runConfig(args []string, stdout, stderr io.Writer) int {
+	pos, f, ok := splitArgs(args, "--json")
+	if !ok || len(pos) > 3 || (len(pos) > 0 && (pos[0] != "set" || len(pos) != 3) && (pos[0] != "unset" || len(pos) != 2)) {
+		printError(stderr, "usage: dh config [--json] | dh config set <key> <value> | dh config unset <key>")
+		return 1
+	}
+	home, err := harness.EnsureHome()
+	if err != nil {
+		printError(stderr, err.Error())
+		return 1
+	}
+	if len(pos) > 0 {
+		value := ""
+		if pos[0] == "set" {
+			value = pos[2]
+		}
+		if err := harness.SetConfigValue(home, pos[1], value, pos[0] == "unset"); err != nil {
+			printError(stderr, err.Error())
+			return 1
+		}
+		return 0
+	}
+	c, err := harness.LoadConfig(home)
+	if err != nil {
+		printError(stderr, err.Error())
+		return 1
+	}
+	if f["--json"] {
+		writeJSON(stdout, struct {
+			Language string `json:"language"`
+			Mode     string `json:"mode"`
+			Sprites  string `json:"dashboard.sprites"`
+		}{c.Language, c.Mode, c.Sprites})
+		return 0
+	}
+	fmt.Fprintf(stdout, "language: %s\nmode: %s\ndashboard.sprites: %s\n", c.Language, c.Mode, c.Sprites)
 	return 0
 }

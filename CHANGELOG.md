@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.25.0 — 2026-10-12
+
+- **`dh config` para as chaves escalares** (PRD-018): `dh config` mostra `language`, `mode` e `dashboard.sprites` (`--json`: `{"language","mode","dashboard.sprites"}`); `dh config set <chave> <valor>` e `dh config unset <chave>` gravam essas três. `language` aceita `en` ou `pt-br`; `mode` aceita `repo` ou `global`; `dashboard.sprites` aceita caminho absoluto ou `~/…`, precisa ser pasta existente e é gravado como digitado. `reviewers` e `projects` são recusados (edite à mão ou use `dh link`).
+- Entrada inválida sai com código 1 e não altera o arquivo; a escrita usa `config.lock` e preserva as demais linhas do `config.yaml`.
+- Dashboard em execução pega o novo `dashboard.sprites` no próximo refresh (alguns segundos, sem reiniciar).
+- Motivação: depois da 0.21.0, a única forma de trocar os sprites era editar o `config.yaml` à mão.
+- Binário `dh`: muda o comportamento (subcomando `config`). Sem agente, skill ou comando novo (seguem 19 + 1) e sem dependência nova.
+
 ## 0.24.1 — 2026-10-09
 
 - **Correção (BUG-001): o snapshot por sessão deixou de ser escrito em conta Team.** Causa confirmada com `claude -p --debug-file` nas versões 2.1.294 e 2.1.295: numa organização Team o motor assenta o `cc-plugin-sec-default` no nível `prepend` e ele contorna todo hook de plugin em `classic.*` e `prompt.compose` (log: `classic.SessionStart bypassed by cc-plugin-sec-default`). O mod registrava o escritor em `classic.*`, então `<home>/sessions/<id>.json` nunca existia: o dashboard ficava sem `rate_limits` e sem `activity` (sprite parado).
