@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.26.0 — 2026-10-12
+
+- **Menu de mods (`/mods`)** no mod do dh (PRD-019): abre por `/mods` ou pelo botão de canto "◆ dh mods ▲" sob o prompt, com três ferramentas que ligam e desligam:
+  - **Status line**: uma linha com modelo, pasta, branch git, contexto, limites de 5h e 7d com horário de reset, cache ok/acima, shells em segundo plano, e os segmentos do dh (`dh ▰▰▱ feitos/total (k bloqueados)`, `gate pending`, `agents N`). Ligada por padrão. Enquanto ligada, remove o `statusLine` do `settings.json` do usuário (`~/.claude/settings.json`, ou `$CLAUDE_CONFIG_DIR/settings.json` quando absoluto), guarda um backup único em `settings.json.dh.bak` e devolve o original ao desligar. Superfícies onde a status line não desenha mantêm a barra de status antiga.
+  - **Zen**: esconde as linhas de ferramenta, registra a ferramenta `zen_progress` e mostra uma faixa de progresso acima do prompt.
+  - **Mode**: modelo (como `/model`), esforço da sessão principal e modo de permissão padrão para novas sessões, gravado em `permissions.defaultMode`. O modo de permissão da sessão atual aparece como "unknown".
+- Tema não entrou nesta versão. Sem rede.
+- Comandos registrados pelo mod passam a ser dois (`/dashboard` e `/mods`); os 19 comandos em arquivo não mudam. Sem agente, skill ou dependência nova.
+
 ## 0.25.0 — 2026-10-12
 
 - **`dh config` para as chaves escalares** (PRD-018): `dh config` mostra `language`, `mode` e `dashboard.sprites` (`--json`: `{"language","mode","dashboard.sprites"}`); `dh config set <chave> <valor>` e `dh config unset <chave>` gravam essas três. `language` aceita `en` ou `pt-br`; `mode` aceita `repo` ou `global`; `dashboard.sprites` aceita caminho absoluto ou `~/…`, precisa ser pasta existente e é gravado como digitado. `reviewers` e `projects` são recusados (edite à mão ou use `dh link`).
