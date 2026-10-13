@@ -47,6 +47,8 @@ func TestStatusDrift(t *testing.T) {
 			"T-2": "| Status | pronta |\n| Story / PRD | PRD-003 |\n"}, ""},
 		{"clean delivered", "entregue em 0.1.0", map[string]string{
 			"T-1": "| Status | concluída |\n| Story / PRD | PRD-003 |\n"}, ""},
+		{"clean delivered on", "delivered on 2026-10-13", map[string]string{
+			"T-1": "| Status | concluída |\n| Story / PRD | PRD-003 |\n"}, ""},
 		{"fora does not link", "entregue em 0.1.0", map[string]string{
 			"T-1": "| Status | pronta |\n| Story / PRD | fora do PRD-003 (x) |\n"}, ""},
 		{"no tickets", "aprovado", nil, ""},

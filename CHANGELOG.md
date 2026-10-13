@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.27.0 — 2026-10-13
+
+- **PRD sempre em inglês, com regras curtas de escrita (PRD-020)**: todo PRD que o kit escreve é em inglês, qualquer que seja `language`, e segue um bloco curto de regras inspirado no ASD-STE100 (Simplified Technical English), com as palavras do kit: frases de procedimento até 20 palavras, descritivas até 25, uma instrução por frase, voz ativa, um termo por conceito, tempos simples, sem expressões idiomáticas. O dicionário de palavras aprovadas do ASD não é copiado. O bloco vive em `.skills/requirements-discovery/SKILL.md`; `templates/en/PRD.md` aponta para ele e `templates/pt-br/PRD.md` é cópia idêntica da versão en (contagem de templates segue 14).
+- `document-validator` confere o estilo: ambiguidade em regra ou aceite bloqueia; desvio só de estilo que mantém o sentido é Minor.
+- **`language` é o idioma da conversa com o dono**: o Coordenador responde nele. Continua escolhendo `templates/<lang>/` para MEMORY, EPOCHAL, RISKS, tasks, ADR e RFC. Pedido explícito do dono para trocar autoriza o Coordenador a editar `language` em `project.yaml` da pasta do harness. `dh config set language` só define o padrão da máquina para projetos novos.
+- Seções do PRD, cabeçalho de status e "Executed summary" usam sempre a forma em inglês (`delivered on <data>`, Solution, Rules, Docs).
+- `dh validate` e o aviso de status-drift do mod aceitam `delivered on <data>` além de `entregue em <data>`.
+- Sem agente, skill, comando ou dependência nova (seguem 13 agentes e 19 + 2 comandos).
+
 ## 0.26.0 — 2026-10-12
 
 - **Menu de mods (`/mods`)** no mod do dh (PRD-019): abre por `/mods` ou pelo botão de canto "◆ dh mods ▲" sob o prompt, com três ferramentas que ligam e desligam:

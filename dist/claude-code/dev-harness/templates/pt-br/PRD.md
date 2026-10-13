@@ -1,48 +1,49 @@
-# PRD-000 · <título curto>
+# PRD-000 · <short title>
 
-<!-- Local sugerido no projeto consumidor: .harness/prd/PRD-000.md
-Preencha só o que muda a decisão. Apague os comentários ao finalizar.
-Fato, hipótese e decisão ficam marcados como tal. Sem segredos. -->
+<!-- Suggested location in the consumer project: .harness/prd/PRD-000.md
+Fill in only what changes the decision. Delete the comments when finished.
+Writing rules: .skills/requirements-discovery/SKILL.md, section "PRD writing rules".
+Fact, hypothesis, and decision are marked as such. No secrets. -->
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Status | rascunho / em revisão / aprovado / entregue em <data> / cancelado |
-| Dono | <quem decide o escopo> |
-| Criado / atualizado | AAAA-MM-DD / AAAA-MM-DD |
+| Status | draft / in review / approved / delivered on <date> / canceled |
+| Owner | <who decides the scope> |
+| Created / updated | YYYY-MM-DD / YYYY-MM-DD |
 | Tickets | T-000, T-000 |
 
-## 1. Problema
+## 1. Problem
 
-<!-- Quem sofre, o que não funciona, em qual situação, qual o impacto, o que precisa mudar. Uma evidência (log, métrica, relato) vale mais que um adjetivo. Uma capability por PRD: duas capabilities independentes viram dois PRDs antes do primeiro ticket. -->
+<!-- Who suffers, what does not work, in what situation, what the impact is, what needs to change. One piece of evidence (log, metric, account) is worth more than an adjective. One capability per PRD: two independent capabilities become two PRDs before the first ticket. -->
 
-## 2. Solução
+## 2. Solution
 
-<!-- O que passa a ser verdade depois da entrega: comportamento observável, resultado para o usuário, fluxo esperado, resposta do sistema. Não é descrição de arquitetura. -->
+<!-- What becomes true after delivery: observable behavior, outcome for the user, expected flow, system response. Not an architecture description. -->
 
-## 3. Regras
+## 3. Rules
 
-<!-- Constraints inegociáveis, numeradas R1, R2, R3... Cada regra precisa passar neste teste: é uma condição obrigatória ou uma proibição explícita, e é verificável. Texto genérico, de preferência ou de intenção não é regra. -->
+<!-- Non-negotiable constraints, numbered R1, R2, R3... Each rule must pass this test: it is a mandatory condition or an explicit prohibition, and it is verifiable. Generic text, a preference, or an intention is not a rule. -->
 
-- R1 <condição obrigatória ou proibição explícita, verificável>
-- R2 <condição obrigatória ou proibição explícita, verificável>
+- R1 <mandatory condition or explicit prohibition, verifiable>
+- R2 <mandatory condition or explicit prohibition, verifiable>
 
 ## 4. Docs
 
-<!-- Paths dos fluxos já documentados que esta feature toca, um por linha. Se a feature não toca nenhum fluxo documentado, apague a linha de exemplo abaixo e escreva exatamente a linha: "Nenhum fluxo documentado afetado." Seção vazia não vale — document-validator reporta gap. -->
+<!-- Paths of already-documented flows this feature touches, one per line. If the feature touches no documented flow, delete the example line below and write exactly the line: "No documented flow affected." An empty section does not count — document-validator reports it as a gap. -->
 
-- <caminho/do/fluxo.md>
+- <path/to/flow.md>
 
-## Apêndice (opcional)
+## Appendix (optional)
 
-<!-- Só quando o autor achar necessário. A ausência deste apêndice não impede a virada em ticket, do mesmo jeito que a seção Docs já funciona quando vazia de itens reais (linha "Nenhum fluxo documentado afetado."). -->
+<!-- Only when the author judges it necessary. The absence of this appendix does not block turning the PRD into tickets, the same way the Docs section already works when it has no real items (the "No documented flow affected." line). -->
 
-### Alternativas descartadas
+### Discarded alternatives
 
-| Alternativa | Por que não |
+| Alternative | Why not |
 |---|---|
-| <opção> | <custo, risco ou limite> |
+| <option> | <cost, risk, or limitation> |
 
-### Riscos e decisões pendentes
+### Risks and pending decisions
 
-- Risco: <descrição> · mitigação: <ação>
-- Decisão pendente: <pergunta> · responde: <quem> · bloqueia: <RF/ticket>
+- Risk: <description> · mitigation: <action>
+- Pending decision: <question> · answered by: <who> · blocks: <RF/ticket>

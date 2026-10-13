@@ -95,7 +95,20 @@ Turn a vague ask into five things a builder can act on: the current situation, t
 - <relative path> or "none yet"
 ```
 
-When persisted, the brief becomes `.harness/prd/PRD-<n>.md` from the kit template `templates/<lang>/PRD.md`; keep the requirement/suggestion marking in the text.
+When persisted, the brief becomes `.harness/prd/PRD-<n>.md` from the kit template `templates/en/PRD.md`; keep the requirement/suggestion marking in the text.
+
+## PRD writing rules
+Every PRD is in English, whatever `language` says. These rules summarize the ASD-STE100 idea (Simplified Technical English, an English standard) in the kit's own words. The kit does not copy the approved-word dictionary or any text of the standard.
+- Procedural sentences have at most 20 words. Descriptive sentences have at most 25 words.
+- Give one instruction per sentence.
+- Use active voice.
+- Use one term for one concept. Do not use synonyms.
+- Use simple tenses and verbs that have one sense.
+- Keep the articles (a, an, the).
+- Use one plain verb, not an idiom or a phrasal verb.
+- Use a list for a sequence of steps.
+- Keep paragraphs short.
+- A `Verifiable:` command line is exempt from the length limits.
 
 ## Quick reference
 

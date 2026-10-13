@@ -683,7 +683,7 @@ footer.doc-foot {
       <h2 id="posicionamento"><span class="n">01</span>Positioning</h2>
       <div class="card">
          <h3>What this is</h3>
-         <p>The templates live in <code>templates/pt-br/</code> and <code>templates/en/</code> in the kit, in mirrored versions; <code>setup</code> writes <code>language</code> to <code>.harness/project.yaml</code> and selects the folder. In the consumer project, each one is copied to <code>.harness/</code> and filled in. Four describe work (PRD, Task/Bug, ADR, RFC); three preserve state (MEMORY, EPOCHAL, RISKS). This guide explains which one to use, who writes it, and when to open and close it.</p>
+         <p>The templates live in <code>templates/pt-br/</code> and <code>templates/en/</code> in the kit, in mirrored versions; <code>setup</code> writes <code>language</code> to <code>.harness/project.yaml</code>, and that field selects the folder for the other records (the PRD is always in English). In the consumer project, each one is copied to <code>.harness/</code> and filled in. Four describe work (PRD, Task/Bug, ADR, RFC); three preserve state (MEMORY, EPOCHAL, RISKS). This guide explains which one to use, who writes it, and when to open and close it.</p>
       </div>
        <div class="callout gold">Facts, hypotheses, and decisions are marked as such. Paths are relative to the project. No secrets. Every acceptance criterion is “When X, then Y” and points to the scenario or test that proves it. Evidence exists only with an explicit state: passed, failed, or not-run. Typechecking does not prove behavior.</div>
        <div class="callout stop">The three memory records are written only by the Coordinator. All other roles report facts, evidence, and incidents; they do not edit <code>MEMORY.md</code>, <code>EPOCHAL.md</code>, or <code>RISKS.md</code>.</div>
@@ -691,7 +691,7 @@ footer.doc-foot {
 
       <h2 id="prd"><span class="n">02</span>PRD</h2>
        <span class="tag">Product · why and what</span>
-       <p>It answers why to do something and what to deliver, without saying how. A good PRD can be satisfied by three different technical designs. The product owner writes it, with the <code>product-discovery</code> role through <code>/dh:discover</code>. It closes when the rules and acceptance are approved and, its status becomes <code>delivered on &lt;date&gt;</code> only when no rule is "Não honrada" (not honored) without a recorded owner decision. It has four sections (Problem, Solution, Rules, Docs) and an optional appendix. Template: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+       <p>It answers why to do something and what to deliver, without saying how. A good PRD can be satisfied by three different technical designs. The product owner writes it, with the <code>product-discovery</code> role through <code>/dh:discover</code>. It closes when the rules and acceptance are approved and, its status becomes <code>delivered on &lt;date&gt;</code> only when no rule is "Não honrada" (not honored) without a recorded owner decision. It has four sections (Problem, Solution, Rules, Docs) and an optional appendix. It is always in English, with short writing rules (see the <code>requirements-discovery</code> skill). Template: <code>templates/en/PRD.md</code> (the <code>pt-br</code> one is an identical copy).</p>
       <div class="grid-2">
         <div class="card in">
           <h3>In scope</h3>

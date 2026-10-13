@@ -1,13 +1,13 @@
 # Quando usar cada template
 English version: [docs/en/tutorials/templates.md](../en/tutorials/templates.md)
 
-Os modelos ficam em `templates/pt-br/` e `templates/en/` no kit, em versões espelhadas; o `setup` grava `language` em `.harness/project.yaml` e escolhe a pasta. No projeto consumidor, cada um vive em `.harness/`, preenchido a partir da cópia. Este guia diz qual usar, quem escreve, quando abrir e quando fechar cada um.
+Os modelos ficam em `templates/pt-br/` e `templates/en/` no kit, em versões espelhadas; o `setup` grava `language` em `.harness/project.yaml` e esse campo escolhe a pasta dos demais registros (o PRD é sempre em inglês). No projeto consumidor, cada um vive em `.harness/`, preenchido a partir da cópia. Este guia diz qual usar, quem escreve, quando abrir e quando fechar cada um.
 
 ## Resumo
 
 | Template | Responde | Quem escreve | Abrir quando | Fechar quando |
 |---|---|---|---|---|
-| `PRD.md` | Por quê e o quê (produto) | Dono do produto, com `product-discovery` | Uma dor ou oportunidade ainda não tem escopo e aceite claros | Requisitos (regras) e aceite aprovados; status `entregue em <data>` só quando nenhuma regra ficou "Não honrada" sem decisão registrada do dono |
+| `PRD.md` | Por quê e o quê (produto) | Dono do produto, com `product-discovery` | Uma dor ou oportunidade ainda não tem escopo e aceite claros | Requisitos (regras) e aceite aprovados; status `delivered on <data>` só quando nenhuma regra ficou "Não honrada" sem decisão registrada do dono |
 | `TASK.md` (ticket) | Como executar uma fatia | `implementation-planner`; executado pelo builder | O PRD foi aprovado | Checks passaram, revisão feita, resultado preenchido |
 | `TASK.md` (bug) | O que falha e por quê | `debugger` | Um defeito foi reportado ou observado | Reprodução no Fluxo e teste de regressão verde no "Pronto quando", ou status inconclusivo com lacuna declarada |
 | `ADR.md` | Qual decisão durável foi tomada e por quê | `architect`, aprovado pelo dono | Uma escolha cara de reverter precisa de registro | Status `aceito`; revisado quando a condição de revisão ocorrer |
@@ -16,7 +16,7 @@ Os modelos ficam em `templates/pt-br/` e `templates/en/` no kit, em versões esp
 | `EPOCHAL.md` | Histórico bruto das memórias anteriores | Só o Coordenador | No primeiro `consolidate-memory` | Nunca fecha; só recebe lotes |
 | `RISKS.md` | Incidentes graves e prevenção | Só o Coordenador | Na inicialização do projeto | Nunca fecha; incidentes resolvidos permanecem |
 
-O PRD passa pelo `document-validator` antes de chegar ao dono: o Coordenador roda criação → validação até `approved` ou duas rodadas, e o relatório fica em `<documento>.review.md` ao lado do PRD. O PRD tem quatro seções (Problema, Solução, Regras, Docs) e um apêndice opcional para alternativas e riscos.
+O PRD passa pelo `document-validator` antes de chegar ao dono: o Coordenador roda criação → validação até `approved` ou duas rodadas, e o relatório fica em `<documento>.review.md` ao lado do PRD. O PRD tem quatro seções em inglês (Problem, Solution, Rules, Docs), é sempre em inglês, com regras curtas de escrita (ver a skill `requirements-discovery`), e tem um apêndice opcional para alternativas e riscos.
 
 O `TASK.md` é o ticket: depois do cabeçalho vêm Lane, Story, Fluxo, Regras (cópia literal das `R<n>` do PRD que o ticket honra), Docs, Pronto quando, Resultado e Riscos e limites. A lane é uma destas: `backend`, `frontend`, `dados`, `infra`, `teste (unitário)`, `teste (integração)` ou `teste (unitário e integração)`, e o `/dh:build` roteia o ticket por ela. No ticket de bug não há seção de defeito: a reprodução entra no Fluxo e o teste de regressão verde entra no "Pronto quando". Não existe mais `STORY.md`; a story é uma frase dentro do ticket.
 

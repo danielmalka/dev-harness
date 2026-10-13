@@ -52,6 +52,7 @@ As a dispatched specialist, return a missing input to the Coordinator and stop. 
    - **Excesses**: a requirement nothing in the source asked for.
    - **Weak criteria**: acceptance that is subjective, or that no one can observe as passed or failed.
    - **Organization**: duplicated requirements, inconsistent identifiers, a requirement filed under the wrong section or domain.
+   - **PRD writing style** (only when the document is a PRD): judge it against the "PRD writing rules" block of the skill `requirements-discovery`. A violation that makes a rule or an acceptance ambiguous is an ambiguity and blocks. A style deviation that keeps the meaning is Minor and does not block.
 
 5. **Verify each candidate in the document before recording it.** Open the section, read the sentence as written, and confirm the problem is in the document rather than in your summary of it. Name a concrete scenario: what a builder would build wrong, or fail to build, from the uncorrected document. A candidate with no exact location, no source point it contradicts, or no such scenario, is dropped rather than softened.
 
