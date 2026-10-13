@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-10-12</b></span>
-          <span class="chip">status <b>0.26.0 · vivo</b></span>
+           <span class="chip">data <b>2026-10-13</b></span>
+          <span class="chip">status <b>0.27.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,6 +700,13 @@ profiles/"] --> B["dh build"]
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
 
+      <div class="card">
+        <h3>0.27.0 · PRD em inglês com regras de escrita (PRD-020)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-020. Todo PRD do kit é em inglês, qualquer que seja <code>language</code>, e segue um bloco curto de regras de escrita inspirado no ASD-STE100 (regras próprias, sem o dicionário), em <code>.skills/requirements-discovery/SKILL.md</code>. <code>document-validator</code> confere: ambiguidade bloqueia, desvio só de estilo é Minor. <code>language</code> passa a ser o idioma da conversa com o Coordenador; ele ainda escolhe <code>templates/&lt;lang&gt;/</code> dos demais registros. <code>dh validate</code> e o mod aceitam <code>delivered on</code> além de <code>entregue em</code>. Sem agente, skill, comando ou dependência nova.</p>
+        <p><strong>Relações:</strong> PRD-020 (<code>docs/prd/PRD-020-prd-ste100.md</code>); tutorial e templates (pt/en); README (pt/en); <code>CHANGELOG.md</code> 0.27.0.</p>
+        <p><strong>Testado?</strong> build, <code>dh validate</code>, <code>go test ./...</code> e <code>claude plugin test</code> verdes; revisão de código aprovada.</p>
+      </div>
       <div class="card">
         <h3>0.26.0 · Menu de mods (/mods)</h3>
         <p><strong>Status:</strong> concluído.</p>
@@ -1724,7 +1731,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.26.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.27.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

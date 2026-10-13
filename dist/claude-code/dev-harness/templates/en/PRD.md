@@ -2,6 +2,7 @@
 
 <!-- Suggested location in the consumer project: .harness/prd/PRD-000.md
 Fill in only what changes the decision. Delete the comments when finished.
+Writing rules: .skills/requirements-discovery/SKILL.md, section "PRD writing rules".
 Fact, hypothesis, and decision are marked as such. No secrets. -->
 
 | Field | Value |

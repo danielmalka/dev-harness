@@ -1,7 +1,7 @@
 # When to use each template
 Versão em pt-br: [docs/tutoriais/templates.md](../../tutoriais/templates.md)
 
-The templates live in `templates/pt-br/` and `templates/en/` in the kit, in mirrored versions; `setup` records `language` in `.harness/project.yaml` and selects the folder. In the consumer project, each one lives in `.harness/`, populated from the copy. This guide explains which one to use, who writes it, and when to open and close it.
+The templates live in `templates/pt-br/` and `templates/en/` in the kit, in mirrored versions; `setup` records `language` in `.harness/project.yaml` and that field selects the folder for the other records (the PRD is always in English). In the consumer project, each one lives in `.harness/`, populated from the copy. This guide explains which one to use, who writes it, and when to open and close it.
 
 ## Summary
 
@@ -16,7 +16,7 @@ The templates live in `templates/pt-br/` and `templates/en/` in the kit, in mirr
 | `EPOCHAL.md` | Raw history of previous memories | Coordinator only | During the first `consolidate-memory` | Never closes; only receives batches |
 | `RISKS.md` | Serious incidents and prevention | Coordinator only | During project initialization | Never closes; resolved incidents remain |
 
-The PRD passes through `document-validator` before it reaches the owner: the Coordinator runs the write then validate cycle until `approved` or two rounds, and the report lives in `<document>.review.md` next to the PRD. The PRD has four sections (Problem, Solution, Rules, Docs) and an optional appendix for alternatives and risks.
+The PRD passes through `document-validator` before it reaches the owner: the Coordinator runs the write then validate cycle until `approved` or two rounds, and the report lives in `<document>.review.md` next to the PRD. The PRD has four sections (Problem, Solution, Rules, Docs), is always in English, with short writing rules (see the `requirements-discovery` skill), and has an optional appendix for alternatives and risks.
 
 `TASK.md` is the ticket: after the header come Lane, Story, Flow, Rules (a literal copy of the PRD `R<n>` the ticket honors), Docs, Done when, Result, and Risks and limits. The lane is one of `backend`, `frontend`, `dados` (data), `infra`, `teste (unitário)` (unit test), `teste (integração)` (integration test), or `teste (unitário e integração)`, and `/dh:build` routes the ticket by it. A bug ticket has no defect section: the reproduction goes into Flow and the green regression test goes into "Done when". `STORY.md` no longer exists; the story is one sentence inside the ticket.
 

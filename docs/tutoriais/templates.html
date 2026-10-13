@@ -683,7 +683,7 @@ footer.doc-foot {
       <h2 id="posicionamento"><span class="n">01</span>Posicionamento</h2>
       <div class="card">
         <h3>O que isto é</h3>
-        <p>Os modelos vivem em <code>templates/pt-br/</code> e <code>templates/en/</code> no kit, em versões espelhadas; o <code>setup</code> grava <code>language</code> em <code>.harness/project.yaml</code> e escolhe a pasta. No projeto consumidor, cada um é copiado para <code>.harness/</code> e preenchido. Quatro descrevem trabalho (PRD, Task/Bug, ADR, RFC); três guardam estado (MEMORY, EPOCHAL, RISKS). Este guia diz qual usar, quem escreve, quando abrir e quando fechar.</p>
+        <p>Os modelos vivem em <code>templates/pt-br/</code> e <code>templates/en/</code> no kit, em versões espelhadas; o <code>setup</code> grava <code>language</code> em <code>.harness/project.yaml</code> e esse campo escolhe a pasta dos demais registros (o PRD é sempre em inglês). No projeto consumidor, cada um é copiado para <code>.harness/</code> e preenchido. Quatro descrevem trabalho (PRD, Task/Bug, ADR, RFC); três guardam estado (MEMORY, EPOCHAL, RISKS). Este guia diz qual usar, quem escreve, quando abrir e quando fechar.</p>
       </div>
       <div class="callout gold">Fato, hipótese e decisão ficam marcados como tal. Caminhos relativos ao projeto. Sem segredos. Cada critério de aceite é “quando X, então Y” e aponta o cenário ou teste que o prova. Evidência só existe com estado explícito: passou, falhou ou não executado. Typecheck não prova comportamento.</div>
       <div class="callout stop">Os três registros de memória são escritos apenas pelo Coordenador. Os demais papéis reportam fatos, evidências e incidentes; não editam <code>MEMORY.md</code>, <code>EPOCHAL.md</code> nem <code>RISKS.md</code>.</div>
@@ -691,7 +691,7 @@ footer.doc-foot {
 
       <h2 id="prd"><span class="n">02</span>PRD</h2>
       <span class="tag">Produto · por quê e o quê</span>
-      <p>Responde por que fazer e o que entregar, sem dizer como. Um PRD bom pode ser atendido por três desenhos técnicos diferentes. Escreve o dono do produto, com o papel <code>product-discovery</code> via <code>/dh:discover</code>. Fecha quando as regras e o aceite estão aprovados e, o status só vira <code>entregue em &lt;data&gt;</code> quando nenhuma regra ficou "Não honrada" sem uma decisão registrada do dono. Tem quatro seções (Problema, Solução, Regras, Docs) e um apêndice opcional. Modelo: <code>templates/&lt;lang&gt;/PRD.md</code>.</p>
+      <p>Responde por que fazer e o que entregar, sem dizer como. Um PRD bom pode ser atendido por três desenhos técnicos diferentes. Escreve o dono do produto, com o papel <code>product-discovery</code> via <code>/dh:discover</code>. Fecha quando as regras e o aceite estão aprovados e, o status só vira <code>delivered on &lt;date&gt;</code> quando nenhuma regra ficou "Não honrada" sem uma decisão registrada do dono. Tem quatro seções em inglês (Problem, Solution, Rules, Docs) e um apêndice opcional. Sempre em inglês, com regras curtas de escrita (ver a skill <code>requirements-discovery</code>). Modelo: <code>templates/en/PRD.md</code> (o de <code>pt-br</code> é cópia idêntica).</p>
       <div class="grid-2">
         <div class="card in">
           <h3>Entra</h3>
@@ -870,7 +870,7 @@ flowchart TB
             <tr><th>Template</th><th>Responde</th><th>Quem escreve</th><th>Abrir quando</th><th>Fechar quando</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>PRD.md</code></td><td>Por quê e o quê</td><td>Dono do produto, com product-discovery</td><td>Dor sem escopo e aceite claros</td><td>Regras e aceite aprovados; status entregue em &lt;data&gt; só sem regra "Não honrada" sem decisão do dono</td></tr>
+            <tr><td><code>PRD.md</code></td><td>Por quê e o quê</td><td>Dono do produto, com product-discovery</td><td>Dor sem escopo e aceite claros</td><td>Regras e aceite aprovados; status delivered on &lt;data&gt; só sem regra "Não honrada" sem decisão do dono</td></tr>
             <tr><td><code>TASK.md</code> (ticket)</td><td>Como executar uma fatia</td><td>implementation-planner; executa o builder</td><td>PRD aprovado</td><td>Checks passaram, revisão feita, resultado preenchido</td></tr>
             <tr><td><code>TASK.md</code> (bug)</td><td>O que falha e por quê</td><td>debugger</td><td>Defeito reportado ou observado</td><td>Reprodução no Fluxo e regressão verde no Pronto quando, ou inconclusivo com lacuna</td></tr>
             <tr><td><code>ADR.md</code></td><td>Qual decisão durável</td><td>architect; aprova o dono</td><td>Escolha cara de reverter</td><td>Status aceito; revisto na condição de revisão</td></tr>

@@ -15,8 +15,8 @@ import (
 var driftPRDFile = regexp.MustCompile(`^(PRD-\d+)`)
 
 // checkStatusDrift (PRD-012, R19) fails when tickets and their PRD disagree:
-// (a) an open ticket links to a PRD whose Status starts with "entregue em";
-// (b) every linked ticket (at least one) is done but the PRD is not "entregue em".
+// (a) an open ticket links to a PRD whose Status starts with "entregue em" or "delivered on";
+// (b) every linked ticket (at least one) is done but the PRD is neither.
 // Classification and linking come from internal/dashboard. Tickets and extra PRDs are read from
 // the resolved harness folder (<repo>/.harness or <home>/projects/<name>, PRD-014 R19); silent
 // when it has no tasks (CI never has them).
@@ -79,13 +79,13 @@ func checkStatusDrift(root string, errors *[]string) {
 	}
 	sort.Strings(ids)
 	for _, id := range ids {
-		c, delivered := byPRD[id], strings.HasPrefix(status[id], "entregue em")
+		c, delivered := byPRD[id], strings.HasPrefix(status[id], "entregue em") || strings.HasPrefix(status[id], "delivered on")
 		sort.Strings(c.open)
 		if delivered && len(c.open) > 0 {
-			*errors = append(*errors, fmt.Sprintf("%s: expected no open ticket for a PRD marked \"entregue em\", found %s open", id, strings.Join(c.open, ", ")))
+			*errors = append(*errors, fmt.Sprintf("%s: expected no open ticket for a PRD marked \"entregue em\" or \"delivered on\", found %s open", id, strings.Join(c.open, ", ")))
 		}
 		if !delivered && c.total > 0 && c.done == c.total {
-			*errors = append(*errors, fmt.Sprintf("%s: expected Status starting with \"entregue em\" because all %d linked tickets are done, found %q", id, c.total, status[id]))
+			*errors = append(*errors, fmt.Sprintf("%s: expected Status starting with \"entregue em\" or \"delivered on\" because all %d linked tickets are done, found %q", id, c.total, status[id]))
 		}
 	}
 }

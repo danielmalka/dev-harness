@@ -44,6 +44,11 @@ test('R19 conditions (a) open ticket in a delivered PRD and (b) all done in an u
   ])
 })
 
+test('a delivered on PRD with all tickets done has no drift', () => {
+  const prds = new Map([['PRD-001', 'delivered on 2026-10-13']])
+  expect(findDrift([{ id: 'T-1', md: T('concluída', 'PRD-001') }], prds, taskStatus)).toEqual([])
+})
+
 test('clean state has no drift', () => {
   const prds = new Map([['PRD-001', 'entregue em x'], ['PRD-002', 'aprovado']])
   expect(findDrift([{ id: 'T-1', md: T('concluída', 'PRD-001') }, { id: 'T-2', md: T('pronta', 'PRD-002') }], prds, taskStatus)).toEqual([])
