@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // Config is the modeled part of <home>/config.yaml. Every other line is preserved on save.
@@ -21,7 +22,7 @@ type Config struct {
 
 const maxConfigBytes = 1 << 20
 
-var keyRe = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_-]*$`)
+var keyRe = lazyRe(`^[A-Za-z_][A-Za-z0-9_-]*$`)
 
 // seg is a top-level key line plus everything after it up to the next top-level key.
 // The first seg may have an empty key (leading comments).
@@ -66,7 +67,7 @@ func split(data string) ([]*seg, error) {
 			}
 		default:
 			idx := strings.Index(c, ":")
-			if idx < 0 || !keyRe.MatchString(c[:idx]) {
+			if idx < 0 || !keyRe().MatchString(c[:idx]) {
 				return nil, cfgErr(n, "expected 'key:' at the top level")
 			}
 			key := c[:idx]
@@ -281,4 +282,9 @@ func LoadConfig(home string) (Config, error) {
 		c.Projects = map[string]string{}
 	}
 	return c, nil
+}
+
+// lazyRe compiles pattern on first use, so a package-level regexp costs nothing at init.
+func lazyRe(pattern string) func() *regexp.Regexp {
+	return sync.OnceValue(func() *regexp.Regexp { return regexp.MustCompile(pattern) })
 }

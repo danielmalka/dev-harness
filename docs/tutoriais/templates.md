@@ -1,7 +1,7 @@
 # Quando usar cada template
 English version: [docs/en/tutorials/templates.md](../en/tutorials/templates.md)
 
-Os modelos ficam em `templates/pt-br/` e `templates/en/` no kit, em versões espelhadas; o `setup` grava `language` em `.harness/project.yaml` e esse campo escolhe a pasta dos demais registros (o PRD é sempre em inglês). No projeto consumidor, cada um vive em `.harness/`, preenchido a partir da cópia. Este guia diz qual usar, quem escreve, quando abrir e quando fechar cada um.
+Os modelos ficam em `templates/pt-br/` e `templates/en/` no kit, espelhados, exceto o PRD, que existe só em `templates/en/`; o `setup` grava `language` em `.harness/project.yaml` e esse campo escolhe a pasta dos demais registros (o PRD é sempre em inglês e vem de `templates/en/`). No projeto consumidor, cada um vive em `.harness/`, preenchido a partir da cópia. Este guia diz qual usar, quem escreve, quando abrir e quando fechar cada um.
 
 ## Resumo
 

@@ -9,6 +9,8 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/danielmalka/dev-harness/internal/snapshot"
 )
@@ -33,18 +35,18 @@ func skipped(err error) bool {
 }
 
 var (
-	statusRow  = regexp.MustCompile(`(?m)^\|\s*Status\s*\|\s*([^|]+)\|`)
-	statusBold = regexp.MustCompile(`\*\*Status:?\*\*:?\s*([^\n]+)`)
-	prdField   = regexp.MustCompile(`(?m)^\|\s*(?:Story / PRD|PRD \(RF-[^)]*\))\s*\|\s*([^|]+)\|`)
-	prdID      = regexp.MustCompile(`PRD-\d+`)
-	prdFile    = regexp.MustCompile(`^(PRD-\d+)`)
+	statusRow  = lazyRe(`(?m)^\|\s*Status\s*\|\s*([^|]+)\|`)
+	statusBold = lazyRe(`\*\*Status:?\*\*:?\s*([^\n]+)`)
+	prdField   = lazyRe(`(?m)^\|\s*(?:Story / PRD|PRD \(RF-[^)]*\))\s*\|\s*([^|]+)\|`)
+	prdID      = lazyRe(`PRD-\d+`)
+	prdFile    = lazyRe(`^(PRD-\d+)`)
 )
 
 func statusValue(md string) string {
-	if m := statusRow.FindStringSubmatch(md); m != nil {
+	if m := statusRow().FindStringSubmatch(md); m != nil {
 		return strings.TrimSpace(strings.ToLower(m[1]))
 	}
-	if m := statusBold.FindStringSubmatch(md); m != nil {
+	if m := statusBold().FindStringSubmatch(md); m != nil {
 		return strings.TrimSpace(strings.ToLower(m[1]))
 	}
 	return ""
@@ -65,7 +67,7 @@ func TaskStatus(md string) string {
 
 // PRDLink returns the PRD id a ticket links to, or "" ("fora"/"nenhum" or no PRD-n).
 func PRDLink(md string) string {
-	m := prdField.FindStringSubmatch(md)
+	m := prdField().FindStringSubmatch(md)
 	if m == nil {
 		return ""
 	}
@@ -73,7 +75,7 @@ func PRDLink(md string) string {
 	if strings.HasPrefix(v, "fora") || strings.HasPrefix(v, "nenhum") {
 		return ""
 	}
-	return prdID.FindString(m[1])
+	return prdID().FindString(m[1])
 }
 
 type Bar struct {
@@ -94,11 +96,37 @@ type Progress struct {
 // ProjectProgress builds the bars for one project: tickets from <harnessDir>/tasks, PRDs from
 // <repoPath>/docs/prd and <harnessDir>/prd. harnessDir is the resolved harness folder (repo or global mode).
 func ProjectProgress(repoPath, harnessDir string) Progress {
-	return projectProgress(filepath.Base(repoPath), repoPath, harnessDir)
+	return projectProgress(filepath.Base(repoPath), repoPath, harnessDir, nil)
 }
 
-// projectProgress is ProjectProgress with the registered project name used in warnings.
-func projectProgress(name, repoPath, harnessDir string) Progress {
+// ticketFacts is what projectProgress takes from one TASK.md.
+type ticketFacts struct {
+	prd, status      string
+	start, end       time.Time
+	hasStart, hasEnd bool
+}
+
+func parseTicket(md string) ticketFacts {
+	f := ticketFacts{prd: PRDLink(md), status: TaskStatus(md)}
+	if f.prd != "" && f.status == "done" {
+		f.start, f.hasStart = firstDay(md)
+		if m := doneOnRow().FindStringSubmatch(md); m != nil {
+			f.end, f.hasEnd = parseDay(m[1])
+		}
+	}
+	return f
+}
+
+// prdFacts is what projectProgress takes from one PRD file.
+type prdFacts struct{ status, started, delivered string }
+
+func parsePRD(md string) prdFacts {
+	st, dl := prdDates(md)
+	return prdFacts{statusValue(md), st, dl}
+}
+
+// projectProgress is ProjectProgress with the registered project name used in warnings; pc may be nil (no cache).
+func projectProgress(name, repoPath, harnessDir string, pc *progressCache) Progress {
 	byPRD := map[string]*counts{}
 	var warns []string
 	tasks, _ := filepath.Glob(filepath.Join(harnessDir, "tasks", "*", "TASK.md"))
@@ -107,15 +135,14 @@ func projectProgress(name, repoPath, harnessDir string) Progress {
 		tasks = tasks[:MaxTicketsPerProj]
 	}
 	for _, f := range tasks {
-		b, err := readCapped(f)
+		t, err := readParsed(pc, f, parseTicket)
 		if err != nil {
 			if skipped(err) {
 				warns = append(warns, fmt.Sprintf("%s: skipped %s (not a regular file or over 1 MiB).", name, filepath.Base(filepath.Dir(f))))
 			}
 			continue
 		}
-		md := string(b)
-		id := PRDLink(md)
+		id := t.prd
 		if id == "" {
 			continue
 		}
@@ -125,10 +152,10 @@ func projectProgress(name, repoPath, harnessDir string) Progress {
 			byPRD[id] = c
 		}
 		c.total++
-		switch TaskStatus(md) {
+		switch t.status {
 		case "done":
 			c.done++
-			if w := c.addDone(md, name, filepath.Base(filepath.Dir(f))); w != "" {
+			if w := c.addDone(t, name, filepath.Base(filepath.Dir(f))); w != "" {
 				warns = append(warns, w)
 			}
 		case "blocked":
@@ -145,8 +172,8 @@ func projectProgress(name, repoPath, harnessDir string) Progress {
 			files = files[:MaxTicketsPerProj]
 		}
 		for _, f := range files {
-			id := prdFile.FindString(filepath.Base(f))
-			b, err := readCapped(f)
+			id := prdFile().FindString(filepath.Base(f))
+			pf, err := readParsed(pc, f, parsePRD)
 			if skipped(err) {
 				warns = append(warns, fmt.Sprintf("%s: skipped %s (not a regular file or over 1 MiB).", name, filepath.Base(f)))
 			}
@@ -154,9 +181,8 @@ func projectProgress(name, repoPath, harnessDir string) Progress {
 				continue
 			}
 			if _, seen := status[id]; !seen {
-				status[id] = statusValue(string(b))
-				st, dl := prdDates(string(b))
-				dates[id] = [2]string{st, dl}
+				status[id] = pf.status
+				dates[id] = [2]string{pf.started, pf.delivered}
 			}
 		}
 	}
@@ -182,3 +208,8 @@ func projectProgress(name, repoPath, harnessDir string) Progress {
 
 // PRDStatus returns the lowercased header Status of a PRD (or ticket) markdown, or "".
 func PRDStatus(md string) string { return statusValue(md) }
+
+// lazyRe compiles pattern on first use, so a package-level regexp costs nothing at init.
+func lazyRe(pattern string) func() *regexp.Regexp {
+	return sync.OnceValue(func() *regexp.Regexp { return regexp.MustCompile(pattern) })
+}

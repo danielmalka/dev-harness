@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -29,18 +28,18 @@ import (
 // Skipped only when both roadmaps are absent (generated package, consumer
 // project). Every failure is "<file>:<line>: expected ..., found ...".
 var (
-	changelogHeading = regexp.MustCompile(`^## (\d+\.\d+\.\d+) — (\d{4}-\d{2}-\d{2})\s*$`)
-	changelogAnyRel  = regexp.MustCompile(`^##\s*\[?v?\d`)
-	roadmapDateChip  = regexp.MustCompile(`<span class="chip">(data|date) <b>([^<]*)</b>`)
-	roadmapStatus    = regexp.MustCompile(`<span class="chip">status <b>([^<]*)</b>`)
-	roadmapPathChip  = regexp.MustCompile(`<span class="chip">path <b>([^<]*)</b>`)
-	roadmapRange     = regexp.MustCompile(`<code>CHANGELOG\.md</code> — releases (\d+\.\d+\.\d+) (a|to) (\d+\.\d+\.\d+)`)
-	roadmapCard      = regexp.MustCompile(`<h3>(\d+\.\d+\.\d+) · `)
-	roadmapH3Open    = regexp.MustCompile(`<h3\b`)
-	roadmapTag       = regexp.MustCompile(`<[^>]*>`)
-	roadmapVersionAt = regexp.MustCompile(`^\d+\.\d+\.\d+`)
-	roadmapH2        = regexp.MustCompile(`<h2[ >]`)
-	roadmapEntregue  = regexp.MustCompile(`<h2 id="entregue"`)
+	changelogHeading = lazyRe(`^## (\d+\.\d+\.\d+) — (\d{4}-\d{2}-\d{2})\s*$`)
+	changelogAnyRel  = lazyRe(`^##\s*\[?v?\d`)
+	roadmapDateChip  = lazyRe(`<span class="chip">(data|date) <b>([^<]*)</b>`)
+	roadmapStatus    = lazyRe(`<span class="chip">status <b>([^<]*)</b>`)
+	roadmapPathChip  = lazyRe(`<span class="chip">path <b>([^<]*)</b>`)
+	roadmapRange     = lazyRe(`<code>CHANGELOG\.md</code> — releases (\d+\.\d+\.\d+) (a|to) (\d+\.\d+\.\d+)`)
+	roadmapCard      = lazyRe(`<h3>(\d+\.\d+\.\d+) · `)
+	roadmapH3Open    = lazyRe(`<h3\b`)
+	roadmapTag       = lazyRe(`<[^>]*>`)
+	roadmapVersionAt = lazyRe(`^\d+\.\d+\.\d+`)
+	roadmapH2        = lazyRe(`<h2[ >]`)
+	roadmapEntregue  = lazyRe(`<h2 id="entregue"`)
 )
 
 type roadmapValue struct {
@@ -75,44 +74,44 @@ func parseRoadmap(rel, text string) roadmapDoc {
 	for i, line := range lines {
 		n := i + 1
 		if doc.date.line == 0 {
-			if m := roadmapDateChip.FindStringSubmatch(line); m != nil {
+			if m := roadmapDateChip().FindStringSubmatch(line); m != nil {
 				doc.date = roadmapValue{text: m[2], word: m[1], line: n}
 			}
 		}
 		if doc.status.line == 0 {
-			if m := roadmapStatus.FindStringSubmatch(line); m != nil {
+			if m := roadmapStatus().FindStringSubmatch(line); m != nil {
 				doc.status = roadmapValue{text: m[1], line: n}
 			}
 		}
 		if doc.path.line == 0 {
-			if m := roadmapPathChip.FindStringSubmatch(line); m != nil {
+			if m := roadmapPathChip().FindStringSubmatch(line); m != nil {
 				doc.path = roadmapValue{text: m[1], line: n}
 			}
 		}
 		if doc.rangeEnd.line == 0 {
-			if m := roadmapRange.FindStringSubmatch(line); m != nil {
+			if m := roadmapRange().FindStringSubmatch(line); m != nil {
 				doc.rangeStart = roadmapValue{text: m[1], line: n}
 				doc.rangeEnd = roadmapValue{text: m[3], word: m[2], line: n}
 			}
 		}
-		if roadmapEntregue.MatchString(line) {
+		if roadmapEntregue().MatchString(line) {
 			doc.entregueLine, inEntregue = n, true
 			continue
 		}
-		if inEntregue && roadmapH2.MatchString(line) {
+		if inEntregue && roadmapH2().MatchString(line) {
 			inEntregue = false
 		}
-		if !inEntregue || !roadmapH3Open.MatchString(line) {
+		if !inEntregue || !roadmapH3Open().MatchString(line) {
 			continue
 		}
-		if m := roadmapCard.FindStringSubmatch(line); m != nil {
+		if m := roadmapCard().FindStringSubmatch(line); m != nil {
 			doc.cards = append(doc.cards, roadmapCardRef{m[1], n})
 			continue
 		}
 		// ponytail: wrapped titles are read for at most 8 lines, raise if a title ever wraps further.
 		// Not the strict form: read the whole title (up to </h3>, at most 8
 		// lines), strip tags, and flag it if it still starts like a version.
-		title := line[roadmapH3Open.FindStringIndex(line)[0]:]
+		title := line[roadmapH3Open().FindStringIndex(line)[0]:]
 		for j := i; !strings.Contains(lines[j], "</h3>") && j+1 < len(lines) && j < i+8; j++ {
 			title += " " + lines[j+1]
 		}
@@ -122,9 +121,9 @@ func parseRoadmap(rel, text string) roadmapDoc {
 		if k := strings.Index(title, "</h3>"); k >= 0 {
 			title = title[:k]
 		}
-		title = roadmapTag.ReplaceAllString(title, "")
+		title = roadmapTag().ReplaceAllString(title, "")
 		probe := strings.NewReplacer("&nbsp;", " ", "\u00a0", " ").Replace(title)
-		if roadmapVersionAt.MatchString(strings.TrimSpace(probe)) {
+		if roadmapVersionAt().MatchString(strings.TrimSpace(probe)) {
 			r := []rune(title)
 			if len(r) > 24 {
 				r = r[:24]
@@ -191,9 +190,9 @@ func checkRoadmaps(root string, errors *[]string) {
 	var versions []string
 	dates := map[string]string{}
 	for i, line := range strings.Split(changelog, "\n") {
-		m := changelogHeading.FindStringSubmatch(line)
+		m := changelogHeading().FindStringSubmatch(line)
 		switch {
-		case m == nil && changelogAnyRel.MatchString(line):
+		case m == nil && changelogAnyRel().MatchString(line):
 			add("CHANGELOG.md:%d: expected a heading like \"## 0.1.0 — 2026-01-01\", found %q", i+1, line)
 		case m == nil:
 		case dates[m[1]] != "":

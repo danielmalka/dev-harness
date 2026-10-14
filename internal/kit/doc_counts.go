@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,8 +18,8 @@ import (
 // actually uses around a real count claim ("Contagem atual: ...",
 // "Current count: ...", "Esperado: ...", "Expected: ...").
 var (
-	docCountAnchor = regexp.MustCompile(`(?i)\b(atual|esperado|current|expected)\b`)
-	docCountClaim  = regexp.MustCompile(`\b(\d+)\s+(agentes|agents|comandos|commands|skills|perfis|profiles|templates)\b`)
+	docCountAnchor = lazyRe(`(?i)\b(atual|esperado|current|expected)\b`)
+	docCountClaim  = lazyRe(`\b(\d+)\s+(agentes|agents|comandos|commands|skills|perfis|profiles|templates)\b`)
 )
 
 // canonicalCountNoun folds the pt-br and en spellings of a counted noun onto
@@ -92,10 +91,10 @@ func checkDocumentedCounts(root string, inv Inventory, errors *[]string) {
 			continue
 		}
 		for lineNumber, line := range strings.Split(text, "\n") {
-			if !docCountAnchor.MatchString(line) {
+			if !docCountAnchor().MatchString(line) {
 				continue
 			}
-			matches := docCountClaim.FindAllStringSubmatch(line, -1)
+			matches := docCountClaim().FindAllStringSubmatch(line, -1)
 			nouns := map[string]bool{}
 			for _, match := range matches {
 				nouns[canonicalCountNoun(match[2])] = true

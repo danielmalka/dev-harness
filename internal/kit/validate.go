@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 )
 
 const (
@@ -21,14 +22,17 @@ const (
 )
 
 var (
-	modelPattern    = regexp.MustCompile(`(?m)^model:\s*(\S+)`)
-	fieldPattern    = regexp.MustCompile(`(?m)^([A-Za-z][A-Za-z0-9-]*):\s*(.*)$`)
-	templatePattern = regexp.MustCompile(`templates/(?:(<[a-z-]+>|[a-z]{2}(?:-[a-z]{2})?)/)?([A-Za-z0-9_.-]+\.md)`)
-	linkPattern     = regexp.MustCompile(`\[[^\]]*\]\(([^)]+)\)`)
-	privatePattern  = regexp.MustCompile(`(/home/|/Users/|[A-Za-z]:\\)`)
+	modelPattern    = lazyRe(`(?m)^model:\s*(\S+)`)
+	fieldPattern    = lazyRe(`(?m)^([A-Za-z][A-Za-z0-9-]*):\s*(.*)$`)
+	templatePattern = lazyRe(`templates/(?:(<[a-z-]+>|[a-z]{2}(?:-[a-z]{2})?)/)?([A-Za-z0-9_.-]+\.md)`)
+	linkPattern     = lazyRe(`\[[^\]]*\]\(([^)]+)\)`)
+	privatePattern  = lazyRe(`(/home/|/Users/|[A-Za-z]:\\)`)
 )
 
 var templateLanguages = []string{"en", "pt-br"}
+
+// englishOnlyTemplates may exist only in templates/en/ (the PRD is always written in English).
+var englishOnlyTemplates = []string{"PRD.md"}
 
 var allowedModels = map[string]bool{
 	"haiku":  true,
@@ -367,7 +371,7 @@ func checkAgents(dirs map[string]string, errors *[]string) {
 		if name == "" {
 			*errors = append(*errors, path+": missing name")
 		}
-		model := modelPattern.FindStringSubmatch(fm)
+		model := modelPattern().FindStringSubmatch(fm)
 		if len(model) == 0 {
 			*errors = append(*errors, path+": missing model")
 		} else if !allowedModels[model[1]] {
@@ -476,7 +480,7 @@ func checkLinks(root string, errors *[]string) {
 		if err != nil {
 			continue
 		}
-		for _, match := range linkPattern.FindAllStringSubmatch(text, -1) {
+		for _, match := range linkPattern().FindAllStringSubmatch(text, -1) {
 			href := match[1]
 			raw := strings.TrimSpace(strings.SplitN(href, "#", 2)[0])
 			if raw == "" || strings.HasPrefix(raw, "http://") || strings.HasPrefix(raw, "https://") || strings.HasPrefix(raw, "mailto:") || strings.HasPrefix(raw, "#") || regexp.MustCompile(`^[a-z]+:`).MatchString(raw) {
@@ -498,6 +502,16 @@ func checkLinks(root string, errors *[]string) {
 	}
 }
 
+func withoutEnglishOnly(names map[string]bool) map[string]bool {
+	out := make(map[string]bool, len(names))
+	for n := range names {
+		if !contains(englishOnlyTemplates, n) {
+			out[n] = true
+		}
+	}
+	return out
+}
+
 func checkTemplateRefs(dirs map[string]string, errors *[]string) {
 	byLang := listTemplates(dirs["templates"])
 	for _, lang := range templateLanguages {
@@ -512,10 +526,20 @@ func checkTemplateRefs(dirs map[string]string, errors *[]string) {
 		}
 	}
 	if len(langs) > 1 {
-		base := byLang[langs[0]]
+		base := withoutEnglishOnly(byLang[langs[0]])
 		for _, lang := range langs[1:] {
-			for _, name := range sortedKeys(symmetricDifference(base, byLang[lang])) {
+			for _, name := range sortedKeys(symmetricDifference(base, withoutEnglishOnly(byLang[lang]))) {
 				*errors = append(*errors, fmt.Sprintf("templates: %s is not present in every language (%s vs %s)", name, langs[0], lang))
+			}
+		}
+	}
+	for _, lang := range langs {
+		if lang == "en" {
+			continue
+		}
+		for _, name := range englishOnlyTemplates {
+			if byLang[lang][name] {
+				*errors = append(*errors, fmt.Sprintf("templates: %s must exist only in en/ (found in %s/)", name, lang))
 			}
 		}
 	}
@@ -531,9 +555,12 @@ func checkTemplateRefs(dirs map[string]string, errors *[]string) {
 			if err != nil {
 				continue
 			}
-			for _, match := range templatePattern.FindAllStringSubmatch(text, -1) {
+			for _, match := range templatePattern().FindAllStringSubmatch(text, -1) {
 				lang, name := match[1], match[2]
 				targets := langs
+				if contains(englishOnlyTemplates, name) {
+					targets = []string{"en"}
+				}
 				if lang != "" && !strings.HasPrefix(lang, "<") {
 					targets = []string{lang}
 				}
@@ -558,14 +585,14 @@ func checkPrivatePaths(root string, errors *[]string) {
 			continue
 		}
 		text, err := readText(path)
-		if err != nil || !privatePattern.MatchString(text) {
+		if err != nil || !privatePattern().MatchString(text) {
 			continue
 		}
 		if (strings.Contains(text, "code.claude.com")) && !strings.Contains(text, "/home/") && !strings.Contains(text, "/Users/") {
 			continue
 		}
 		for lineNumber, line := range strings.Split(text, "\n") {
-			if privatePattern.MatchString(line) && !strings.Contains(line, "code.claude.com") {
+			if privatePattern().MatchString(line) && !strings.Contains(line, "code.claude.com") {
 				*errors = append(*errors, fmt.Sprintf("%s:%d: private path", rel, lineNumber+1))
 			}
 		}
@@ -779,7 +806,7 @@ func frontmatter(text string) string {
 }
 
 func field(fm, name string) string {
-	for _, match := range fieldPattern.FindAllStringSubmatch(fm, -1) {
+	for _, match := range fieldPattern().FindAllStringSubmatch(fm, -1) {
 		if match[1] != name {
 			continue
 		}
@@ -813,7 +840,7 @@ func description(fm string) string {
 }
 
 func hasKey(fm, name string) bool {
-	for _, match := range fieldPattern.FindAllStringSubmatch(fm, -1) {
+	for _, match := range fieldPattern().FindAllStringSubmatch(fm, -1) {
 		if match[1] == name {
 			return true
 		}
@@ -1020,4 +1047,9 @@ func sortedKeys[T ~string](values map[T]bool) []T {
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 	return keys
+}
+
+// lazyRe compiles pattern on first use, so a package-level regexp costs nothing at init.
+func lazyRe(pattern string) func() *regexp.Regexp {
+	return sync.OnceValue(func() *regexp.Regexp { return regexp.MustCompile(pattern) })
 }

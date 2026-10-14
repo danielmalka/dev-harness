@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.28.0 — 2026-10-13
+
+- **Kit enxuto (PRD-021)**: o template de PRD existe só em `templates/en/` (o PRD é sempre em inglês); `templates/pt-br/PRD.md` saiu e a trava `englishOnlyTemplates` no `dh validate` impede a volta da cópia. Contagem de templates: 13.
+- **Regex lazy**: as expressões regulares dos pacotes `internal/kit`, `internal/dashboard` e `internal/harness` compilam no primeiro uso, não na inicialização do processo.
+- **Cache de parse do dashboard**: chave caminho + tamanho + mtime, com a mesma checagem de `Lstat`, arquivo regular e tamanho máximo de antes. Rotas e JSON do dashboard não mudam.
+- **Antes e depois medidos** (mesma máquina, dados de teste, linux/amd64):
+
+  | Medida | Antes | Depois |
+  |---|---|---|
+  | `buildState` do dashboard, por chamada (cache quente, dados iguais) | 50–58 ms | ~14 ms (~3,8x) |
+  | `buildState`, memória alocada | 11,5 MB | 0,67 MB |
+  | `buildState`, alocações | ~10.600 | ~4.750 |
+  | init de `internal/kit` no `dh snapshot event` (inittrace) | 0,18 ms / 854 alocações | ~0,02 ms / 62 |
+  | init de `internal/dashboard` | 0,17 ms / 599 | ~0,01 ms / 51 |
+  | init de `internal/harness` | 0,08 ms / 77 | 0 ms / 6 |
+  | 200 chamadas de `dh snapshot event` | ~0,77 s | ~0,74 s (não ficou mais lento; ruído ±0,05 s) |
+  | Tamanho do binário linux/amd64 | ~7,65 MB | ~7,65 MB (o dashboard fica) |
+
+- **Seguimento candidato**: cache de leitura compartilhado no `dh validate` (hoje 81 MB alocados por rodada). Fora desta versão; sem benchmark nem eval novos.
+- **Régua de modelo e esforço** no Coordenador (`.agents/coordinator.md`, "Model selection"): padrão barato; subir modelo ou esforço só com ambiguidade, acoplamento ou consequência altos; esforço antes de trocar de modelo; sem delegar cadeia dependente; sem Haiku em reconhecimento de segurança; o despacho declara o esforço subido e o registro o anota.
+- **Premissa de limpeza** no `AGENTS.md`: toda mudança remove os restos que torna obsoletos; resto bloqueia a entrega. O `AGENTS.md` também registra os 5 binários gerados e commitados a cada release, o dashboard que fica e o pprof que otimiza sem reduzir.
+- Sem agente, skill, comando ou dependência novos (seguem 13 agentes e 19 + 2 comandos).
+
 ## 0.27.0 — 2026-10-13
 
 - **PRD sempre em inglês, com regras curtas de escrita (PRD-020)**: todo PRD que o kit escreve é em inglês, qualquer que seja `language`, e segue um bloco curto de regras inspirado no ASD-STE100 (Simplified Technical English), com as palavras do kit: frases de procedimento até 20 palavras, descritivas até 25, uma instrução por frase, voz ativa, um termo por conceito, tempos simples, sem expressões idiomáticas. O dicionário de palavras aprovadas do ASD não é copiado. O bloco vive em `.skills/requirements-discovery/SKILL.md`; `templates/en/PRD.md` aponta para ele e `templates/pt-br/PRD.md` é cópia idêntica da versão en (contagem de templates segue 14).

@@ -10,7 +10,6 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -57,18 +56,18 @@ type EpochalStat struct {
 type counts struct{ done, blocked, total, daysSum, daysN, undated int }
 
 var (
-	createdRow   = regexp.MustCompile(`(?mi)^\|\s*(?:Criado / atualizado|Created / updated)\s*\|\s*([^|]*)\|`)
-	doneOnRow    = regexp.MustCompile(`(?mi)^\|\s*(?:Concluído em|Done on)\s*\|\s*([^|]*)\|`)
-	dateOnly     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
-	isoDate      = regexp.MustCompile(`\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})?)?`)
-	incidentLine = regexp.MustCompile(`^(?:###\s+|[-*+]\s+)\W*[A-Z]+-\d+`)
-	htmlComment  = regexp.MustCompile(`(?s)<!--.*?-->`)
+	createdRow   = lazyRe(`(?mi)^\|\s*(?:Criado / atualizado|Created / updated)\s*\|\s*([^|]*)\|`)
+	doneOnRow    = lazyRe(`(?mi)^\|\s*(?:Concluído em|Done on)\s*\|\s*([^|]*)\|`)
+	dateOnly     = lazyRe(`^\d{4}-\d{2}-\d{2}$`)
+	isoDate      = lazyRe(`\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})?)?`)
+	incidentLine = lazyRe(`^(?:###\s+|[-*+]\s+)\W*[A-Z]+-\d+`)
+	htmlComment  = lazyRe(`(?s)<!--.*?-->`)
 )
 
 // parseDay returns s as a day when it is exactly a valid AAAA-MM-DD (placeholders and other text are absent).
 func parseDay(s string) (time.Time, bool) {
 	s = strings.TrimSpace(s)
-	if !dateOnly.MatchString(s) {
+	if !dateOnly().MatchString(s) {
 		return time.Time{}, false
 	}
 	t, err := time.Parse("2006-01-02", s)
@@ -77,7 +76,7 @@ func parseDay(s string) (time.Time, bool) {
 
 // firstDay reads the first date of the "Criado / atualizado" row ("a / b" -> a).
 func firstDay(md string) (time.Time, bool) {
-	m := createdRow.FindStringSubmatch(md)
+	m := createdRow().FindStringSubmatch(md)
 	if m == nil {
 		return time.Time{}, false
 	}
@@ -92,14 +91,10 @@ func isDelivered(st string) bool {
 }
 
 // addDone tallies one finished ticket; it returns a warning when the end date precedes the start.
-func (c *counts) addDone(md, project, ticket string) string {
-	start, ok1 := firstDay(md)
-	end, ok2 := time.Time{}, false
-	if m := doneOnRow.FindStringSubmatch(md); m != nil {
-		end, ok2 = parseDay(m[1])
-	}
+func (c *counts) addDone(t ticketFacts, project, ticket string) string {
+	start, end := t.start, t.end
 	switch {
-	case !ok1 || !ok2:
+	case !t.hasStart || !t.hasEnd:
 		c.undated++
 	case end.Before(start):
 		c.undated++
@@ -271,14 +266,14 @@ func scanEpochal(path string) (EpochalStat, error) {
 // countIncidents counts ### titles and list items starting with an id, inside the Incidents section.
 func countIncidents(md string) int {
 	n, in := 0, false
-	for _, line := range strings.Split(htmlComment.ReplaceAllString(md, ""), "\n") {
+	for _, line := range strings.Split(htmlComment().ReplaceAllString(md, ""), "\n") {
 		line = strings.TrimRight(line, " \t\r")
 		if strings.HasPrefix(line, "## ") {
 			t := strings.TrimSpace(line[3:])
 			in = t == "Incidentes" || t == "Incidents"
 			continue
 		}
-		if in && incidentLine.MatchString(line) {
+		if in && incidentLine().MatchString(line) {
 			n++
 		}
 	}
@@ -325,7 +320,7 @@ func scanEpochalFile(path string) (EpochalStat, error) {
 			batches++
 			last, want = nil, true
 		case want:
-			if d := isoDate.FindString(line); d != "" {
+			if d := isoDate().FindString(line); d != "" {
 				last, want = &d, false
 			}
 		}
