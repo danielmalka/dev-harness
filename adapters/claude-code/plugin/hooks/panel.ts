@@ -1,24 +1,18 @@
 import type { EngineInterface, Register } from 'claude-code'
 import { denySpawn, guardFile, homeFrom, resolvePath } from './runtime-guard.ts'
-import { DASHBOARD_COMMAND, dhPath, registerDashboard } from './dashboard-command.ts'
+import { DASHBOARD_COMMAND, registerDashboard } from './dashboard-command.ts'
 import { applyEvent, iso, limitsFrom, type Ev, type Limits, type Snap } from './snapshot-writer.ts'
 import { driftMessage, findDrift, statusValue } from './status-drift.ts'
-import { atom, read, update } from 'claude-code'
-import { ZEN_PROMPT } from './lib/zen.ts'
 import {
-  bar, COMMIT, commandDir, deniesAiMention, gateAt, type Harness, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand,
+  COMMIT, commandDir, deniesAiMention, gateAt, type Harness, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand,
   isHarnessPath, MSG, native, parseGateCommands, parseHarness, parseLanguage, taskStatus,
 } from './lib/gate.ts'
-import { registerMods } from './mods-menu.tsx'
-import { registerZen } from './mods-zen.tsx'
-export { bar, commandDir, deniesAiMention, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand, isHarnessPath, native, parseGateCommands, parseHarness, parseLanguage, resolvePath, taskStatus }
+export { commandDir, deniesAiMention, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand, isHarnessPath, native, parseGateCommands, parseHarness, parseLanguage, resolvePath, taskStatus }
 
-// ponytail: module-level state; a mod reload resets gate/agents (current session only).
+// ponytail: module-level state; a mod reload resets the gate (current session only).
 // Absolute paths edited since the last green gate of their repository.
 const dirty = new Set<string>()
 const inside = (f: string, root: string) => f === root || f.startsWith(root === '/' ? '/' : `${root}/`)
-const running = new Map<string, string>()
-const warned = new Set<number>()
 
 async function home($: EngineInterface): Promise<string> {
   try { return (await $.env.get('HOME')) ?? '' } catch { return '' }
@@ -73,7 +67,7 @@ async function resolveHarness($: EngineInterface, dir: string): Promise<Harness 
 
 // Cached per directory. repo/global stick for the session; none and failures are dropped by every
 // prompt.compose (so /dh:setup or dh link apply without a restart) and re-resolved on the next read.
-// ponytail: readers between two composes reuse a none/failed answer, so a gate or status line never spawns dh per call.
+// ponytail: readers between two composes reuse a none/failed answer, so a gate never spawns dh per call.
 // Resolved from the repository root (as the commit gate does), so a session opened in a subfolder
 // finds its repo's harness; a non-git dir resolves as itself. Roots are cached per directory.
 // ponytail: a `git init` mid-session is not seen for a dir already cached as non-git.
@@ -117,99 +111,6 @@ async function readProject($: EngineInterface, root?: string): Promise<{ gates: 
   } catch {
     return { gates: [], lang: 'en' }
   }
-}
-
-async function dhProgress($: EngineInterface): Promise<string | undefined> {
-  try {
-    const dir = `${await harnessDir($, await $.session.cwd())}/tasks`
-    let done = 0, blocked = 0, total = 0
-    for (const entry of await $.fs.list(dir)) {
-      if (entry.kind !== 'dir') continue
-      const file = `${dir}/${entry.name}/TASK.md`
-      if (!(await $.fs.exists(file))) continue
-      const st = taskStatus(await $.fs.read(file) as string)
-      total++
-      if (st === 'done') done++
-      if (st === 'blocked') blocked++
-    }
-    if (!total) return undefined
-    return `dh ${bar((done / total) * 100, 5)} ${done}/${total}${blocked ? ` (${blocked} blocked)` : ''}`
-  } catch {
-    return undefined
-  }
-}
-
-// The state the mods draw from, declared there too (same plugin and key): the loader reads atoms declared in the file that uses them.
-const dhSegments = atom({ plugin: 'dh', key: 'dhSegments' } as const, [])
-const zenOn = atom({ plugin: 'dh', key: 'zenOn' } as const, false)
-const task = atom({ plugin: 'dh', key: 'task' } as const, null)
-const now = atom({ plugin: 'dh', key: 'now' } as const, 0)
-
-// The mods status line (mods-menu.tsx) records when it has drawn; until then (and on surfaces without a
-// PromptHint) the bar below stays. Fail-open: no state library, no mods line.
-const statusDrawn = atom({ plugin: 'dh', key: 'statusDrawn' } as const, false)
-let barCleared = false
-async function statusLineDrew($: EngineInterface): Promise<boolean> {
-  try {
-    const drawn = await read($, statusDrawn)
-    if (!drawn) barCleared = false // off then on again in one session clears the bar again
-    else if (!barCleared) { barCleared = true; $.ui.status('') }
-    return drawn
-  } catch { return false }
-}
-
-async function refresh($: EngineInterface): Promise<void> {
-  const u = await $.session.usage()
-  const pct = u.context.percent ?? 0
-  const parts = [`ctx ${bar(pct)} ${pct}%`]
-  if (running.size) parts.push(`agents ${running.size}`)
-  const dh = await dhProgress($)
-  if (dh) parts.push(dh)
-  const cwd = await $.session.cwd()
-  const pending = [...dirty].some(f => inside(f, resolvePath('/', cwd)))
-  if (pending) parts.push('gate pending')
-  for (const r of u.rateLimits) {
-    const label = r.kind === 'five_hour' ? '5h' : r.kind === 'seven_day' ? 'wk' : undefined
-    if (label) parts.push(`${label} ${Math.round(r.percentUsed)}%${r.percentUsed >= 80 ? ' 🔴' : ''}`)
-  }
-  if (u.cost) parts.push(`$${u.cost.usd.toFixed(2)}`)
-  // The mods status line (on by default) replaces this bar and ends with the dh segments.
-  const segments = [dh, pending ? 'gate pending' : '', running.size ? `agents ${running.size}` : ''].filter(Boolean) as string[]
-  // fail-open: the bar below is still set when the state library is not there
-  try { if (segments.join('|') !== (await read($, dhSegments)).join('|')) await update($, dhSegments, () => segments) } catch { /* no mods state */ }
-  if (!(await statusLineDrew($))) $.ui.status(parts.join(' · '))
-  for (const t of [60, 80]) {
-    if (pct >= t && !warned.has(t)) {
-      warned.add(t)
-      $.ui.toast(MSG[(await readProject($)).lang].ctx(pct, t >= 80))
-    }
-  }
-}
-
-// Zen (mods-zen.tsx) shares prompt.submit and turn.complete with this module: a typed prompt starts the band's
-// task and carries the Zen instructions; the turn ending marks it done, and the band clears a moment later.
-let zenTicker: { cancel: () => void } | undefined
-const stopZenTicker = () => { zenTicker?.cancel(); zenTicker = undefined }
-
-async function zenPrompt($: EngineInterface, e: any, next: any): Promise<any> {
-  const text = String(e.text ?? '').trim()
-  if (e.origin?.kind !== 'composer' || !text || text.startsWith('/') || !(await read($, zenOn))) return next(e)
-  const startedAt = await $.clock.now()
-  await update($, task, () => ({ title: (text.split('\n')[0] ?? '').slice(0, 200), startedAt, doneAt: null, steps: [] }))
-  await update($, now, () => startedAt)
-  stopZenTicker()
-  zenTicker = $.clock.every(1000, () => { void $.clock.now().then(t => update($, now, () => t)) })
-  return next({ ...e, context: [...(e.context ?? []), ZEN_PROMPT] })
-}
-
-async function zenDone($: EngineInterface): Promise<void> {
-  stopZenTicker()
-  const t = await read($, task)
-  if (!t || t.doneAt !== null) return
-  const doneAt = await $.clock.now()
-  await update($, task, c => (c ? { ...c, doneAt } : c))
-  await update($, now, () => doneAt)
-  $.clock.after(8000, () => { void update($, task, c => (c && c.doneAt === doneAt ? null : c)) })
 }
 
 // R20: fail-open on any read error; no tickets (or no readable PRDs) means no drift.
@@ -403,37 +304,27 @@ const failOpen = ($: EngineInterface, e: any, next: any) => next(e)
 // The loader refuses $ passed across an import: denySpawn gets `{}`, guardFile gets <home> as a string.
 export const register: Register = on => {
   registerDashboard(on)
-  registerMods(on)
-  registerZen(on)
 
   on('session.start', async ($, e, next) => {
     const r = await next(e)
     await $.command.register(DASHBOARD_COMMAND).catch(() => undefined)
     await recordStart($, e)
-    await refresh($).catch(() => undefined)
     return r
   })
 
   on('turn.complete', async ($, e, next) => {
     const r = await next(e)
-    if (e.agentId) running.delete(e.agentId)
     await recordTurn($, e)
-    if (!e.agentId) await zenDone($).catch(() => undefined)
-    await refresh($).catch(() => undefined)
     return r
   })
 
   on('agent.spawn', ($, e, next) => denySpawn({}, e, async (x: typeof e) => {
     const r = await next(x)
-    if (r.agentId) {
-      running.set(r.agentId, x.description)
-      recordSpawn($, x.subagentType, r.agentId)
-      await refresh($).catch(() => undefined)
-    }
+    if (r.agentId) recordSpawn($, x.subagentType, r.agentId)
     return r
   })).catch(failOpen)
 
-  on('prompt.submit', ($, e, next) => { recordPrompt($); return zenPrompt($, e, next) }).catch(failOpen)
+  on('prompt.submit', ($, e, next) => { recordPrompt($); return next(e) }).catch(failOpen)
 
   // BUG-001: every other tool call is activity too; recorded after the guards beneath have answered.
   on('tool.call', async ($, e, next) => {

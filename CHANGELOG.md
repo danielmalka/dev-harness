@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.29.0 — 2026-10-14
+
+- **Mod do Claude Code sem as partes visuais (PRD-022)**: saem a status line e o `PromptHint`, o menu `/mods`, o Zen (faixa, ferramenta `zen_progress`, injeção de `ZEN_PROMPT`), o Mode (modelo, esforço e modo de permissão), a contagem de agentes em execução e os avisos de contexto a 60% e 80%. Essas partes vivem agora no repositório à parte do dono (`malka-claude-mods`). Arquivos removidos em `adapters/claude-code/plugin/hooks/`: `mods-menu.tsx`, `mods-zen.tsx`, `mods-types.ts`, `mods.engine.test.ts`, `lib/status-line.tsx`, `lib/status.ts`, `lib/menu-pages.tsx`, `lib/settings.ts`, `lib/zen.ts`, `lib/zen-band.tsx`, `lib/modes.ts`.
+- **Causa do aviso "⚠ dh:" vazio**: `panel.ts` chamava `$.ui.status('')` e o motor fixa o status vazio do plugin. Nenhuma chamada a `$.ui.status` resta.
+- **Ficam**: `runtime-guard.ts` (trava de memória), `snapshot-writer.ts` e o registro de snapshot, a trava de commit (gate e menção a IA), `status-drift.ts`, a seção `dh:harness` e o `/dashboard`. O dashboard continua mostrando o progresso de tickets por PRD.
+- Sem agente, skill ou dependência nova. Comandos: 19 em arquivo + 1 registrado pelo mod (`/dashboard`), antes 19 + 2.
+
 ## 0.28.0 — 2026-10-13
 
 - **Kit enxuto (PRD-021)**: o template de PRD existe só em `templates/en/` (o PRD é sempre em inglês); `templates/pt-br/PRD.md` saiu e a trava `englishOnlyTemplates` no `dh validate` impede a volta da cópia. Contagem de templates: 13.

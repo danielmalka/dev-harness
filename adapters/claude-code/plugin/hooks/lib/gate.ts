@@ -2,7 +2,7 @@ import { resolvePath } from '../runtime-guard.ts'
 import { dhPath } from '../dashboard-command.ts'
 import { statusValue } from '../status-drift.ts'
 
-// Pure helpers of the commit gate, the status bar and the harness resolver, used by panel.ts.
+// Pure helpers of the commit gate and the harness resolver, used by panel.ts.
 export type Harness = { mode: 'repo' | 'global' | 'none'; dir: string }
 
 // Commit/PR text that mentions AI: an empty `attribution` covers the default footer, this covers the rest.
@@ -12,11 +12,6 @@ export const SHIPS = new RegExp(String.raw`\b(git\s+${GIT_C}commit|gh\s+pr\s+(cr
 export const COMMIT = new RegExp(String.raw`\bgit\s+${GIT_C}commit(?![\w-])`)
 export const GENERIC_GATE = /\b(make\s+(check|test|lint|ci|stan|gate)|go\s+(test|vet)|golangci-lint|pytest|ruff\s+check|cargo\s+(test|clippy)|(npm|pnpm|yarn|bun)\s+(run\s+)?(test|lint|check|typecheck)|tsc\b|phpstan|phpunit|pint)\b/
 export const GATE_KEYS = /^ {2}(test|lint|vet|check|typecheck|stan|fmt[\w-]*):\s*\n\s+value:\s*(.+)$/gm
-
-export function bar(pct: number, width = 10): string {
-  const full = Math.round((Math.min(Math.max(pct, 0), 100) / 100) * width)
-  return '▰'.repeat(full) + '▱'.repeat(width - full)
-}
 
 export function deniesAiMention(command: string): boolean {
   return SHIPS.test(command) && AI_MENTION.test(command)
@@ -77,13 +72,11 @@ export const MSG = {
     ai: 'dev-harness: commit/PR text mentions AI/Claude. Remove the mention and retry.',
     gate: (hint: string) => `dev-harness: files were edited after the last green gate in this session. Run ${hint} and commit again.`,
     gateDefault: "the project's quality gate (tests + lint)",
-    ctx: (p: number, hard: boolean) => `Context at ${p}% - ${hard ? 'time to /compact or /dh:handoff' : 'consider /compact at the next pause'}`,
   },
   'pt-br': {
     ai: 'dev-harness: commit/PR menciona IA/Claude. Remova a menção e tente de novo.',
     gate: (hint: string) => `dev-harness: houve edição depois do último gate verde nesta sessão. Rode ${hint} e commite de novo.`,
     gateDefault: 'o quality gate do projeto (testes + lint)',
-    ctx: (p: number, hard: boolean) => `Contexto em ${p}% - ${hard ? 'hora de /compact ou /dh:handoff' : 'considere /compact no próximo ponto de pausa'}`,
   },
 }
 
