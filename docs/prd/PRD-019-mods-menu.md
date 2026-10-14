@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | entregue em 2026-10-12 |
+| Status | entregue em 2026-10-12 (as partes visuais foram removidas pelo PRD-022, 0.29.0) |
 | Dono | Daniel Malka |
 | Criado / atualizado | 2026-10-12 / 2026-10-12 |
 | Tickets | T-1901 |

@@ -46,8 +46,6 @@ function world(on: any, o: Opts = {}) {
     runs.push(e.argv)
     return { value: { exitCode: 0, stdout: 'http://127.0.0.1:4747/\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
   })
-  on('ui.status', () => ({ value: undefined }) as any)
-  on('ui.toast', () => ({ value: undefined }) as any)
   on('session.start', () => ({ cwd: CWD }) as any)
   on('tool.call', async () => { if (o.toolGate && w.toolGate) await w.toolGate; return { result: 'ok' } as any })
   // The engine's own handling of the events the mod records: nothing but an answer.

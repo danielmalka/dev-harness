@@ -12,7 +12,6 @@ const CWD = '/proj'
 type World = { editFails?: boolean; yaml?: string; tasks?: Record<string, string>; fsFails?: boolean; roots?: Record<string, string>; cwd?: string; env?: Record<string, string>; harness?: Record<string, string>; files?: Record<string, string>; dirs?: string[] }
 
 function world(on: any, w: World = {}) {
-  const statuses: string[] = []
   const dhRuns: string[] = []
   const listed: string[] = []
   const cwd = w.cwd ?? CWD
@@ -46,13 +45,11 @@ function world(on: any, w: World = {}) {
     const root = w.roots?.[e.argv[2]]
     return { value: { exitCode: root ? 0 : 128, stdout: root ? `${root}\n` : '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
   })
-  on('ui.status', (_$: any, e: any) => { statuses.push(e.text); return { value: undefined } as any })
-  on('ui.toast', () => ({ value: undefined }) as any)
   on('session.start', () => ({ cwd: CWD }) as any)
   if (w.editFails) on('tool.call', { tool: 'Edit' }, () => ({ result: 'no match', isError: true }) as any)
   on('tool.call', () => ({ result: 'ok' }) as any)
   on('agent.spawn', () => ({ agentId: 'ag1', model: 'm' }) as any)
-  return { statuses, dhRuns, listed }
+  return { dhRuns, listed }
 }
 
 const bash = ($: any, command: string) => $.tool.call({ tool: 'Bash', command } as any) as Promise<any>
@@ -125,26 +122,6 @@ test('5 D2 gate deny is Portuguese with pt-br', async ($, on) => {
   await clean($)
   await $.tool.call({ tool: 'Write', file_path: 'src/a.go', content: 'x' } as any)
   expect(text(await bash($, 'git commit -m "feat: x"'))).toContain('último gate verde')
-})
-
-test('6 status line has ctx, English labels, and dh progress (via agent.spawn refresh)', async ($, on) => {
-  const w = world(on, { tasks: { A: '| Status | concluída |', B: '| Status | bloqueada |', C: '| Status | open |' } })
-  await clean($)
-  await $.agent.spawn({ prompt: 'hi', description: 'd' } as any)
-  const last = w.statuses[w.statuses.length - 1] ?? ''
-  expect(last).toContain('ctx')
-  expect(last).toContain('agents 1')
-  expect(last).toContain('dh ')
-  expect(last).toContain('1/3')
-  expect(last).toContain('(1 blocked)')
-})
-
-test('6 status after real session.start event', async ($, on) => {
-  const w = world(on, { tasks: { A: '| Status | done |' } })
-  const start = ($ as any).session?.start
-  if (typeof start !== 'function') throw new Error('NOT-RUN: engine $ cannot raise session.start')
-  await start({ source: 'startup', cwd: CWD })
-  expect(w.statuses.join('|')).toContain('ctx')
 })
 
 test('7 runtime-guard via composed module: spawn from subagent denied, main-session write allowed', async ($, on) => {
@@ -270,11 +247,10 @@ for (const [why, out] of [['exit != 0', 'fail'], ['invalid JSON', '{nope'], ['sp
 }
 
 // PRD-014 R19: readers follow the resolved folder.
-test('R19 global: status line counts tickets from <home>/projects/<name>/tasks', async ($, on) => {
+test('R19 global: the commit drift check reads tickets from <home>/projects/<name>/tasks', async ($, on) => {
   const G = '/h/projects/g3'
   const w = world(on, { cwd: '/g3', harness: { '/g3': hp('global', G) }, tasks: { A: '| Status | concluída |', B: '| Status | open |' } })
-  await $.agent.spawn({ prompt: 'x', description: 'd' } as any)
-  expect(w.statuses[w.statuses.length - 1]).toContain('1/2')
+  await bash($, 'git commit -m "x"')
   expect(w.listed).toContain(`${G}/tasks`)
 })
 
@@ -318,7 +294,7 @@ test('R8 via the composed module: subagent on <home>/projects/x/MEMORY.md is den
 test('R20/R19 a session in a subfolder of a global repo resolves the repo: mode global, tasks from the global dir', async ($, on) => {
   const w = world(on, { cwd: '/g5/sub', roots: { '/g5/sub': '/g5' }, harness: { '/g5': hp('global', '/h/projects/g5') }, tasks: { A: '| Status | open |' } })
   expect(mine(await compose($))[0]!.text).toContain('mode global; harness dir "/h/projects/g5"')
-  await $.agent.spawn({ prompt: 'x', description: 'd' } as any)
+  await bash($, 'git commit -m "x"')
   expect(w.dhRuns).toEqual(['/g5'])
   expect(w.listed).toContain('/h/projects/g5/tasks')
 })
@@ -347,15 +323,15 @@ test('security: parseHarness rejects control characters and oversize dirs', () =
   expect(parseHarness(hp('repo', '\\single'))).toBe(undefined)
 })
 
-test('none below the git toplevel: progress still reads <cwd>/.harness when it exists (0.20.0 behavior)', async ($, on) => {
-  const w = world(on, { cwd: '/m/pkg/app', roots: { '/m/pkg/app': '/m' }, harness: { '/m': hp('none') }, tasks: { A: '| Status | concluída |' }, dirs: ['/m/pkg/app/.harness'] })
-  await $.agent.spawn({ prompt: 'x', description: 'd' } as any)
-  expect(w.listed).toContain('/m/pkg/app/.harness/tasks')
-  expect(w.statuses[w.statuses.length - 1]).toContain('1/1')
+test('none below the git toplevel: the gate reads <cwd>/.harness/project.yaml when that folder exists (0.20.0 behavior)', async ($, on) => {
+  world(on, { cwd: '/m/pkg/app', roots: { '/m/pkg/app': '/m' }, harness: { '/m': hp('none') }, dirs: ['/m/pkg/app/.harness'], files: { '/m/pkg/app/.harness/project.yaml': 'commands:\n  test:\n    value: ./verify.sh\n' } })
+  await $.tool.call({ tool: 'Edit', file_path: '/m/pkg/app/src/a.go' } as any)
+  await bash($, './verify.sh')
+  expect(text(await bash($, 'git commit -m "x"'))).toBe('')
 })
 
 test('none below the git toplevel without <cwd>/.harness: readers use <root>/.harness', async ($, on) => {
   const w = world(on, { cwd: '/m2/pkg', roots: { '/m2/pkg': '/m2' }, harness: { '/m2': hp('none') }, tasks: { A: '| Status | open |' } })
-  await $.agent.spawn({ prompt: 'x', description: 'd' } as any)
+  await bash($, 'git commit -m "x"')
   expect(w.listed).toContain('/m2/.harness/tasks')
 })

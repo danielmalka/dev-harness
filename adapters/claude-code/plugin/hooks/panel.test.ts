@@ -1,11 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { bar, commandDir, deniesAiMention, native, resolvePath, isGateCommand, isHarnessPath, parseGateCommands, parseLanguage, taskStatus } from './panel'
-
-test('bar is proportional and clamped', () => {
-  expect(bar(0)).toBe('▱▱▱▱▱▱▱▱▱▱')
-  expect(bar(42)).toBe('▰▰▰▰▱▱▱▱▱▱')
-  expect(bar(150)).toBe('▰▰▰▰▰▰▰▰▰▰')
-})
+import { commandDir, deniesAiMention, native, resolvePath, isGateCommand, isHarnessPath, parseGateCommands, parseLanguage, taskStatus } from './panel'
 
 test('only commit/PR text that mentions AI is denied', () => {
   expect(deniesAiMention('git commit -m "feat: x\n\nCo-Authored-By: Claude Opus"')).toBe(true)
