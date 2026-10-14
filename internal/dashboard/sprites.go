@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 )
 
@@ -103,7 +102,7 @@ func (s *Sprites) PoseFor(state string) PoseSpec {
 	return s.table[StateIdle]
 }
 
-var frameName = regexp.MustCompile(`^(.+)_(\d\d)\.png$`)
+var frameName = lazyRe(`^(.+)_(\d\d)\.png$`)
 
 // MaxFrames caps the frames of one pose.
 const MaxFrames = 60
@@ -141,7 +140,7 @@ func (s *Sprites) ownerPaths(pose string) []string {
 	sort.Strings(files)
 	var out []string
 	for _, f := range files {
-		if m := frameName.FindStringSubmatch(filepath.Base(f)); m != nil && m[1] == pose {
+		if m := frameName().FindStringSubmatch(filepath.Base(f)); m != nil && m[1] == pose {
 			out = append(out, f)
 		}
 	}

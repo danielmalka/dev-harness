@@ -43,6 +43,29 @@ func TestSyntheticKitMutations(t *testing.T) {
 			want: "is not present in every language",
 		},
 		{
+			name: "PRD only in en passes",
+			mutate: func(t *testing.T, root string) {
+				writeFixture(t, filepath.Join(root, "templates", "en", "PRD.md"), "# PRD\n")
+			},
+		},
+		{
+			name: "PRD also in pt-br fails",
+			mutate: func(t *testing.T, root string) {
+				writeFixture(t, filepath.Join(root, "templates", "en", "PRD.md"), "# PRD\n")
+				writeFixture(t, filepath.Join(root, "templates", "pt-br", "PRD.md"), "# PRD\n")
+			},
+			want: "PRD.md must exist only in en/",
+		},
+		{
+			name: "TASK only in en fails",
+			mutate: func(t *testing.T, root string) {
+				if err := os.Remove(filepath.Join(root, "templates", "pt-br", "TASK.md")); err != nil {
+					t.Fatal(err)
+				}
+			},
+			want: "TASK.md is not present in every language",
+		},
+		{
 			name: "missing command role",
 			mutate: func(t *testing.T, root string) {
 				path := filepath.Join(root, ".commands", "run.md")

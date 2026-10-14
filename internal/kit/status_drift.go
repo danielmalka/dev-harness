@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/harness"
 )
 
-var driftPRDFile = regexp.MustCompile(`^(PRD-\d+)`)
+var driftPRDFile = lazyRe(`^(PRD-\d+)`)
 
 // checkStatusDrift (PRD-012, R19) fails when tickets and their PRD disagree:
 // (a) an open ticket links to a PRD whose Status starts with "entregue em" or "delivered on";
@@ -35,7 +34,7 @@ func checkStatusDrift(root string, errors *[]string) {
 		files, _ := filepath.Glob(pat)
 		for _, f := range files {
 			base := filepath.Base(f)
-			id := driftPRDFile.FindString(base)
+			id := driftPRDFile().FindString(base)
 			if id == "" || strings.HasSuffix(base, ".review.md") {
 				continue
 			}

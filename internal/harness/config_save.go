@@ -3,16 +3,15 @@ package harness
 import (
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 )
 
-var plainRe = regexp.MustCompile(`^[A-Za-z0-9_.-]+$`)
+var plainRe = lazyRe(`^[A-Za-z0-9_.-]+$`)
 
 func quoteVal(s string) string {
-	if plainRe.MatchString(s) {
+	if plainRe().MatchString(s) {
 		return s
 	}
 	return strconv.Quote(s)

@@ -284,6 +284,9 @@ func (h *spriteHolder) current() *Sprites {
 	return h.s
 }
 
+// progress is the process-wide parse cache for tickets and PRDs (swept at the end of every state build).
+var progress = newProgressCache()
+
 func buildState(cfg Config, holder *spriteHolder) state {
 	now := time.Now()
 	if cfg.Now != nil {
@@ -305,7 +308,7 @@ func buildState(cfg Config, holder *spriteHolder) state {
 	}
 	st.Warnings = append(st.Warnings, sprites.Warnings...)
 	for _, p := range projects {
-		pr := projectProgress(p.Name, p.Path, p.Harness)
+		pr := projectProgress(p.Name, p.Path, p.Harness, progress)
 		jp := jsonProject{Name: p.Name, Path: p.Path, Mode: p.Mode, Harness: p.Harness, Open: []jsonBar{}, Delivered: pr.Delivered, Metrics: pr.Metrics}
 		pr.Warnings = append(pr.Warnings, fileMetrics(&jp.Metrics, p.Name, p.Harness)...)
 		var dw string
@@ -321,6 +324,7 @@ func buildState(cfg Config, holder *spriteHolder) state {
 		st.Warnings = append(st.Warnings, pr.Warnings...)
 		st.Projects = append(st.Projects, jp)
 	}
+	progress.sweep()
 	all, skipped := snapshot.LoadDirMax(cfg.SnapshotDir, MaxSnapshots)
 	if skipped > 0 {
 		st.Warnings = append(st.Warnings, fmt.Sprintf("More than %d snapshot files: reading the newest %d.", MaxSnapshots, MaxSnapshots))
