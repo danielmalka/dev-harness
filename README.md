@@ -2,81 +2,105 @@
 
 English: [README.en.md](README.en.md)
 
-Kit portátil de desenvolvimento assistido por IA. Instale no Claude Code, desenvolva.
+## O que é
 
-Licença MIT. Plano de produto: [`docs/plano-produto.html`](docs/plano-produto.html). Tutorial: [`docs/tutorial.html`](docs/tutorial.html).
+Kit portátil de desenvolvimento assistido por IA, instalado como plugin do Claude Code: um Coordenador, agentes especialistas, skills e comandos `/dh:<comando>` que levam um pedido de ideia a entrega com revisão e verificação. Licença MIT.
+
+## Requisitos
+
+Claude Code autenticado, com acesso a um modelo; Git.
 
 ## Instalar
 
-Pelo marketplace do próprio repositório, dentro de uma sessão do Claude Code no projeto em que você vai trabalhar. A forma por URL baixa só o `marketplace.json`, sem clonar o repositório:
+Dentro de uma sessão do Claude Code, no projeto em que você vai trabalhar. A forma por URL baixa só o `marketplace.json`, sem clonar o repositório:
 
 ```text
 /plugin marketplace add https://raw.githubusercontent.com/danielmalka/dev-harness/main/.claude-plugin/marketplace.json
 /plugin install dh@dev-harness
 ```
 
-A forma curta `/plugin marketplace add danielmalka/dev-harness` também funciona, mas clona o repositório inteiro (cerca de 90 MB, por causa dos binários `dh` de cada versão) e já falhou uma vez com `fetch-pack: invalid index-pack output` (não reproduzido). Com um clone local, `/plugin marketplace add /caminho/do/clone` serve também. Em todas as formas o `install` baixa só a pasta do plugin, na tag fixada em `.claude-plugin/marketplace.json`, de onde vem a versão. Para um time, o projeto pode declarar o marketplace em `extraKnownMarketplaces` e o plugin em `enabledPlugins` no `.claude/settings.json`, e o Claude instala para quem confiar na pasta.
+A forma curta `/plugin marketplace add danielmalka/dev-harness` também funciona, mas clona o repositório inteiro (cerca de 90 MB, por causa dos binários `dh` de cada versão). O `install` baixa só a pasta do plugin, na tag fixada em `.claude-plugin/marketplace.json`, de onde vem a versão. Para um time, o projeto pode declarar o marketplace em `extraKnownMarketplaces` e o plugin em `enabledPlugins` no `.claude/settings.json`.
 
-**Versão atual: 0.30.0** (tag `v0.30.0`). `code-review`, `security-review` e `regression-testing` ganham checagens de duas skills externas (PRD-023), sem agente, skill ou comando novo. O mod do Claude Code perde as partes visuais (status line, menu `/mods`, Zen, Mode e avisos de contexto), que passaram para um repositório à parte do dono; ficam as travas, o snapshot de sessão e o `/dashboard`. Instalação por URL do `marketplace.json`, sem clonar o repositório. Extensão VS Code ([`dev-harness-vscode`](https://github.com/danielmalka/dev-harness-vscode), verificada em VS Code real no Remote WSL e no Windows): view com dashboard local, status bar com limites, lançador de sessão; instale o `.vsix` da [release mais recente](https://github.com/danielmalka/dev-harness-vscode/releases/latest) via "Extensions: Install from VSIX...". Dashboard local em http://127.0.0.1:4747 com `/dashboard` (registrado pelo mod), parado com `dh dashboard --stop [--port N]`; mostra os projetos registrados em `~/.harness/config.yaml`, uma barra de progresso por PRD aberto, sessões do Claude Code com estado, métricas por projeto no card (duração de ticket e de PRD com n e "sem data", tickets por PRD, incidentes, memória, última consolidação, dois gráficos) e leitura de MEMORY/RISKS sob demanda, avatar com limites de 5h/wk (layout 70/30: projetos à esquerda, avatar e limites à direita sticky). Travas de commit: nega menção a IA em `git commit`, `gh pr create/edit`, `gh release create`; nega commit quando houve edição após último gate verde; agora escopo do repositório da cada commit (não mais bloqueia edições em outro repo). Validação: ticket aberto sob PRD marcado `entregue em`, ou todos os tickets prontos mas PRD não. Mensagens de painel e dh seguem idioma de `.harness/project.yaml`. Testes: 226 pass. Kit enxuto (13 agentes, 19 comandos, 21 skills) e evals fora do fluxo. Tutorial: [`docs/tutorial.html`](docs/tutorial.html). CLIs externas rodam em clone descartável. PRD com quatro seções; ticket único substitui story. `/dh:plan-loop` disputa ondas com CLIs; `/dh:auto` encadeia discover-plan-build. Roadmap: [`docs/roadmap.html`](docs/roadmap.html). Documentação por projeto (`pdocs`): `/dh:document pdocs` cria `~/.harness/projects/<nome>/pdocs/index.html`, o dashboard serve em `/pdocs/<nome>/` e liga no card. Notas: [`CHANGELOG.md`](CHANGELOG.md).
+## Início rápido
 
-**Modo global (0.21.0):** quem não pode deixar pasta do dh no repositório usa `~/.harness/` (`DH_HOME` muda o lugar), criada pelo `dh` e única por máquina e por ambiente: `config.yaml` com o registro de todos os projetos, `projects/<nome>/` com MEMORY, tasks e PRDs, `sessions/` e `dashboard/`. `.harness/` interno vence quando existe; a trava de memória vale nos dois lugares. O `/dh:setup` escolhe o modo e registra o projeto; `dh link` registra ou religa (depois de mover o repositório), `dh harness-path` mostra o modo e a pasta resolvidos e `dh projects --json` lista os projetos; `dh config` mostra ou grava as chaves escalares (`language`, `mode`, `dashboard.sprites`). No trabalho, adicione `~/.harness` em `additionalDirectories` do `~/.claude/settings.json` (o `doctor` só sugere). As variáveis de ambiente antigas do dashboard (raízes e sprites) foram removidas; ver `CHANGELOG.md` 0.21.0 e a seção "Modo global" do [tutorial](docs/tutorial.html).
+Na sessão, dentro do projeto, rode `/dh:doctor` e depois `/dh:setup`. O primeiro diagnostica o ambiente; o segundo escolhe o modo (`.harness/` no repositório ou pasta global `~/.harness/`) e registra o projeto. Depois use os comandos de trabalho (`/dh:discover`, `/dh:plan`, `/dh:build`, `/dh:review`, `/dh:verify`, ou `/dh:auto` para encadear). Passo a passo: [tutorial](docs/tutorial.html) e [início rápido](docs/inicio-rapido.html).
 
-**Migrando de uma instalação anterior à 0.8.0:** o id do plugin mudou de `dev-harness@dev-harness` para `dh@dev-harness` e os comandos de `/dev-harness:<comando>` para `/dh:<comando>`. Rode `/plugin uninstall dev-harness@dev-harness` e depois `/plugin install dh@dev-harness`; troque `/dev-harness:` por `/dh:` em scripts e anotações próprias. Nome do marketplace, repositório, binário Go `dh` e caminho de snapshot não mudam. Ver `CHANGELOG.md` 0.8.0.
+O Coordenador responde no idioma em que você escreve (inglês por padrão). O `/dh:setup` grava `language: en` ou `language: pt-br` em `project.yaml`; o PRD é sempre em inglês.
 
-## Carregar a partir do clone (desenvolvimento)
+## Atualizar
 
-Pré-requisitos: Git e Claude Code autenticado com acesso a um modelo. Python 3 só para a fixture `slice-01`. Go 1.22+ só para quem mantém o kit.
+O plugin vem da tag fixada em `.claude-plugin/marketplace.json`. Para uma versão nova, atualize o marketplace (`claude plugin marketplace update dev-harness`) e o plugin (`claude plugin update dh@dev-harness`); confira com `/dh:doctor`. As mudanças de cada versão estão em [`CHANGELOG.md`](CHANGELOG.md).
 
-No projeto em que você vai trabalhar:
+## Desinstalar e remover dados
+
+1. Na sessão: `/plugin uninstall dh@dev-harness`. Isso remove o plugin; não apaga seus dados.
+2. Pasta global: apague `~/.harness` (ou o caminho de `DH_HOME`) para remover o registro de projetos, os registros do modo global, os snapshots e o token do dashboard.
+3. Se você adicionou `~/.harness` em `additionalDirectories` no `~/.claude/settings.json`, remova essa entrada.
+4. Em cada repositório em modo repositório: apague a pasta `.harness/` (memória, tarefas, PRDs e ADRs do projeto). O kit nunca a apaga sozinho.
+
+## O que o kit grava e onde
+
+No modo global, a pasta `~/.harness/` (`DH_HOME` muda o lugar) é única por máquina e por ambiente; `.harness/` no repositório vence quando existe. Detalhes na seção "Modo global" do [tutorial](docs/tutorial.html).
+
+| Onde | O que | Quem grava |
+| --- | --- | --- |
+| `<repositório>/.harness/` | modo repositório: MEMORY, EPOCHAL, RISKS, `project.yaml`, tarefas, PRDs, ADRs | Coordenador e comandos `/dh:` |
+| `~/.harness/config.yaml` | registro de projetos e padrões (`language`, `mode`, `dashboard.sprites`) | só o `dh` (`dh config`, `dh link`) |
+| `~/.harness/projects/<nome>/` | modo global: os mesmos registros do `.harness/` | Coordenador e comandos `/dh:` |
+| `~/.harness/sessions/` | snapshot por sessão do Claude Code (`dh snapshot prune` apaga os com mais de 7 dias) | mod do plugin |
+| `~/.harness/dashboard/` | token de parada do dashboard, por porta | dashboard |
+| `~/.harness/projects/<nome>/pdocs/` | documentação HTML do projeto (`/dh:document pdocs`) | docs-guide |
+| `127.0.0.1:4747` | dashboard local, só nesta máquina, quando você o inicia com `/dashboard` | binário `dh` |
+
+## Desligar
+
+- Dashboard: `dh dashboard --stop` (`--port N` para outra porta). Ele não mata processo de outro programa.
+- Plugin: `claude plugin disable dh@dev-harness` (ou desinstale, como acima); o mod e as travas saem junto.
+- Não há chave por hook para o mod nem para a trava de commit: desligar é desabilitar o plugin inteiro.
+
+## Se algo falhar
+
+- Rode `/dh:doctor` na sessão ou `dh doctor` no terminal; ele aponta o que falta.
+- Porta ocupada: o dashboard avisa; use `/dashboard --port N` e `dh dashboard --stop --port N`.
+- Plugin não encontrado: confira `/plugin marketplace add ...` e `/plugin install dh@dev-harness`; ao carregar de um clone, não use `~` entre aspas em `--plugin-dir` (o Claude ignora o plugin em silêncio).
+- Não resolveu: abra uma issue em [GitHub Issues](https://github.com/danielmalka/dev-harness/issues). Vulnerabilidade: ver [`SECURITY.md`](SECURITY.md).
+
+## Usar junto com
+
+Opcional; o kit não precisa de nenhum dos dois.
+
+- [`danielmalka/malka-claude-mods`](https://github.com/danielmalka/malka-claude-mods): mods visuais do Claude Code (status line, menu, Zen, Mode) que saíram deste kit na 0.29.0.
+- [`akitaonrails/ai-memory`](https://github.com/akitaonrails/ai-memory): memória de longo prazo e handoff entre CLIs de código.
+
+## Mapa da documentação
+
+- [Início rápido](docs/inicio-rapido.html) e [tutorial](docs/tutorial.html): comece por aqui. [Roadmap](docs/roadmap.html) e [`CHANGELOG.md`](CHANGELOG.md): o que foi entregue e o que vem.
+- `docs/prd/`, `docs/adr/` e `docs/discovery/`: histórico de design, em pt-br.
+- `evals/`: histórico de medição; não é preciso para usar o kit.
+- [`docs/plano-produto.html`](docs/plano-produto.html): plano de produto, em pt-br e interno.
+- Páginas em inglês: os mesmos temas dentro de `docs/en/` (início rápido: `docs/en/quick-start.html`).
+
+## Para quem contribui
+
+Esta seção é só para quem mantém o kit; quem usa não precisa dela. Regras completas em [`CONTRIBUTING.md`](CONTRIBUTING.md). Requer Go 1.22+ (e Python 3 só para a fixture `slice-01`).
 
 ```bash
-claude --plugin-dir "/caminho/absoluto/do/clone/dist/claude-code/dev-harness" --agent coordinator
+go test ./...
+go run ./cmd/dh build
+go run ./cmd/dh validate .
 ```
-
-Substitua o caminho pelo resultado de `pwd` no clone, mais `/dist/claude-code/dev-harness`. Atenção: dentro de aspas o `~` não expande e o Claude ignora o plugin em silêncio (`--agent coordinator` falha com "not found"). Use `$HOME/...` ou o caminho completo. Se o runtime exigir o nome qualificado, use `--agent dh:coordinator`.
-
-Depois, na sessão:
-
-```text
-/dh:doctor
-/dh:setup
-```
-
-O diagnóstico mecânico também roda sem o Claude:
-
-```bash
-dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness
-```
-
-Tutorial completo: [`docs/tutorial.html`](docs/tutorial.html). Fixture da primeira fatia: [`evals/fixtures/slice-01`](evals/fixtures/slice-01).
-
-## Fontes e pacote
 
 | Caminho | Papel |
 | --- | --- |
 | `.agents/` `.commands/` `.skills/` `templates/` `profiles/` | Fontes canônicas |
-| `cmd/dh`, `internal/` | Binário Go `dh`: `validate`, `build`, `doctor`, `snapshot`. `go run ./cmd/dh build` gera `dist/claude-code/dev-harness` |
+| `cmd/dh`, `internal/` | Binário Go `dh`. `go run ./cmd/dh build` gera `dist/claude-code/dev-harness` |
 | `dist/` | Pacote gerado. Não editar. |
-| `adapters/claude-code/` | Mapeamento para o Claude Code |
-| `adapters/generic/` | Uso manual em outra IA, sem paridade |
+| `adapters/` | Mapeamento para o Claude Code (`claude-code/`) e uso manual em outra IA, sem paridade (`generic/`) |
 
-Templates de trabalho em `templates/en/` e `templates/pt-br/` (espelhados, exceto o PRD): PRD (só em `templates/en/`, sempre em inglês), Task/Bug (o ticket), ADR e RFC, além dos três registros de memória (MEMORY, EPOCHAL, RISKS). O `setup` grava `language` em `.harness/project.yaml`; esse campo escolhe a pasta dos demais registros, não do PRD. Quando usar cada um: [`docs/tutoriais/templates.html`](docs/tutoriais/templates.html).
-
-Perfis (`base`, `go-api`, `typescript-web`, `typescript-api`, `php`, `kotlin`, `python`) estão em inglês em `profiles/`.
-
-## Idioma
-
-- O Coordenador responde no idioma em que você escreve. Inglês é o padrão quando não há sinal; escreva em português e ele responde em português.
-- No primeiro `/dh:setup`, o idioma da sessão é gravado em `.harness/project.yaml` como `language: en` ou `language: pt-br`. Esse campo é o idioma da conversa com o Coordenador e escolhe `templates/<lang>/` para os registros de memória, tasks, ADR e RFC. O PRD é sempre em inglês, com regras curtas de escrita (ver `.skills/requirements-discovery/SKILL.md`). Para trocar, peça ao Coordenador: ele edita o campo. Registros já escritos não são traduzidos.
-- Entre agentes tudo é inglês: despachos, respostas dos especialistas, código, commits e casos de eval. `project.yaml` e perfis também.
-- Documentos HTML gerados pela skill `doc-template-html` seguem o mesmo campo: `bash .skills/doc-template-html/scripts/stamp.sh --lang en ...` (padrão `pt-br`).
-- Documentação do kit: pt-br em `docs/` e inglês em `docs/en/`; cada página tem link para a outra versão. Este README tem versão em [`README.en.md`](README.en.md). O plano de produto é interno e existe só em pt-br.
-
-## Manutenção
+Carregar a partir do clone, no projeto em que você vai trabalhar:
 
 ```bash
-go test ./...
-go run ./cmd/dh validate --source-only .
-go run ./cmd/dh build
-go run ./cmd/dh validate .
+claude --plugin-dir "$HOME/caminho/do/clone/dist/claude-code/dev-harness" --agent coordinator
 ```
+
+Use `$HOME/...` ou o caminho completo, nunca `~` entre aspas. Se o runtime exigir o nome qualificado, use `--agent dh:coordinator`. Diagnóstico sem o Claude: `dist/claude-code/dev-harness/bin/dh doctor dist/claude-code/dev-harness`. Templates de trabalho: [`docs/tutoriais/templates.html`](docs/tutoriais/templates.html).
