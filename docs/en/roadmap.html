@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-10-16</b></span>
-          <span class="chip">status <b>0.30.0 · live</b></span>
+          <span class="chip">status <b>0.30.1 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tasks completed per release, sourced from <code>CHANGELOG.md</code>. "Tested?" only claims execution when a
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
+
+      <div class="card">
+        <h3>0.30.1 · Public repository ready for newcomers (PRD-024)</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-024. <code>README.md</code> and <code>README.en.md</code> rewritten into 12 fixed sections (what it is, requirements, install, quick start, update, uninstall and remove data, what the kit writes and where, turn things off, if something fails, use together with, docs map, for contributors), without the release-notes paragraph. New <code>SECURITY.md</code> and <code>CONTRIBUTING.md</code> in English. The prefix of the owner's machine path in the <code>evals/</code> baselines becomes <code>&lt;repo&gt;</code>. Roadmap: four Planned cards, dead references fixed and another project's name removed. No new agent, skill or command.</p>
+        <p><strong>Relations:</strong> PRD-024 (<code>docs/prd/PRD-024-public-readiness.md</code>); <code>CHANGELOG.md</code> 0.30.1.</p>
+        <p><strong>Tested?</strong> build, <code>dh validate</code> and <code>go test ./...</code> green; no new eval.</p>
+      </div>
 
       <div class="card">
         <h3>0.30.0 · Review and test checks from two external skills (PRD-023)</h3>
@@ -919,7 +927,7 @@ profiles/"] --> B["dh build"]
           <code>mcode</code>; with <code>[claude, cli:grok, cli:codex]</code>, k = 2. Required qualification:
           disposable clone; writes outside it are detected on the live tree (R5), never prevented; writes outside the
           project are not detected.</p>
-        <p><strong>Relations:</strong> PRD-008; RISK-002 (<code>.harness/RISKS.md</code>): mitigated, not resolved.
+        <p><strong>Relations:</strong> PRD-008; RISK-002 (incident record of the maintainer's harness, not of this repository): mitigated, not resolved.
           Residuals accepted by the owner on 2026-09-29: (a) writes outside the project; (b) surviving processes,
           network, and push to other remotes; (e) reading secrets; and the live <code>.git</code> paths outside the
           R5 snapshot. <code>.skills/external-clis/SKILL.md</code>; <code>CHANGELOG.md</code> 0.12.0.</p>
@@ -1538,7 +1546,7 @@ profiles/"] --> B["dh build"]
           <code>en/</code>/<code>pt-br/</code>; Coordinator language rule; skill <code>project-onboarding</code>
           now lists profiles at runtime; stack profile <code>profiles/php.yaml</code>; work templates PRD, STORY,
           TASK, ADR, RFC; templates tutorial; commands with full frontmatter; Mermaid via CDN as the skill's only
-          CDN exception; repository <code>CLAUDE.md</code> with the fixed decisions.</p>
+          CDN exception; repository <code>AGENTS.md</code> with the fixed decisions.</p>
         <p><strong>Relations:</strong> implements PRD-001 (RF-01 to RF-08) and the ADR-001 decision (Go runtime).
           0.2.1 and 0.3.x depend on it.</p>
         <p><strong>Tested?</strong> CI runs <code>go test ./...</code>, <code>dh validate --source-only .</code>,
@@ -1586,7 +1594,7 @@ profiles/"] --> B["dh build"]
           on the live tree (R5) and does not detect writes outside the project. A batch after PRD-008.</p>
         <p><strong>Acceptance criteria:</strong> to be defined.</p>
         <p><strong>Status:</strong> planned, no PRD.</p>
-        <p><strong>Relations:</strong> PRD-008; RISK-002 (<code>.harness/RISKS.md</code>);
+        <p><strong>Relations:</strong> PRD-008; RISK-002 (incident record of the maintainer's harness, not of this repository);
           <code>.skills/external-clis/SKILL.md</code>.</p>
       </div>
 
@@ -1628,8 +1636,8 @@ profiles/"] --> B["dh build"]
           copy).</p>
         <p><strong>Acceptance criteria:</strong> to be defined — PRD-001 excludes the extension itself from scope
           ("Out": "The VS Code extension itself. Born after this phase, reading the format below").</p>
-        <p><strong>Status:</strong> blocked — waits for phase 1 (PRD-001) validated on danlemos before the code
-          starts, per <code>CLAUDE.md</code>.</p>
+        <p><strong>Status:</strong> blocked — waits for phase 1 (PRD-001) validated on a real project before the code
+          starts, per <code>AGENTS.md</code>.</p>
         <p><strong>Relations:</strong> consumes the snapshot format (<code>schema: 1</code>) defined in PRD-001 §6;
           depends on 0.2.0 (RF-03/RF-04, hooks and <code>subagentStatusLine</code>).</p>
       </div>
@@ -1691,12 +1699,44 @@ profiles/"] --> B["dh build"]
           document. Mermaid keeps its current role.</p>
       </div>
 
+      <div class="card">
+        <h3>Edit config.yaml from the dashboard</h3>
+        <p><strong>Description:</strong> a dashboard form to read and write the scalar keys of <code>config.yaml</code>. PRD-018 delivered only the write side through <code>dh config</code>. It needs a CSRF or session token and a full security review before it starts.</p>
+        <p><strong>Acceptance criteria:</strong> criteria to be defined.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> PRD-018; <code>docs/discovery/renova.md</code> (section 7).</p>
+      </div>
+
+      <div class="card">
+        <h3>Animated diagrams for the public showcase</h3>
+        <p><strong>Description:</strong> animated diagrams to show the kit to the public. It starts only after the <code>pdocs</code> prove the content.</p>
+        <p><strong>Acceptance criteria:</strong> criteria to be defined.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> <code>docs/discovery/renova.md</code> (section 7).</p>
+      </div>
+
+      <div class="card">
+        <h3>Per-project events.jsonl for finer metrics</h3>
+        <p><strong>Description:</strong> one <code>events.jsonl</code> per project, for metrics finer than one day, which is today's granularity. This is PRD-016 option B.</p>
+        <p><strong>Acceptance criteria:</strong> criteria to be defined.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> PRD-016; <code>docs/discovery/renova.md</code> (section 7).</p>
+      </div>
+
+      <div class="card">
+        <h3>Coordinator orchestrates, does not execute</h3>
+        <p><strong>Description:</strong> the Coordinator does too much hands-on work. It should dispatch subagents for execution and verification. Execution covers reading, build, validate, grep, record edits, CLI review prompts and spot-checks by shell. The Coordinator only judges whether the delegated work was done with the skill or needs rework. It still owns the writes to <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code>.</p>
+        <p><strong>Acceptance criteria:</strong> criteria to be defined. Levers to evaluate later: the rules and spot-check wording in <code>.agents/coordinator.md</code>, and maybe a mod guard.</p>
+        <p><strong>Status:</strong> planned, no PRD.</p>
+        <p><strong>Relations:</strong> <code>.agents/coordinator.md</code>.</p>
+      </div>
+
       <h2 id="ideias"><span class="n">04</span>Discovery ideas</h2>
       <p>No PRD yet. Criteria below are hypotheses, not commitments.</p>
 
       <div class="card">
         <h3>OTEL and Agent SDK</h3>
-        <p>Decision deferred by the owner (<code>CLAUDE.md</code>): "do not plan on top of them." Recorded here
+        <p>Decision deferred by the owner (<code>AGENTS.md</code>): "do not plan on top of them." Recorded here
           only so the context for why they appear in no other section is not lost.</p>
         <p><strong>Status:</strong> not planning.</p>
       </div>
@@ -1753,7 +1793,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.30.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.30.1, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
@@ -1780,7 +1820,7 @@ OTEL and Agent SDK — not planning"]
           binary.</li>
         <li><code>docs/plano-produto.html</code> — sections "In for v1", "Out for v1", "4.6 Flows" and "Minimum
           qualification matrix".</li>
-        <li><code>CLAUDE.md</code> — the repository's fixed decisions (VS Code extension, OTEL/Agent SDK deferred,
+        <li><code>AGENTS.md</code> — the repository's fixed decisions (VS Code extension, OTEL/Agent SDK deferred,
           the rule to verify like CI before committing <code>dist/</code>).</li>
         <li><code>evals/cases/</code>, <code>evals/rubrics/document-review.md</code>, <code>evals/fixtures/</code>,
           <code>evals/baselines/</code> and <code>.github/workflows/ci.yml</code> — test evidence per delivered

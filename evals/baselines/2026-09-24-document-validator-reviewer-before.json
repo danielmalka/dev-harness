@@ -6,7 +6,7 @@
   "costUsd": 0.5895598,
   "partial": false,
   "suite": {
-    "root": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness",
+    "root": "<repo>/dist/claude-code/dev-harness",
     "ablation": "none",
     "modelOverride": "sonnet",
     "judgeModel": "sonnet",
@@ -17,7 +17,7 @@
       {
         "name": "dev-harness",
         "version": "0.6.0",
-        "path": "/home/malka/projetos/dev-harness/dist/claude-code/dev-harness"
+        "path": "<repo>/dist/claude-code/dev-harness"
       }
     ]
   },

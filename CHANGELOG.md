@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.30.1 — 2026-10-16
+
+- **Repositório público pronto para quem chega (PRD-024)**: `README.md` e `README.en.md` reescritos em 12 seções fixas (o que é, requisitos, instalar, início rápido, atualizar, desinstalar e remover dados, o que o kit grava e onde, desligar, se algo falhar, usar junto com, mapa da documentação, para quem contribui); saem o parágrafo de notas de release, a contagem de testes e a nota de migração da 0.8.0 (que segue na entrada 0.8.0 deste `CHANGELOG.md`). Os dois projetos companheiros (`malka-claude-mods` e `ai-memory`) aparecem como opcionais.
+- Novos `SECURITY.md` (relato por GitHub private vulnerability reporting) e `CONTRIBUTING.md`, em inglês.
+- `evals/baselines/*.json`: o prefixo do caminho da máquina do dono nos 28 arquivos que o continham vira `<repo>`. O histórico do git não foi reescrito.
+- Roadmap (pt/en): quatro cards em Planejado (config.yaml pelo dashboard, diagramas animados, `events.jsonl` por projeto, Coordenador que orquestra e não executa); referências mortas a `CLAUDE.md` e ao registro de incidentes do mantenedor corrigidas; nome de projeto alheio removido.
+- Sem agente, skill, comando ou mudança de comportamento do kit. Comandos: 19 + 1. Agentes: 13.
+
 ## 0.30.0 — 2026-10-16
 
 - **Checagens de revisão e teste vindas de duas skills externas (PRD-023)**: `pr-audit` e `security-audit` (akitaonrails/my-skills, @7b8a5e5) entram como linhas curtas nas skills existentes, sem skill, agente ou comando novo. `code-review`: busca de pontos irmãos de uma correção pontual, todos os consumidores de um formato compartilhado (inclusive espelhos mantidos à mão), arquivo que não pertence à árvore, e novo ponto de entrada que reprova os invariantes dos antigos. `security-review` e seu checklist: inventário do diff (sinais de arquivo, CI e dependência), correção de segurança como diff de maior risco, relato provado ou refutado antes da correção, refutador independente por despacho do Coordenador, scanner estreitado ou sem trava de merge não é aprovação, supressão adia e não resolve, controle desligado ou ativação condicional, fronteira de modelo e ferramenta, segredo vazado rotacionado antes de baseline, caso de controle legítimo no teste de regressão, identidade que falha fechada e chaves de cache com escopo completo. `regression-testing`: "falha antes da correção" exige falha de asserção, não erro de compilação ou importação.

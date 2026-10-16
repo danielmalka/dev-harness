@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-16</b></span>
-          <span class="chip">status <b>0.30.0 · vivo</b></span>
+          <span class="chip">status <b>0.30.1 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.30.1 · Repositório público pronto para quem chega (PRD-024)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-024. <code>README.md</code> e <code>README.en.md</code> reescritos em 12 seções fixas (o que é, requisitos, instalar, início rápido, atualizar, desinstalar e remover dados, o que o kit grava e onde, desligar, se algo falhar, usar junto com, mapa da documentação, para quem contribui), sem o parágrafo de notas de release. Novos <code>SECURITY.md</code> e <code>CONTRIBUTING.md</code> em inglês. O prefixo do caminho da máquina do dono nos baselines de <code>evals/</code> vira <code>&lt;repo&gt;</code>. Roadmap: quatro cards em Planejado, referências mortas corrigidas e nome de projeto alheio removido. Sem agente, skill ou comando novo.</p>
+        <p><strong>Relações:</strong> PRD-024 (<code>docs/prd/PRD-024-public-readiness.md</code>); <code>CHANGELOG.md</code> 0.30.1.</p>
+        <p><strong>Testado?</strong> build, <code>dh validate</code> e <code>go test ./...</code> verdes; sem eval nova.</p>
+      </div>
 
       <div class="card">
         <h3>0.30.0 · Checagens de revisão e teste de duas skills externas (PRD-023)</h3>
@@ -918,7 +926,7 @@ profiles/"] --> B["dh build"]
           com <code>[claude, cli:grok, cli:codex]</code>, k = 2. Qualificação obrigatória: clone descartável; escritas
           fora dele são detectadas na árvore viva (R5), nunca impedidas; escritas fora do projeto não são
           detectadas.</p>
-        <p><strong>Relações:</strong> PRD-008; RISK-002 (<code>.harness/RISKS.md</code>): mitigado, não resolvido.
+        <p><strong>Relações:</strong> PRD-008; RISK-002 (registro de incidentes do harness do mantenedor, não deste repositório): mitigado, não resolvido.
           Residuais aceitos pelo dono em 29/09/2026: (a) escritas fora do projeto; (b) processos que sobrevivem à
           chamada, rede e push para outros remotes; (e) leitura de segredos; e os caminhos do <code>.git</code> vivo
           fora da foto do R5. <code>.skills/external-clis/SKILL.md</code>; <code>CHANGELOG.md</code> 0.12.0.</p>
@@ -1540,7 +1548,7 @@ profiles/"] --> B["dh build"]
           <code>en/</code>/<code>pt-br/</code>; regra de idioma do Coordenador; skill <code>project-onboarding</code>
           passa a listar perfis em runtime; perfil <code>profiles/php.yaml</code>; templates de trabalho PRD, STORY,
           TASK, ADR, RFC; tutorial de templates; comandos com frontmatter completo; Mermaid via CDN como única
-          exceção de CDN da skill; <code>CLAUDE.md</code> do repositório com as decisões fixadas.</p>
+          exceção de CDN da skill; <code>AGENTS.md</code> do repositório com as decisões fixadas.</p>
         <p><strong>Relações:</strong> implementa PRD-001 (RF-01 a RF-08) e a decisão de ADR-001 (runtime Go). Da
           qual dependem 0.2.1 e 0.3.x.</p>
         <p><strong>Testado?</strong> CI executa <code>go test ./...</code>, <code>dh validate --source-only .</code>,
@@ -1588,7 +1596,7 @@ profiles/"] --> B["dh build"]
           detecta na árvore viva (R5) e não detecta escrita fora do projeto. Lote posterior ao PRD-008.</p>
         <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
         <p><strong>Status:</strong> planejado, sem PRD.</p>
-        <p><strong>Relações:</strong> PRD-008; RISK-002 (<code>.harness/RISKS.md</code>);
+        <p><strong>Relações:</strong> PRD-008; RISK-002 (registro de incidentes do harness do mantenedor, não deste repositório);
           <code>.skills/external-clis/SKILL.md</code>.</p>
       </div>
 
@@ -1628,8 +1636,8 @@ profiles/"] --> B["dh build"]
           <code>context-kit-extension</code> (essa fica arquivada como doadora de código por cópia).</p>
         <p><strong>Critérios de aceite:</strong> critérios a definir — PRD-001 exclui a extensão em si do escopo
           ("Não entra": "A extensão VS Code em si. Nasce depois desta etapa, lendo o formato abaixo").</p>
-        <p><strong>Status:</strong> bloqueado — aguarda a etapa 1 (PRD-001) validada no danlemos antes de começar o
-          código, conforme <code>CLAUDE.md</code>.</p>
+        <p><strong>Status:</strong> bloqueado — aguarda a etapa 1 (PRD-001) validada num projeto real antes de começar o
+          código, conforme <code>AGENTS.md</code>.</p>
         <p><strong>Relações:</strong> consome o formato de snapshot (<code>schema: 1</code>) definido em PRD-001 §6;
           depende de 0.2.0 (RF-03/RF-04, hooks e <code>subagentStatusLine</code>).</p>
       </div>
@@ -1690,12 +1698,44 @@ profiles/"] --> B["dh build"]
           eles, sem incorporação, sem script e sem exportação dentro do documento. Mermaid mantém seu papel atual.</p>
       </div>
 
+      <div class="card">
+        <h3>Editar o config.yaml pelo dashboard</h3>
+        <p><strong>Descrição:</strong> formulário no dashboard para ler e gravar as chaves escalares do <code>config.yaml</code>. O PRD-018 entregou só o lado de escrita pelo <code>dh config</code>. Exige token de CSRF ou de sessão e revisão de segurança completa antes de começar.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> PRD-018; <code>docs/discovery/renova.md</code> (seção 7).</p>
+      </div>
+
+      <div class="card">
+        <h3>Diagramas animados para a vitrine pública</h3>
+        <p><strong>Descrição:</strong> diagramas animados para mostrar o kit ao público. Começa só depois que os <code>pdocs</code> provarem o conteúdo.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> <code>docs/discovery/renova.md</code> (seção 7).</p>
+      </div>
+
+      <div class="card">
+        <h3>events.jsonl por projeto para métricas mais finas</h3>
+        <p><strong>Descrição:</strong> um <code>events.jsonl</code> por projeto, para métricas mais finas que o dia, a granularidade de hoje. É a opção B do PRD-016.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> PRD-016; <code>docs/discovery/renova.md</code> (seção 7).</p>
+      </div>
+
+      <div class="card">
+        <h3>O Coordenador orquestra, não executa</h3>
+        <p><strong>Descrição:</strong> o Coordenador faz trabalho manual demais. Ele deve despachar subagentes para executar e verificar. Execução inclui leitura, build, validate, grep, edição de registros, montagem de prompts de revisão por CLI e checagens pontuais por shell. O Coordenador só julga se o trabalho delegado foi feito com a skill ou precisa de retrabalho. Ele continua dono da escrita em <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>.</p>
+        <p><strong>Critérios de aceite:</strong> critérios a definir. Alavancas a avaliar depois: a redação das regras e das checagens pontuais em <code>.agents/coordinator.md</code> e, talvez, uma trava no mod.</p>
+        <p><strong>Status:</strong> planejado, sem PRD.</p>
+        <p><strong>Relações:</strong> <code>.agents/coordinator.md</code>.</p>
+      </div>
+
       <h2 id="ideias"><span class="n">04</span>Ideias para discovery</h2>
       <p>Sem PRD ainda. Critérios abaixo são hipóteses, não compromissos.</p>
 
       <div class="card">
         <h3>OTEL e Agent SDK</h3>
-        <p>Decisão adiada pelo dono (<code>CLAUDE.md</code>): "não planejar em cima deles." Registrado aqui só para
+        <p>Decisão adiada pelo dono (<code>AGENTS.md</code>): "não planejar em cima deles." Registrado aqui só para
           não perder o contexto de por que não aparecem em nenhuma outra seção.</p>
         <p><strong>Status:</strong> não planejar.</p>
       </div>
@@ -1752,7 +1792,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.30.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.30.1, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
@@ -1777,7 +1817,7 @@ OTEL e Agent SDK — não planejar"]
         <li><code>docs/adr/ADR-001-runtime-go.md</code> — decisão do runtime Go para o binário <code>dh</code>.</li>
         <li><code>docs/plano-produto.html</code> — seções "Entra na v1", "Fica de fora da v1", "4.6 Fluxos" e
           "Matriz mínima de qualificação".</li>
-        <li><code>CLAUDE.md</code> — decisões fixadas do repositório (extensão VS Code, OTEL/Agent SDK adiados,
+        <li><code>AGENTS.md</code> — decisões fixadas do repositório (extensão VS Code, OTEL/Agent SDK adiados,
           regra de verificar como a CI antes de commitar <code>dist/</code>).</li>
         <li><code>evals/cases/</code>, <code>evals/rubrics/document-review.md</code>, <code>evals/fixtures/</code>,
           <code>evals/baselines/</code> e <code>.github/workflows/ci.yml</code> — evidência de teste por item
