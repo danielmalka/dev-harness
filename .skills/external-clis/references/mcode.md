@@ -8,11 +8,13 @@ with hands.
 ## Headless
 
 ```bash
-MCODE=<resolved path or bare "mcode">
-cd "$CLONE" && "$MCODE" exec --permission off --cwd "$CLONE" \
+mcode exec --permission off --cwd "$CLONE" --timeout 15m \
   --model <provider>/<slug> \
   --input - < "$PROMPT"
 ```
+
+Each call is one shell command whose first word is the binary
+(R18): write the resolved command there as a literal (bare `mcode`, or the literal path taken from `.harness/local.yaml`; a literal path does not match a `Bash(mcode:*)` allow rule, so that form may need the owner's approval or be not-run), with no `timeout`, `&&`, `;` or pipe in front of or after it. `--cwd <path>` is the binary's own working-directory flag (fact, `mcode exec --help`, 2026-10-16: "workspace directory"), and `--timeout` bounds the time. The `< "$PROMPT"` redirection is part of the same command.
 
 `$CLONE` in these recipes is the literal clone path stored when the clone was created ([clone-isolation.md](clone-isolation.md), Terms), written into the command as that literal string. The prompt file `$PROMPT` is the literal path of a file created by `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )` inside the call's freeze directory ([live-tree-freeze.md](live-tree-freeze.md), section 5); it is unique per call and is removed with that directory.
 
@@ -40,7 +42,7 @@ independent of any flag's own guarantee.
 | `exec` | one-shot; bare `mcode` is the TUI |
 | `--permission off` | documented, unmeasured: read-only, unattended (use for a reviewer, in a clone) |
 | `--permission full` | unattended with write access (builder roles only, out of this skill's scope) |
-| `--cwd` | workspace; `cd "$CLONE" &&` first, then `--cwd "$CLONE"`, for every call |
+| `--cwd` | workspace; `--cwd "$CLONE"` on every call |
 | `--model provider/model` | pin the slug from `models.mcode` in `.harness/local.yaml` |
 | `--input -` | read prompt from stdin (`--input-format text` / `json`) |
 | `--file PATH` | attach a file (repeatable) |

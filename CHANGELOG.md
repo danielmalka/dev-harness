@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.31.0 — 2026-10-16
+
+- **O Coordenador orquestra e julga, não executa (PRD-025)**: leituras vão ao `repo-scout`; comandos, checagens e chamadas de revisão por CLI externa vão ao `qa-verifier` ou ao `builder` infra; o `docs-guide` escreve o resumo executado do PRD, o `<documento>.review.md` e os arquivos candidatos do `/dh:plan-loop`. O Coordenador mantém `MEMORY.md`, `EPOCHAL.md`, `RISKS.md`, a virada de status do ticket, a consolidação e o `local.yaml`. Edição direta só em um arquivo existente, até 5 linhas alteradas, sem arquivo novo.
+- **Aviso no mod `runtime-guard`**: quando a sessão principal passa desse limite fora da pasta do harness do projeto, o mod mostra um toast. Só avisa, nunca nega; `Bash` fica de fora (ADR-005).
+- **Chamada de CLI externa**: cada chamada é um comando único que começa pelo nome do binário (`grok --cwd`, `opencode run --dir`, `mcode exec --cwd`; o `claude` mantém a exceção do `cd`), seguida da limpeza de processos que sobraram. A receita do `agy` ganha o fato de 2026-10-16: a resposta completa no disco com a linha de veredito é o resultado, e o processo é encerrado.
+- Nova linha no `AGENTS.md`. Sem agente, skill ou comando novo. Comandos: 19 + 1. Agentes: 13.
+
 ## 0.30.1 — 2026-10-16
 
 - **Repositório público pronto para quem chega (PRD-024)**: `README.md` e `README.en.md` reescritos em 12 seções fixas (o que é, requisitos, instalar, início rápido, atualizar, desinstalar e remover dados, o que o kit grava e onde, desligar, se algo falhar, usar junto com, mapa da documentação, para quem contribui); saem o parágrafo de notas de release, a contagem de testes e a nota de migração da 0.8.0 (que segue na entrada 0.8.0 deste `CHANGELOG.md`). Os dois projetos companheiros (`malka-claude-mods` e `ai-memory`) aparecem como opcionais.

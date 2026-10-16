@@ -58,17 +58,17 @@ As a dispatched specialist, return a missing input to the Coordinator and stop. 
 
 6. **Apply the severity rule.** Gaps, conflicts and unverifiable acceptance criteria are blocking. Ambiguities are blocking only when the two readings produce different software; otherwise they are non-blocking. Excesses are non-blocking unless the extra scope contradicts a source constraint, which makes it a conflict. Organization findings never block on their own. Never raise a severity to get attention.
 
-7. **Produce the persistent report body** in the template below, and return it with your reply. The validator is read-only and has no write tool: the Coordinator persists the body at `<document>.review.md`, next to the document. Identifiers are stable: P1 stays P1 across rounds. On a second round, carry the previous entries forward with their new state, and give new identifiers only to problems that were not in the previous report.
+7. **Produce the persistent report body** in the template below, and return it with your reply. The validator is read-only and has no write tool: `docs-guide`, dispatched by the Coordinator, persists the body at `<document>.review.md`, next to the document. Identifiers are stable: P1 stays P1 across rounds. On a second round, carry the previous entries forward with their new state, and give new identifiers only to problems that were not in the previous report.
 
 8. **Produce the verdict.** `changes required` when at least one blocking finding is open — including when a mandatory category could not actually be checked: an uncovered category is a blocking finding, category `gap`, titled `coverage incomplete: <category>`, never a new verdict word. `approved` requires the opposite: all six categories were actually checked, no blocking finding is open, and Not raised names the claims and source points that were checked and held — an `approved` with nothing named there is not itself proof anything was checked. Record in Not raised what was checked and found sound, so the coverage is visible instead of assumed.
 
-9. **Hand it back.** The verdict, the findings and the report body go to the Coordinator, who writes the file. Do not edit the document and do not address the owner. Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.harness/RISKS.md`.
+9. **Hand it back.** The verdict, the findings and the report body go to the Coordinator, who has `docs-guide` write the file after judging the content. Do not edit the document and do not address the owner. Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.harness/RISKS.md`.
 
 ## The round protocol, from the Coordinator's side
 
 1. The author role writes the document. For a PRD, that is `product-discovery`.
 2. Round 1: dispatch `document-validator`, model `opus`, skill `document-review`, with the document path, the source material and the previous report when one exists.
-3. The Coordinator writes the returned report body to `<document>.review.md`. On `approved`, the document goes to the owner with that path.
+3. The Coordinator judges the returned report body and dispatches `docs-guide` to write it to `<document>.review.md`. On `approved`, the document goes to the owner with that path.
 4. On `changes required`, re-dispatch the author role with only the listed blocking points. The author fixes those points and nothing else; a rewrite invalidates the report.
 5. Round 2: validate again on the corrected document. The validator reads the previous report first and settles each identifier as `applied`, `rejected` or still `pending`.
 6. Two correction rounds is the cap for document validation (build/QA and code review keep the six-round cap elsewhere in the kit). After the second validation the document goes to the owner regardless of the verdict, with the open points listed and the report path. Changing the model does not reset the cap.
@@ -81,7 +81,7 @@ The reply to the Coordinator:
 ## Verdict
 - approved / changes required
 - Blocking findings: <count>
-- Report: <relative path where the Coordinator persists the body below>
+- Report: <relative path where docs-guide persists the body below>
 
 ## Findings
 - P1
@@ -100,7 +100,7 @@ The reply to the Coordinator:
 - <files read, rounds consulted, what could not be checked and why>
 ```
 
-The report body, returned with the reply and written by the Coordinator to `<document>.review.md`:
+The report body, returned with the reply and written by `docs-guide` to `<document>.review.md`:
 
 ```
 # Review: <document id>

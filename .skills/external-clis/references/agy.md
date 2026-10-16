@@ -8,7 +8,7 @@ Binary: `agy`. Reviewer among other roles.
 agy --dangerously-skip-permissions --print-timeout 15m --print "$(cat "$PROMPT")"
 ```
 
-A clone recipe exists, `cd "$CLONE" && agy --dangerously-skip-permissions --print-timeout 15m --print "$(cat "$PROMPT")"`, **not used until the H3 probe is recorded** (that `agy` treats the process cwd as its workspace, dated). Until then `agy` reviews on the live tree and does not plan. `$CLONE` in this recipe is the literal clone path stored when the clone was created ([clone-isolation.md](clone-isolation.md), Terms), written into the command as that literal string. Here `$PROMPT` is the literal path of the review prompt, created by `( umask 077; mktemp "<tmp root>/dh-prompt-XXXXXXXX" )` because the `agy` review runs without a clone; it is removed in the call's own cleanup (an interrupted call can leave it behind, mode 0600; it is not swept and is left for the owner; `<tmp root>` is defined in [clone-isolation.md](clone-isolation.md), Terms). If the clone recipe is ever used, the clone-call rule applies instead ([live-tree-freeze.md](live-tree-freeze.md), section 5).
+The call is one shell command whose first word is `agy` (R18): no `timeout`, `&&`, `;` or pipe in front of or after it, and the pre-call snapshot and the post-call compare are separate commands. `--print-timeout` bounds the time. `agy` has no clone recipe: it runs on the live tree and does not plan until a dated H3 probe records that `agy` treats the process cwd as its workspace and which flag, if any, sets it (not checked here). If a clone recipe is ever added, it uses that flag inside the single command, or states the `cd` exception as `claude.md` does. Here `$PROMPT` is the literal path of the review prompt, created by `( umask 077; mktemp "<tmp root>/dh-prompt-XXXXXXXX" )` because the `agy` review runs without a clone; it is removed in the call's own cleanup (an interrupted call can leave it behind, mode 0600; it is not swept and is left for the owner; `<tmp root>` is defined in [clone-isolation.md](clone-isolation.md), Terms).
 
 Order is load-bearing:
 
@@ -23,6 +23,8 @@ and ignore the packet. Prefer inlining files in the prompt instead of
 
 `--print-timeout` default is 5m; a review call often needs longer (`15m`
 above).
+
+**The timeout may not stop the process.** Fact (measured 2026-10-16): an `agy --print` call wrote its full reply in about 2 minutes, but the process stayed alive past `--print-timeout 15m` and needed SIGKILL. Treat a complete reply on disk that carries the stage's verdict line as the result, then stop the process with one separate command, `pkill -f -- "<the basename of $PROMPT>"`: the prompt's first line is `Call: <that basename>`, so the string is in the process arguments and unique to this call, so the owner's own `agy` sessions are never matched. Report it as `leftover processes` in the Workspace check. A reply that is incomplete or lacks the verdict line is still a transport failure, whether or not the process is alive.
 
 | Flag | Why |
 |---|---|

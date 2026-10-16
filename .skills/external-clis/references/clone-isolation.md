@@ -13,7 +13,7 @@ The clone is a
 working directory, not a sandbox. The CLI runs as the same OS user and still
 reaches the live tree and the rest of the machine by absolute path. Nothing
 here prevents a write; it only puts the call's working directory somewhere
-else and lets the Coordinator throw that directory away.
+else and lets the delegate throw that directory away.
 
 This file defines only the clone lifecycle. Which binaries may plan is decided
 under "The planning call" in `SKILL.md`, not here.
@@ -58,7 +58,7 @@ rm -rf "$CLONE/.git/logs"
 printf 'pid=%s\nstarted=%s\n' "$PPID" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$CLONE/.git/dh-cli.lock"
 ```
 
-`$PPID` is the process that hosts the Coordinator's shell, not the short-lived
+`$PPID` is the process that hosts the delegate's shell, not the short-lived
 shell itself. `started` is ISO 8601 in UTC; `date -Iseconds` (GNU) also works
 but the `date -u +%Y-%m-%dT%H:%M:%SZ` form is portable. The clone has its own
 `.git` (hooks, config, refs, objects, `info/exclude`), holds no ignored file
@@ -133,17 +133,23 @@ continue on the live tree instead.
 
 ## 3. Use the clone and remove it (R8)
 
-Fix the CLI's working directory to the stored clone path: every clone recipe
-starts with `cd "$CLONE" &&` and keeps the binary's own cwd flag as
-`references/<binary>.md` shows (`--cwd` or `--dir`). Measured (T-1015): with
-`grok --cwd "$CLONE"` launched from the Coordinator's cwd, `/proc` showed the
-`timeout` wrapper, and briefly `grok` itself, with a cwd inside the live tree;
-with `cd "$CLONE" &&` first, every process of the group had cwd = the clone. The
+Fix the CLI's working directory to the stored clone path with the binary's
+own working-directory flag, written inside the single command that starts with
+the binary name (`grok --cwd`, `opencode run --dir`, `mcode exec --cwd`; fact,
+read from each binary's own help on 2026-10-16). `claude` has no such flag in
+`claude --help`, so its recipe keeps `cd "$CLONE" && claude ...` as the only
+allowed exception; that form does not match a `Bash(claude:*)` allow rule, so
+the call may need the owner's approval or be not-run. The working directory of
+a Bash call does not persist to the next call (measured 2026-10-16), so the
+flag or the `cd` belongs to the same command that starts the binary. Measured
+earlier (T-1015): a flag-only launch can show a wrapper process with a cwd
+inside the live tree before the binary changes directory; the call therefore
+has no `timeout` or other wrapper before the binary. The
 prompt does not carry the live tree's absolute path.
 
 When the call ends (success, transport failure, timeout or change detected),
 and after the comparisons of the live tree and of the clone have run, the
-Coordinator removes the clone with `rm -rf` on the exact stored path, and only
+delegate removes the clone with `rm -rf` on the exact stored path, and only
 that. Guard first; all of these must hold: the parent directory of the
 stored path equals `<tmp root>`; its basename starts with `dh-cli-` and
 contains no `/` and no `..`; `test -d` passes; `test ! -L` passes. A path that
@@ -171,7 +177,7 @@ approval nor a rejection.
 ## 5. Orphan sweep (R9)
 
 Interrupted runs can leave clones behind. Once per batch of dispatches, run by
-the Coordinator before the first dispatch of the batch and never inside a
+the delegate (a dispatched `qa-verifier`) before the first CLI call of the batch and never inside a
 call, list the direct children of `<tmp root>` and remove a directory
 only when all five conditions hold. The sweep covers two kinds: a clone
 (`dh-cli-`, marker `.git/dh-cli.lock`) and a freeze directory (`dh-freeze-`,
@@ -247,8 +253,10 @@ Tampering with the copies is a write outside the project (a), reading them is
 reading secrets (e). The same holds between overlapping calls: a running CLI
 can read or alter a sibling call's prompt file or the shared freeze directory
 (residual (a)). Writing every prompt before any CLI starts narrows this window;
-it does not close it. Starting each CLI in its own process group and killing
-the group after it ends narrows residual (b); it does not close it. An
+it does not close it. A separate command after the call (`pkill -f -- "<clone path>"`, or for the
+live-tree `agy` call the unique prompt file path; Order step 4 of
+`live-tree-freeze.md`) stops this call's leftover processes and narrows
+residual (b) again; it does not close it. An
 interrupted `agy` review can leave its `dh-prompt-XXXXXXXX` file (mode 0600)
 under `<tmp root>`: it is not swept, and it is left for the owner to remove.
 

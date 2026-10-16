@@ -9,11 +9,13 @@ reviewer.
 ## Headless
 
 ```bash
-GROK=<resolved path or bare "grok">
-cd "$CLONE" && "$GROK" --always-approve --cwd "$CLONE" --prompt-file "$PROMPT"
+grok --always-approve --cwd "$CLONE" --prompt-file "$PROMPT"
 # short prompt:
-cd "$CLONE" && "$GROK" --always-approve --cwd "$CLONE" -p "$(cat "$PROMPT")"
+grok --always-approve --cwd "$CLONE" -p "$(cat "$PROMPT")"
 ```
+
+Each call is one shell command whose first word is the binary
+(R18): write the resolved command there as a literal (bare `grok`, or the literal path taken from `.harness/local.yaml`; a literal path does not match a `Bash(grok:*)` allow rule, so that form may need the owner's approval or be not-run), with no `timeout`, `&&`, `;` or pipe in front of or after it. `--cwd <CWD>` is the binary's own working-directory flag (fact, `grok --help`, 2026-10-16), so no `cd` is needed. Time is bounded by the Bash tool timeout (set it to the reviewer's timeout) or `run_in_background`; `grok` has no documented wall-clock flag besides `--max-turns`.
 
 `$CLONE` in these recipes is the literal clone path stored when the clone was created ([clone-isolation.md](clone-isolation.md), Terms), written into the command as that literal string. The prompt file `$PROMPT` is the literal path of a file created by `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )` inside the call's freeze directory ([live-tree-freeze.md](live-tree-freeze.md), section 5); it is unique per call and is removed with that directory.
 
@@ -29,7 +31,7 @@ auto-approves tools, needed for an unattended call.
 | `--prompt-file` | one-shot prompt from disk |
 | `-m` / `--model` | pin the slug |
 | `--always-approve` | unattended tools |
-| `--cwd` | workspace; `cd "$CLONE" &&` first, then `--cwd "$CLONE"`, for every call |
+| `--cwd` | workspace; `--cwd "$CLONE"` on every call |
 | `--reasoning-effort` / `--effort` | `none` / `minimal` / `low` / `medium` / `high` / `xhigh` / `max` (only the levels the model advertises) |
 | `--output-format` | `plain` (default) / `json` / `streaming-json` / `streaming-messages-json` |
 | `--json-schema` | constrains JSON output (implies `--output-format json`) |

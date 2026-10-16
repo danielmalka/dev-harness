@@ -1,5 +1,6 @@
 import { test, expect } from 'claude-code/testing'
-import { guardFile, homeFrom, protectedHit, register } from './runtime-guard.ts'
+import { guardFile, homeFrom, protectedHit, register, warnThenNext } from './runtime-guard.ts'
+import { warnWrite } from './lib/warn.ts'
 
 // Capture the plugin's handlers with a fake `on`, so agentId / parentAgentId (which the
 // engine's $.tool.call and $.agent.spawn drop) can be set on the event.
@@ -159,4 +160,71 @@ test('R3 pdocs: subagent may write under projects/x/pdocs/, records outside it s
   expect(protectedHit(h, '~/.harness/projects/x/pdocs/EPOCHAL.md', '/', '/u')).toBe(undefined)
   expect(guardFile(h, { file_path: '/h/projects/x/pdocs/index.html', agentId: 's' }, next)).toBe(NEXT)
   expect(guardFile(h, { file_path: '/h/projects/x/MEMORY.md', agentId: 's' }, next).deny).toContain('Coordinator')
+})
+
+// PRD-025 R5-R7: warn-only rule for the main session.
+const L = (n: number) => Array.from({ length: n }, (_, i) => `l${i}`).join('\n')
+const W = (e: any, ex: any = () => true, home = '/h', cwd = '/proj') => warnWrite({ tool: 'Edit', ...e }, home, cwd, ex)
+test('R5 warn: Edit with 6 changed lines warns, 5 does not (larger side counts)', async () => {
+  expect(await W({ file_path: 'src/a.ts', old_string: L(6), new_string: 'x' })).toContain('6-line Edit')
+  expect(await W({ file_path: 'src/a.ts', old_string: 'x', new_string: L(6) })).toContain('src/a.ts')
+  expect(await W({ file_path: 'src/a.ts', old_string: L(5), new_string: L(5) })).toBe(undefined)
+  expect(await W({ file_path: 'src/a.ts', old_string: L(5) + '\n', new_string: 'x' })).toBe(undefined) // trailing newline
+})
+test('R5 warn: Write content over 5 lines warns; new file warns; small existing file does not', async () => {
+  const w = (e: any, ex: any) => warnWrite({ tool: 'Write', ...e }, '/h', '/proj', ex)
+  expect(await w({ file_path: 'a.ts', content: L(6) }, () => true)).toContain('6-line Write')
+  expect(await w({ file_path: 'a.ts', content: 'x' }, () => false)).toContain('new file')
+  expect(await w({ file_path: 'a.ts', content: L(5) }, async () => true)).toBe(undefined)
+})
+test('R5 warn: exists unknown or throwing fails open', async () => {
+  const w = (ex: any) => warnWrite({ tool: 'Write', file_path: 'a.ts', content: L(9) }, '/h', '/proj', ex)
+  expect(await w(() => undefined)).toBe(undefined)
+  expect(await w(() => { throw new Error('x') })).toBe(undefined)
+  expect(await w(async () => { throw new Error('x') })).toBe(undefined)
+})
+test('R7 warn: agentId, harness paths (repo and global) and Bash do not warn', async () => {
+  const big = { old_string: L(9), new_string: L(9), content: L(9) }
+  expect(await W({ file_path: 'src/a.ts', agentId: 's', ...big })).toBe(undefined)
+  for (const p of ['.harness/project.yaml', '.harness/local.yaml', '.harness/tasks/T-1/TASK.md', '.harness/MEMORY.md', '/proj/.harness/RISKS.md', '/h/projects/x/project.yaml', '/h/projects/x/tasks/T-1/TASK.md', '/h/projects/x/MEMORY.md'])
+    for (const tool of ['Edit', 'Write']) expect(await W({ tool, file_path: p, ...big }, () => false)).toBe(undefined)
+  expect(await W({ tool: 'Bash', file_path: 'src/a.ts', command: 'x', ...big }, () => false)).toBe(undefined)
+  expect(handlers['tool.call'].length).toBe(2) // no Bash hook registered
+})
+test('R7 warn: only this project harness dir is exempt, a foreign .harness warns', async () => {
+  const big = { old_string: L(9), new_string: L(9), content: L(9) }
+  for (const tool of ['Edit', 'Write']) {
+    expect(await W({ tool, file_path: '/tmp/other/.harness/payload.ts', ...big }, () => true)).toContain('/tmp/other/.harness/payload.ts')
+    expect(await W({ tool, file_path: '/proj/.harness/x', ...big }, () => true)).toBe(undefined)
+    expect(await W({ tool, file_path: '/h/projects/p/x', ...big }, () => true)).toBe(undefined)
+  }
+})
+test('R7 warn: a .harness dir equal to <home> is not exempt, so <home>/config.yaml warns even when home is under an ancestor of cwd', async () => {
+  const e = { file_path: '/home/u/.harness/config.yaml', old_string: L(9), new_string: L(9) }
+  expect(await W(e, () => true, '/home/u/.harness', '/home/u/proj')).toContain('config.yaml')
+})
+test('R6 warn: malformed input never throws or warns', async () => {
+  for (const e of [undefined, null, 42, {}, { tool: 'Edit' }, { tool: 'Edit', file_path: 42 }, { tool: 'Write', file_path: 'a', content: 5 }, { tool: 'Edit', file_path: 'a', old_string: 5, new_string: {} }])
+    expect(await warnWrite(e, '/h', '/proj', () => true)).toBe(undefined)
+})
+test('R6 warnThenNext: always calls next(e), never denies, toasts only when warned', async () => {
+  const toasts: string[] = []
+  const $ = { ui: { toast: (t: string) => toasts.push(t) }, fs: { exists: async () => true } }
+  const e1 = { tool: 'Edit', file_path: 'src/a.ts', old_string: L(7), new_string: 'x' }
+  expect(await warnThenNext($, e1, '/h', '/proj', next)).toBe(NEXT)
+  expect(toasts.length).toBe(1)
+  expect(toasts[0]).toContain('warning only')
+  expect(await warnThenNext($, { ...e1, old_string: 'x' }, '/h', '/proj', next)).toBe(NEXT)
+  expect(await warnThenNext($, { ...e1, agentId: 's' }, '/h', '/proj', next)).toBe(NEXT)
+  expect(toasts.length).toBe(1)
+  for (const bad of [undefined, {}, { tool: 'Edit', file_path: 7 }]) expect(await warnThenNext($, bad, '/h', '/proj', next)).toBe(NEXT)
+  // broken engine: no fs / throwing toast still passes
+  expect(await warnThenNext({}, e1, '/h', '/proj', next)).toBe(NEXT)
+  expect(await warnThenNext({ ui: { toast: () => { throw new Error('x') } }, fs: { exists: () => true } }, e1, '/h', '/proj', next)).toBe(NEXT)
+})
+test('R6 warn: through the registered handlers a warned main-session Edit still passes, a subagent record write is still denied', async () => {
+  const $: any = { ...fake({ DH_HOME: '/h' }), ui: { toast: () => {} }, fs: { exists: async () => true } }
+  const big = { file_path: 'src/a.ts', old_string: L(9), new_string: 'x' }
+  for (const r of await file('Edit', big, $)) expect(r).toBe(NEXT)
+  for (const r of await file('Edit', { file_path: '.harness/MEMORY.md', agentId: 's' }, $)) expect(r.deny).toContain('.harness/MEMORY.md')
 })

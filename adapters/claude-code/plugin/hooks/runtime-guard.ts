@@ -1,4 +1,5 @@
 import type { EngineInterface, Register } from 'claude-code'
+import { warnWrite } from './lib/warn.ts'
 
 const FILES = ['MEMORY.md', 'EPOCHAL.md', 'RISKS.md']
 
@@ -69,9 +70,18 @@ async function harnessHome($: EngineInterface): Promise<{ home: string; cwd: str
   }
 }
 
+// PRD-025 R5-R7: warn-only toast for the main session; the event always passes on unchanged.
+export async function warnThenNext($: any, e: any, home: string, cwd: string, next: any) {
+  try {
+    const text = await warnWrite(e, home, cwd, p => $.fs.exists(p))
+    if (text) $.ui.toast(text)
+  } catch {} // fail open
+  return next(e)
+}
+
 const guard = async ($: EngineInterface, e: any, next: any) => {
   const { home, cwd, user } = await harnessHome($)
-  return guardFile(home, e, next, cwd, user)
+  return guardFile(home, e, (x: any) => warnThenNext($, x, home, cwd, next), cwd, user)
 }
 
 export const register: Register = on => {

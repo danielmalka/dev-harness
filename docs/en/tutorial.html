@@ -746,7 +746,7 @@ footer.doc-foot {
           <tr><td><code>prd/</code>, <code>adr/</code></td><td>The project's PRDs and architecture decisions, from the kit templates.</td></tr>
         </tbody>
       </table></div>
-      <div class="callout">Only the Coordinator writes <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code>. Other agents return proposals. The Claude Code plugin enforces this rule at runtime: a subagent that tries to write those files is blocked. The disk is the truth: if you deleted records, the Coordinator does not recreate them from what it remembers of the conversation.</div>
+      <div class="callout">Only the Coordinator writes <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code>. Other agents return proposals. The Claude Code plugin enforces this rule at runtime: a subagent that tries to write those files is blocked. The disk is the truth: if you deleted records, the Coordinator does not recreate them from what it remembers of the conversation. The Coordinator orchestrates and judges: reads, commands, checks and external CLI review calls go to subagents, and it edits directly only one existing file, at most 5 changed lines. The mod warns (never denies) when the main session goes past that bound outside the harness dir.</div>
 
       <h2 id="global-mode"><span class="n">05b</span>Global mode</h2>
       <p>For people who cannot leave a dh folder in the repository tree (for example, colleagues who do not use dh), the project state lives in one global folder per machine and per environment, <code>~/.harness/</code> (<code>DH_HOME</code> moves it; on Windows, <code>%USERPROFILE%\.harness</code>). <code>dh</code> creates it on first use:</p>

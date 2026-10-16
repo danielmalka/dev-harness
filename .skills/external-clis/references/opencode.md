@@ -14,10 +14,12 @@ file.
 ## Headless
 
 ```bash
-OPENCODE=<resolved path or bare "opencode">
-cd "$CLONE" && "$OPENCODE" run --dir "$CLONE" --auto -m '<provider>/<slug>' \
+opencode run --dir "$CLONE" --auto -m '<provider>/<slug>' \
   --variant high "$(cat "$PROMPT")"
 ```
+
+Each call is one shell command whose first word is the binary
+(R18): write the resolved command there as a literal (bare `opencode`, or the literal path taken from `.harness/local.yaml`; a literal path does not match a `Bash(opencode:*)` allow rule, so that form may need the owner's approval or be not-run), with no `timeout`, `&&`, `;` or pipe in front of or after it. `--dir` is the binary's own working-directory flag (fact, `opencode run --help`, 2026-10-16: "directory to run in"). Time is bounded by the Bash tool timeout or `run_in_background`; `opencode run` has no wall-clock flag.
 
 `$CLONE` in these recipes is the literal clone path stored when the clone was created ([clone-isolation.md](clone-isolation.md), Terms), written into the command as that literal string. The prompt file `$PROMPT` is the literal path of a file created by `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )` inside the call's freeze directory ([live-tree-freeze.md](live-tree-freeze.md), section 5); it is unique per call and is removed with that directory.
 
@@ -25,7 +27,7 @@ Long prompt as an attached file (do not stuff a multi-kilobyte prompt
 into argv):
 
 ```bash
-cd "$CLONE" && "$OPENCODE" run --dir "$CLONE" --auto -m '<provider>/<slug>' \
+opencode run --dir "$CLONE" --auto -m '<provider>/<slug>' \
   --file="$PROMPT" -- "Follow the attached prompt."
 ```
 
@@ -38,7 +40,7 @@ Always `--file=path -- "message"`.
 | `run` | one-shot; bare `opencode` is the TUI |
 | `--auto` | approve tools (required for an unattended call) |
 | `-m provider/model` | pin; do not rely on the interactive picker |
-| `--dir` | workspace; `cd "$CLONE" &&` first, then `--dir "$CLONE"`, for every call |
+| `--dir` | workspace; `--dir "$CLONE"` on every call |
 | `-f` / `--file` | attach file(s) to the message (repeatable) |
 | `--format json` | raw events if parsing is required |
 | `--variant` | reasoning effort (only the levels that slug advertises) |

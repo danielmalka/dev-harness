@@ -1,5 +1,5 @@
 import type { EngineInterface, Register } from 'claude-code'
-import { denySpawn, guardFile, homeFrom, resolvePath } from './runtime-guard.ts'
+import { denySpawn, guardFile, homeFrom, resolvePath, warnThenNext } from './runtime-guard.ts'
 import { DASHBOARD_COMMAND, registerDashboard } from './dashboard-command.ts'
 import { applyEvent, iso, limitsFrom, type Ev, type Limits, type Snap } from './snapshot-writer.ts'
 import { driftMessage, findDrift, statusValue } from './status-drift.ts'
@@ -47,7 +47,7 @@ async function homes($: EngineInterface): Promise<{ home: string; user: string; 
 // R8: <home> is read here and passed in; guardFile cannot take $ across the import.
 async function guardWrite($: EngineInterface, e: any, next: any): Promise<any> {
   const { home, user, cwd } = await homes($)
-  return guardFile(home, e, async (x: typeof e) => markDirty($, await next(x), x), cwd, user)
+  return guardFile(home, e, async (x: typeof e) => markDirty($, await warnThenNext($, x, home, cwd, next), x), cwd, user)
 }
 
 // R20: `dh harness-path --json <dir>`, the only resolver (R2: the mod never reads the global registry file).
