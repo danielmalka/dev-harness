@@ -4,7 +4,7 @@ description: Use when a stabilized change needs an independent judgement before 
 author: malka
 metadata:
   provenance: adapted
-  sources: ["two-axis standards/spec review", "requesting-code-review", "receiving-code-review", "pr-review-toolkit code-reviewer", "silent-failure-hunter", "pr-test-analyzer", " code-reviewer", "addyosmani/agent-skills (MIT); mechanism adapted, not copied"]
+  sources: ["two-axis standards/spec review", "requesting-code-review", "receiving-code-review", "pr-review-toolkit code-reviewer", "silent-failure-hunter", "pr-test-analyzer", " code-reviewer", "addyosmani/agent-skills (MIT); mechanism adapted, not copied", "akitaonrails/my-skills pr-audit @7b8a5e5"]
 ---
 
 # Code Review
@@ -47,14 +47,16 @@ Review a bounded change against a diff that is not moving, on two independent ax
 
 3. **Read the whole change once, adversarially.** Look for how it could be wrong before you look for confirmation that it works. Build a picture of what moved and why. Note the entry points, the contracts touched, and anything that looks like a seam between old and new behavior.
 
-4. **Trace the affected paths.** For each changed function, find its callers and its callees in the current tree, not in the diff. A change is correct in isolation and wrong in composition more often than the reverse. Check what the callers assume about return values, error behavior, nullability, ordering, and side effects.
+4. **Trace the affected paths.** For each changed function, find its callers and its callees in the current tree, not in the diff. A change is correct in isolation and wrong in composition more often than the reverse. Check what the callers assume about return values, error behavior, nullability, ordering, and side effects. When the change fixes a symptom, search for sibling call sites of the same helper, guard, or normalization: a point fix that leaves a twin site broken is Major unless the scope is justified.
 
 5. **Run the correctness axis.** On each traced path, look for:
    - Logic that is wrong on a boundary: empty input, single element, maximum size, negative, zero, absent value.
    - Error paths that swallow the failure: empty catch blocks, broad catch clauses that hide unrelated errors, a default value returned on failure without a log, a fallback that makes a broken state look healthy.
    - State and concurrency: shared mutation, ordering assumptions, resources not released on the error path.
    - Regressions: behavior the old code guaranteed and the new code no longer does. Name the old guarantee and where it lived.
-   - Contracts: a public signature, serialized shape, database column, or configuration key whose meaning changed without the consumers changing.
+   - Contracts: a public signature, serialized shape, database column, or configuration key whose meaning changed without the consumers changing. When a shared data shape changes, list every consumer, including hand-maintained mirrors (translated docs, a fixture and its parity test, stated counts); a mirror the change should have updated is a finding.
+   - Tree hygiene: each added file belongs in the tree. A stray screenshot, scratch output, reviewer scaffolding, or stray binary is a finding.
+   - Entry points: a new entry point (command, mod, adapter, route, CLI surface) proves again the cross-cutting invariants of the old ones, such as the write lock on the memory files, harness-dir resolution, and path handling. It does not inherit old fixes.
 
 6. **Run the security-surface axis when the change touches a trust boundary.** A boundary is touched when the diff adds or changes authentication, authorization, input validation, or the handling of externally supplied data that reaches execution, a query, storage, or a file path. Trace how the untrusted input is checked and constrained before it reaches the sensitive operation; do not credit a mitigation you have not actually read end to end. When the change touches no trust boundary, record this axis as not applicable in `## Review` — never as complete, and never silently skipped.
 

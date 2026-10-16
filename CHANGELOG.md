@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.30.0 — 2026-10-16
+
+- **Checagens de revisão e teste vindas de duas skills externas (PRD-023)**: `pr-audit` e `security-audit` (akitaonrails/my-skills, @7b8a5e5) entram como linhas curtas nas skills existentes, sem skill, agente ou comando novo. `code-review`: busca de pontos irmãos de uma correção pontual, todos os consumidores de um formato compartilhado (inclusive espelhos mantidos à mão), arquivo que não pertence à árvore, e novo ponto de entrada que reprova os invariantes dos antigos. `security-review` e seu checklist: inventário do diff (sinais de arquivo, CI e dependência), correção de segurança como diff de maior risco, relato provado ou refutado antes da correção, refutador independente por despacho do Coordenador, scanner estreitado ou sem trava de merge não é aprovação, supressão adia e não resolve, controle desligado ou ativação condicional, fronteira de modelo e ferramenta, segredo vazado rotacionado antes de baseline, caso de controle legítimo no teste de regressão, identidade que falha fechada e chaves de cache com escopo completo. `regression-testing`: "falha antes da correção" exige falha de asserção, não erro de compilação ou importação.
+- `metadata.sources` das três skills registra a origem; `provenance` segue `adapted`. Comandos: 19 + 1. Agentes: 13.
+
 ## 0.29.0 — 2026-10-14
 
 - **Mod do Claude Code sem as partes visuais (PRD-022)**: saem a status line e o `PromptHint`, o menu `/mods`, o Zen (faixa, ferramenta `zen_progress`, injeção de `ZEN_PROMPT`), o Mode (modelo, esforço e modo de permissão), a contagem de agentes em execução e os avisos de contexto a 60% e 80%. Essas partes vivem agora no repositório à parte do dono (`malka-claude-mods`). Arquivos removidos em `adapters/claude-code/plugin/hooks/`: `mods-menu.tsx`, `mods-zen.tsx`, `mods-types.ts`, `mods.engine.test.ts`, `lib/status-line.tsx`, `lib/status.ts`, `lib/menu-pages.tsx`, `lib/settings.ts`, `lib/zen.ts`, `lib/zen-band.tsx`, `lib/modes.ts`.
