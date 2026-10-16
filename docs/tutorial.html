@@ -746,7 +746,7 @@ footer.doc-foot {
           <tr><td><code>prd/</code>, <code>adr/</code></td><td>PRDs e decisões de arquitetura do projeto, a partir dos templates do kit.</td></tr>
         </tbody>
       </table></div>
-      <div class="callout">Só o Coordenador escreve <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>. Os outros agentes devolvem propostas. O plugin Claude Code força essa regra em tempo de execução: um subagente que tenta escrever naqueles arquivos é bloqueado. O disco é a verdade: se você apagou registros, o Coordenador não os recria de memória da conversa.</div>
+      <div class="callout">Só o Coordenador escreve <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>. Os outros agentes devolvem propostas. O plugin Claude Code força essa regra em tempo de execução: um subagente que tenta escrever naqueles arquivos é bloqueado. O disco é a verdade: se você apagou registros, o Coordenador não os recria de memória da conversa. O Coordenador orquestra e julga: leituras, comandos, checagens e chamadas de revisão por CLI externa vão a subagentes, e ele edita direto só um arquivo existente, até 5 linhas. O mod avisa (sem negar) quando a sessão principal passa desse limite fora da pasta do harness.</div>
 
       <h2 id="modo-global"><span class="n">05b</span>Modo global</h2>
       <p>Para quem não pode deixar pasta do dh na árvore do repositório (por exemplo, colegas que não usam o dh), o estado do projeto vive em uma pasta global por máquina e por ambiente, <code>~/.harness/</code> (<code>DH_HOME</code> muda o lugar; no Windows, <code>%USERPROFILE%\.harness</code>). O <code>dh</code> a cria no primeiro uso:</p>

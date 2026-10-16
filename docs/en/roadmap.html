@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-10-16</b></span>
-          <span class="chip">status <b>0.30.1 · live</b></span>
+          <span class="chip">status <b>0.31.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tasks completed per release, sourced from <code>CHANGELOG.md</code>. "Tested?" only claims execution when a
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
+
+      <div class="card">
+        <h3>0.31.0 · Coordinator orchestrates, does not execute (PRD-025)</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-025. The Coordinator orchestrates and judges: reads go to <code>repo-scout</code>; commands, checks and external CLI review calls go to <code>qa-verifier</code> or <code>builder</code> infra; <code>docs-guide</code> writes the PRD Executed summary, <code>&lt;document&gt;.review.md</code> and the <code>/dh:plan-loop</code> candidate files. The Coordinator keeps <code>MEMORY.md</code>, <code>EPOCHAL.md</code>, <code>RISKS.md</code>, the ticket status flip, consolidation and <code>local.yaml</code>. Direct edits only for one existing file, at most 5 changed lines, no new file. The <code>runtime-guard</code> mod warns (toast, never denies; <code>Bash</code> not covered) when the main session goes past that bound outside the harness dir. Every external CLI call is one command starting with the binary name (<code>grok --cwd</code>, <code>opencode run --dir</code>, <code>mcode exec --cwd</code>; <code>claude</code> keeps a <code>cd</code> exception), followed by a cleanup of leftover processes. New <code>AGENTS.md</code> line. No new agent, skill or command.</p>
+        <p><strong>Relations:</strong> PRD-025 (<code>docs/prd/PRD-025-coordinator-orchestrates.md</code>); ADR-005; <code>CHANGELOG.md</code> 0.31.0.</p>
+        <p><strong>Tested?</strong> <code>dh validate</code> with 0 errors, <code>go test ./...</code> green, Claude Code plugin tests 235 pass and 0 fail, idempotent build; no new eval.</p>
+      </div>
 
       <div class="card">
         <h3>0.30.1 · Public repository ready for newcomers (PRD-024)</h3>
@@ -1723,14 +1731,6 @@ profiles/"] --> B["dh build"]
         <p><strong>Relations:</strong> PRD-016; <code>docs/discovery/renova.md</code> (section 7).</p>
       </div>
 
-      <div class="card">
-        <h3>Coordinator orchestrates, does not execute</h3>
-        <p><strong>Description:</strong> the Coordinator does too much hands-on work. It should dispatch subagents for execution and verification. Execution covers reading, build, validate, grep, record edits, CLI review prompts and spot-checks by shell. The Coordinator only judges whether the delegated work was done with the skill or needs rework. It still owns the writes to <code>MEMORY.md</code>, <code>EPOCHAL.md</code> and <code>RISKS.md</code>.</p>
-        <p><strong>Acceptance criteria:</strong> criteria to be defined. Levers to evaluate later: the rules and spot-check wording in <code>.agents/coordinator.md</code>, and maybe a mod guard.</p>
-        <p><strong>Status:</strong> planned, no PRD.</p>
-        <p><strong>Relations:</strong> <code>.agents/coordinator.md</code>.</p>
-      </div>
-
       <h2 id="ideias"><span class="n">04</span>Discovery ideas</h2>
       <p>No PRD yet. Criteria below are hypotheses, not commitments.</p>
 
@@ -1793,7 +1793,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.30.1, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.31.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

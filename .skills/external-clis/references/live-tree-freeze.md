@@ -5,6 +5,11 @@ clone (lifecycle in [clone-isolation.md](clone-isolation.md)). It replaces
 step 7 of `SKILL.md` for such a call; step 7 as written stays in force for a
 call without a clone (`codex`, and the `agy` review on the live tree).
 
+The delegate runs every step of this file: a dispatched `qa-verifier`, or
+`builder` in lane `infra` (`SKILL.md`, "Who runs the call"). It returns the
+verdict line and the relative path of the raw output; the Coordinator runs
+none of these steps.
+
 The qualification for every mention of this mechanism, stated in full:
 
 disposable clone; writes outside it are detected on the live tree (R5), never prevented; writes outside the project are not detected
@@ -34,16 +39,23 @@ anything.
    1 and 2), and freeze each clone (section 3). Overlapping calls share the one
    freeze directory, with one clone and one prompt file each.
 3. Write every call's prompt (section 5), all of them before any CLI starts.
-4. Start each CLI in its own process group, in one tool call, with `cd "$CLONE"`
-   first so that the process cwd is the clone (the binary's own cwd flag stays;
-   see clone-isolation.md step 3):
-   `( cd "$CLONE" && exec setsid -w <cli ...> ) & pid=$!; wait "$pid"; kill -- -"$pid" 2>/dev/null`
-   (the pid stays in the session output, never in a file). The group kill runs
-   after the CLI exits or times out and before any comparison; "no such
-   process" is ignored. This narrows residual (b) of clone-isolation.md
-   section 7 (a process that outlives the call); it does not close it. When
-   `command -v setsid` fails, start the CLI as `( cd "$CLONE" && exec <cli ...> )` without it, skip the group kill, and
-   add `process group: unavailable` to the Workspace check.
+4. Start each CLI as one shell command that begins with the binary name, in its
+   own tool call, with the binary's own working-directory flag where its recipe
+   shows one (`grok --cwd`, `opencode run --dir`, `mcode exec --cwd`); `claude`
+   has no such flag and keeps `cd "$CLONE" && claude ...` as the only allowed
+   exception (`references/claude.md`). No `timeout`, `setsid`, subshell,
+   `&&`, `;` or pipe wraps or chains the call, and the freeze and the later
+   comparisons are separate commands (a permission rule `Bash(<binary>:*)`
+   matches only a command that starts with the binary). The binary's own time
+   flag, or the Bash tool timeout, bounds the call. Then, as one separate
+   command run once the reply is on disk or the timeout has passed (before any
+   comparison), stop this call's leftover processes: `pkill -f -- "<the
+   literal clone path>"`. The match string is unique to this call, so it never
+   matches the owner's own sessions of the same binary; "no process matched" is
+   ignored. This narrows residual (b) of clone-isolation.md section 7 (a process
+   that outlives the call); it does not close it, since a process that no longer
+   carries the string is missed. Report it as `leftover processes` in the
+   Workspace check.
 5. When a call ends, recompare its clone (section 3, R6). R6 stays per clone.
 6. After the last overlapping call has ended, and only then, on the live tree:
    verify the freeze digest, extract the copies, compare and restore the trust
@@ -59,7 +71,7 @@ Clone calls are dispatched in closed groups: a new clone call never starts (its
 clone is never created) while a CLI from an earlier group is still running. A
 group is the set of calls that overlap in time under one freeze.
 
-Nothing else may write to the live tree between step 1 and step 6 (the freeze directory is shared by overlapping calls, so this covers all of them): a build, a
+Nothing else may write to the live tree or to the `<harness dir>` between step 1 and step 6, the delegate and the Coordinator included (the freeze directory is shared by overlapping calls, so this covers all of them): a build, a
 package regeneration or a test run started in parallel changes files the
 comparison then blames on the CLI (the measured case is in step 7 of
 `SKILL.md`). Overlapping clone calls are governed by the same rule: R5 and the
@@ -91,7 +103,7 @@ updates a ref or the index runs the live repository's own hooks otherwise
 the override it ran none). `<project>` is the live tree.
 
 This file assumes GNU tools in a few places: `sha256sum` (macOS: `shasum -a 256`),
-`stat -c` (BSD: `stat -f`), `setsid` (optional, Order step 4) and `tar --null -T`.
+`stat -c` (BSD: `stat -f`) and `tar --null -T`.
 A tool that is missing during the freeze, with no equivalent, is
 `isolation unavailable`.
 
@@ -163,13 +175,13 @@ Right after the records above are complete, compute `sha256sum` of
 `<freeze dir>/live.tar` and of every saved text snapshot in `<freeze dir>` (the
 manifest: the hash list, the `status` list, `ls-files -v --stage`,
 `for-each-ref`, the list of non-file entries and the ancestor records). Keep
-the digest in the Coordinator's own session output, never in a file the CLI can
+the digest in the delegate's own session output, never in a file the CLI can
 reach. This detects tampering with the copies; it does not prevent it.
 
 ## 2. Compare the live tree, after the call (R5)
 
 Before part A, verify the freeze: recompute the `sha256sum` of `live.tar` and of
-the manifest files and compare with the digest the Coordinator kept. A mismatch
+the manifest files and compare with the digest the delegate kept. A mismatch
 is `change detected` plus `freeze tampered`: nothing is restored from the
 copies, no git command runs, and the report lists only the digest mismatch and
 a `find` listing of the live trust paths for the owner to restore by hand (no
@@ -337,11 +349,11 @@ write.
 R7. An artifact that a legitimate test generates in the clone (an ignored file
 or a new untracked file) is outside the judged set and does not discard the
 verdict; a test that rewrites a tracked file discards it like any other change.
-A check result a CLI reports is never evidence: the Coordinator reruns the
-checks itself. An ignored `_test.go` planted in the clone can only mislead the
+A check result a CLI reports is never evidence: a dispatched `qa-verifier`
+reruns the checks. An ignored `_test.go` planted in the clone can only mislead the
 CLI's own reply, which is already untrusted input. If a command fails for a
 missing ignored file (a dependency, a `.env`), the CLI reports "not validated",
-and the Coordinator reads that as neither a failure of the code nor an
+and the Coordinator reads that report as neither a failure of the code nor an
 approval.
 
 ## 6. What the report carries
@@ -350,7 +362,7 @@ The "Workspace check" line of the Output format in `SKILL.md` takes, for a
 call in a clone: `clean` or `reverted (<what changed, now reverted>)` for the
 live tree; `clone removed: <path>` once the clone is gone; and
 `notes: <new untracked files in the clone>` when section 3 found any; and
-`process group: unavailable` when `setsid` was missing (Order step 4). An
+`leftover processes: stopped` or `none`, with the match string. An
 altered ignored path is reported as `not revertible: <path>`.
 
 The residual of clone-isolation.md section 7 applies unchanged: disposable

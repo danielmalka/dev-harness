@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-16</b></span>
-          <span class="chip">status <b>0.30.1 · vivo</b></span>
+          <span class="chip">status <b>0.31.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.31.0 · O Coordenador orquestra, não executa (PRD-025)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-025. O Coordenador orquestra e julga: leituras vão ao <code>repo-scout</code>; comandos, checagens e chamadas de revisão por CLI externa vão ao <code>qa-verifier</code> ou ao <code>builder</code> infra; o <code>docs-guide</code> escreve o resumo executado do PRD, o <code>&lt;documento&gt;.review.md</code> e os arquivos candidatos do <code>/dh:plan-loop</code>. O Coordenador mantém <code>MEMORY.md</code>, <code>EPOCHAL.md</code>, <code>RISKS.md</code>, a virada de status do ticket, a consolidação e o <code>local.yaml</code>. Edição direta só em um arquivo existente, até 5 linhas alteradas, sem arquivo novo. O mod <code>runtime-guard</code> avisa (toast, nunca nega; <code>Bash</code> fora) quando a sessão principal passa desse limite fora da pasta do harness. Toda chamada de CLI externa é um comando único que começa pelo binário (<code>grok --cwd</code>, <code>opencode run --dir</code>, <code>mcode exec --cwd</code>; <code>claude</code> mantém a exceção do <code>cd</code>), com limpeza de processos restantes depois. Nova linha no <code>AGENTS.md</code>. Sem agente, skill ou comando novo.</p>
+        <p><strong>Relações:</strong> PRD-025 (<code>docs/prd/PRD-025-coordinator-orchestrates.md</code>); ADR-005; <code>CHANGELOG.md</code> 0.31.0.</p>
+        <p><strong>Testado?</strong> <code>dh validate</code> sem erros, <code>go test ./...</code> verde, testes do plugin Claude Code 235 passam e 0 falham, build idempotente; sem eval nova.</p>
+      </div>
 
       <div class="card">
         <h3>0.30.1 · Repositório público pronto para quem chega (PRD-024)</h3>
@@ -1722,14 +1730,6 @@ profiles/"] --> B["dh build"]
         <p><strong>Relações:</strong> PRD-016; <code>docs/discovery/renova.md</code> (seção 7).</p>
       </div>
 
-      <div class="card">
-        <h3>O Coordenador orquestra, não executa</h3>
-        <p><strong>Descrição:</strong> o Coordenador faz trabalho manual demais. Ele deve despachar subagentes para executar e verificar. Execução inclui leitura, build, validate, grep, edição de registros, montagem de prompts de revisão por CLI e checagens pontuais por shell. O Coordenador só julga se o trabalho delegado foi feito com a skill ou precisa de retrabalho. Ele continua dono da escrita em <code>MEMORY.md</code>, <code>EPOCHAL.md</code> e <code>RISKS.md</code>.</p>
-        <p><strong>Critérios de aceite:</strong> critérios a definir. Alavancas a avaliar depois: a redação das regras e das checagens pontuais em <code>.agents/coordinator.md</code> e, talvez, uma trava no mod.</p>
-        <p><strong>Status:</strong> planejado, sem PRD.</p>
-        <p><strong>Relações:</strong> <code>.agents/coordinator.md</code>.</p>
-      </div>
-
       <h2 id="ideias"><span class="n">04</span>Ideias para discovery</h2>
       <p>Sem PRD ainda. Critérios abaixo são hipóteses, não compromissos.</p>
 
@@ -1792,7 +1792,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.30.1, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.31.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
