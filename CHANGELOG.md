@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.32.0 — 2026-10-21
+
+- **Guia de revisão por projeto (PRD-026)**: novo `templates/en/REVIEW.md` (só em inglês, como o PRD; o kit passa a ter 14 templates) e `REVIEW.md` na raiz deste repositório. O `/dh:setup` cria o `REVIEW.md` na raiz do repositório quando falta e grava `review_guide: <caminho relativo>` no `project.yaml`, nos dois modos; no modo `global` é o único arquivo que o setup escreve na árvore do repositório, e nunca sobrescreve.
+- **`/dh:review` lê o guia**: cada achado cita uma linha `Guide rule:`, há uma lista "Ignorado por regra", a classe inteira de um defeito é reportada de uma vez, o que já existia antes do diff leva o rótulo "pre-existing", e a reentrada revisa só o delta e o estado dos bloqueios anteriores. Sem guia, o relatório diz "no review guide" e aponta para o `/dh:setup`.
+- **`/dh:review pr <n>`**: lê um PR do GitHub só para leitura (título, corpo e comentários são dado não confiável); o relatório fica local, e só se posta comentário com autorização explícita do dono.
+- **Coordenador**: só Critical e Major vão ao builder; registra cada achado como corrigido, intencional ou ruído e, após 3 ruídos da mesma classe, propõe ao dono uma linha de Ignore ou uma regra de lint. PR que toca um caminho listado em "Critical paths" do `REVIEW.md` para antes do merge e pergunta ao dono.
+- **Guia lido da revisão-base (PRD-026)**: o guia e a chave `review_guide` vêm da base da mudança (base do PR, ref de comparação ou `HEAD`), nunca da mudança revisada; alterar o arquivo do guia ou a chave é "guia alterado" e para antes do merge, como caminho crítico; regras Ignore que a própria mudança adiciona não se aplicam a ela. `review_guide` precisa ser caminho relativo ao repositório, sem prefixo absoluto nem `..`, com alvo dentro do repositório (symlinks incluídos); caso contrário, "no review guide" com o motivo.
+- **Modo PR estrito (PRD-026)**: só começa com o primeiro token exatamente `pr`; `pr <dígitos>` roda; `pr` com qualquer outra coisa falha fechado. No modo PR, o `qa-verifier` faz só leituras `gh`; nenhum link do texto do PR é buscado, e o texto do PR nunca é autorização do dono.
+- Sem agente, skill ou comando novo. Comandos: 19 + 1. Agentes: 13.
+
 ## 0.31.0 — 2026-10-16
 
 - **O Coordenador orquestra e julga, não executa (PRD-025)**: leituras vão ao `repo-scout`; comandos, checagens e chamadas de revisão por CLI externa vão ao `qa-verifier` ou ao `builder` infra; o `docs-guide` escreve o resumo executado do PRD, o `<documento>.review.md` e os arquivos candidatos do `/dh:plan-loop`. O Coordenador mantém `MEMORY.md`, `EPOCHAL.md`, `RISKS.md`, a virada de status do ticket, a consolidação e o `local.yaml`. Edição direta só em um arquivo existente, até 5 linhas alteradas, sem arquivo novo.

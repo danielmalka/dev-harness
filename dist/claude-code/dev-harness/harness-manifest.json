@@ -1,9 +1,9 @@
 {
   "name": "dev-harness",
-  "version": "0.31.0",
+  "version": "0.32.0",
   "license": "MIT",
   "generated": true,
-  "generated_at": "2026-10-16T21:03:25Z",
+  "generated_at": "2026-10-21T21:24:24Z",
   "source": "dh build",
   "runtime": {
     "primary": "claude-code",
@@ -85,6 +85,7 @@
       "en/EPOCHAL.md",
       "en/MEMORY.md",
       "en/PRD.md",
+      "en/REVIEW.md",
       "en/RFC.md",
       "en/RISKS.md",
       "en/TASK.md",
@@ -101,31 +102,31 @@
       "os": "linux",
       "arch": "amd64",
       "path": "bin/linux_amd64/dh",
-      "sha256": "07d96abd8b9f3bc8e6e39120d0498acd462e5a8c03182e59d2e9e1d2ef1781db"
+      "sha256": "db71d01eb9f7100ea6f0bcb439271583db728f7c7b291c3355a5fdbd648e6d89"
     },
     {
       "os": "linux",
       "arch": "arm64",
       "path": "bin/linux_arm64/dh",
-      "sha256": "8286992b54c5711276c463ed4c347ce269aaa2cee34e8bd4f6df749c3327e96b"
+      "sha256": "0a4624a76cad898cf3de55560f6eca855eecbbbb1d8e4360587d78eb60b71bfb"
     },
     {
       "os": "darwin",
       "arch": "amd64",
       "path": "bin/darwin_amd64/dh",
-      "sha256": "375631f670e41fc5449e0565d32420485b7b0b3a6a987b28f56d5303420c1c8f"
+      "sha256": "54d715ce9b69ced5d9ddbce04ea371fa6b66c07a95cacfe00e8a35c30ce09339"
     },
     {
       "os": "darwin",
       "arch": "arm64",
       "path": "bin/darwin_arm64/dh",
-      "sha256": "5f2f679a8941376c115a2ef1d2a399ca8d89ea7e47d1625760a879e4475e86bb"
+      "sha256": "8b0c327339b53c1b211fd40cdf0f4da680e4287e0616276f9b407421d182b219"
     },
     {
       "os": "windows",
       "arch": "amd64",
       "path": "bin/windows_amd64/dh.exe",
-      "sha256": "90dbacd7b0d69f04289b7d6eca97c2de09e69df31027d5321b5bd5af524b5b8a"
+      "sha256": "c748c671965e44e5afbac22774799b3133a68890cf8b8d2bb72306640e5c874b"
     }
   ]
 }

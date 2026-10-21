@@ -31,8 +31,8 @@ var (
 
 var templateLanguages = []string{"en", "pt-br"}
 
-// englishOnlyTemplates may exist only in templates/en/ (the PRD is always written in English).
-var englishOnlyTemplates = []string{"PRD.md"}
+// englishOnlyTemplates may exist only in templates/en/ (the PRD and the review guide are always written in English).
+var englishOnlyTemplates = []string{"PRD.md", "REVIEW.md"}
 
 var allowedModels = map[string]bool{
 	"haiku":  true,
