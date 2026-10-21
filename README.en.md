@@ -47,6 +47,7 @@ In global mode, the `~/.harness/` folder (`DH_HOME` moves it) is unique per mach
 | `<repository>/.harness/` | repository mode: MEMORY, EPOCHAL, RISKS, `project.yaml`, tasks, PRDs, ADRs | Coordinator and `/dh:` commands |
 | `~/.harness/config.yaml` | project registry and defaults (`language`, `mode`, `dashboard.sprites`) | only `dh` (`dh config`, `dh link`) |
 | `~/.harness/projects/<name>/` | global mode: the same records as `.harness/` | Coordinator and `/dh:` commands |
+| `<repository>/REVIEW.md` | project review guide, created by `/dh:setup` when missing, in both modes; the only file setup writes in the tree in global mode; never overwrites | `/dh:setup` (via a specialist) |
 | `~/.harness/sessions/` | one snapshot per Claude Code session (`dh snapshot prune` deletes those older than 7 days) | plugin mod |
 | `~/.harness/dashboard/` | dashboard stop token, per port | dashboard |
 | `~/.harness/projects/<name>/pdocs/` | project HTML documentation (`/dh:document pdocs`) | docs-guide |

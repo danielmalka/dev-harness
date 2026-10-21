@@ -62,8 +62,9 @@ Two moves, one procedure: find out what this machine and this project can actual
 7. **Propose the project profile.** List the profiles actually bundled with the kit at run time (`profiles/*.yaml`, excluding `base.yaml`, which is the parent of all) and read each one's `stack` hints; never rely on a remembered list, because profiles are added between releases. Name the closest match by direct stack evidence in the repo (manifest, lockfile, Dockerfile, test runner); otherwise write `none, custom` and still apply `base` conventions. List every field you would set, with where each value came from. A command you copied from a manifest is a fact. A command you assumed from the stack is a hypothesis and must be labeled as one, not written as settled. Read `profiles/README.md` for the schema.
 
 8. **Apply only what is authorized, and only where nothing exists.**
-   - Decide the mode and register first (`/dh:setup` owns this): run `dh harness-path --json` (the bundled `bin/dh` (`bin\dh.cmd` on Windows) from the loaded plugin directory, as in `.commands/doctor.md`; same for `dh link`) and read `defaults`; the mode is `defaults.mode` when filled, otherwise ask the owner once for this project (`repo` or `global`); `defaults` all empty means today's defaults. In `repo`, create `<repo>/.harness/` before anything else; then run `dh link [name]`, which always registers the project (in `repo` it never creates `<home>/projects/<name>/`; in `global` it creates it), and paste the `defaults.reviewers` block into the new `project.yaml`. Never Read `config.yaml`; only the binary does. Everything below is written to the resolved harness dir (`<home>/projects/<name>/` in `global`, nothing in the repository tree). In `global`, remind the owner of `~/.harness` in `additionalDirectories` of `~/.claude/settings.json`, without writing it.
-   - Record `language` in `project.yaml`: use `defaults.language` from `dh harness-path --json` when set; otherwise the owner's language (pt-br when the owner writes Portuguese, else en). State the choice in the report so the owner can correct it. This field is the owner conversation language. It selects `templates/<lang>/` for the other records and work artifacts from now on (the PRD is always English).
+   - Decide the mode and register first (`/dh:setup` owns this): run `dh harness-path --json` (the bundled `bin/dh` (`bin\dh.cmd` on Windows) from the loaded plugin directory, as in `.commands/doctor.md`; same for `dh link`) and read `defaults`; the mode is `defaults.mode` when filled, otherwise ask the owner once for this project (`repo` or `global`); `defaults` all empty means today's defaults. In `repo`, create `<repo>/.harness/` before anything else; then run `dh link [name]`, which always registers the project (in `repo` it never creates `<home>/projects/<name>/`; in `global` it creates it), and paste the `defaults.reviewers` block into the new `project.yaml`. Never Read `config.yaml`; only the binary does. Everything below is written to the resolved harness dir (`<home>/projects/<name>/` in `global`), except the review guide step: `REVIEW.md` is the only file written in the repository tree, in both modes. In `global`, remind the owner of `~/.harness` in `additionalDirectories` of `~/.claude/settings.json`, without writing it.
+   - Record `language` in `project.yaml`: use `defaults.language` from `dh harness-path --json` when set; otherwise the owner's language (pt-br when the owner writes Portuguese, else en). State the choice in the report so the owner can correct it. This field is the owner conversation language. It selects `templates/<lang>/` for the other records and work artifacts from now on (the PRD and `REVIEW.md` are always English).
+   - Review guide, in `repo` and in `global`: when the project has no review guide file, a dispatched specialist (not the Coordinator) creates `REVIEW.md` at the repository root from `templates/en/REVIEW.md` and `review_guide: REVIEW.md` (a repository-relative path, never absolute or with `..`) is written to `project.yaml`. The file is always English, whatever `language` says. File present and key absent: record the key, leave the file untouched. Key pointing to an existing file: change nothing. Never overwrite.
    - Create `project.yaml` only if absent. If present, compare and report each divergence; updating an existing profile is a separate scoped edit, not onboarding initialization.
    - Only the main-session Coordinator may initialize `MEMORY.md`, `EPOCHAL.md` and `RISKS.md` in the harness dir from `templates/`, within authorized configuration scope and only when absent. Other roles report missing records to the Coordinator. Never overwrite, reformat or truncate an existing record.
    - Never write inside existing project instruction files (`AGENTS.md`, `CLAUDE.md`). Conflicts get reported, not merged.
@@ -110,8 +111,8 @@ diagnosis | diagnosis + configuration (authorized scope: <paths>)
 - Nothing in these files was modified.
 
 ## Changes applied
-- Created: <relative path> (was absent), re-read and verified
-- Left untouched: <relative path> (already existed)
+- Created: <relative path> (was absent), re-read and verified; includes `REVIEW.md` when it was absent
+- Left untouched: <relative path> (already existed; includes an existing `REVIEW.md`)
 - Not applied: <item> (outside authorized scope)
 
 ## Limitations
@@ -170,6 +171,7 @@ Input: main-session Coordinator loads the kit in a small service repository, mod
 ## Changes applied
 - Created: .harness/project.yaml (was absent, language: en), re-read and verified
 - Created: .harness/MEMORY.md from templates/<lang>/MEMORY.md (was absent)
+- Created: REVIEW.md from templates/en/REVIEW.md (was absent), review_guide: REVIEW.md in project.yaml
 - Left untouched: the existing project instruction file
 ```
 

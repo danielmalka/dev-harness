@@ -1,7 +1,7 @@
 # When to use each template
 Versão em pt-br: [docs/tutoriais/templates.md](../../tutoriais/templates.md)
 
-The templates live in `templates/pt-br/` and `templates/en/` in the kit, mirrored, except the PRD, which exists only in `templates/en/`; `setup` records `language` in `.harness/project.yaml` and that field selects the folder for the other records (the PRD is always in English and comes from `templates/en/`). In the consumer project, each one lives in `.harness/`, populated from the copy. This guide explains which one to use, who writes it, and when to open and close it.
+The templates live in `templates/pt-br/` and `templates/en/` in the kit, mirrored, except the PRD and `REVIEW.md`, which exist only in `templates/en/`; `setup` records `language` in `.harness/project.yaml` and that field selects the folder for the other records (the PRD is always in English and comes from `templates/en/`). In the consumer project, each one lives in `.harness/`, populated from the copy. This guide explains which one to use, who writes it, and when to open and close it.
 
 ## Summary
 

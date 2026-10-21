@@ -47,6 +47,7 @@ No modo global, a pasta `~/.harness/` (`DH_HOME` muda o lugar) é única por má
 | `<repositório>/.harness/` | modo repositório: MEMORY, EPOCHAL, RISKS, `project.yaml`, tarefas, PRDs, ADRs | Coordenador e comandos `/dh:` |
 | `~/.harness/config.yaml` | registro de projetos e padrões (`language`, `mode`, `dashboard.sprites`) | só o `dh` (`dh config`, `dh link`) |
 | `~/.harness/projects/<nome>/` | modo global: os mesmos registros do `.harness/` | Coordenador e comandos `/dh:` |
+| `<repositório>/REVIEW.md` | guia de revisão do projeto, criado pelo `/dh:setup` quando falta, nos dois modos; único arquivo que o setup grava na árvore em modo global; nunca sobrescreve | `/dh:setup` (via especialista) |
 | `~/.harness/sessions/` | snapshot por sessão do Claude Code (`dh snapshot prune` apaga os com mais de 7 dias) | mod do plugin |
 | `~/.harness/dashboard/` | token de parada do dashboard, por porta | dashboard |
 | `~/.harness/projects/<nome>/pdocs/` | documentação HTML do projeto (`/dh:document pdocs`) | docs-guide |

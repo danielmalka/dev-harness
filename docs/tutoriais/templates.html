@@ -683,7 +683,7 @@ footer.doc-foot {
       <h2 id="posicionamento"><span class="n">01</span>Posicionamento</h2>
       <div class="card">
         <h3>O que isto é</h3>
-        <p>Os modelos vivem em <code>templates/pt-br/</code> e <code>templates/en/</code> no kit, espelhados, exceto o PRD, que existe só em <code>templates/en/</code>; o <code>setup</code> grava <code>language</code> em <code>.harness/project.yaml</code> e esse campo escolhe a pasta dos demais registros (o PRD é sempre em inglês e vem de <code>templates/en/</code>). No projeto consumidor, cada um é copiado para <code>.harness/</code> e preenchido. Quatro descrevem trabalho (PRD, Task/Bug, ADR, RFC); três guardam estado (MEMORY, EPOCHAL, RISKS). Este guia diz qual usar, quem escreve, quando abrir e quando fechar.</p>
+        <p>Os modelos vivem em <code>templates/pt-br/</code> e <code>templates/en/</code> no kit, espelhados, exceto o PRD e o <code>REVIEW.md</code>, que existem só em <code>templates/en/</code>; o <code>setup</code> grava <code>language</code> em <code>.harness/project.yaml</code> e esse campo escolhe a pasta dos demais registros (o PRD é sempre em inglês e vem de <code>templates/en/</code>). No projeto consumidor, cada um é copiado para <code>.harness/</code> e preenchido. Quatro descrevem trabalho (PRD, Task/Bug, ADR, RFC); três guardam estado (MEMORY, EPOCHAL, RISKS). Este guia diz qual usar, quem escreve, quando abrir e quando fechar.</p>
       </div>
       <div class="callout gold">Fato, hipótese e decisão ficam marcados como tal. Caminhos relativos ao projeto. Sem segredos. Cada critério de aceite é “quando X, então Y” e aponta o cenário ou teste que o prova. Evidência só existe com estado explícito: passou, falhou ou não executado. Typecheck não prova comportamento.</div>
       <div class="callout stop">Os três registros de memória são escritos apenas pelo Coordenador. Os demais papéis reportam fatos, evidências e incidentes; não editam <code>MEMORY.md</code>, <code>EPOCHAL.md</code> nem <code>RISKS.md</code>.</div>
@@ -927,7 +927,7 @@ flowchart LR
           <h3>Mapeado</h3>
           <ul>
             <li>Sete modelos em <code>templates/en/</code> e seis em <code>templates/pt-br/</code>, espelhados
-              (o PRD existe só em <code>templates/en/</code>).</li>
+              (o PRD e o <code>REVIEW.md</code> existem só em <code>templates/en/</code>).</li>
             <li><code>.harness/tasks/&lt;id&gt;/</code> e os três registros de memória definidos pelo plano do produto.</li>
             <li>Formato de resultado da task igual ao formato de resposta das skills.</li>
           </ul>
