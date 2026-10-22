@@ -135,11 +135,14 @@ continue on the live tree instead.
 
 Fix the CLI's working directory to the stored clone path with the binary's
 own working-directory flag, written inside the single command that starts with
-the binary name (`grok --cwd`, `opencode run --dir`, `mcode exec --cwd`; fact,
-read from each binary's own help on 2026-10-16). `claude` has no such flag in
-`claude --help`, so its recipe keeps `cd "$CLONE" && claude ...` as the only
-allowed exception; that form does not match a `Bash(claude:*)` allow rule, so
-the call may need the owner's approval or be not-run. The working directory of
+the binary name (`grok --cwd`, `mcode exec --cwd`; fact, read from each
+binary's own help on 2026-10-16). `claude` and `opencode` have no such flag
+(`opencode run` measured 2026-10-21 on v2.0.32), so their recipes keep
+`cd "$CLONE" && <binary> ...` as the two named exceptions; that form starts with
+`cd`, does not match a `Bash(claude:*)` or `Bash(opencode:*)` allow rule, so
+the call may need the owner's approval or be not-run. The opencode form is
+`cd <clone> && <opencode binary> run --auto -m <provider/model>[#<variant>]
+--file=<prompt file> -- "Follow the attached prompt."`. The working directory of
 a Bash call does not persist to the next call (measured 2026-10-16), so the
 flag or the `cd` belongs to the same command that starts the binary. Measured
 earlier (T-1015): a flag-only launch can show a wrapper process with a cwd
@@ -253,9 +256,9 @@ Tampering with the copies is a write outside the project (a), reading them is
 reading secrets (e). The same holds between overlapping calls: a running CLI
 can read or alter a sibling call's prompt file or the shared freeze directory
 (residual (a)). Writing every prompt before any CLI starts narrows this window;
-it does not close it. A separate command after the call (`pkill -f -- "<clone path>"`, or for the
-live-tree `agy` call the unique prompt file path; Order step 4 of
-`live-tree-freeze.md`) stops this call's leftover processes and narrows
+it does not close it. A separate command after the call (a kill by the pid recorded when the call
+started, or by a bracket pattern such as `pkill -f '[o]pencode run'`; Order step
+4 of `live-tree-freeze.md`) stops this call's leftover processes and narrows
 residual (b) again; it does not close it. An
 interrupted `agy` review can leave its `dh-prompt-XXXXXXXX` file (mode 0600)
 under `<tmp root>`: it is not swept, and it is left for the owner to remove.

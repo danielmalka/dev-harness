@@ -7,11 +7,14 @@ import {
   COMMIT, commandDir, deniesAiMention, gateAt, type Harness, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand,
   isHarnessPath, MSG, native, parseGateCommands, parseHarness, parseLanguage, taskStatus,
 } from './lib/gate.ts'
+import { GH_MSG, ghDenied } from './lib/gh-guard.ts'
 export { commandDir, deniesAiMention, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand, isHarnessPath, native, parseGateCommands, parseHarness, parseLanguage, resolvePath, taskStatus }
 
 // ponytail: module-level state; a mod reload resets the gate (current session only).
 // Absolute paths edited since the last green gate of their repository.
 const dirty = new Set<string>()
+// PRD-027 R4: agentId -> subagentType from agent.spawn; the gh/git push guard reads it.
+const agentTypes = new Map<string, string>()
 const inside = (f: string, root: string) => f === root || f.startsWith(root === '/' ? '/' : `${root}/`)
 
 async function home($: EngineInterface): Promise<string> {
@@ -139,7 +142,15 @@ async function driftNow($: EngineInterface, cwd: string): Promise<ReturnType<typ
   }
 }
 
-async function guardBash($: EngineInterface, command: string): Promise<string | undefined> {
+// PRD-027: the gh/git push deny for a shell-command call of any tool (Bash, Monitor, PowerShell).
+async function guardGh($: EngineInterface, command: string, agentId?: string, unreadable = false, powershell = false): Promise<string | undefined> {
+  const gh = ghDenied(command, agentId, agentId ? agentTypes.get(agentId) : undefined, unreadable, powershell)
+  return gh ? GH_MSG[(await readProject($)).lang](gh.verb, gh.unknown) : undefined
+}
+
+async function guardBash($: EngineInterface, command: string, agentId?: string): Promise<string | undefined> {
+  const ghMsg = await guardGh($, command, agentId)
+  if (ghMsg) return ghMsg
   const aiHit = deniesAiMention(command)
   const commit = COMMIT.exec(command)
   if (!aiHit && !commit) return undefined
@@ -320,7 +331,7 @@ export const register: Register = on => {
 
   on('agent.spawn', ($, e, next) => denySpawn({}, e, async (x: typeof e) => {
     const r = await next(x)
-    if (r.agentId) recordSpawn($, x.subagentType, r.agentId)
+    if (r.agentId) { agentTypes.set(r.agentId, String(x.subagentType)); recordSpawn($, x.subagentType, r.agentId) }
     return r
   })).catch(failOpen)
 
@@ -349,8 +360,18 @@ export const register: Register = on => {
     return section ? { sections: [...r.sections, section] } : r
   }).catch(failOpen)
 
+  // PRD-027 R3: the other tools that take a shell command get the gh guard only, on their command field.
+  for (const tool of ['Monitor', 'PowerShell']) {
+    on('tool.call', { tool } as any, async ($, e: any, next) => {
+      const ok = typeof e.command === 'string'
+      // a PowerShell call without a readable command is denied for a kit subagent; a Monitor without one is not a shell command
+      const denied = ok || tool === 'PowerShell' ? await guardGh($, ok ? e.command : '', e.agentId, !ok, tool === 'PowerShell').catch(() => undefined) : undefined
+      return denied ? { deny: denied } : next(e)
+    }).catch(failOpen)
+  }
+
   on('tool.call', { tool: 'Bash' }, async ($, e, next) => {
-    const denied = await guardBash($, e.command).catch(() => undefined)
+    const denied = await guardBash($, e.command, e.agentId).catch(() => undefined)
     if (denied) return { deny: denied }
     const r = await next(e)
     // ponytail: pre-filter by generic + session gates (no git spawn on plain Bash); a custom gate that only

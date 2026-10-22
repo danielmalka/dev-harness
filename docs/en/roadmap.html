@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-10-21</b></span>
-          <span class="chip">status <b>0.32.0 · live</b></span>
+          <span class="chip">status <b>0.32.1 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tasks completed per release, sourced from <code>CHANGELOG.md</code>. "Tested?" only claims execution when a
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
+
+      <div class="card">
+        <h3>0.32.1 · gh and git push guard for subagents (PRD-027)</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-027. In Claude Code, the plugin mod denies, in shell-command calls of <code>dh:*</code> subagents (except <code>dh:release-manager</code>), any <code>gh</code> command that is not a plain read from the allow-list, and any <code>git</code> command with a write word (<code>push</code>, <code>send-pack</code>, <code>subtree</code>, <code>p4</code>, <code>svn</code>, <code>dcommit</code>, <code>alias</code>), including a dash binary such as <code>git-lfs push</code>. Only a plain <code>gh</code> read or a <code>grep</code> with no shell metacharacter passes. It is text analysis, best effort, and it denies on doubt. The main session, <code>dh:release-manager</code> and subagents outside the kit are not affected. Known bypasses, not fixed: aliases and functions defined earlier, variables, <code>eval</code>, text piped into a shell, scripts on disk (including <code>make push</code>), other interpreters, git aliases stored in config, <code>curl</code> with a token, GitHub MCP tools, a subagent outside the kit and child processes of an external CLI. ADR-005 gains the narrow exception; the prose ban stays as the second layer and is the only one outside Claude Code. <code>release-manager</code> runs push, PR, merge and tag only with explicit owner authorization. The opencode v2.0.32 recipe is updated (no <code>--dir</code> and no <code>--variant</code>; measured 2026-10-21), and opencode becomes the second exception to the single-command rule. New gotcha: <code>pgrep -f</code>/<code>pkill -f</code> with the delegate's own command match the delegate's shell. No new agent, skill or command.</p>
+        <p><strong>Relations:</strong> PRD-027 (<code>docs/prd/PRD-027-gh-write-guard.md</code>); ADR-005 (amendment); <code>CHANGELOG.md</code> 0.32.1.</p>
+        <p><strong>Tested?</strong> QA passed: unit tests, engine tests and the M1 measurement in a real session in bypass mode (PRD-027, R8); no new eval.</p>
+      </div>
 
       <div class="card">
         <h3>0.32.0 · Per-project review guide (PRD-026)</h3>
@@ -1801,7 +1809,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.32.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.32.1, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
