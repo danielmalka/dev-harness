@@ -14,12 +14,13 @@ file.
 ## Headless
 
 ```bash
-opencode run --dir "$CLONE" --auto -m '<provider>/<slug>' \
-  --variant high "$(cat "$PROMPT")"
+cd "$CLONE" && opencode run --auto -m '<provider>/<slug>#high' \
+  "$(cat "$PROMPT")"
 ```
 
-Each call is one shell command whose first word is the binary
-(R18): write the resolved command there as a literal (bare `opencode`, or the literal path taken from `.harness/local.yaml`; a literal path does not match a `Bash(opencode:*)` allow rule, so that form may need the owner's approval or be not-run), with no `timeout`, `&&`, `;` or pipe in front of or after it. `--dir` is the binary's own working-directory flag (fact, `opencode run --help`, 2026-10-16: "directory to run in"). Time is bounded by the Bash tool timeout or `run_in_background`; `opencode run` has no wall-clock flag.
+`opencode run` has no working-directory flag and no `--variant` (fact, measured 2026-10-21 on v2.0.32, M2 of PRD-027). The call therefore starts with `cd "$CLONE" &&`, the second named exception (beside `claude`) to the rule that a call is one command whose first word is the binary; `grok` and `mcode` keep their own working-directory flag. A separate `cd` in its own Bash call does not persist (measured 2026-10-21: the runtime resets the cwd), so the `cd` stays in the same command. Because the command starts with `cd`, it does not match a `Bash(opencode:*)` allow rule: the call may need the owner's approval or be not-run. Write the resolved binary as a literal (bare `opencode`, or the literal path taken from `.harness/local.yaml`). No `timeout` goes in front of the command and no `;` or pipe chains it; the freeze and the later comparisons are separate commands. Time is bounded by the Bash tool timeout or `run_in_background`; `opencode run` has no wall-clock flag.
+
+The variant (reasoning effort) is part of the model string: `-m provider/model#variant`, only a level that slug advertises. Without `#variant` the model default applies.
 
 `$CLONE` in these recipes is the literal clone path stored when the clone was created ([clone-isolation.md](clone-isolation.md), Terms), written into the command as that literal string. The prompt file `$PROMPT` is the literal path of a file created by `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )` inside the call's freeze directory ([live-tree-freeze.md](live-tree-freeze.md), section 5); it is unique per call and is removed with that directory.
 
@@ -27,7 +28,7 @@ Long prompt as an attached file (do not stuff a multi-kilobyte prompt
 into argv):
 
 ```bash
-opencode run --dir "$CLONE" --auto -m '<provider>/<slug>' \
+cd "$CLONE" && opencode run --auto -m '<provider>/<slug>[#<variant>]' \
   --file="$PROMPT" -- "Follow the attached prompt."
 ```
 
@@ -39,11 +40,10 @@ Always `--file=path -- "message"`.
 |---|---|
 | `run` | one-shot; bare `opencode` is the TUI |
 | `--auto` | approve tools (required for an unattended call) |
-| `-m provider/model` | pin; do not rely on the interactive picker |
-| `--dir` | workspace; `--dir "$CLONE"` on every call |
+| `-m provider/model[#variant]` | pin; do not rely on the interactive picker; `#variant` sets the reasoning effort (only levels that slug advertises); there is no `--variant` flag |
+| `cd "$CLONE" &&` | workspace; there is no `--dir`, so every call starts with it |
 | `-f` / `--file` | attach file(s) to the message (repeatable) |
 | `--format json` | raw events if parsing is required |
-| `--variant` | reasoning effort (only the levels that slug advertises) |
 | `--thinking` | print thinking blocks |
 | `--title` | session title |
 | `-c` / `--continue`, `-s` / `--session`, `--fork` | resume / fork; default is a new session |

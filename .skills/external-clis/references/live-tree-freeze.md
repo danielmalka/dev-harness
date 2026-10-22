@@ -41,20 +41,30 @@ anything.
 3. Write every call's prompt (section 5), all of them before any CLI starts.
 4. Start each CLI as one shell command that begins with the binary name, in its
    own tool call, with the binary's own working-directory flag where its recipe
-   shows one (`grok --cwd`, `opencode run --dir`, `mcode exec --cwd`); `claude`
-   has no such flag and keeps `cd "$CLONE" && claude ...` as the only allowed
-   exception (`references/claude.md`). No `timeout`, `setsid`, subshell,
+   shows one (`grok --cwd`, `mcode exec --cwd`); `claude` and `opencode` have no
+   such flag and keep `cd "$CLONE" && <binary> ...` as the two named exceptions
+   (`references/claude.md`, `references/opencode.md`; the form starts with `cd`,
+   does not match a `Bash(<binary>:*)` allow rule and may need the owner's
+   approval; a separate `cd` in its own call does not persist). The opencode
+   form is `cd <clone> && <opencode binary> run --auto -m
+   <provider/model>[#<variant>] --file=<prompt file> -- "Follow the attached
+   prompt."`. No `timeout`, `setsid`, subshell,
    `&&`, `;` or pipe wraps or chains the call, and the freeze and the later
    comparisons are separate commands (a permission rule `Bash(<binary>:*)`
    matches only a command that starts with the binary). The binary's own time
    flag, or the Bash tool timeout, bounds the call. Then, as one separate
    command run once the reply is on disk or the timeout has passed (before any
-   comparison), stop this call's leftover processes: `pkill -f -- "<the
-   literal clone path>"`. The match string is unique to this call, so it never
-   matches the owner's own sessions of the same binary; "no process matched" is
-   ignored. This narrows residual (b) of clone-isolation.md section 7 (a process
-   that outlives the call); it does not close it, since a process that no longer
-   carries the string is missed. Report it as `leftover processes` in the
+   comparison), stop this call's leftover processes by pid: `kill <pid>`. The
+   pid comes from the call itself: the call runs in the background
+   (`run_in_background`) and its pid is recorded when it starts, or the delegate
+   lists `pgrep -x <binary>` before the call and after it and kills only the new
+   pid. Never `pkill -f` with the clone path or the command text: the pattern
+   matches the delegate's own shell (`references/gotchas.md`); if a pattern is
+   unavoidable, use a bracket pattern (`'[o]pencode run'`). The pid is unique to
+   this call, so it never matches the owner's own sessions of the same binary; a
+   pid already gone is ignored. This narrows residual (b) of clone-isolation.md
+   section 7 (a process that outlives the call); it does not close it, since a
+   child that has a different pid is missed. Report it as `leftover processes` in the
    Workspace check.
 5. When a call ends, recompare its clone (section 3, R6). R6 stays per clone.
 6. After the last overlapping call has ended, and only then, on the live tree:

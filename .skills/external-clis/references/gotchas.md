@@ -33,3 +33,7 @@ what made the source these were ported from unportable; see
   Serialize calls to a binary known to reject concurrent runs into their
   own batch instead of dispatching them alongside each other; see the
   per-binary reference for which binaries this applies to.
+- `pgrep -f` or `pkill -f` with a pattern that contains the delegate's own
+  command or path matched the delegate's own shell (exit 144, endless waits;
+  seen 2026-10-21). · Kill by the pid recorded when the call started, or use a
+  bracket pattern that does not match its own text (`'[o]pencode run'`).

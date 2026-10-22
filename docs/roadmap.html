@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-21</b></span>
-          <span class="chip">status <b>0.32.0 · vivo</b></span>
+          <span class="chip">status <b>0.32.1 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.32.1 · Guarda de gh e git push por subagente (PRD-027)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-027. No Claude Code, o mod do plugin nega, em comandos de shell de subagentes <code>dh:*</code> (exceto <code>dh:release-manager</code>), todo <code>gh</code> que não seja uma leitura simples da lista, e todo <code>git</code> com palavra de escrita (<code>push</code>, <code>send-pack</code>, <code>subtree</code>, <code>p4</code>, <code>svn</code>, <code>dcommit</code>, <code>alias</code>), inclusive binário com traço como <code>git-lfs push</code>. Passa só uma leitura <code>gh</code> simples ou um <code>grep</code> sem metacaractere de shell. É análise de texto, em melhor esforço, e na dúvida nega. Sessão principal, <code>dh:release-manager</code> e subagentes fora do kit não mudam. Contornos conhecidos e não corrigidos: aliases e funções definidos antes, variáveis, <code>eval</code>, texto enviado a um shell, scripts em disco (inclusive <code>make push</code>), outros interpretadores, aliases do git guardados na config, <code>curl</code> com token, ferramentas MCP do GitHub, subagente fora do kit e processos filhos de CLI externa. A ADR-005 ganha a exceção estreita; a proibição em prosa segue como segunda camada e é a única fora do Claude Code. <code>release-manager</code> roda push, PR, merge e tag só com autorização explícita do dono. Receita do opencode v2.0.32 atualizada (sem <code>--dir</code> nem <code>--variant</code>; medida em 2026-10-21), e o opencode vira a segunda exceção ao comando único. Armadilha nova: <code>pgrep -f</code>/<code>pkill -f</code> com o próprio comando do delegado casam com o shell dele. Sem agente, skill ou comando novo.</p>
+        <p><strong>Relações:</strong> PRD-027 (<code>docs/prd/PRD-027-gh-write-guard.md</code>); ADR-005 (emenda); <code>CHANGELOG.md</code> 0.32.1.</p>
+        <p><strong>Testado?</strong> QA aprovado: testes unitários, testes de motor e a medição M1 em sessão real em modo bypass (PRD-027, R8); sem eval nova.</p>
+      </div>
 
       <div class="card">
         <h3>0.32.0 · Guia de revisão por projeto (PRD-026)</h3>
@@ -1800,7 +1808,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.32.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.32.1, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

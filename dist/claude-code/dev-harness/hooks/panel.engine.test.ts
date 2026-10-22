@@ -335,3 +335,86 @@ test('none below the git toplevel without <cwd>/.harness: readers use <root>/.ha
   await bash($, 'git commit -m "x"')
   expect(w.listed).toContain('/m2/.harness/tasks')
 })
+
+// PRD-027: gh write / git push guard for kit subagents.
+const spawnAs = ($: any, subagentType: string) => $.agent.spawn({ prompt: 'x', description: 'd', subagentType } as any)
+const bashAs = ($: any, command: string, agentId?: string) => $.tool.call({ tool: 'Bash', command, agentId } as any) as Promise<any>
+const GH = 'gh pr merge --help'
+
+test('27a kit subagent (dh:qa-verifier) is denied a gh write; the reason has the three parts', async ($, on) => {
+  world(on)
+  await spawnAs($, 'dh:qa-verifier')
+  const r = text(await bashAs($, GH, 'ag1'))
+  expect(r).toContain('gh pr merge')
+  expect(r).toContain('Only release-manager or the main session')
+  expect(r).toContain('Do not retry and do not work around it')
+  expect(r).toContain('For a text search, use the Grep tool.')
+  expect(r).not.toContain('/home/')
+})
+
+test('27a2 the reason is Portuguese with pt-br', async ($, on) => {
+  world(on, { yaml: 'language: pt-br\n' })
+  await spawnAs($, 'dh:qa-verifier')
+  const r = text(await bashAs($, 'git push', 'ag1'))
+  expect(r).toContain('git push')
+  expect(r).toContain('Só o release-manager ou a sessão principal')
+  expect(r).toContain('Não tente de novo nem contorne')
+  expect(r).toContain('use a ferramenta Grep')
+})
+
+test('27b dh:release-manager is not denied', async ($, on) => {
+  world(on)
+  await spawnAs($, 'dh:release-manager')
+  expect((await bashAs($, GH, 'ag1')).deny).toBe(undefined)
+})
+
+test('27c the main session (no agentId) is not denied', async ($, on) => {
+  world(on)
+  expect((await bashAs($, GH)).deny).toBe(undefined)
+})
+
+test('27d a non-kit subagent type is not denied', async ($, on) => {
+  world(on)
+  await spawnAs($, 'vault-agent')
+  expect((await bashAs($, GH, 'ag1')).deny).toBe(undefined)
+})
+
+test('27e an unknown agentId with a match is denied and the reason names the cause', async ($, on) => {
+  world(on)
+  const r = text(await bashAs($, GH, 'never-spawned'))
+  expect(r).toContain('unknown subagent type')
+  expect(r).toContain('gh pr merge')
+})
+
+test('27f a kit subagent with a read command is not denied', async ($, on) => {
+  world(on)
+  await spawnAs($, 'dh:qa-verifier')
+  expect((await bashAs($, 'gh pr view 1', 'ag1')).deny).toBe(undefined)
+})
+
+test('27g an exception inside the guard does not deny', async ($, on) => {
+  world(on)
+  await spawnAs($, 'dh:qa-verifier')
+  expect((await $.tool.call({ tool: 'Bash', agentId: 'ag1' } as any) as any).deny).toBe(undefined) // command undefined makes the guard throw
+})
+
+test('27h Monitor and PowerShell: a kit subagent is denied a gh write on the command field; the main session is not', async ($, on) => {
+  world(on)
+  await spawnAs($, 'dh:qa-verifier')
+  for (const tool of ['Monitor', 'PowerShell']) {
+    const call = (agentId?: string) => $.tool.call({ tool, command: 'gh pr merge 1', agentId } as any) as Promise<any>
+    expect(text(await call('ag1'))).toContain('gh pr merge')
+    expect((await call()).deny).toBe(undefined)
+  }
+  expect((await $.tool.call({ tool: 'Monitor', agentId: 'ag1' } as any) as any).deny).toBe(undefined) // a ws monitor has no command
+})
+
+test('27i PowerShell without a string command is denied as unreadable for a kit subagent; Monitor is not', async ($, on) => {
+  world(on)
+  await spawnAs($, 'dh:qa-verifier')
+  for (const command of [undefined, 5]) {
+    expect(text(await $.tool.call({ tool: 'PowerShell', command, agentId: 'ag1' } as any))).toContain('unreadable command')
+  }
+  expect(((await $.tool.call({ tool: 'PowerShell', agentId: undefined } as any)) as any).deny).toBe(undefined)
+  expect(((await $.tool.call({ tool: 'Monitor', agentId: 'ag1' } as any)) as any).deny).toBe(undefined)
+})

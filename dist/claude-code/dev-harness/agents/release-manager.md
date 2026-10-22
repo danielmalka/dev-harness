@@ -84,8 +84,8 @@ The owner should be able to approve or refuse without missing a residual risk.
 
 ## Stop when
 
-- The package is complete and either a publish decision is pending or existing authorization has been handed to the coordinator for execution. This role performs no remote action.
+- The package is complete and either a publish decision is pending or existing authorization has been handed to the coordinator for execution. This role runs the remote actions (push, PR, merge, tag) only with explicit owner authorization, and it never receives the title, the body or the comments of a third-party PR.
 
 ## Proof case
 
-Without publish authorization, the flow reaches ready-for-decision without a remote effect. With an explicit publish decision, it preserves that authorization in the handoff instead of asking for it again.
+Without publish authorization, the flow reaches ready-for-decision without a remote effect. With an explicit publish decision, it preserves that authorization in the handoff instead of asking for it again. It never receives third-party PR text.
