@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.34.0 — 2026-10-28
+
+- **Triagem de achados com ids e estados (PRD-029)**: no laço de código (cada ticket e a revisão final da feature), o Coordenador dá a cada achado Critical ou Major novo o id `F<rodada>-<n>` e mantém uma entrada por id no `MEMORY.md` com os estados `open`, `fixed`, `intentional`, `noise`, `escalated` e `reopened`. O relato `fixed` do builder não fecha o achado: só um revisor, numa rodada posterior, o confirma. `intentional` e `noise` exigem evidência (arquivo, teste ou restrição). Na reentrada, os achados já resolvidos vão ao revisor com id, local e caminho da evidência, sem o raciocínio do builder.
+- **Convergência por duas rodadas limpas**: o laço de build/QA e revisão de código só termina como convergido depois de duas rodadas limpas seguidas sobre o mesmo estado avaliado; qualquer edição entre elas zera a contagem, a rodada de confirmação conta no teto de 6, e uma rodada limpa sozinha nunca é reportada como verificada. Documentos, `security`, `/dh:plan-loop` e a dúvida em andamento não mudam.
+- **Churn na reentrada**: cada achado Critical ou Major novo de uma reentrada leva uma linha `Churn:`; quando reverter uma correção anterior resolveria o achado, o Coordenador para o laço e faz ao dono uma pergunta numerada com três opções (aceitar, mandar corrigir ou replanejar).
+- **Bloco `## Comprehension` no `document-validator`**: toda revisão de documento, inclusive `approved` sem achados, abre com duas paráfrases do que o documento e as fontes dizem, escritas antes dos achados.
+- **Pacote de contexto sem conversa**: o que o revisor lê sobre o trabalho é uma lista fechada (caminhos de documento, fontes, relatório anterior, idioma e pasta do harness; no código, o escopo, os critérios e o estado a avaliar). A conversa com o dono, o raciocínio do Coordenador e resumos de intenção nunca entram.
+- **Skill nova `drift-report`**: relatório opcional que compara, afirmação por afirmação, um documento do projeto (PRD ou ADR) com uma área de código e lista onde deixaram de concordar. Depois de `FEATURE APROVADA`, o `/dh:review` pode acrescentar uma linha oferecendo o relatório; ele só roda quando o dono pede ou aceita a oferta, o `docs-guide` grava `<data>_DRIFT_REPORT.md` na pasta da tarefa, o relatório não corrige nada e o veredito nunca depende dele.
+- **Crédito**: as ideias vêm do Elephant-Goldfish Model (EGM) do Google (https://github.com/google/elephant-goldfish-model, Apache-2.0); o kit reimplementa os mecanismos com palavras próprias, sem copiar texto, e os dois READMEs trazem a linha de crédito.
+- Sem agente nem comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
+
 ## 0.33.0 — 2026-10-28
 
 - **Configuração `worktree` (PRD-028)**: nova chave `worktree` (`always` ou `on-request`, padrão `on-request`), gravada com `dh config set worktree <valor>` no `config.yaml` global e substituível por projeto pela linha de topo `worktree: <valor>` do `local.yaml` da pasta do harness. Três fontes, em ordem: `local.yaml`, `defaults.worktree` global, `on-request`. O `dh config` mostra a chave.

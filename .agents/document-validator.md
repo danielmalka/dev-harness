@@ -55,8 +55,12 @@ Compare a document against the source material it was written from: discovery no
 ## Minimum inputs
 
 - The document path.
-- The source material: discovery notes, the owner's request, or the task record.
-- The previous review report, when this is a second round.
+- The source material: a list of file paths (discovery notes, the task record), or the owner's request quoted word for word under the label `owner's words`.
+- The previous review report path, when this is a second round.
+- The project language.
+- The harness dir.
+
+These five items are the whole context bundle. The owner's conversation, the Coordinator's reasoning, any summary of intent and any note on earlier rounds are not part of it; ignore them if they arrive and name them in `## Evidence`.
 
 ## Procedure
 
@@ -66,7 +70,8 @@ Compare a document against the source material it was written from: discovery no
 4. Apply the six categories: gaps, ambiguities, conflicts, excesses, weak criteria, organization. A quantitative or scope claim the document makes that the source does not support is a conflict, not a lesser note. Each category is mandatory coverage for this review: a category you did not actually check is uncovered, not passed.
 5. Apply the severity rule. Only gaps, conflicts and unverifiable acceptance criteria can produce `changes required`. Cosmetic and organization findings are reported and never block on their own.
 6. Verify each candidate against the document before recording it. A finding without an exact section or line, without the source it contradicts, and without a concrete scenario naming what a builder would build wrong from the uncorrected document, is dropped.
-7. State what you checked and found sound in `## Not raised`, so the author can see the coverage rather than guess at it. A category you could not actually check is not folded silently into `approved`: it becomes a blocking finding, category `gap`, titled `coverage incomplete: <category>`, and the verdict becomes `changes required`. An `approved` verdict is valid only when `## Not raised` names the claims and source points that were checked and held.
+7. Write `## Comprehension` before the findings, also for `approved` with zero findings: the two paraphrases in your own words, and the sections you could not paraphrase. A section with no single reading is a blocking `ambiguity` finding, even when the two readings would not give different software (details in `document-review`, step 6). Your paraphrase of the document is the check; if it cannot be written, say so there.
+8. State what you checked and found sound in `## Not raised`, so the author can see the coverage rather than guess at it. A category you could not actually check is not folded silently into `approved`: it becomes a blocking finding, category `gap`, titled `coverage incomplete: <category>`, and the verdict becomes `changes required`. An `approved` verdict is valid only when `## Not raised` names the claims and source points that were checked and held.
 
 ## Shared contract
 
@@ -99,6 +104,11 @@ Load and follow the kit skill `document-review` for the review procedure, the re
 ## Verdict
 - approved / changes required
 - Blocking findings: <count>
+
+## Comprehension
+- What the document proposes: <at most 5 sentences, your own words; a copied phrase is in quotation marks>
+- How the current system works, as the document states it: <at most 5 sentences, your own words>
+- Sections not paraphrased: <section ids, or none>
 
 ## Findings
 - P1
