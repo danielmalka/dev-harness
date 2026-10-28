@@ -6,6 +6,8 @@ English: [README.en.md](README.en.md)
 
 Kit portátil de desenvolvimento assistido por IA, instalado como plugin do Claude Code: um Coordenador, agentes especialistas, skills e comandos `/dh:<comando>` que levam um pedido de ideia a entrega com revisão e verificação. Licença MIT.
 
+Crédito: parte do fluxo de revisão e o relatório de deriva se inspiram nas ideias do Elephant-Goldfish Model (EGM) do Google (https://github.com/google/elephant-goldfish-model, licença Apache-2.0, "not an officially supported Google product"); o kit reimplementa os mecanismos com palavras próprias e não copia texto.
+
 ## Requisitos
 
 Claude Code autenticado, com acesso a um modelo; Git.

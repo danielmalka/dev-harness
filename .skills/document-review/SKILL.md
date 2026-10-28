@@ -3,8 +3,8 @@ name: document-review
 description: Use when a document that becomes a contract must be judged against the material it was written from, before it reaches the owner: a PRD from discovery notes, a story from a PRD, a plan from a brief, an ADR from the decision that forced it. Also use when a rejected document comes back corrected and the previous findings must be settled instead of restated. Do not use to write or repair the document, to review code, or to open a discussion with the owner point by point.
 author: malka
 metadata:
-  provenance: authorial
-  sources: ["dev-harness PRD-002 (docs/prd/PRD-002-validador-de-documentos.md)", "owner reference prompt for a PRD validator, 2026-09-20"]
+  provenance: adapted
+  sources: ["dev-harness PRD-002 (docs/prd/PRD-002-validador-de-documentos.md)", "owner reference prompt for a PRD validator, 2026-09-20", "google/elephant-goldfish-model (Apache-2.0); mechanism reimplemented, not copied"]
 ---
 
 # Document Review
@@ -31,11 +31,13 @@ A document that becomes a contract is checked against its source before anyone b
 | Input | If missing |
 | --- | --- |
 | The document under review, at a path that is not being edited | Stop. Report that the document is moving or absent. |
-| The source material: discovery notes, the owner's request, or the task record | Stop and return the missing source. Without it, gaps and excesses cannot be judged, and inferring the source from the document is how a validator approves its own assumptions. |
+| The source material: a list of file paths (discovery notes, the task record), or the owner's request quoted word for word under the label `owner's words` | Stop and return the missing source. Without it, gaps and excesses cannot be judged, and inferring the source from the document is how a validator approves its own assumptions. |
 | The previous review report, on a second round | Look for `<document>.review.md` next to the document. If it is absent, say so and treat the round as the first. |
 | The project language, from `language` in `.harness/project.yaml` | Write the report in English and record the assumption. |
 
 As a dispatched specialist, return a missing input to the Coordinator and stop. Never proceed on an assumed source.
+
+The context bundle of a document-stage round holds exactly five items: the document path, the source material, the previous review report path (later rounds only), the project language and the harness dir. The source material is a list of file paths, or the owner's request quoted word for word under the label `owner's words`; the Coordinator adds no paraphrase. The owner's conversation, the Coordinator's reasoning, any summary of intent and any note on earlier rounds stay out of the bundle. A round that arrives with more than these five items gets the extra material ignored and the excess named in `## Evidence`.
 
 ## Procedure
 
@@ -56,7 +58,7 @@ As a dispatched specialist, return a missing input to the Coordinator and stop. 
 
 5. **Verify each candidate in the document before recording it.** Open the section, read the sentence as written, and confirm the problem is in the document rather than in your summary of it. Name a concrete scenario: what a builder would build wrong, or fail to build, from the uncorrected document. A candidate with no exact location, no source point it contradicts, or no such scenario, is dropped rather than softened.
 
-6. **Apply the severity rule.** Gaps, conflicts and unverifiable acceptance criteria are blocking. Ambiguities are blocking only when the two readings produce different software; otherwise they are non-blocking. Excesses are non-blocking unless the extra scope contradicts a source constraint, which makes it a conflict. Organization findings never block on their own. Never raise a severity to get attention.
+6. **Apply the severity rule.** Gaps, conflicts and unverifiable acceptance criteria are blocking. Ambiguities are blocking only when the two readings produce different software; otherwise they are non-blocking. Excesses are non-blocking unless the extra scope contradicts a source constraint, which makes it a conflict. Organization findings never block on their own. Never raise a severity to get attention. One exception, for this stage only: when you cannot write one reading of a section (see `## Comprehension`), that is a blocking finding of category `ambiguity` and the section is listed under `Sections not paraphrased`, even if the two readings would not produce different software. A term specific to the project that no document, source or repository file defines is an `ambiguity` under the normal severity rule; a general engineering term is never a finding. The block adds no round and leaves the cap of two correction rounds as it is.
 
 7. **Produce the persistent report body** in the template below, and return it with your reply. The validator is read-only and has no write tool: `docs-guide`, dispatched by the Coordinator, persists the body at `<document>.review.md`, next to the document. Identifiers are stable: P1 stays P1 across rounds. On a second round, carry the previous entries forward with their new state, and give new identifiers only to problems that were not in the previous report.
 
@@ -67,7 +69,7 @@ As a dispatched specialist, return a missing input to the Coordinator and stop. 
 ## The round protocol, from the Coordinator's side
 
 1. The author role writes the document. For a PRD, that is `product-discovery`.
-2. Round 1: dispatch `document-validator`, model `opus`, skill `document-review`, with the document path, the source material and the previous report when one exists.
+2. Round 1: dispatch `document-validator`, model `opus`, skill `document-review`, with the five-item context bundle above: the document path, the source material (paths or `owner's words`), the previous report when one exists, the project language and the harness dir.
 3. The Coordinator judges the returned report body and dispatches `docs-guide` to write it to `<document>.review.md`. On `approved`, the document goes to the owner with that path.
 4. On `changes required`, re-dispatch the author role with only the listed blocking points. The author fixes those points and nothing else; a rewrite invalidates the report.
 5. Round 2: validate again on the corrected document. The validator reads the previous report first and settles each identifier as `applied`, `rejected` or still `pending`.
@@ -75,13 +77,18 @@ As a dispatched specialist, return a missing input to the Coordinator and stop. 
 
 ## Output format
 
-The reply to the Coordinator:
+Every review has `## Comprehension`, `approved` with zero findings included. Write the two paraphrases before the findings, so the findings are judged against your own reading and not the author's framing. It applies to the document stage only. The reply to the Coordinator:
 
 ```
 ## Verdict
 - approved / changes required
 - Blocking findings: <count>
 - Report: <relative path where docs-guide persists the body below>
+
+## Comprehension
+- What the document proposes: <at most 5 sentences, your own words; a copied phrase is in quotation marks>
+- How the current system works, as the document states it: <at most 5 sentences, your own words>
+- Sections not paraphrased: <section ids, or none>
 
 ## Findings
 - P1
@@ -112,6 +119,11 @@ The report body, returned with the reply and written by `docs-guide` to `<docume
 | Round | <n> of 2 |
 | Verdict | approved / changes required |
 | Updated | <ISO 8601 date> |
+
+## Comprehension
+- What the document proposes: <at most 5 sentences, your own words; a copied phrase is in quotation marks>
+- How the current system works, as the document states it: <at most 5 sentences, your own words>
+- Sections not paraphrased: <section ids, or none>
 
 ## Findings
 

@@ -59,7 +59,7 @@ Where the current README blocks go:
 - Global mode paragraph: one line before the table in section 7. The tutorial holds the details.
 - Release-notes paragraph (line 20): removed. `CHANGELOG.md` is its source.
 
-The README holds no test count. A kit count (13 agents, 19 commands, 21 skills) appears in at most one place: one line that has the word "atual", "esperado", "current" or "expected" and at least two counted nouns. `checkDocumentedCounts` in `internal/kit/doc_counts.go` checks only such a line against the disk. A count on any other line is not checked, so the README does not state one.
+The README holds no test count. A kit count (of agents, commands and skills) appears in at most one place: one line that has the word "atual", "esperado", "current" or "expected" and at least two counted nouns. `checkDocumentedCounts` in `internal/kit/doc_counts.go` checks only such a line against the disk. A count on any other line is not checked, so the README does not state one.
 
 Roadmap (`docs/roadmap.html` and `docs/en/roadmap.html`, mirrored by hand):
 

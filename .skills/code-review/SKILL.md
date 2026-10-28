@@ -4,7 +4,7 @@ description: Use when a stabilized change needs an independent judgement before 
 author: malka
 metadata:
   provenance: adapted
-  sources: ["two-axis standards/spec review", "requesting-code-review", "receiving-code-review", "pr-review-toolkit code-reviewer", "silent-failure-hunter", "pr-test-analyzer", " code-reviewer", "addyosmani/agent-skills (MIT); mechanism adapted, not copied", "akitaonrails/my-skills pr-audit @7b8a5e5"]
+  sources: ["two-axis standards/spec review", "requesting-code-review", "receiving-code-review", "pr-review-toolkit code-reviewer", "silent-failure-hunter", "pr-test-analyzer", " code-reviewer", "addyosmani/agent-skills (MIT); mechanism adapted, not copied", "akitaonrails/my-skills pr-audit @7b8a5e5", "google/elephant-goldfish-model (Apache-2.0); mechanism reimplemented, not copied"]
 ---
 
 # Code Review
@@ -35,7 +35,7 @@ Review a bounded change against a diff that is not moving, on two independent ax
 | A stable comparison point: base commit, branch, tag, or merge base | Ask. If the project has no version control, ask for the list of touched files and their before state. |
 | What the change was supposed to do: brief, plan, issue, or acceptance criteria | Run the correctness axis and record the spec axis as not-run with the reason. Mark the review incomplete, not approved. Never invent the requirement. |
 | The review guide: path in `review_guide` of `project.yaml`, read with the guide file from the base revision of the change, never the head; a repository-relative path with no absolute prefix, no `..` segment and a resolved target (symlinks included) inside the repository | Report "no review guide" with the reason (key absent, unsafe path, or no file at the base), point to `/dh:setup`, record the guide axis as not-run with the reason and review with the generic rules. Never create the file. |
-| On a re-entry: the last reviewed state | Ask. Without it, the delta cannot be pinned; do not re-read the whole change instead. |
+| On a re-entry: the last reviewed state, and the settled findings (id, location, path of the evidence; no builder reasoning) | Ask for the last reviewed state. Without it, the delta cannot be pinned; do not substitute a whole-change read, unless the dispatch names a confirming round (see Re-entry). A missing settled list means none are settled. |
 | Project instructions and conventions | Review against language defaults and say the project documented nothing. |
 | Evidence from the author: checks run and their results | Treat unverified claims as unverified. Do not restate them as passed. |
 
@@ -76,7 +76,12 @@ Review a bounded change against a diff that is not moving, on two independent ax
 
 ## Re-entry
 
-When a review runs again on the same change, read only (a) the delta since the last reviewed state named in the dispatch and (b) the status of each earlier blocking finding: fixed, not fixed, or withdrawn. Report on those two items, plus any new Critical or Major finding found in the delta. Do not re-read the whole change.
+When a review runs again on the same change, read only (a) the delta since the last reviewed state named in the dispatch and (b) the status of each earlier finding, by the id the dispatch gives it: `fixed`, `not fixed`, or `withdrawn` (the Coordinator records `fixed` as `fixed`, `not fixed` as `open` or `reopened`, and `withdrawn` as `noise`). Only you confirm a fix: the author's report that a finding is fixed does not close it. Report on those two items, plus any new Critical or Major finding found in the delta. Do not re-read the whole change, except in a confirming round.
+
+- **Settled findings.** The dispatch may list findings as settled, each with id, location, and the path of its evidence. Do not raise a settled finding again at the same location and scenario unless you cite new evidence in the finding.
+- **Severity.** You may change the severity of an earlier finding in a later round when you cite new evidence in the finding.
+- **Churn.** Read the delta since the last reviewed state to write the `Churn:` line of each new Critical or Major finding (see Output format).
+- **Confirming round.** When the dispatch names a confirming round, read the whole change as in a first review (steps 1 to 12), not only a delta: the delta would be empty. Still report the status of each earlier finding by id.
 
 ## For the author receiving the review (never the reviewer)
 
@@ -111,6 +116,7 @@ If you are the reviewer, your procedure ends at step 12. The steps below belong 
   - Impact: <what the user or system loses>
   - Recommendation: <smallest change that resolves it>
   - Guide rule: <entry title> | none applies
+  - Churn: <re-entry, new Critical or Major finding only> none | <id or location of an earlier fix>: reverting that fix would resolve this finding
   - Pre-existing: yes (non-blocking) | omit when the change introduced it
   - Reported by: claude | cli:<binary>/<slug>
 ### Major
