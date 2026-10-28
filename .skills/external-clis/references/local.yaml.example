@@ -6,6 +6,12 @@
 # <cli-name>` first; if that fails, the path declared under `binaries`
 # below; if neither resolves, the reviewer is not-run.
 
+# Optional top-level line, read by the Coordinator as plain text (no
+# parser): `always` or `on-request`. It overrides `defaults.worktree` of
+# the global config for this project on this machine; an invalid value
+# is reported and skipped.
+worktree: on-request
+
 binaries:
   # A bare command already on PATH, a path relative to the home
   # directory (never an expanded absolute path), or a path relative to

@@ -42,9 +42,30 @@ would carry them, the absence checks in step 2 fail, and every call ends as
 
 ## 1. Create the clone (R2)
 
-Before creating anything, `test -d <project>/.git && test ! -L <project>/.git`
-must pass: a project whose `.git` is not a real directory, a linked worktree
-with a gitfile for example, is `isolation unavailable`. Run these in order. Every git command in this file, in every step, runs with
+Before creating anything, the project must pass one of two branches, chosen by
+what `<project>/.git` is:
+
+- (a) `<project>/.git` is a directory: `test -d "<project>/.git" && test ! -L "<project>/.git"`
+  must pass, and no other check applies.
+- (b) `<project>/.git` is not a directory (a linked worktree has a gitfile):
+  `dh harness-path --json "<project>"` must succeed with a non-null
+  `linked_worktree`, and, in the same shell, right before the clone,
+  `test -f "<project>/.git" && test ! -L "<project>/.git"` must pass. The layout
+  of the gitfile is validated by `dh` (Go), never restated or re-checked here:
+  the shell only consumes `linked_worktree`.
+- (c) Anything else is `isolation unavailable`: `dh` missing or failing,
+  `linked_worktree` null, `.git` a symlink, a bare repository, a submodule, an
+  invalid layout, content outside the gitfile format, or a `.git` that is not
+  a regular file at the check right before the clone.
+
+The sandbox is still a new `git clone --no-hardlinks "<project>"` into a
+disposable temporary folder, for both branches. The kit never uses the
+worktree as the sandbox and never uses `git worktree` for the sandbox.
+Hypothesis to prove (T-2805): the clone of a linked worktree starts at the
+worktree's `HEAD`. If it does not, the match in step 2 fails and the call ends
+`isolation unavailable`; the hypothesis can only block a call, never open a gap.
+
+Run these in order. Every git command in this file, in every step, runs with
 the prefix `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1` (the commands
 written out in this step included). `mktemp` gives the random suffix, mode 0700 and
 uniqueness. `<tmp root>` is the only root the kit creates clones in and
@@ -52,7 +73,7 @@ the only root the orphan sweep (step 5) reads.
 
 ```
 CLONE=$(mktemp -d "<tmp root>/dh-cli-<call-id>-XXXXXXXX")
-GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git clone --no-hardlinks <project> "$CLONE"
+GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git clone --no-hardlinks "<project>" "$CLONE"
 GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$CLONE" remote remove origin
 rm -rf "$CLONE/.git/logs"
 printf 'pid=%s\nstarted=%s\n' "$PPID" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$CLONE/.git/dh-cli.lock"
@@ -141,7 +162,7 @@ binary's own help on 2026-10-16). `claude` and `opencode` have no such flag
 `cd "$CLONE" && <binary> ...` as the two named exceptions; that form starts with
 `cd`, does not match a `Bash(claude:*)` or `Bash(opencode:*)` allow rule, so
 the call may need the owner's approval or be not-run. The opencode form is
-`cd <clone> && <opencode binary> run --auto -m <provider/model>[#<variant>]
+`cd "<clone>" && <opencode binary> run --auto -m <provider/model>[#<variant>]
 --file=<prompt file> -- "Follow the attached prompt."`. The working directory of
 a Bash call does not persist to the next call (measured 2026-10-16), so the
 flag or the `cd` belongs to the same command that starts the binary. Measured
@@ -165,8 +186,11 @@ text comes back as the reply, as before.
 
 The call is not-run, with the reason `isolation unavailable` ("isolamento
 indisponivel" in the owner's language), when any of these holds: the project
-is not a git repository; its `.git` is not a real directory (`test -d` and
-`test ! -L`, a linked worktree for example); any step of the freeze
+is not a git repository; the step 1 branch fails (`dh` missing or failing,
+`linked_worktree` null with a `.git` that is not a directory, `.git` a symlink,
+bare, submodule, invalid layout, content outside the gitfile format, or a
+`.git` that is not a regular file at the check right before the clone; a valid
+linked worktree is not on this list); any step of the freeze
 (`references/live-tree-freeze.md` section 1) fails (no CLI starts and no comparison runs; the partial freeze directory is removed under the guard of step 3);
 `HEAD` has no commit yet; disk is short; `<call-id>`
 has a character outside `[A-Za-z0-9_-]`; a check in step 1 fails;
@@ -225,16 +249,50 @@ What the live-tree comparison (R5) covers: the list of
 `git status --porcelain -uall --ignored` with the hash of each path; the hash
 of every tracked file; the output of `git ls-files -v --stage` (index flags
 and blob ids, which catches `--skip-worktree` and `--assume-unchanged`); the
-bytes of `.harness/`, of `.claude/settings*.json` and, from the live `.git`,
-of `hooks/`, `config`, `info/`, `HEAD` and `packed-refs`; and the output of
-`git for-each-ref`.
+bytes of the resolved harness dir in mode `repo`, wherever it is (inside the
+project, or the main checkout's `.harness/`, not the copy inside the worktree,
+when the project is a linked worktree; in mode `global` it is outside the freeze of this clone procedure,
+while the step 7 freeze of `SKILL.md`, for a call without a clone, saves it in
+both modes), of `.claude/settings*.json` and, from the common dir `<C>`
+(`<project>/.git` for a normal checkout, `linked_worktree.commondir` for a
+linked worktree), of `hooks/`, `config`, `config.worktree` (when present), `info/`,
+`HEAD` and `packed-refs`, and the admin dir `config.worktree` of a linked
+worktree (restored before any git command, like `<C>/config`); the
+output of `git for-each-ref`; and, also from `<C>`, the files under `refs/` and the entries under `worktrees/` when they exist.
+When `<project>/.git` is a gitfile, also the bytes of the gitfile and, in the
+worktree admin dir, `HEAD`, `commondir`, `gitdir`, the files
+under `refs/` and the presence of `locked`
+(`references/live-tree-freeze.md` section 1). The repository-discovery items
+(a normal checkout's `.git` still a real directory; the gitfile bytes,
+`<admin>/commondir` and `<admin>/gitdir`; `<C>/commondir` and
+`<project>/.git/commondir` still absent) are compared by bytes with non-git
+tools and restored or removed before the first git command; if that is
+impossible, no git command runs and the verdict is discarded, not-run,
+`not revertible`. An item absent in both snapshots
+is not a difference and never an error. The trust paths of `<C>`, both `config.worktree` files, the gitfile, `<admin>/commondir` and `<admin>/gitdir` are restored; the files under `refs/`, the
+`worktrees/` entries and the other admin dir items are detected only: a
+change is `change detected` and is reported as `not revertible: <path>`.
 
-Not covered by R5, so not detected (this list of live `.git` paths is the one
-the author knows and is not exhaustive; any live `.git` path R5 does not name
-is outside the coverage): `.git/index` as raw bytes (only its logical content
-is read by `ls-files`), `logs/` (reflogs), loose objects and packs,
-`worktrees/`, `refs/` as files (only what `for-each-ref` shows), `modules/`,
-`FETCH_HEAD`, `ORIG_HEAD` and `COMMIT_EDITMSG`.
+Not covered by R5, so not detected (this list of live git-dir paths is the one
+the author knows and is not exhaustive; any live git-dir path R5 does not name
+is outside the coverage): `index` as raw bytes (only its logical content
+is read by `ls-files`; the same for the `index` of each worktree admin dir),
+`logs/` (reflogs), loose objects and packs, `modules/`, `FETCH_HEAD`,
+`ORIG_HEAD` and `COMMIT_EDITMSG`.
+
+Residuals of accepting a linked worktree, not detected or not prevented (ADR-008 D4):
+
+- a writer that runs as the same user can forge a whole coherent layout, and
+  the validation cannot tell it from a legitimate worktree (the same trust given
+  to the `.git/config` of a normal checkout);
+- the tree of the main checkout and of other worktrees is outside the
+  `<project>` of the call and falls under "a write outside the project
+  directory" in (a) below;
+- the gitfile can be swapped between the validation and the clone; this is
+  detected only if the swap persists until the second snapshot;
+- the global harness dir stays outside the freeze of this clone procedure.
+
+RISK-002 stays mitigated: the freeze detects, it never prevents.
 
 Accepted by the owner on 2026-09-29, until the OS sandbox batch, and not
 detected:

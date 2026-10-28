@@ -72,7 +72,7 @@ bash <skill-folder>/scripts/stamp.sh \
   --out docs/slug.html
 ```
 
-`--type bug` already emits `.banner.warn`. Other flags: `--lang`, `--lead`, `--status`, `--eyebrow`, `--date`, `--dono`, `--contato`, `--path`, `--banner-text`, `--banner-warn`, `--force`. If no shell is available, or the script fails, copy `assets/modelo.html` and swap sections; for type `projeto` copy `assets/projeto-modelo.<lang>.html`. Do not write `<link>` to `shell.css`.
+`--type bug` already emits `.banner.warn`. `--type aprovacao` is the plan approval page: it takes the plan as `--data <file.json>` (never HTML by hand; contract in `references/types.md`). Other flags: `--lang`, `--lead`, `--status`, `--eyebrow`, `--date`, `--dono`, `--contato`, `--path`, `--banner-text`, `--banner-warn`, `--force`. For `--type aprovacao` never copy by hand: the stamp is the only way, because it escapes the plan data in code. If no shell is available, or the script fails, copy `assets/modelo.html` and swap sections; for type `projeto` copy `assets/projeto-modelo.<lang>.html`. Do not write `<link>` to `shell.css`.
 4. Fill every “ainda não fechado” with a fact. A hole stays “ainda não fechado”. Never lorem, never invented metrics. Markup only from `types.md`.
 5. Verify (below).
 

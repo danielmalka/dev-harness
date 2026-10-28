@@ -22,7 +22,9 @@ bash <skill-folder>/scripts/stamp.sh \
   --out docs/slug.html
 ```
 
-Types: `catalogo` `plano` `feature` `melhoria` `bug` `report` `projeto`.
+Types: `catalogo` `plano` `feature` `melhoria` `bug` `report` `projeto` `aprovacao`.
+
+`--type aprovacao` is the plan approval page: pass the plan as `--data plan.json` (contract in `references/types.md`); the page has its own script and no external one.
 
 `--type bug` already comes with `.banner.warn`.
 

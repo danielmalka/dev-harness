@@ -103,6 +103,62 @@ Use: living overview of a whole project (the `pdocs/index.html` of a repository)
 
 Ids: `motivacao`, `como-rodar`, `planejado-desenvolvido`, `changelog`, `diagrama-macro`, `dominios`, `referencias`, the same in both languages. “Diagrama macro” is mandatory and holds at least one `<pre class="mermaid">` drawn from the repository's first-level folders. “Planejado e desenvolvido” is a `.table-wrap` with `id`, title and `Status`, plus a “gerado em AAAA-MM-DD” line.
 
+## aprovacao
+
+Use: approval page for a plan, stamped into `pdocs`: `docs-guide` composes the JSON data file and a builder (lane `infra`) runs `stamp.sh`. Steps, proposed snippets and decision cards the owner approves or rejects, then pastes back into the chat as one Markdown block. A flat `.html`, no server write, no external script (the stamp leaves the Mermaid tag out of this type). Run the stamp with `--lang` set to the project `language`.
+
+1. Etapas (Steps)
+2. Trechos propostos (Proposed snippets)
+3. Pontos de decisão (Decision points)
+4. Copiar decisões (Copy decisions)
+
+Ids: `etapas`, `trechos`, `decisoes`, `copiar`, the same in both languages.
+
+Insertion contract (single source for `/dh:plan` and the page test). Never write the plan into the HTML by hand. Write a JSON file and pass it:
+
+```bash
+bash <skill-folder>/scripts/stamp.sh --type aprovacao --title "…" --lang en --data plan.json --out <pdocs>/aprovacao-<slug>.html
+```
+
+```json
+{
+  "steps":     [{ "id": "S1", "title": "…", "description": "…" }],
+  "snippets":  [{ "step": "S1", "title": "…", "code": "…" }],
+  "decisions": [{ "id": "D1", "title": "…", "description": "…" }]
+}
+```
+
+All fields are plain strings (no HTML, no Markdown rendering); `snippets[].step` is a `steps[].id`; `title` of a snippet is optional. The stamp checks each list item: an object with string fields, and a `snippets[].step` that matches a `steps[].id`; otherwise it exits 2 naming the list, index and field, and writes no file. Ids (steps and decisions) match `^[A-Za-z0-9_.-]{1,64}$`, are unique within their list, and are never `__proto__`, `constructor` or `prototype`; `title` of steps, decisions and snippets and `snippets[].step` hold no control or line-separator character (`description` and `code` may keep newlines and tabs). With `--type aprovacao` the output name must match `aprovacao-<slug>.html` (`[A-Za-z0-9_-]` slug). The copied block flattens whitespace in ids and titles, and the `localStorage` key ends with a hash of the embedded data, so a revised plan starts with no stored choices. `--data` is accepted only with `--type aprovacao`; without it the page is the empty skeleton.
+
+Escape mechanism (R48): the stamp embeds the JSON in `<script type="application/json" id="dh-data">` with `<`, `>`, `&`, U+2028 and U+2029 written as `\uXXXX` escapes, so no text can close the tag or start markup; the page script reads it with `JSON.parse` and inserts every string with `textContent`. The page has no `innerHTML`.
+
+Stable DOM hooks:
+
+| hook | element |
+|---|---|
+| `[data-step="<id>"]` | one step item, in order |
+| `[data-snippet][data-step-ref="<step id>"]` | one snippet; holds `pre > code` and a label naming the step |
+| `[data-decision-card="<id>"]` | one decision card; `data-state` is `pending`, `approved` or `rejected` |
+| `[data-action="approve"]`, `[data-action="reject"]` | the two buttons of a card (`aria-pressed` marks the chosen one; a check or cross mark and the state label show it without color) |
+| `[data-comment]` | the card's comment `textarea` |
+| `[data-reject-error]` | message shown (`hidden` removed, `role="alert"`) when the card is rejected with a blank comment; the card stays `pending` |
+| `[data-state-label]` | the card's visible state text |
+| `[data-copy]` | the "Copy decisions" button |
+| `[data-copy-status]` | live status text after a copy attempt |
+| `[data-fallback]` | read-only `textarea` with the block, inside `[data-fallback-box]`; shown when the clipboard is missing, throws or is refused |
+
+Copied block, one entry per card in page order:
+
+```text
+## Decisions
+
+### D1 Title
+- decision: approved|rejected|pending
+- comment: text (later lines indented four spaces; empty comment leaves the line as "- comment:")
+```
+
+The heading is `## Decisões` and the labels are `decisão` and `comentário` with `--lang pt-br`; the verdict values stay `approved`, `rejected`, `pending` in both. Choices persist in `localStorage` (key `dh-aprovacao:` plus the document title); every access is inside `try/catch`, and the page works with storage blocked.
+
 ## Primitives
 
 Copy the markup. Do not invent a neighboring class.

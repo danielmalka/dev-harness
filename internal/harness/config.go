@@ -16,6 +16,7 @@ type Config struct {
 	Language     string
 	Mode         string            // default setup mode: "repo" or "global"
 	Sprites      string            // dashboard.sprites
+	Worktree     string            // "always" or "on-request"; not checked on load
 	ReviewersRaw string            // the reviewers: block (header included), verbatim, never parsed
 	Projects     map[string]string // absolute repository path -> name
 }
@@ -190,7 +191,7 @@ func parseConfig(data string) (Config, []*seg, error) {
 			continue
 		}
 		switch s.key {
-		case "language", "mode":
+		case "language", "mode", "worktree":
 			v, err := scalar(s.val, s.line)
 			if err != nil {
 				return c, nil, err
@@ -203,9 +204,12 @@ func parseConfig(data string) (Config, []*seg, error) {
 			if s.key == "mode" && v != "" && v != "repo" && v != "global" {
 				return c, nil, cfgErr(s.line, "mode must be repo or global")
 			}
-			if s.key == "mode" {
+			switch s.key {
+			case "mode":
 				c.Mode = v
-			} else {
+			case "worktree":
+				c.Worktree = v
+			default:
 				c.Language = v
 			}
 		case "dashboard":

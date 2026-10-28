@@ -45,13 +45,15 @@ In global mode, the `~/.harness/` folder (`DH_HOME` moves it) is unique per mach
 | Where | What | Written by |
 | --- | --- | --- |
 | `<repository>/.harness/` | repository mode: MEMORY, EPOCHAL, RISKS, `project.yaml`, tasks, PRDs, ADRs | Coordinator and `/dh:` commands |
-| `~/.harness/config.yaml` | project registry and defaults (`language`, `mode`, `dashboard.sprites`) | only `dh` (`dh config`, `dh link`) |
+| `~/.harness/config.yaml` | project registry and defaults (`language`, `mode`, `worktree`, `dashboard.sprites`) | only `dh` (`dh config`, `dh link`) |
 | `~/.harness/projects/<name>/` | global mode: the same records as `.harness/` | Coordinator and `/dh:` commands |
 | `<repository>/REVIEW.md` | project review guide, created by `/dh:setup` when missing, in both modes; the only file setup writes in the tree in global mode; never overwrites | `/dh:setup` (via a specialist) |
 | `~/.harness/sessions/` | one snapshot per Claude Code session (`dh snapshot prune` deletes those older than 7 days) | plugin mod |
 | `~/.harness/dashboard/` | dashboard stop token, per port | dashboard |
 | `~/.harness/projects/<name>/pdocs/` | project HTML documentation (`/dh:document pdocs`) | docs-guide |
 | `127.0.0.1:4747` | local dashboard, this machine only, when you start it with `/dashboard` | `dh` binary |
+
+With `worktree` set to `always` (or when you ask), `/dh:build` and `/dh:auto` work in a sibling worktree `<checkout>.worktrees/<id>`. When `/dh:plan` leaves open decisions, it generates an HTML approval page in `pdocs`. Details in the "Configuration" section of the [tutorial](docs/en/tutorial.html).
 
 ## Turn things off
 
