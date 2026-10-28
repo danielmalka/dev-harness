@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.35.0 — 2026-10-28
+
+- **Orientação de diagramas no `docs-guide` (PRD-030)**: uma frase nova no passo 2 do Procedure manda usar o Mermaid primeiro (`<pre class="mermaid">`, como o `doc-template-html` define) para fluxo ou estrutura, e permite o Excalidraw só como arquivo `.excalidraw` separado que o documento linka, nunca incorporado.
+- **Mermaid fixado em `11.17.2`**: o import das quatro páginas de docs (os dois roadmaps e os dois tutoriais de templates) usa `mermaid@11.17.2/dist/mermaid.esm.min.mjs`, sem faixa solta de versão.
+- **Roadmaps**: o cartão de diagramas deixa de dizer "única exceção de CDN" e passa a registrar as duas exceções, Mermaid e Google Fonts; o `diagram-design` externo fica com o dono.
+- Sem agente, skill nem comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
+
 ## 0.34.0 — 2026-10-28
 
 - **Triagem de achados com ids e estados (PRD-029)**: no laço de código (cada ticket e a revisão final da feature), o Coordenador dá a cada achado Critical ou Major novo o id `F<rodada>-<n>` e mantém uma entrada por id no `MEMORY.md` com os estados `open`, `fixed`, `intentional`, `noise`, `escalated` e `reopened`. O relato `fixed` do builder não fecha o achado: só um revisor, numa rodada posterior, o confirma. `intentional` e `noise` exigem evidência (arquivo, teste ou restrição). Na reentrada, os achados já resolvidos vão ao revisor com id, local e caminho da evidência, sem o raciocínio do builder.
