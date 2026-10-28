@@ -39,7 +39,7 @@ func TestHarnessPathCreatesHomeAndReportsNone(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &got); err != nil {
 		t.Fatal(err, out)
 	}
-	if got.Mode != "none" || got.Dir != "" || len(got.Defaults) != 3 {
+	if got.Mode != "none" || got.Dir != "" || len(got.Defaults) != 4 {
 		t.Errorf("%+v", got)
 	}
 	if _, err := os.Stat(filepath.Join(home, "sessions")); err != nil {
@@ -185,7 +185,7 @@ func TestHarnessPathPdocsField(t *testing.T) {
 func TestConfigCommand(t *testing.T) {
 	env(t)
 	code, out, _ := dh(t, "config")
-	if code != 0 || out != "language: \nmode: \ndashboard.sprites: \n" {
+	if code != 0 || out != "language: \nmode: \ndashboard.sprites: \nworktree: \n" {
 		t.Fatalf("empty: %d %q", code, out)
 	}
 	sp := t.TempDir()
@@ -194,10 +194,10 @@ func TestConfigCommand(t *testing.T) {
 			t.Fatalf("set %v: %s", a, e)
 		}
 	}
-	if _, out, _ = dh(t, "config"); out != "language: pt-br\nmode: global\ndashboard.sprites: "+sp+"\n" {
+	if _, out, _ = dh(t, "config"); out != "language: pt-br\nmode: global\ndashboard.sprites: "+sp+"\nworktree: \n" {
 		t.Errorf("text: %q", out)
 	}
-	if _, out, _ = dh(t, "config", "--json"); out != `{"language":"pt-br","mode":"global","dashboard.sprites":"`+sp+"\"}\n" {
+	if _, out, _ = dh(t, "config", "--json"); out != `{"language":"pt-br","mode":"global","dashboard.sprites":"`+sp+"\",\"worktree\":\"\"}\n" {
 		t.Errorf("json: %q", out)
 	}
 	if code, _, e := dh(t, "config", "set", "mode", "foo"); code != 1 || e == "" {
@@ -206,7 +206,7 @@ func TestConfigCommand(t *testing.T) {
 	if code, _, _ := dh(t, "config", "unset", "dashboard.sprites"); code != 0 {
 		t.Error("unset")
 	}
-	if _, out, _ = dh(t, "config"); !strings.HasSuffix(out, "dashboard.sprites: \n") {
+	if _, out, _ = dh(t, "config"); !strings.HasSuffix(out, "dashboard.sprites: \nworktree: \n") {
 		t.Errorf("after unset: %q", out)
 	}
 }

@@ -44,11 +44,15 @@ func SaveConfig(home string, c Config) error {
 		switch s.key {
 		case "language":
 			if c.Language != old.Language {
-				raw = scalarLine("language", c.Language)
+				raw = scalarKeep("language", c.Language, s)
 			}
 		case "mode":
 			if c.Mode != old.Mode {
-				raw = scalarLine("mode", c.Mode)
+				raw = scalarKeep("mode", c.Mode, s)
+			}
+		case "worktree":
+			if c.Worktree != old.Worktree {
+				raw = scalarKeep("worktree", c.Worktree, s)
 			}
 		case "dashboard":
 			if c.Sprites != old.Sprites {
@@ -72,6 +76,9 @@ func SaveConfig(home string, c Config) error {
 	if !have["mode"] {
 		tail += scalarLine("mode", c.Mode)
 	}
+	if !have["worktree"] {
+		tail += scalarLine("worktree", c.Worktree)
+	}
 	if !have["dashboard"] && c.Sprites != "" {
 		tail += "dashboard:\n  sprites: " + quoteVal(c.Sprites) + "\n"
 	}
@@ -82,6 +89,12 @@ func SaveConfig(home string, c Config) error {
 		tail += rewriteProjects(&seg{key: "projects", lines: []string{"projects:\n"}}, c.Projects)
 	}
 	return writeAtomic(home, out.String()+tail)
+}
+
+// scalarKeep rewrites a scalar key line and keeps the blank/comment lines after it
+// (parseConfig guarantees a scalar segment has nothing else), so unset drops only the key.
+func scalarKeep(key, v string, s *seg) string {
+	return scalarLine(key, v) + strings.Join(s.lines[1:], "")
 }
 
 func scalarLine(key, v string) string {

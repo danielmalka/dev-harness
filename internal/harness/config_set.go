@@ -8,7 +8,7 @@ import (
 )
 
 // ConfigKeys are the scalar keys `dh config` can read and write, in display order.
-var ConfigKeys = []string{"language", "mode", "dashboard.sprites"}
+var ConfigKeys = []string{"language", "mode", "dashboard.sprites", "worktree"}
 
 // SetConfigValue sets (or, with value "" and unset, clears) one scalar key of <home>/config.yaml.
 // The load-modify-save runs under config.lock like Link; an invalid existing file is an error and
@@ -19,9 +19,9 @@ func SetConfigValue(home, key, value string, unset bool) error {
 		return fmt.Errorf("reviewers is not editable here: edit config.yaml or .harness/project.yaml by hand")
 	case "projects":
 		return fmt.Errorf("projects is not editable here: use dh link")
-	case "language", "mode", "dashboard.sprites":
+	case "language", "mode", "dashboard.sprites", "worktree":
 	default:
-		return fmt.Errorf("unknown key %q (language, mode, dashboard.sprites)", key)
+		return fmt.Errorf("unknown key %q (language, mode, dashboard.sprites, worktree)", key)
 	}
 	if unset {
 		value = ""
@@ -42,6 +42,8 @@ func SetConfigValue(home, key, value string, unset bool) error {
 		c.Language = value
 	case "mode":
 		c.Mode = value
+	case "worktree":
+		c.Worktree = value
 	default:
 		c.Sprites = value
 	}
@@ -57,6 +59,10 @@ func validConfigValue(key, v string) error {
 	case "mode":
 		if v != "repo" && v != "global" {
 			return fmt.Errorf("invalid mode %q (repo, global)", v)
+		}
+	case "worktree":
+		if v != "always" && v != "on-request" {
+			return fmt.Errorf("invalid worktree %q (always, on-request)", v)
 		}
 	default: // same rule as the dashboard's spritesDirOf
 		p := v

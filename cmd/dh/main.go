@@ -269,17 +269,31 @@ func runHarnessPath(args []string, stdout, stderr io.Writer) int {
 		Language  string `json:"language"`
 		Mode      string `json:"mode"`
 		Reviewers string `json:"reviewers"`
+		Worktree  string `json:"worktree"`
 	}
 	key := repo
 	if cr, err := filepath.EvalSymlinks(repo); err == nil {
 		key = cr
 	}
+	lw := harness.LinkedWorktree(repo)
+	if lw != nil {
+		key = lw.Main
+	}
 	writeJSON(stdout, struct {
 		harness.Resolved
-		Pdocs    string   `json:"pdocs"`
-		Defaults defaults `json:"defaults"`
-	}{r, harness.PdocsDir(home, c.Projects[key]), defaults{c.Language, c.Mode, c.ReviewersRaw}})
+		Pdocs          string            `json:"pdocs"`
+		Defaults       defaults          `json:"defaults"`
+		LinkedWorktree *harness.LinkedWT `json:"linked_worktree"`
+	}{r, harness.PdocsDir(home, c.Projects[key]), defaults{c.Language, c.Mode, c.ReviewersRaw, worktreeOr(c.Worktree)}, lw})
 	return 0
+}
+
+// worktreeOr is the effective global worktree policy: the stored value, or "on-request" when absent.
+func worktreeOr(v string) string {
+	if v == "" {
+		return "on-request"
+	}
+	return v
 }
 
 // runLink: with one positional, a value with a path separator or "."/".." is the directory,
@@ -384,9 +398,10 @@ func runConfig(args []string, stdout, stderr io.Writer) int {
 			Language string `json:"language"`
 			Mode     string `json:"mode"`
 			Sprites  string `json:"dashboard.sprites"`
-		}{c.Language, c.Mode, c.Sprites})
+			Worktree string `json:"worktree"`
+		}{c.Language, c.Mode, c.Sprites, c.Worktree})
 		return 0
 	}
-	fmt.Fprintf(stdout, "language: %s\nmode: %s\ndashboard.sprites: %s\n", c.Language, c.Mode, c.Sprites)
+	fmt.Fprintf(stdout, "language: %s\nmode: %s\ndashboard.sprites: %s\nworktree: %s\n", c.Language, c.Mode, c.Sprites, c.Worktree)
 	return 0
 }

@@ -3,7 +3,11 @@
 This file is the comparison procedure for a CLI call that runs in a disposable
 clone (lifecycle in [clone-isolation.md](clone-isolation.md)). It replaces
 step 7 of `SKILL.md` for such a call; step 7 as written stays in force for a
-call without a clone (`codex`, and the `agy` review on the live tree).
+call without a clone (`codex`, and the `agy` review on the live tree). The `agy`
+live-tree review of a project whose `.git` is not a directory (a linked
+worktree; a deliberate superset that also covers submodule and bare) ends
+`isolation unavailable` and does not run: its step-7 freeze reads `.git/hooks/`
+and `.git/config` of `<project>/.git`, which are not folders there (`SKILL.md` step 7).
 
 The delegate runs every step of this file: a dispatched `qa-verifier`, or
 `builder` in lane `infra` (`SKILL.md`, "Who runs the call"). It returns the
@@ -21,9 +25,10 @@ anything.
 
 ## Order
 
-1. Preconditions and freeze (section 1). The project's `.git` must be a real
-   directory (`test -d .git && test ! -L .git`); a linked worktree, whose `.git`
-   is a gitfile, is `isolation unavailable`. When clone calls overlap in time,
+1. Preconditions and freeze (section 1). The precondition is step 1 of
+   clone-isolation.md: `.git` a real directory, or a gitfile with a non-null
+   `linked_worktree` and the `test -f`/`test ! -L` check right before the clone;
+   anything else is `isolation unavailable`. When clone calls overlap in time,
    take one freeze before the first of them. Save the copies outside the
    project tree and outside the clone: create a freeze directory with
    `mktemp -d "<tmp root>/dh-freeze-<call-id>-XXXXXXXX"` (`<tmp root>` and
@@ -46,7 +51,7 @@ anything.
    (`references/claude.md`, `references/opencode.md`; the form starts with `cd`,
    does not match a `Bash(<binary>:*)` allow rule and may need the owner's
    approval; a separate `cd` in its own call does not persist). The opencode
-   form is `cd <clone> && <opencode binary> run --auto -m
+   form is `cd "<clone>" && <opencode binary> run --auto -m
    <provider/model>[#<variant>] --file=<prompt file> -- "Follow the attached
    prompt."`. No `timeout`, `setsid`, subshell,
    `&&`, `;` or pipe wraps or chains the call, and the freeze and the later
@@ -69,8 +74,8 @@ anything.
 5. When a call ends, recompare its clone (section 3, R6). R6 stays per clone.
 6. After the last overlapping call has ended, and only then, on the live tree:
    verify the freeze digest, extract the copies, compare and restore the trust
-   paths with non-git tools (section 2, part A), and run the git-based
-   comparison (section 2, part B).
+   paths with non-git tools (section 2, part A), and, only when part A reports no
+   remaining difference, run the git-based comparison (section 2, part B).
 7. Revert what the comparison found (section 4).
 8. Remove each clone (clone-isolation.md step 3), then the freeze directory,
    prompt files included, with the same guard (parent equals `<tmp root>`,
@@ -129,16 +134,35 @@ section 1, not by this rule.
 
 ## 1. Freeze the live tree (R5)
 
-RISK-002 prevention: nothing writes to the tree or to the `<harness dir>` between the freeze and the comparison, the Coordinator included. Detection and revert below apply to the `<harness dir>` as to `.harness/`.
+RISK-002 prevention: nothing writes to the tree or to the `<harness dir>` between the freeze and the comparison, the Coordinator included. Detection and revert below cover the resolved `<harness dir>` in mode `repo`, wherever it is (inside the project, or the main checkout's `.harness/` when the project is a linked worktree); in mode `global` it is outside the freeze of this procedure (RISK-002 residual).
 
 Run from `<project>`. Record all of these, before the call:
 
 - The trust paths, as bytes and mode, saved with non-git tools (`cp -p`, or
-  `tar` from an explicit NUL list, below): everything under the `<harness dir>` (in mode `global`, `<home>/projects/<name>/`, outside the tree) and under `.harness/` when it exists;
+  `tar` from an explicit NUL list, below): everything under the resolved `<harness dir>` in mode `repo`, wherever it is (inside the project, or the main checkout's `.harness/` when the project is a linked worktree), and under `.harness/` when it exists. In mode `global` the harness dir (`<home>/projects/<name>/`) is outside the freeze of this procedure, a stated RISK-002 residual; only the step 7 freeze of `SKILL.md`, for a call without a clone, saves it by bytes in both modes;
   `.claude/settings.json` and `.claude/settings.local.json` (each when
-  present, and the list of those absent); from the live `.git`, `hooks/`,
-  `config`, `info/`, `HEAD` and `packed-refs`; and every `.gitattributes` file
+  present, and the list of those absent); from the common dir `<C>`, `hooks/`,
+  `config`, `config.worktree` (when present), `info/`, `HEAD` and `packed-refs`; for a linked worktree, also the admin dir `config.worktree` (read from the `gitdir` field of `linked_worktree`; part (b) below); and every `.gitattributes` file
   in the working tree (found with `find . -path ./.git -prune -o -name .gitattributes -print`).
+  `<C>` is `<project>/.git` for a normal checkout and `linked_worktree.commondir`
+  (from `dh harness-path --json "<project>"`) for a linked worktree, where
+  `<project>/.git` is only a gitfile and holds none of these paths; an item
+  absent in both snapshots is not a difference and never an error. In a linked worktree the harness dir is the one `dh harness-path --json` gives
+  in `dir` (the main checkout's `.harness/` in mode `repo`), not the ignored copy
+  of `.harness/` inside the worktree; in mode `global` it stays outside the freeze of this procedure.
+  Also trust items, compared by bytes with non-git tools only (`cat`, `cmp`,
+  `stat`; section 2, part A): in a normal checkout, that `<project>/.git` is
+  still a real directory (not a file or a symlink); for a linked worktree, the
+  bytes of the gitfile `<project>/.git`, and `<admin>/commondir` and
+  `<admin>/gitdir`; and that `<C>/commondir` and `<project>/.git/commondir` are
+  absent when they were absent at the freeze (a planted one makes git
+  re-discover another repository, with that repository's config and
+  `info/attributes`). They are saved before the call like the other trust paths.
+  The `config.worktree` files are trust paths like `<C>/config`: with
+  `extensions.worktreeConfig` on, git reads them (`core.attributesFile`,
+  `filter.<x>.smudge`, `include.path`, `core.worktree`), so a planted one could run
+  a command in the delegate's own git. They are saved before the call and
+  restored with non-git tools in part A of section 2, before any git command.
 - `R5GIT status --porcelain -z -uall --ignored`, expanded to files (an ignored
   directory such as `!! build/` is walked, without following symlinks), with
   the hash of each path listed, ignored or not. Every ignored path is hashed
@@ -151,6 +175,21 @@ Run from `<project>`. Record all of these, before the call:
   `s` both skip-worktree and assume-unchanged. Each entry also holds the mode
   and blob id.
 - `R5GIT for-each-ref --format='%(refname) %(objectname)'`, saved as text.
+- Git dirs, two parts; `config.worktree` (both dirs) is a restored trust path
+  (above), and so are the gitfile, `<admin>/commondir` and `<admin>/gitdir`;
+  the rest is detected only. Part (a), every project: in the common dir
+  `<C>`, besides the trust paths above, the files under `refs/` (bytes and
+  mode) and the entries under `worktrees/` when they exist, with the files of
+  each entry that part (b) lists. Part (b), only when `<project>/.git` is a
+  gitfile: the bytes of the gitfile and, in the worktree admin dir (read from the
+  `gitdir` field of `linked_worktree`), `HEAD`, `commondir`, `gitdir`,
+  `config.worktree`, the files under `refs/` and the presence of `locked`. An
+  item absent in both snapshots is not a difference and never an error. The raw
+  `index` files (of the common dir and of each admin dir) stay out of the freeze.
+  A change in these items during the call is `change detected`, as in a normal
+  checkout, and the verdict is discarded. Except the restored trust paths above, they are not
+  saved for reversion: each is reported as `not revertible: <path>`, like an
+  altered ignored path.
 - Every entry under the project that is not a regular file or a symlink,
   excluding `.git`: `find . -path ./.git -prune -o ! -type f ! -type l -print`
   (directories included), saved as text with the mode of each entry
@@ -207,8 +246,8 @@ name here: a planted symlink at a fixed name would send the extraction
 elsewhere. Every restore below reads from `<copy dir>`.
 
 Ancestor check, before any `find` or `rm` in part A or part B. Every path
-involved (every saved, created or listed path, and the trust roots `.git`,
-`.git/hooks`, `.git/info`, `.harness` and `.claude`) must have each ancestor
+involved (every saved, created or listed path, and the trust roots `<C>`,
+`<C>/hooks`, `<C>/info`, the resolved `<harness dir>` in mode `repo` (`dir` from `dh harness-path --json "<project>"`: `<project>/.harness` in a normal checkout, `<main>/.harness` in a linked worktree), `.harness` when it exists, and `.claude`) must have each ancestor
 still a real directory (`test -d` and `test ! -L`). An ancestor that the freeze
 recorded as a real directory and that is now a symlink or a regular file is
 planted: remove only that ancestor (`rm -- <ancestor>`), drop from the created
@@ -221,13 +260,25 @@ to `find` or `rm` (a trailing slash makes both follow a symlink).
 Part A, trust paths first, with non-git tools only. Repo-local configuration
 can execute a command during `status`, `hash-object` (without `--no-filters`),
 `checkout` and similar (a `filter.<name>.clean` or `smudge` driver, selected
-by a `.gitattributes` file), so a hostile `.git/config` or `.gitattributes`
+by a `.gitattributes` file), so a hostile `<C>/config` or `.gitattributes`
 must be put back before any git command runs. Using only `tar`, `cmp`, `find`, `rm`, `mv`, `cat`, `mktemp`, `chmod`, `mkdir` and
 `ln`, compare every trust path with the copy in `<copy dir>`, list the trust
-directories (`.harness`, `.git/hooks`, `.git/info`) with `find` and compare
+directories (the resolved `<harness dir>` in mode `repo` (`dir` from `dh harness-path --json "<project>"`: `<project>/.harness` in a normal checkout, `<main>/.harness` in a linked worktree), `.harness` when it exists, `<C>/hooks`, `<C>/info`) with `find` and compare
 the list, and restore every difference at once as in section 4, items 1 and 2, for the
-trust paths and the `.gitattributes` files only. No git command runs in part A.
-A difference here is `change detected`.
+trust paths and the `.gitattributes` files only. The same non-git byte
+comparison covers the repository-discovery items of section 1: the gitfile
+bytes (or, in a normal checkout, that `.git` is still a real directory, not a
+file or a symlink), `<admin>/commondir` and `<admin>/gitdir`, and that
+`<C>/commondir` and `<project>/.git/commondir` are still absent when they were
+absent at the freeze. On a difference, restore from the freeze copy or remove
+the planted file before any git command. If it cannot be restored or removed,
+no git command runs at all: skip part B and the reversion, and record the
+verdict as discarded, not-run, with the reason `not revertible`. No git
+command runs in part A. A difference here is `change detected`.
+
+Order: every part A byte comparison and restoration happens before the first git
+command of part B; the git commands of part B and of the reversion (items 3 to
+5 of section 4) run only after part A reports no remaining difference.
 
 Part B, then the git-based comparison. Recompute every other item of section 1
 and compare each with the freeze. Any difference is `change detected`: a path
@@ -329,12 +380,14 @@ incomplete` beside `change detected`.
    - a ref created by the call: `R5GIT update-ref -d <refname> <new id>`;
    - a ref moved by the call: `R5GIT update-ref <refname> <old id> <new id>`;
    - a ref deleted by the call: `R5GIT update-ref <refname> <old id>`.
-   `update-ref` can rewrite `.git/packed-refs`. The final recompute includes
+   `update-ref` can rewrite `<C>/packed-refs`. The final recompute includes
    the trust paths, so a `packed-refs` that differs after this item is
    restored again from the freeze copy (item 2, no git command).
 
-The reversion restores what R5 sees. It does not restore what R5 does not name:
-objects a `git tag -a` wrote, reflogs and the other live `.git` paths listed
+The reversion restores what R5 saved copies for, `config.worktree` included. The
+other git-dir items of section 1 are detected and reported as
+`not revertible: <path>`, never reverted. It does not restore what R5 does not name:
+objects a `git tag -a` wrote, reflogs and the other live git-dir paths listed
 in clone-isolation.md section 7 stay as the CLI left them, and the verdict is
 already discarded.
 
@@ -386,3 +439,5 @@ the project, and reading the copies falls under (e), reading and returning
 secrets reachable by the user; the owner accepted both on 2026-09-29. The
 freeze directory is removed at the end of the call, and swept as an orphan if
 the call is interrupted (clone-isolation.md step 5).
+
+Residual of the freeze: configuration files pulled in by `include.path` or `includeIf` from `<C>/config` that live inside the project are not restored before the first git command of part B; the `R5GIT` overrides do not neutralise them. Accepted residual of the live-tree freeze.

@@ -35,6 +35,9 @@ func resolveIn(home, repo string, c Config) Resolved {
 	if cr, err := canon(repo); err == nil {
 		repo = cr
 	}
+	if lw := LinkedWorktree(repo); lw != nil {
+		repo = lw.Main // a valid linked worktree resolves as its main checkout (R18, R19)
+	}
 	if d := filepath.Join(repo, ".harness"); isDir(d) {
 		return Resolved{"repo", d}
 	}

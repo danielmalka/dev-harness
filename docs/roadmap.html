@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-10-21</b></span>
-          <span class="chip">status <b>0.32.1 · vivo</b></span>
+           <span class="chip">data <b>2026-10-28</b></span>
+          <span class="chip">status <b>0.33.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.33.0 · Worktree de desenvolvimento e página de aprovação (PRD-028)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-028. Nova chave <code>worktree</code> (<code>always</code> ou <code>on-request</code>, padrão <code>on-request</code>), gravada com <code>dh config set worktree &lt;valor&gt;</code> e substituível por projeto pela linha de topo <code>worktree:</code> do <code>local.yaml</code> (ordem: <code>local.yaml</code>, padrão global, <code>on-request</code>). <code>dh harness-path --json</code> ganha <code>linked_worktree</code> e <code>defaults.worktree</code>, e a pasta do harness e o <code>pdocs</code> resolvem a partir do checkout principal quando o projeto é um worktree ligado. Com <code>always</code> (ou a pedido do dono), <code>/dh:build</code> e <code>/dh:auto</code> criam um worktree por tarefa ou execução em <code>&lt;checkout&gt;.worktrees/&lt;id&gt;</code> e só limpam depois do merge e da tag, com árvore limpa e nada fora dos remotos, nunca com <code>--force</code>; o <code>/dh:resume</code> revalida o caminho. O isolamento de CLI revisora aceita um worktree ligado como projeto (a caixa segue sendo um <code>git clone --no-hardlinks</code>, nunca o worktree) e a foto da árvore viva ficou mais ampla; o RISK-002 segue mitigado. O <code>/dh:plan</code> gera uma página HTML de aprovação (<code>doc-template-html</code>, tipo <code>aprovacao</code>) quando há item em <code>## Decisions needed</code>: aprovar ou rejeitar com comentário e "Copiar decisões" para colar no chat, sem servidor. A promessa antiga de um lote de isolamento por <code>git worktree</code> descartável foi trocada pela decisão do clone. Não foi medido se o Claude Code pede permissão de escrita para a pasta irmã fora do modo bypass; se pedir, adicione-a em <code>additionalDirectories</code>. Sem agente, skill ou comando novo.</p>
+        <p><strong>Relações:</strong> PRD-028 (<code>docs/prd/PRD-028-worktree-and-approval-page.md</code>); ADR-008; <code>CHANGELOG.md</code> 0.33.0.</p>
+        <p><strong>Testado?</strong> Resultado das checagens no resumo executado do PRD-028; sem eval nova.</p>
+      </div>
 
       <div class="card">
         <h3>0.32.1 · Guarda de gh e git push por subagente (PRD-027)</h3>
@@ -1018,9 +1026,11 @@ profiles/"] --> B["dh build"]
           autocheque "meu spot-check" ao lado de um único veredito de CLI), já presente na 0.8.0 — registrado como
           débito, não corrigido neste lote
           (<code>evals/baselines/2026-09-28-external-clis-reruns-0.10.0.md</code>).</p>
-        <p><strong>Limite conhecido:</strong> RISK-002 — CLIs sem flag de somente-leitura (<code>grok</code>) seguem
-          como revisoras na árvore viva; risco aceito pelo dono até o lote de isolamento por <code>git worktree</code>
-          descartável, planejado como o próximo lote depois deste.</p>
+        <p><strong>Limite conhecido:</strong> RISK-002 — CLI revisora sem modo somente-leitura documentado (por exemplo
+          <code>grok</code>, <code>opencode</code>, <code>mcode</code>) roda num clone descartável
+          (<code>git clone --no-hardlinks</code>; ADR-002, PRD-008); escrita na árvore viva é detectada pelo congelamento, não impedida.
+          O RISK-002 segue mitigado e o dono aceitou os residuais; <code>git worktree</code> vale para o desenvolvimento
+          (PRD-028), nunca como sandbox da CLI.</p>
       </div>
 
       <div class="card">
@@ -1808,7 +1818,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.32.1, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.33.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

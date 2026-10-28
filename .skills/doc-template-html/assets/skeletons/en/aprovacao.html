@@ -1,0 +1,171 @@
+      <style>
+        .hero > *, .chips, .chip, .chip b, .eyebrow, .doc-foot, .doc-foot > *, .doc-foot code { min-width: 0; max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
+        .ap-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+        .ap-item, .ap-card { background: var(--void-elevated); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+        .ap-item h3, .ap-card h3 { margin: 0 0 6px; }
+        .ap-item p, .ap-card p { margin: 6px 0; }
+        .ap-id { font-family: var(--font-mono); font-size: 0.85em; color: var(--accent); }
+        .ap-snip pre { max-width: 100%; overflow-x: auto; margin: 8px 0 0; }
+        .ap-state { display: inline-block; font-weight: 700; border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
+        .ap-card[data-state="approved"] { border-color: var(--ok); }
+        .ap-card[data-state="rejected"] { border-color: var(--no); border-style: dashed; }
+        .ap-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+        .ap-btn { font: inherit; font-weight: 600; color: var(--text); background: var(--void-soft); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; min-height: 44px; cursor: pointer; }
+        .ap-btn[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-soft); }
+        .ap-btn[aria-pressed="true"]::before { content: "\2713\00a0"; }
+        .ap-btn[data-action="reject"][aria-pressed="true"] { border-color: var(--no); background: var(--no-bg); }
+        .ap-btn[data-action="reject"][aria-pressed="true"]::before { content: "\2717\00a0"; }
+        .ap-card label { display: block; font-weight: 600; margin-top: 8px; }
+        .ap-card textarea, .ap-out { display: block; width: 100%; max-width: 100%; min-height: 4.5em; font: inherit; color: var(--text); background: var(--void-deep); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; }
+        .ap-err { margin: 8px 0 0; padding: 8px 10px; border: 2px solid var(--no); border-radius: var(--radius-sm); background: var(--no-bg); font-weight: 600; }
+        .ap-out { font-family: var(--font-mono); font-size: 0.85em; min-height: 10em; }
+        .ap-btn:focus-visible, .ap-card textarea:focus-visible, .ap-out:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+      </style>
+      <script type="application/json" id="dh-data">{"steps":[],"snippets":[],"decisions":[]}</script>
+
+      <h2 id="etapas"><span class="n">01</span>Steps</h2>
+      <ol class="ap-list" id="ap-steps" data-steps></ol>
+
+      <h2 id="trechos"><span class="n">02</span>Proposed snippets</h2>
+      <div class="ap-list" id="ap-snippets" data-snippets></div>
+
+      <h2 id="decisoes"><span class="n">03</span>Decision points</h2>
+      <div class="ap-list" id="ap-decisions" data-decisions></div>
+
+      <h2 id="copiar"><span class="n">04</span>Copy decisions</h2>
+      <p>Paste the copied block in the chat. This page sends nothing to any server.</p>
+      <p><button type="button" class="ap-btn" data-copy>Copy decisions</button></p>
+      <p role="status" aria-live="polite" data-copy-status></p>
+      <div data-fallback-box hidden>
+        <label for="ap-fallback">Select and copy by hand</label>
+        <textarea id="ap-fallback" class="ap-out" readonly data-fallback></textarea>
+      </div>
+      <script>
+      (function () {
+        var L = {
+          step: "Step", pending: "Pending", approved: "Approved", rejected: "Rejected",
+          approve: "Approve", reject: "Reject", comment: "Comment (optional when approving, required when rejecting)",
+          err: "A comment is required to reject. Write the reason; the card stays pending.",
+          copied: "Decisions copied.", manual: "Automatic copy is not available. Select the text below and copy it by hand.",
+          head: "## Decisions", decision: "decision", cm: "comment"
+        };
+        var data = { steps: [], snippets: [], decisions: [] };
+        try { data = JSON.parse(document.getElementById("dh-data").textContent); } catch (e) {}
+        var saved = Object.create(null), key = "dh-aprovacao:" + document.title;
+        try {
+          var h32 = 0x811c9dc5, raw = document.getElementById("dh-data").textContent;
+          for (var k = 0; k < raw.length; k++) h32 = Math.imul(h32 ^ raw.charCodeAt(k), 0x01000193) >>> 0;
+          key += ":" + h32.toString(16);
+          var st = JSON.parse(localStorage.getItem(key));
+          if (st && typeof st === "object") Object.keys(st).forEach(function (id) { saved[id] = st[id]; });
+        } catch (e) { saved = Object.create(null); }
+        function persist() { try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) {} }
+        function el(tag, text, cls) {
+          var n = document.createElement(tag);
+          if (text != null) n.textContent = String(text);
+          if (cls) n.className = cls;
+          return n;
+        }
+        var stepTitle = Object.create(null);
+        (data.steps || []).forEach(function (s, i) {
+          stepTitle[s.id] = s.title;
+          var li = el("li", null, "ap-item");
+          li.setAttribute("data-step", s.id);
+          li.appendChild(el("span", (i + 1) + ". " + s.id, "ap-id"));
+          li.appendChild(el("h3", s.title));
+          li.appendChild(el("p", s.description));
+          document.getElementById("ap-steps").appendChild(li);
+        });
+        (data.snippets || []).forEach(function (s) {
+          var d = el("div", null, "ap-item ap-snip");
+          d.setAttribute("data-snippet", "");
+          d.setAttribute("data-step-ref", s.step);
+          d.appendChild(el("span", L.step + " " + s.step + (stepTitle[s.step] ? " · " + stepTitle[s.step] : ""), "ap-id"));
+          if (s.title) d.appendChild(el("h3", s.title));
+          var pre = el("pre"), code = el("code", s.code);
+          pre.appendChild(code);
+          d.appendChild(pre);
+          document.getElementById("ap-snippets").appendChild(d);
+        });
+        var cards = [];
+        function verdict(c) {
+          var v = c.rec.v, t = (c.rec.c || "");
+          if (v === "rejected" && !t.trim()) return "pending";
+          return v === "approved" || v === "rejected" ? v : "pending";
+        }
+        function paint(c) {
+          var v = verdict(c);
+          c.node.setAttribute("data-state", v);
+          c.state.textContent = L[v];
+          c.ok.setAttribute("aria-pressed", String(c.rec.v === "approved"));
+          c.no.setAttribute("aria-pressed", String(c.rec.v === "rejected"));
+          var bad = c.rec.v === "rejected" && !(c.rec.c || "").trim();
+          c.err.hidden = !bad;
+          if (bad) c.ta.setAttribute("aria-invalid", "true"); else c.ta.removeAttribute("aria-invalid");
+        }
+        (data.decisions || []).forEach(function (dc, i) {
+          var old = saved[dc.id], rec = { v: "", c: "" };
+          if (old && typeof old === "object") {
+            if (old.v === "approved" || old.v === "rejected") rec.v = old.v;
+            if (typeof old.c === "string") rec.c = old.c;
+          }
+          var node = el("section", null, "ap-card");
+          node.setAttribute("data-decision-card", dc.id);
+          node.setAttribute("aria-labelledby", "ap-h" + i);
+          node.appendChild(el("span", dc.id, "ap-id"));
+          var h = el("h3", dc.title); h.id = "ap-h" + i; node.appendChild(h);
+          node.appendChild(el("p", dc.description));
+          var state = el("span", "", "ap-state"); state.setAttribute("data-state-label", "");
+          node.appendChild(el("p")).appendChild(state);
+          var acts = el("div", null, "ap-actions");
+          var ok = el("button", L.approve, "ap-btn"), no = el("button", L.reject, "ap-btn");
+          ok.type = no.type = "button";
+          ok.setAttribute("data-action", "approve"); no.setAttribute("data-action", "reject");
+          acts.appendChild(ok); acts.appendChild(no); node.appendChild(acts);
+          var lab = el("label", L.comment); lab.htmlFor = "ap-c" + i; node.appendChild(lab);
+          var ta = el("textarea"); ta.id = "ap-c" + i; ta.rows = 3; ta.value = rec.c || "";
+          ta.setAttribute("data-comment", ""); ta.setAttribute("aria-describedby", "ap-e" + i);
+          node.appendChild(ta);
+          var err = el("p", L.err, "ap-err"); err.id = "ap-e" + i; err.setAttribute("role", "alert");
+          err.setAttribute("data-reject-error", ""); err.hidden = true; node.appendChild(err);
+          var c = { id: dc.id, title: dc.title, node: node, state: state, ok: ok, no: no, ta: ta, err: err, rec: rec };
+          function save() { saved[dc.id] = c.rec; persist(); paint(c); }
+          ok.addEventListener("click", function () { c.rec.v = "approved"; save(); });
+          no.addEventListener("click", function () {
+            c.rec.v = "rejected"; save();
+            if (!(c.rec.c || "").trim()) ta.focus();
+          });
+          ta.addEventListener("input", function () { c.rec.c = ta.value; save(); });
+          cards.push(c); paint(c);
+          document.getElementById("ap-decisions").appendChild(node);
+        });
+        function block() {
+          var out = [L.head, ""];
+          cards.forEach(function (c) {
+            var flat = function (x) { return String(x).replace(/[\s\u0085\u2028\u2029\u0000-\u001f\u007f]+/g, " "); };
+            out.push("### " + flat(c.id) + " " + flat(c.title));
+            out.push("- " + L.decision + ": " + verdict(c));
+            var t = (c.rec.c || "").trim().replace(/\r?\n/g, "\n    ");
+            out.push(("- " + L.cm + ": " + t).replace(/\s+$/, ""));
+            out.push("");
+          });
+          return out.join("\n");
+        }
+        var status = document.querySelector("[data-copy-status]");
+        var box = document.querySelector("[data-fallback-box]");
+        var fb = document.querySelector("[data-fallback]");
+        function manual(text) {
+          fb.value = text; box.hidden = false; status.textContent = L.manual;
+          fb.focus(); fb.select();
+        }
+        document.querySelector("[data-copy]").addEventListener("click", function () {
+          var text = block();
+          try {
+            if (!navigator.clipboard || !navigator.clipboard.writeText) { manual(text); return; }
+            navigator.clipboard.writeText(text).then(function () {
+              box.hidden = true; status.textContent = L.copied;
+            }, function () { manual(text); });
+          } catch (e) { manual(text); }
+        });
+      })();
+      </script>

@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
-           <span class="chip">date <b>2026-10-21</b></span>
-          <span class="chip">status <b>0.32.1 · live</b></span>
+           <span class="chip">date <b>2026-10-28</b></span>
+          <span class="chip">status <b>0.33.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tasks completed per release, sourced from <code>CHANGELOG.md</code>. "Tested?" only claims execution when a
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
+
+      <div class="card">
+        <h3>0.33.0 · Development worktree and approval page (PRD-028)</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-028. New <code>worktree</code> key (<code>always</code> or <code>on-request</code>, default <code>on-request</code>), set with <code>dh config set worktree &lt;value&gt;</code> and overridable per project by the top-level <code>worktree:</code> line of <code>local.yaml</code> (order: <code>local.yaml</code>, global default, <code>on-request</code>). <code>dh harness-path --json</code> gains <code>linked_worktree</code> and <code>defaults.worktree</code>, and the harness dir and <code>pdocs</code> resolve from the main checkout when the project is a linked worktree. With <code>always</code> (or when the owner asks), <code>/dh:build</code> and <code>/dh:auto</code> create one worktree per task or run in <code>&lt;checkout&gt;.worktrees/&lt;id&gt;</code> and clean up only after the merge and the tag, with a clean tree and nothing outside the remotes, never with <code>--force</code>; <code>/dh:resume</code> revalidates the path. CLI reviewer isolation accepts a linked worktree as the project (the sandbox is still a <code>git clone --no-hardlinks</code>, never the worktree) and the live-tree freeze got wider; RISK-002 stays mitigated. <code>/dh:plan</code> generates an HTML approval page (<code>doc-template-html</code>, type <code>aprovacao</code>) when there is an item in <code>## Decisions needed</code>: approve or reject with a comment and "Copy decisions" to paste in the chat, no server. The stale promise of a disposable <code>git worktree</code> isolation batch was replaced by the clone decision. It was not measured whether Claude Code asks for write permission on the sibling folder outside bypass mode; if it asks, add it to <code>additionalDirectories</code>. No new agent, skill or command.</p>
+        <p><strong>Relations:</strong> PRD-028 (<code>docs/prd/PRD-028-worktree-and-approval-page.md</code>); ADR-008; <code>CHANGELOG.md</code> 0.33.0.</p>
+        <p><strong>Tested?</strong> Check results are in the executed summary of PRD-028; no new eval.</p>
+      </div>
 
       <div class="card">
         <h3>0.32.1 · gh and git push guard for subagents (PRD-027)</h3>
@@ -1018,9 +1026,11 @@ profiles/"] --> B["dh build"]
           full; <code>document-only</code> fails one grader on a pre-existing Coordinator behavior (a "my spot-check"
           paragraph beside a single CLI verdict), already present in 0.8.0 — recorded as debt, not fixed in this
           batch (<code>evals/baselines/2026-09-28-external-clis-reruns-0.10.0.md</code>).</p>
-        <p><strong>Known limitation:</strong> RISK-002 — CLIs with no read-only flag (<code>grok</code>) still serve
-          as reviewers on the live tree; risk accepted by the owner until the disposable <code>git worktree</code>
-          isolation batch, planned as the next batch after this one.</p>
+        <p><strong>Known limitation:</strong> RISK-002 — a CLI reviewer with no documented read-only mode (for example
+          <code>grok</code>, <code>opencode</code>, <code>mcode</code>) runs in a disposable clone
+          (<code>git clone --no-hardlinks</code>; ADR-002, PRD-008); a write to the live tree is detected by the freeze, not prevented.
+          RISK-002 stays mitigated and the owner accepted the residuals; <code>git worktree</code> is for development
+          (PRD-028), never the CLI sandbox.</p>
       </div>
 
       <div class="card">
@@ -1809,7 +1819,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.32.1, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.33.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

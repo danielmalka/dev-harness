@@ -10,13 +10,14 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import re
 import sys
 from datetime import date
 from pathlib import Path
 
 ROOT = Path(sys.argv[1])
-TYPES = ("catalogo", "plano", "feature", "melhoria", "bug", "report", "projeto")
+TYPES = ("catalogo", "plano", "feature", "melhoria", "bug", "report", "projeto", "aprovacao")
 LANG = {
     "pt-br": {
         "html_lang": "pt-BR",
@@ -66,6 +67,7 @@ LABELS = {
         "bug": "Bug",
         "report": "Report",
         "projeto": "Projeto",
+        "aprovacao": "Aprovação",
     },
     "en": {
         "catalogo": "Catalog",
@@ -75,6 +77,7 @@ LABELS = {
         "bug": "Bug",
         "report": "Report",
         "projeto": "Project",
+        "aprovacao": "Approval",
     },
 }
 FONTS = (
@@ -149,6 +152,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--contato")
     p.add_argument("--banner-text")
     p.add_argument("--banner-warn", action="store_true", help="Use .banner.warn (default for type bug)")
+    p.add_argument("--data", help="aprovacao only: JSON file with steps, snippets and decisions")
     p.add_argument("--force", action="store_true")
     ns = p.parse_args(argv)
     strings = LANG[ns.lang]
@@ -183,6 +187,49 @@ def nav_from(skel: str) -> str:
     return "\n".join(lines)
 
 
+ID_RE = re.compile(r"[A-Za-z0-9_.-]{1,64}\Z")
+CTRL_RE = re.compile("[\x00-\x1f\x7f\u0085\u2028\u2029]")
+OUT_RE = re.compile(r"aprovacao-[A-Za-z0-9_-]+\.html\Z")
+DATA_RE = re.compile(r'(<script type="application/json" id="dh-data">).*?(</script>)', re.S)
+
+
+def embed_data(skel: str, path: str) -> str:
+    """Put the plan JSON in the page as inert data; the page script draws it with textContent."""
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        die(f"--data {path}: {e}")
+    if not isinstance(data, dict) or any(not isinstance(data.get(k, []), list) for k in ("steps", "snippets", "decisions")):
+        die("--data: expected an object whose steps, snippets and decisions are lists")
+    fields = {"steps": ("id", "title", "description"), "snippets": ("step", "code"), "decisions": ("id", "title", "description")}
+    one_line = {"title", "step"}  # description and code keep newlines and tabs
+    for k, req in fields.items():
+        seen = set()
+        for i, item in enumerate(data.get(k, [])):
+            if not isinstance(item, dict):
+                die(f"--data: {k}[{i}] must be an object")
+            for f in req + (("title",) if k == "snippets" and "title" in item else ()):
+                v = item.get(f)
+                if not isinstance(v, str):
+                    die(f"--data: {k}[{i}].{f} must be a string")
+                if f in one_line and CTRL_RE.search(v):
+                    die(f"--data: {k}[{i}].{f} must not contain control or line-separator characters")
+            if "id" in item:
+                if not ID_RE.match(item["id"]) or item["id"] in ("__proto__", "constructor", "prototype"):
+                    die(f"--data: {k}[{i}].id must match [A-Za-z0-9_.-]{{1,64}} and not be a reserved name")
+                if item["id"] in seen:
+                    die(f"--data: {k}[{i}].id {item['id']!r} is duplicated")
+                seen.add(item["id"])
+    ids = {s["id"] for s in data.get("steps", [])}
+    for i, s in enumerate(data.get("snippets", [])):
+        if s["step"] not in ids:
+            die(f"--data: snippets[{i}].step {s['step']!r} matches no steps[].id")
+    raw = json.dumps({k: data.get(k, []) for k in ("steps", "snippets", "decisions")}, ensure_ascii=False)
+    for ch, esc in (("<", "\\u003c"), (">", "\\u003e"), ("&", "\\u0026"), ("\u2028", "\\u2028"), ("\u2029", "\\u2029")):
+        raw = raw.replace(ch, esc)
+    return DATA_RE.sub(lambda m: m.group(1) + raw + m.group(2), skel, count=1)
+
+
 def chips(ns: argparse.Namespace, shown_path: str, strings: dict[str, str]) -> str:
     parts = [
         f'<span class="chip">{strings["chip_date"]} <b>{html.escape(ns.date)}</b></span>',
@@ -202,6 +249,10 @@ def render(ns: argparse.Namespace, css: str, js: str) -> str:
     if not skel_path.is_file():
         die(f"missing skeleton: {skel_path}")
     skel = skel_path.read_text(encoding="utf-8").rstrip() + "\n"
+    if ns.data:
+        if ns.type != "aprovacao":
+            die("--data is only for --type aprovacao")
+        skel = embed_data(skel, ns.data)
     title = ns.title.strip()
     label = LABELS[ns.lang][ns.type]
     eyebrow = ns.eyebrow or f"{label} · {ns.status}"
@@ -262,7 +313,7 @@ def render(ns: argparse.Namespace, css: str, js: str) -> str:
   <script>
 {js.rstrip()}
   </script>
-{MERMAID_TAG}
+{"" if ns.type == "aprovacao" else MERMAID_TAG}
 </body>
 </html>
 """
@@ -282,7 +333,8 @@ def main() -> None:
     resolved = out.resolve()
     if resolved in PROTECTED and not ns.force:
         die(f"refused: {resolved} is a canonical skill file. Pass --force if the owner asked.")
-    out.parent.mkdir(parents=True, exist_ok=True)
+    if ns.type == "aprovacao" and not OUT_RE.match(out.name):
+        die("aprovacao: the output file name must match aprovacao-<slug>.html (letters, digits, _ and -)")
     html_out = render(ns, css, js)
     if re.search(r'href=["\'][^"\']*shell\.css', html_out) or re.search(
         r'src=["\'][^"\']*shell\.js', html_out
@@ -290,6 +342,7 @@ def main() -> None:
         die("shell points at an external shell.css/shell.js")
     if "--void:" not in html_out or "IntersectionObserver" not in html_out:
         die("shell is missing the CSS tokens or shell.js")
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html_out, encoding="utf-8")
     print(out)
 
