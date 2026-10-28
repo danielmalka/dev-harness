@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-10-28</b></span>
-          <span class="chip">status <b>0.34.0 · live</b></span>
+          <span class="chip">status <b>0.35.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tasks completed per release, sourced from <code>CHANGELOG.md</code>. "Tested?" only claims execution when a
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
+
+      <div class="card">
+        <h3>0.35.0 · Diagram guidance and pinned Mermaid (PRD-030)</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-030. The <code>docs-guide</code> gets one sentence in Procedure step 2: Mermaid first (<code>&lt;pre class="mermaid"&gt;</code>) for flow or structure; Excalidraw only as a separate <code>.excalidraw</code> file, linked and never embedded. The Mermaid import on the docs pages moves from <code>mermaid@11</code> to <code>mermaid@11.17.2</code>. No new skill, agent or command (22 skills).</p>
+        <p><strong>Relations:</strong> PRD-030 (<code>docs/prd/PRD-030-diagram-guidance.md</code>); <code>CHANGELOG.md</code> 0.35.0.</p>
+        <p><strong>Tested?</strong> Check results are in the executed summary of PRD-030; no new eval.</p>
+      </div>
 
       <div class="card">
         <h3>0.34.0 · Independent review and drift report (PRD-029)</h3>
@@ -1724,21 +1732,10 @@ profiles/"] --> B["dh build"]
       </div>
 
       <div class="card">
-        <h3>Specialized diagram skills (Excalidraw and Mermaid) incorporated into documentation</h3>
-        <p><strong>Description:</strong> specialized diagram skills — Excalidraw and Mermaid — incorporated into
-          documentation, plus an edit to the documentation agent (<code>.agents/docs-guide.md</code>) so it uses
-          diagrams whenever useful. Reason given by the owner: they are a very visual person. Requested by the
-          owner on 2026-09-25, no PRD yet.</p>
-        <p><strong>Acceptance criteria:</strong> to be defined.</p>
-        <p><strong>Status:</strong> planned, no PRD.</p>
-        <p><strong>Relations:</strong> today only Mermaid is covered, and only in the <code>doc-template-html</code>
-          skill (<code>.skills/doc-template-html/SKILL.md</code> and
-          <code>.skills/doc-template-html/references/types.md</code>), which already loads Mermaid from a CDN as
-          the only allowed CDN exception in the kit's HTML docs. No kit skill covers Excalidraw today — a search
-          of <code>.skills/</code> for "excalidraw" on 2026-09-25 returned no file. Owner's decision on 2026-09-25:
-          Excalidraw diagrams live as separate <code>.excalidraw</code> files; the <code>.md</code> and
-          <code>.html</code> docs only link to them, with no embedding, no script and no export inside the
-          document. Mermaid keeps its current role.</p>
+        <h3>Diagram guidance in documentation (PRD-030)</h3>
+        <p><strong>Description:</strong> the documentation agent (<code>.agents/docs-guide.md</code>) now knows which diagram to use: Mermaid first, in <code>&lt;pre class="mermaid"&gt;</code>, for flow or structure. Excalidraw only as a separate <code>.excalidraw</code> file that the document links, never embedded. No new skill was created. An external <code>diagram-design</code> is left to the owner: the kit neither ships it nor depends on it.</p>
+        <p><strong>Status:</strong> delivered in 0.35.0.</p>
+        <p><strong>Relations:</strong> PRD-030 (<code>docs/prd/PRD-030-diagram-guidance.md</code>); <code>doc-template-html</code> still defines Mermaid (<code>.skills/doc-template-html/SKILL.md</code>). The CDN exceptions in HTML docs are two: Mermaid (origin and exact version pinned, <code>mermaid@11.17.2</code>) and Google Fonts; everything else is inline.</p>
       </div>
 
       <div class="card">
@@ -1827,7 +1824,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.34.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.35.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
@@ -1898,7 +1895,7 @@ OTEL and Agent SDK — not planning"]
 })();
   </script>
   <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs";
     mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: {
       fontFamily: "Plus Jakarta Sans, system-ui, sans-serif", background: "#0C0D10",
       primaryColor: "#1A1C22", primaryTextColor: "#F1EFE8", primaryBorderColor: "#3DFF9A",
