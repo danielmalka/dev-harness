@@ -2,6 +2,7 @@ package doctor
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -186,5 +187,30 @@ func TestHarnessSymlinkedCwd(t *testing.T) {
 	out := report(t, link, home, "")
 	if strings.Contains(out, "is not registered") || !strings.Contains(out, "warning: both ") {
 		t.Errorf("symlinked cwd:\n%s", out)
+	}
+}
+
+func TestHarnessMemorySize(t *testing.T) {
+	for _, tc := range []struct {
+		n    int
+		warn bool
+	}{{39999, false}, {40000, false}, {40001, true}} {
+		repo, home := t.TempDir(), t.TempDir()
+		mk(t, filepath.Join(repo, ".harness", "project.yaml"), "x\n")
+		mk(t, filepath.Join(repo, ".harness", "MEMORY.md"), strings.Repeat("a", tc.n))
+		out := report(t, repo, home, "")
+		size := fmt.Sprintf("MEMORY.md size: %d bytes", tc.n)
+		warn := fmt.Sprintf("warning: MEMORY.md has %d bytes, over the 40000 budget: run /dh:consolidate-memory", tc.n)
+		if !strings.Contains(out, size) || !strings.Contains(out, "MEMORY.md: present") {
+			t.Errorf("%d: missing size line in:\n%s", tc.n, out)
+		}
+		if strings.Contains(out, warn) != tc.warn {
+			t.Errorf("%d: warning=%v want %v in:\n%s", tc.n, !tc.warn, tc.warn, out)
+		}
+	}
+	repo, home := t.TempDir(), t.TempDir()
+	mk(t, filepath.Join(repo, ".harness", "project.yaml"), "x\n")
+	if out := report(t, repo, home, ""); strings.Contains(out, "MEMORY.md size") {
+		t.Errorf("size line without MEMORY.md:\n%s", out)
 	}
 }

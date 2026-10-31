@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.37.0 — 2026-10-31
+
+- **Contexto enxuto do Coordenador (PRD-032, ADR-010)**: cada subagente responde dentro de um teto de 200 palavras, com formato próprio por papel; relatório com mais de 40 linhas vai para `<pasta da tarefa>/reports/<papel>-<n>.md`, escrito por `builder`, `qa-verifier`, `docs-guide` ou `debugger`. O `reviewer` e o `repo-scout` não têm ferramenta de escrita e respondem inline. Com mais de um revisor na etapa, um `docs-guide` funde os relatórios em `reports/<etapa>-merged-<rodada>.md`, e o Coordenador lê só esse arquivo.
+- **Seções movidas do `coordinator.md`**: Worktree para `.commands/build.md`, Consolidation para `.commands/consolidate-memory.md`, External CLI planners para `.commands/plan-loop.md` e Drift report para `.commands/review.md`. O Coordenador só abre um relatório para julgar um achado bloqueante ou uma disputa.
+- **Bootstrap do repositório**: `/dh:setup` oferece gravar o mapa `<pasta do harness>/REPO-MAP.md` (no máximo 200 linhas, escrito por um `docs-guide`); `/dh:setup bootstrap` só o atualiza.
+- **`dh doctor`**: avisa quando o `MEMORY.md` passa de 40.000 bytes e manda rodar `/dh:consolidate-memory`.
+- Sem agente, skill nem comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
+
 ## 0.36.0 — 2026-10-31
 
 - **Fluxo enxuto do builder (PRD-031, ADR-009)**: o builder começa pelo teste que falha e mostra a falha antes de mudar o código (cópia, config e docs-only declaram a isenção); a revisão de código termina com uma rodada limpa, com achados em três estados (`open`, `closed`, `escalated`); a etapa `code` usa sempre a primeira entrada de `reviewers.code`; a dúvida no meio do build só vira despacho em fatia com `Doubt: yes`, em um ciclo.

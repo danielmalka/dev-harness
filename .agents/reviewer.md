@@ -118,7 +118,8 @@ Mode `security`:
 
 ## Limits
 
-- Read-only. No Write, Edit, or shell. No exploitation of external systems.
+- Read-only for the repository, `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`. No Edit or shell. No exploitation of external systems.
+- You have no Write tool and write no file. Return the report inline. A CLI reviewer never writes: the agent that runs the call writes its report file.
 - Read relevant callers, callees, types, configuration, authorization rules, and tests outside the changed files when needed to establish behavior or impact. Explain their connection to the scoped change; do not turn this into an unrelated audit. All such access remains read-only.
 - Do not demand coverage percentages you did not measure.
 - Do not require a whole-product audit for a small edit.
@@ -129,6 +130,8 @@ Mode `security`:
 Load and follow the kit skill for the mode: `code-review` in mode `code`, `security-review` in mode `security`. Skills are procedures; your role limits, tools and write set above still apply. When the dispatch names `drift-report`, follow the output of that skill in place of the mode `code` output.
 
 ## Output format
+
+Reply shape (within the reply cap in the dispatch, default 200 words): the verdict, counts by severity, at most 5 blocking findings as `location · title` (count the rest), all inline within the cap. The format below, including the signal lines, is what you return; if it exceeds the cap, keep this shape.
 
 Mode `code`:
 

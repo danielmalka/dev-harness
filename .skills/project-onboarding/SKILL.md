@@ -75,6 +75,23 @@ Two moves, one procedure: find out what this machine and this project can actual
 
 10. **Report and hand off.** Deliver the diagnosis, the profile, the conflicts and the concrete next command. Facts that belong in project memory go to the Coordinator, who is the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.harness/RISKS.md`. Every other role reports and stops.
 
+## Repository bootstrap
+
+Opt-in second phase of `/dh:setup`, run only when the owner accepts or passes `bootstrap`. A `docs-guide` run (with `repository-mapping` and this skill) writes `<harness dir>/REPO-MAP.md` from the read-only findings of `repo-scout`; it has no template and no `project.yaml` key. The map is a pointer, never a source of truth: readers verify any claim before relying on it.
+
+- Inputs: the `HEAD` sha, which the Coordinator gets from a `qa-verifier` run (`git rev-parse HEAD`) and passes in the dispatch. The writer copies it and does not run git. The writer reads the repository and runs no project code or scripts.
+- Stop: more than 15 top-level directories. Write nothing and return the count to the Coordinator, who asks the owner to name the scope.
+- Language: the `language` in `project.yaml`. At most 200 lines.
+- Every claim cites a relative path. A claim not verified is marked `hypothesis`.
+- Parts, in order:
+  1. Header: date and the `HEAD` sha from the dispatch.
+  2. Top-level layout: one line per directory.
+  3. Entry points and how to run, test, lint and build, with the source of each command.
+  4. Architecture in at most 15 lines: main components and how they connect.
+  5. Risk areas: paths where a change needs extra care, with the reason.
+  6. Conventions the code shows, each with one example path.
+- A refresh (`bootstrap` in the arguments) overwrites the file. This is the only record `/dh:setup` may overwrite, because the map is derived data. In `repo` mode the file is versioned with the other internal records.
+
 ## Output format
 
 ```

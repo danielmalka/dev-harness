@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-10-31</b></span>
-          <span class="chip">status <b>0.36.0 · vivo</b></span>
+          <span class="chip">status <b>0.37.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.37.0 · Contexto enxuto do Coordenador (PRD-032)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-032. Cada subagente responde dentro de um teto de 200 palavras e manda relatório com mais de 40 linhas para um arquivo em <code>&lt;pasta da tarefa&gt;/reports/</code>; o <code>reviewer</code> continua somente leitura e responde inline. Com mais de um revisor, um <code>docs-guide</code> funde os relatórios. As seções do <code>coordinator.md</code> usadas só em um comando (worktree, consolidação, planejadores de CLI externa, relatório de deriva) passaram para <code>build.md</code>, <code>consolidate-memory.md</code>, <code>plan-loop.md</code> e <code>review.md</code>. O <code>/dh:setup</code> pode gravar o mapa <code>REPO-MAP.md</code> na pasta do harness (<code>/dh:setup bootstrap</code> o atualiza), e o <code>dh doctor</code> avisa quando o <code>MEMORY.md</code> passa de 40.000 bytes. Sem agente, skill nem comando novo (13 agentes, 22 skills, 19 + 1 comandos).</p>
+        <p><strong>Relações:</strong> PRD-032 (<code>docs/prd/PRD-032-lean-coordinator-context.md</code>); ADR-010 (<code>docs/adr/ADR-010-lean-coordinator-context.md</code>); <code>CHANGELOG.md</code> 0.37.0.</p>
+        <p><strong>Testado?</strong> Resultado das checagens no resumo executado do PRD-032; sem eval nova.</p>
+      </div>
 
       <div class="card">
         <h3>0.36.0 · Fluxo enxuto do builder (PRD-031)</h3>
@@ -1832,7 +1840,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.36.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.37.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

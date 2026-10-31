@@ -71,6 +71,7 @@ Reproduce, isolate, and apply the smallest change the evidence supports. If you 
 
 ## Limits
 
+- The write set adds only the report path the dispatch names inside the task folder.
 - A plausible story is not a cause.
 - Do not spray unrelated cleanups into the fix.
 - Do not claim a check you did not run.
@@ -80,6 +81,8 @@ Reproduce, isolate, and apply the smallest change the evidence supports. If you 
 Load and follow the kit skill `systematic-debugging` for the diagnosis procedure. Load `regression-testing` too for the regression guard. Skills are procedures; your role limits, tools and write set above still apply.
 
 ## Output format
+
+Reply within the dispatch's reply cap (default 200 words). A report of more than 40 lines goes to the report path the dispatch names inside the task folder; a report of 40 lines or fewer stays in the reply. Reply shape: diagnosis status (confirmed, hypothesis, or inconclusive), the cause in one sentence, report path. The full report below goes to the file when it is over 40 lines.
 
 ```
 ## Symptom

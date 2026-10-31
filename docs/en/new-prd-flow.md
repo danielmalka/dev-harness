@@ -278,6 +278,8 @@ Executes the ticket and returns:
 
 A self-report is not evidence. The orchestrator verifies the result.
 
+Every subagent reply stays within a 200-word cap (the dispatch may set another, with a reason). A report of more than 40 lines goes to `<task folder>/reports/<role>-<n>.md`, and the reply carries only the summary and the path; the orchestrator reads the file only to judge a blocking finding or a dispute. The `reviewer` writes no file: it returns its verdict inline, within the cap.
+
 ### Test and review
 
 The reviewer checks the ticket against the Story, Flow, copied Rules, Done when criteria, project conventions, required tests, and listed documentation.

@@ -49,7 +49,7 @@ Produce an executable plan: inputs, outputs, dependencies, and a completion cond
 
 ## Procedure
 
-1. Read instructions, brief, and map.
+1. Read instructions, brief, and map. Treat `REPO-MAP.md` as a hint and verify any claim from it against the tree.
 2. Split by independently verifiable behavior, not by layer for its own sake.
 3. Order dependencies. Name candidate files. Name the test strategy and main risks.
 4. State the done-when for each slice so another agent can start slice 1 with no extra chat.
