@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aceito |
+| Status | aceito; superado em parte pelo ADR-009 (2026-10-30): rotação e cursor removidos, dúvida só com `Doubt: yes` e um ciclo; o texto abaixo é histórico |
 | Data | 2026-10-05 |
 | Decisor | Daniel Lemos (dono) |
 | Origem | pedido de encaixar mecanismos de addyosmani/agent-skills sem skill nova; autorização de 2026-10-05 |

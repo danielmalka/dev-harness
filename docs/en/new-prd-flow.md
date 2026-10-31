@@ -396,7 +396,7 @@ A rejection reopens only the affected tickets or areas and restarts the required
 12. A newly discovered rule stops the work. The PRD is updated before continuing.
 13. A changed rule rewrites tickets not yet started. A ticket in progress stops.
 14. Two tickets changing the same file do not run concurrently.
-15. A rejection returns to development with a specific correction. The same ticket is reviewed again.
+15. A rejection returns to development with a specific correction. The same ticket is reviewed again by the same reviewer (the first entry of `reviewers.code`), and one clean round ends the loop.
 16. A self-report is not proof. Evidence is a green test, exit code, URL, or reproduced flow step.
 17. Final review checks the feature against the PRD, not only against tickets.
 18. If a screen exists, the main flow is tested as a client.

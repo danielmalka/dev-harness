@@ -55,6 +55,7 @@ This procedure produces or changes one asset of this kit: an agent, a skill, a c
 12. **State compatibility and propose a version.** Name what breaks for a consumer already using the kit: a renamed identifier, a changed output shape, a narrowed trigger, a removed reference. Propose the version and mark it as a proposal.
 13. **Regenerate the package from the sources.** Never independently edit prompts under `dist/`. From the kit root run `go run ./cmd/dh build` (or `bin/dh build` from a built package). It validates sources, stages a complete package, then replaces `dist/claude-code/dev-harness`. If source and generated content disagree, source wins and the build must be re-run.
 14. **Report, do not record.** Case, change, evidence and compatibility go back to the Coordinator, who is the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.harness/RISKS.md`.
+15. **Write each procedure step as one imperative sentence plus at most one sentence of reason.** Put cross-references at the end of the step or section, not inside a sentence.
 
 ## Output format
 

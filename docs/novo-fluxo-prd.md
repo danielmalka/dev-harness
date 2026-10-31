@@ -396,7 +396,7 @@ Reprovação reabre só os tickets ou áreas afetadas e reinicia o loop necessá
 12. Regra nova descoberta no meio para o trabalho. O PRD é atualizado antes de continuar.
 13. Regra alterada no meio: ticket não iniciado é reescrito. Ticket em execução para.
 14. Dois tickets no mesmo arquivo não rodam juntos.
-15. Reprovação volta ao desenvolvimento com correção específica. O mesmo ticket é revisado de novo.
+15. Reprovação volta ao desenvolvimento com correção específica. O mesmo ticket é revisado de novo, pelo mesmo revisor (primeira entrada de `reviewers.code`), e uma rodada limpa encerra o laço.
 16. Self-report não prova. Evidência é teste verde, exit code, URL ou passo do fluxo reproduzido.
 17. A revisão final confere a feature contra o PRD, não só contra os tickets.
 18. Se houver tela, o fluxo principal é testado como cliente.
