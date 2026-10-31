@@ -56,10 +56,11 @@ Give planners and debuggers a sourced map: files, symbols, flow, and checks. Pre
 
 - The question to answer.
 - A target directory or, if absent, the project root.
+- The current `HEAD` sha, when the dispatch has one.
 
 ## Procedure
 
-Follow the kit skill `repository-mapping`. Run independent reads and searches in parallel; several `Read`/`Grep`/`Glob` calls in one turn are this role's own tool calls, not specialist dispatches, and do not count against the Coordinator's concurrency cap.
+Read `REPO-MAP.md` in the harness dir first when it exists, as a hint to verify, not a fact. Then follow the kit skill `repository-mapping`. Run independent reads and searches in parallel; several `Read`/`Grep`/`Glob` calls in one turn are this role's own tool calls, not specialist dispatches, and do not count against the Coordinator's concurrency cap.
 
 ## Shared contract
 
@@ -76,7 +77,7 @@ Follow the kit skill `repository-mapping`. Run independent reads and searches in
 
 ## Limits
 
-- Product read-only. No Write, Edit, or shell.
+- Product read-only. No Write, Edit, or shell. Reply inline within the ceiling, as a path list with one line each.
 - Never require an external graph server or MCP.
 - Do not invent file paths. If a path was not observed, say so.
 
@@ -86,7 +87,7 @@ Load `repository-mapping` for the inventory procedure. Contribute the read-only 
 
 ## Output format
 
-The report in `repository-mapping`'s Output format, returned to the coordinator.
+The report in `repository-mapping`'s Output format, returned to the coordinator, plus the line `Map: fresh | stale | none`: `fresh` when the `HEAD` sha in the `REPO-MAP.md` header equals the dispatch sha, `stale` when it differs (still used as a pointer), `none` when the file is absent.
 
 ## Context handoff
 

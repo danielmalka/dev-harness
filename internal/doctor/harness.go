@@ -53,6 +53,9 @@ func printHarnessFor(out io.Writer, cwd, home, settings string) {
 				state = "present"
 			}
 			fmt.Fprintf(out, "%s: %s\n", name, state)
+			if name == "MEMORY.md" && state == "present" {
+				printMemorySize(out, filepath.Join(res.Dir, name))
+			}
 		}
 	}
 	name, registered := cfg.Projects[repo]
@@ -76,6 +79,21 @@ func printHarnessFor(out io.Writer, cwd, home, settings string) {
 		if msg := settingsHint(settings, home); msg != "" {
 			fmt.Fprintln(out, msg)
 		}
+	}
+}
+
+// memoryBudget is the MEMORY.md file budget in bytes (PRD-032 R7, R8).
+const memoryBudget = 40000
+
+func printMemorySize(out io.Writer, path string) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		fmt.Fprintf(out, "warning: cannot read MEMORY.md size: %v\n", err)
+		return
+	}
+	fmt.Fprintf(out, "MEMORY.md size: %d bytes\n", fi.Size())
+	if fi.Size() > memoryBudget {
+		fmt.Fprintf(out, "warning: MEMORY.md has %d bytes, over the %d budget: run /dh:consolidate-memory\n", fi.Size(), memoryBudget)
 	}
 }
 

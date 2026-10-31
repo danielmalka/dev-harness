@@ -66,7 +66,7 @@ Follow the kit skill `regression-testing`, and `ui-verification` too when the ch
 
 ## Limits
 
-- No production source edits.
+- No production source edits. The write set is tests plus the report path the dispatch names inside the task folder.
 - Write tests only after the relevant builder work is stable. Finish test edits before code review examines that state; read-only checks may overlap only on a stable evaluated state.
 - Typecheck is not UI interaction. A skipped browser stays not-run.
 
@@ -76,7 +76,7 @@ Load `regression-testing` for the verification procedure, and `ui-verification` 
 
 ## Output format
 
-The report in `regression-testing`'s Output format (plus the `ui-verification` matrix for a user interface), returned to the coordinator.
+Reply within the dispatch's reply cap (default 200 words). A report of more than 40 lines goes to the report path the dispatch names inside the task folder; a report of 40 lines or fewer stays in the reply. Reply shape: matrix verdict (pass, fail, or not-run per check), the count of each, failed checks as `check · reason`, report path. The full report is `regression-testing`'s Output format (plus the `ui-verification` matrix for a user interface).
 
 ## Context handoff
 

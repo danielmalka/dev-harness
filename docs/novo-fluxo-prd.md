@@ -278,6 +278,8 @@ Executa o ticket e devolve:
 
 Self-report não é evidência. O orquestrador confere o resultado.
 
+Cada resposta de subagent respeita um teto de 200 palavras (o despacho pode fixar outro, com motivo). Relatório com mais de 40 linhas vai para `<pasta da tarefa>/reports/<papel>-<n>.md` e a resposta traz só o resumo e o caminho; o orquestrador só lê o arquivo para julgar achado bloqueante ou disputa. O `reviewer` não escreve arquivo: devolve o veredito na própria resposta, dentro do teto.
+
 ### Teste e revisão
 
 O revisor confere o ticket contra a Story, o Fluxo, as Regras copiadas, o Pronto quando, os padrões do projeto, os testes necessários e a documentação indicada.

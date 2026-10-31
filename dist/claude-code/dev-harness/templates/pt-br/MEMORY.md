@@ -10,6 +10,7 @@ Memória operacional deste projeto. Escrita exclusiva do Coordenador.
 - Manter objetivo, escopo autorizado, decisões vigentes, bloqueios, responsáveis, evidências e próximo passo. Histórico recente deve ser breve.
 - Por despacho, registrar papel, modelo padrão, modelo solicitado, motivo da troca e modelo efetivo quando observável; caso contrário, registrar não verificado. Respeitar orçamento e disponibilidade autorizados.
 - Consolidar pelo procedimento consolidate-memory: preservar primeiro uma cópia integral em EPOCHAL.md, conferir a gravação e só então enxugar este arquivo. Nunca descartar estado ainda necessário à execução.
+- Orçamento: cada entrada nova ou alterada (um item, ou um parágrafo sob um título) tem no máximo 1200 caracteres, e o arquivo tem no máximo 40000 bytes. O detalhe vai para um arquivo da pasta da tarefa; a entrada guarda o caminho e uma frase. Entradas existentes ficam como estão.
 - Não carregar EPOCHAL.md ou RISKS.md automaticamente junto desta memória. Histórico exige necessidade concreta ou pedido explícito; incidentes exigem avaliação do risco da mudança.
 - Apenas uma sessão de Coordenador pode escrever os registros do projeto por vez. Esta regra de coordenação não constitui bloqueio técnico de arquivos.
 

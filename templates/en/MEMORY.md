@@ -10,6 +10,7 @@ Operational memory for this project. Written exclusively by the Coordinator.
 - Keep the objective, authorized scope, current decisions, blockers, owners, evidence, and next step. Recent history should be brief.
 - For each dispatch, record the role, default model, requested model, reason for the change, and effective model when observable; otherwise record not verified. Respect the authorized budget and availability.
 - Consolidate using the consolidate-memory procedure: first preserve a verbatim copy in EPOCHAL.md, check the write, and only then trim this file. Never discard state still needed for execution.
+- Budget: each new or changed entry (one bullet, or one paragraph under a heading) has at most 1200 characters, and the file has at most 40000 bytes. Detail goes to a file in the task folder; the entry keeps the path and one sentence. Existing entries stay as they are.
 - Do not automatically load EPOCHAL.md or RISKS.md with this memory. History requires a concrete need or request; incidents require assessing the change's risk.
 - Only one Coordinator session may write project records at a time. This coordination rule is not a technical file lock.
 

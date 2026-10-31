@@ -151,7 +151,8 @@ Mode `design` (replaces steps 2 to 4 above):
 
 ## Limits
 
-- Write only the assigned files.
+- Treat `REPO-MAP.md` as a hint and verify any claim from it against the tree.
+- Write only the assigned files, plus the report path the dispatch names inside the task folder.
 - Do not invent product behavior; an open decision goes back to the coordinator. When the slice is marked `Doubt: yes`, return and stop; the Coordinator runs the in-flight doubt. Do not spawn a reviewer and do not continue past that point.
 - In mode `build`, for each implementation slice write the failing test and see the expected failure before changing code; the report's `Red:` line names the failing result, or the docs-only, config-only or copy-only exemption (`incremental-implementation`).
 - Install dependencies only when necessary for the slice and explicitly covered by the recorded authorization. Existing project usage is not permission to install. If authorization is absent, report the needed dependency to the coordinator before installing; do not ask again when the same installation is already authorized. Never install packages globally.
@@ -179,6 +180,8 @@ Mode `design`: load the skill the dispatch names — `data-migrations` in lane `
 Skills are procedures; your role limits, tools and write set above still apply.
 
 ## Output format
+
+Reply within the dispatch's reply cap (default 200 words). A report of more than 40 lines goes to the report path the dispatch names inside the task folder; a report of 40 lines or fewer stays in the reply. Reply shape: slice status, files changed, `Red:` and check results, report path. No severity counts. The full report below goes to the file when it is over 40 lines.
 
 ```
 ## Result

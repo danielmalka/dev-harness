@@ -367,7 +367,7 @@ Final state (fact, read in the compressed files). Each item has at least one `ke
 
 ## 3. Stage weight table (final)
 
-Method (fact): `wc -c` on line ranges or exact sentence spans of the working tree after compression. Before: 13498 of 107478 bytes (12.6%, HEAD, T-3101). After: the four files total 55808 bytes.
+Method (fact): `wc -c` on line ranges or exact sentence spans of the working tree after compression. Before: 13498 of 107478 bytes (12.6%, HEAD, T-3101). After: the four files total 55830 bytes.
 
 | Stage component | File and lines (after) | Bytes before | Bytes after |
 |---|---|---|---|
@@ -387,7 +387,7 @@ Method (fact): `wc -c` on line ranges or exact sentence spans of the working tre
 | `Doubt` rules in slice cutting, output, self-review | implementation-planning 33, 70, 79 (plus a short clause in step 12) | 693 | about 370 |
 | **Total** | | **13498** | **about 5840** |
 
-Result: the stage components fall from 13498 to about 5840 bytes. The whole four-file total falls from 107478 to 55808 bytes (48% of HEAD).
+Result: the stage components fall from 13498 to about 5840 bytes. The whole four-file total falls from 107478 to 55830 bytes (48% of HEAD).
 
 ## 4. Terms R10 removes (final grep)
 
@@ -411,15 +411,15 @@ Measured with `wc -lc` on the four paths (fact):
 | `.skills/incremental-implementation/SKILL.md` | 65 | 6457 |
 | `.skills/implementation-planning/SKILL.md` | 108 | 8012 |
 | `.agents/coordinator.md` | 174 | 31842 |
-| `.skills/code-review/SKILL.md` | 85 | 9497 |
-| **Total** | **432** | **55808** |
+| `.skills/code-review/SKILL.md` | 85 | 9519 |
+| **Total** | **432** | **55830** |
 
-R6 ceiling: 330 lines, 43000 bytes. Soft allowance (+10%): 363 lines, 47300 bytes. The total is +102 lines (+31%) and +12808 bytes (+30%) over the ceiling, and +69 lines and +8508 bytes beyond the +10% allowance. The excess is beyond +10%, so the +10% route of R6 does not cover it.
+R6 ceiling: 330 lines, 43000 bytes. Soft allowance (+10%): 363 lines, 47300 bytes. The total is +102 lines (+31%) and +12830 bytes (+30%) over the ceiling, and +69 lines and +8530 bytes beyond the +10% allowance. The excess is beyond +10%, so the +10% route of R6 does not cover it.
 
 Rules that need the space, per file (coordinator section sizes measured with `awk`):
 
 - `.agents/coordinator.md` (174 lines, 31842 bytes, 74% of the total bytes): Procedure 4900 bytes (C27-C57: dispatch contents, bundle rules, finding triage, merge gate); External CLI reviewers 4342 (C80-C97, including the verbatim anti-delegation clause, S6 and S7, about 900 bytes, unedited); Worktree 3465 (C135-C141: path validation, cleanup conditions, no `--force`); Flows and completion 3300 (C58-C69); Proportional review 1985 (C98-C118); Memory ownership 1817 (C05-C13, S5).
-- `.skills/code-review/SKILL.md` (9497 bytes): output format block (V50, 28 lines) and the procedure steps with the guide rules V18, V34 and the `coverage incomplete` rule V38.
+- `.skills/code-review/SKILL.md` (9519 bytes): output format block (V50, 28 lines) and the procedure steps with the guide rules V18, V34 and the `coverage incomplete` rule V38.
 - `.skills/implementation-planning/SKILL.md` (8012 bytes): output format block (P26, 42 lines) and P21-P22 check order and clean-clone proof.
 - `.skills/incremental-implementation/SKILL.md` (6457 bytes): output format (I27) and the observability step I29.
 
