@@ -36,8 +36,8 @@ create a test ticket. -->
 Lane: backend / frontend / dados / infra / teste (unitário) / teste (integração) / teste (unitário e integração)
 
 <!-- The planner sets this. `yes` names why. The builder does not dispatch
-the review: `yes`, or an open decision whose structural option would
-continue, returns to the Coordinator, who runs the in-flight doubt. -->
+the review: `yes` returns to the Coordinator, who runs the in-flight
+doubt. -->
 
 Doubt: yes (trust boundary | public contract | migration) | no
 

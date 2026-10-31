@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-10-28</b></span>
-          <span class="chip">status <b>0.35.0 · vivo</b></span>
+           <span class="chip">data <b>2026-10-31</b></span>
+          <span class="chip">status <b>0.36.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -701,6 +701,14 @@ profiles/"] --> B["dh build"]
         testado.</p>
 
       <div class="card">
+        <h3>0.36.0 · Fluxo enxuto do builder (PRD-031)</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> PRD-031. O builder começa pelo teste que falha e mostra a falha antes de mudar o código; a revisão de código termina com uma rodada limpa, com achados em três estados (<code>open</code>, <code>closed</code>, <code>escalated</code>); a etapa <code>code</code> usa sempre a primeira entrada de <code>reviewers.code</code>; a dúvida no meio do build só vira despacho em fatia com <code>Doubt: yes</code>, em um ciclo. As quatro skills e o Coordenador da fase de construção foram comprimidos (432 linhas e 55.830 bytes, menos 48% em bytes), e o dono aceitou esse total acima do teto. Sem agente, skill nem comando novo (13 agentes, 22 skills, 19 + 1 comandos).</p>
+        <p><strong>Relações:</strong> PRD-031 (<code>docs/prd/PRD-031-lean-builder-flow.md</code>); ADR-009 (<code>docs/adr/ADR-009-lean-builder-flow.md</code>); <code>CHANGELOG.md</code> 0.36.0.</p>
+        <p><strong>Testado?</strong> Resultado das checagens no resumo executado do PRD-031; sem eval nova.</p>
+      </div>
+
+      <div class="card">
         <h3>0.35.0 · Orientação de diagramas e Mermaid fixado (PRD-030)</h3>
         <p><strong>Status:</strong> concluído.</p>
         <p><strong>Resumo:</strong> PRD-030. O <code>docs-guide</code> ganha uma frase no passo 2 do Procedure: Mermaid primeiro (<code>&lt;pre class="mermaid"&gt;</code>) para fluxo ou estrutura; Excalidraw só como arquivo <code>.excalidraw</code> separado, linkado e nunca incorporado. O import do Mermaid nas páginas de docs sai de <code>mermaid@11</code> e passa a <code>mermaid@11.17.2</code>. Sem skill, agente ou comando novo (22 skills).</p>
@@ -711,7 +719,7 @@ profiles/"] --> B["dh build"]
       <div class="card">
         <h3>0.34.0 · Revisão independente e relatório de deriva (PRD-029)</h3>
         <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> PRD-029. No laço de código, cada achado Critical ou Major recebe o id <code>F&lt;rodada&gt;-&lt;n&gt;</code> e um estado (<code>open</code>, <code>fixed</code>, <code>intentional</code>, <code>noise</code>, <code>escalated</code>, <code>reopened</code>) no <code>MEMORY.md</code>; o <code>fixed</code> do builder só fecha quando um revisor confirma em rodada posterior, e <code>intentional</code> e <code>noise</code> exigem evidência. O laço de build/QA e revisão de código converge só com duas rodadas limpas seguidas sobre o mesmo estado (edição entre elas zera a contagem; a confirmação conta no teto de 6). Na reentrada, a linha <code>Churn:</code> para o laço e leva a decisão ao dono quando uma correção anterior seria revertida. O <code>document-validator</code> abre toda revisão com o bloco <code>## Comprehension</code>. O pacote de contexto do revisor é uma lista fechada, sem a conversa com o dono. Skill nova <code>drift-report</code>: depois de <code>FEATURE APROVADA</code>, o <code>/dh:review</code> pode oferecer o relatório, que só roda a pedido ou com a oferta aceita e não corrige nada. Crédito ao Elephant-Goldfish Model (EGM) do Google (Apache-2.0) nos READMEs; mecanismos reimplementados, sem texto copiado. Sem agente nem comando novo (22 skills).</p>
+        <p><strong>Resumo:</strong> PRD-029. No laço de código, achados Critical e Major passam a ter estado registrado no <code>MEMORY.md</code>, o builder não fecha o próprio achado e a revisão exige evidência para o que o builder marca como intencional ou ruído; o laço de build/QA e revisão de código ganha critério de convergência. O <code>document-validator</code> abre toda revisão com o bloco <code>## Comprehension</code>. O pacote de contexto do revisor é uma lista fechada, sem a conversa com o dono. Skill nova <code>drift-report</code>: depois de <code>FEATURE APROVADA</code>, o <code>/dh:review</code> pode oferecer o relatório, que só roda a pedido ou com a oferta aceita e não corrige nada. Crédito ao Elephant-Goldfish Model (EGM) do Google (Apache-2.0) nos READMEs; mecanismos reimplementados, sem texto copiado. Os detalhes do critério de convergência foram simplificados na 0.36.0 (PRD-031). Sem agente nem comando novo (22 skills).</p>
         <p><strong>Relações:</strong> PRD-029 (<code>docs/prd/PRD-029-independent-review-and-drift-report.md</code>); <code>CHANGELOG.md</code> 0.34.0.</p>
         <p><strong>Testado?</strong> Resultado das checagens no resumo executado do PRD-029; sem eval nova.</p>
       </div>
@@ -1824,7 +1832,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.35.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.36.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

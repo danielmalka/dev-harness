@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
-           <span class="chip">date <b>2026-10-28</b></span>
-          <span class="chip">status <b>0.35.0 · live</b></span>
+           <span class="chip">date <b>2026-10-31</b></span>
+          <span class="chip">status <b>0.36.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -701,6 +701,14 @@ profiles/"] --> B["dh build"]
         tested.</p>
 
       <div class="card">
+        <h3>0.36.0 · Lean builder flow (PRD-031)</h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> PRD-031. The builder starts with the failing test and shows the failure before changing code; code review ends after one clean round, with findings in three states (<code>open</code>, <code>closed</code>, <code>escalated</code>); the <code>code</code> stage always uses the first entry of <code>reviewers.code</code>; a mid-build doubt becomes a dispatch only for a slice with <code>Doubt: yes</code>, in one cycle. The four build-phase files were compressed (432 lines and 55,830 bytes, 48% fewer bytes), and the owner accepted that total over the ceiling. No new agent, skill or command (13 agents, 22 skills, 19 + 1 commands).</p>
+        <p><strong>Relations:</strong> PRD-031 (<code>docs/prd/PRD-031-lean-builder-flow.md</code>); ADR-009 (<code>docs/adr/ADR-009-lean-builder-flow.md</code>); <code>CHANGELOG.md</code> 0.36.0.</p>
+        <p><strong>Tested?</strong> Check results are in the executed summary of PRD-031; no new eval.</p>
+      </div>
+
+      <div class="card">
         <h3>0.35.0 · Diagram guidance and pinned Mermaid (PRD-030)</h3>
         <p><strong>Status:</strong> done.</p>
         <p><strong>Summary:</strong> PRD-030. The <code>docs-guide</code> gets one sentence in Procedure step 2: Mermaid first (<code>&lt;pre class="mermaid"&gt;</code>) for flow or structure; Excalidraw only as a separate <code>.excalidraw</code> file, linked and never embedded. The Mermaid import on the docs pages moves from <code>mermaid@11</code> to <code>mermaid@11.17.2</code>. No new skill, agent or command (22 skills).</p>
@@ -711,7 +719,7 @@ profiles/"] --> B["dh build"]
       <div class="card">
         <h3>0.34.0 · Independent review and drift report (PRD-029)</h3>
         <p><strong>Status:</strong> done.</p>
-        <p><strong>Summary:</strong> PRD-029. In the code loop, each Critical or Major finding gets the id <code>F&lt;round&gt;-&lt;n&gt;</code> and a state (<code>open</code>, <code>fixed</code>, <code>intentional</code>, <code>noise</code>, <code>escalated</code>, <code>reopened</code>) in <code>MEMORY.md</code>; the builder's <code>fixed</code> closes only when a reviewer confirms it in a later round, and <code>intentional</code> and <code>noise</code> need evidence. The build/QA and code-review loop converges only after two consecutive clean rounds on the same state (an edit between them resets the count; the confirmation counts in the cap of 6). On re-entry, the <code>Churn:</code> line stops the loop and sends the decision to the owner when an earlier fix would be reverted. The <code>document-validator</code> opens every review with the <code>## Comprehension</code> block. The reviewer's context bundle is a closed list, with no conversation with the owner. New skill <code>drift-report</code>: after <code>FEATURE APROVADA</code>, <code>/dh:review</code> may offer the report, which runs only on request or when the offer is accepted and fixes nothing. Credit to the Elephant-Goldfish Model (EGM) from Google (Apache-2.0) in the READMEs; mechanisms reimplemented, no text copied. No new agent or command (22 skills).</p>
+        <p><strong>Summary:</strong> PRD-029. In the code loop, Critical and Major findings get a state recorded in <code>MEMORY.md</code>, the builder does not close its own finding, and review requires evidence for what the builder marks as intentional or noise; the build/QA and code-review loop gains a convergence criterion. The <code>document-validator</code> opens every review with the <code>## Comprehension</code> block. The reviewer's context bundle is a closed list, with no conversation with the owner. New skill <code>drift-report</code>: after <code>FEATURE APROVADA</code>, <code>/dh:review</code> may offer the report, which runs only on request or when the offer is accepted and fixes nothing. Credit to the Elephant-Goldfish Model (EGM) from Google (Apache-2.0) in the READMEs; mechanisms reimplemented, no text copied. The convergence details were simplified in 0.36.0 (PRD-031). No new agent or command (22 skills).</p>
         <p><strong>Relations:</strong> PRD-029 (<code>docs/prd/PRD-029-independent-review-and-drift-report.md</code>); <code>CHANGELOG.md</code> 0.34.0.</p>
         <p><strong>Tested?</strong> Check results are in the executed summary of PRD-029; no new eval.</p>
       </div>
@@ -1824,7 +1832,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.35.0, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.36.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

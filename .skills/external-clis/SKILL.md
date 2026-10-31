@@ -271,7 +271,7 @@ Roles: coordinator, document-validator, reviewer, implementation-planner. Comman
 
 ## In-flight doubt
 
-An in-flight doubt call is a `code` review. Assemble it on the same path as any code review: the role body, `code-review`, the context bundle, the anti-delegation clause, the reading-is-allowed block, and the code verdict-line contract. The context bundle is the artifact and the contract only, plus the adversarial instruction in `code-review` under "In-flight doubt". The author's claim is not part of the bundle. The verdict signal stays the code signal. Choosing which entry runs, and advancing on re-entry, is the Coordinator's procedure in `.agents/coordinator.md`. This skill still covers one binary.
+An in-flight doubt call is a `code` review. Assemble it on the same path as any code review: the role body, `code-review`, the context bundle, the anti-delegation clause, the reading-is-allowed block, and the code verdict-line contract. The context bundle is the artifact and the contract only, plus the adversarial instruction in `code-review` under "In-flight doubt". The author's claim is not part of the bundle. The verdict signal stays the code signal. Choosing which entry runs is the Coordinator's procedure in `.agents/coordinator.md`. This skill still covers one binary.
 
 ## Proof case
 

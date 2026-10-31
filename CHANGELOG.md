@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.36.0 — 2026-10-31
+
+- **Fluxo enxuto do builder (PRD-031, ADR-009)**: o builder começa pelo teste que falha e mostra a falha antes de mudar o código (cópia, config e docs-only declaram a isenção); a revisão de código termina com uma rodada limpa, com achados em três estados (`open`, `closed`, `escalated`); a etapa `code` usa sempre a primeira entrada de `reviewers.code`; a dúvida no meio do build só vira despacho em fatia com `Doubt: yes`, em um ciclo.
+- **Removidos**: rodízio de revisor e cursor no `MEMORY.md`, ids de achado, a linha `Churn:` e a rodada de confirmação.
+- **Compressão**: as quatro skills e o Coordenador da fase de construção somam 432 linhas e 55.830 bytes (menos 48% em bytes); o dono aceitou o total acima do teto em 2026-10-31.
+- Sem agente, skill nem comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
+
 ## 0.35.0 — 2026-10-28
 
 - **Orientação de diagramas no `docs-guide` (PRD-030)**: uma frase nova no passo 2 do Procedure manda usar o Mermaid primeiro (`<pre class="mermaid">`, como o `doc-template-html` define) para fluxo ou estrutura, e permite o Excalidraw só como arquivo `.excalidraw` separado que o documento linka, nunca incorporado.

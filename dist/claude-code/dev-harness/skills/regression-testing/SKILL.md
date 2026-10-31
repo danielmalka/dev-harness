@@ -50,6 +50,8 @@ This procedure turns acceptance criteria into executed checks and returns a matr
 9. **Report defects, do not fix them.** For each defect give reproduction, expected, actual, the criterion it violates, and a severity. Hand it to the implementer through the Coordinator.
 10. **Stop your own loop at three.** If your test code fails three times for reasons inside the test rather than the product, stop and report the blocker instead of grinding. This cap applies to your own test code only. The correction loop between implementer and QA still stops at six rounds and returns to the Coordinator.
 11. **Report, do not record.** Results, defects, and any incident go to the Coordinator, the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`. Detailed evidence belongs under `.harness/tasks/<id>/`. When a ticket is marked done, its `Concluído em` (`Done on` in en) header line is filled with today's date, `AAAA-MM-DD`.
+12. **Default to test-first, owned by the builder.** The builder writes the failing test and records the expected failure before changing code, and QA verifies that red result and the green result after the change; the red-first rule in step 6 stays for bug regression tests.
+13. **Apply three heuristics against empty tests.** See the new test fail for the expected reason before it counts. Delete a test that still passes when every function under test returns nothing. When an honest test is impractical, report the check as not-run and do not write a weak test.
 
 ## Output format
 
