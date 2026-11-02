@@ -1,11 +1,8 @@
 # mcode (MiniMax Code)
 
-Binary: `mcode`, resolved via `.harness/local.yaml` `binaries.mcode` when
-`command -v mcode` fails (a login-shell-only `PATH` is common for this
-binary — do not treat that miss alone as "not installed"). Coding agent
-with hands.
+Binary: `mcode`, resolved via `.harness/local.yaml` `binaries.mcode` when `command -v mcode` fails. A login-shell-only `PATH` is common for this binary: `command -v` misses it even when it is installed, so do not treat that miss alone as `not_installed`. Coding agent with hands; reviewer and planner (in a disposable clone).
 
-## Headless
+## Invocation
 
 ```bash
 mcode exec --permission off --cwd "$CLONE" --timeout 15m \
@@ -13,29 +10,7 @@ mcode exec --permission off --cwd "$CLONE" --timeout 15m \
   --input - < "$PROMPT"
 ```
 
-Each call is one shell command whose first word is the binary
-(R18): write the resolved command there as a literal (bare `mcode`, or the literal path taken from `.harness/local.yaml`; a literal path does not match a `Bash(mcode:*)` allow rule, so that form may need the owner's approval or be not-run), with no `timeout`, `&&`, `;` or pipe in front of or after it. `--cwd <path>` is the binary's own working-directory flag (fact, `mcode exec --help`, 2026-10-16: "workspace directory"), and `--timeout` bounds the time. The `< "$PROMPT"` redirection is part of the same command.
-
-`$CLONE` in these recipes is the literal clone path stored when the clone was created ([clone-isolation.md](clone-isolation.md), Terms), written into the command as that literal string. The prompt file `$PROMPT` is the literal path of a file created by `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )` inside the call's freeze directory ([live-tree-freeze.md](live-tree-freeze.md), section 5); it is unique per call and is removed with that directory.
-
-Read-only, unattended review call: `--permission off` disables tool
-approval entirely rather than auto-approving it, which is the binary's
-own read-only mode. Until a dated probe is recorded, `mcode` runs in a
-clone as well: disposable clone; writes outside it are detected on the live tree (R5), never prevented; writes outside the project are not detected. It is used **in addition to**, not instead of, the
-comparison every clone call gets (`references/live-tree-freeze.md`); that check is never skipped just because a binary
-has its own read-only flag. `--permission full` is the write-capable
-unattended mode, for a builder role only — never pass it from this
-skill, which covers review stages.
-
-**Documented, not yet measured on this kit.** `--permission off` is
-documented above, but no probe has been recorded confirming it actually
-refuses a file-create and a shell-command attempt. An unmeasured read-only
-mode does not qualify a binary as a CLI planner under `external-clis`'
-"The planning call" — qualification requires a recorded probe, dated, in
-which the CLI was asked to create a file and run a shell command and
-refused both. Until that probe for `mcode` is on record, it plans and reviews in a
-disposable clone rather than through its read-only mode: disposable clone; writes outside it are detected on the live tree (R5), never prevented; writes outside the project are not detected. That is
-independent of any flag's own guarantee.
+One shell command whose first word is the binary: write the resolved command there as a literal (bare `mcode`, or the literal path taken from `.harness/local.yaml`; a literal path does not match a `Bash(mcode:*)` allow rule, so that form may need the owner's approval or be not-run), with no `timeout`, `&&`, `;` or pipe in front of or after it. `--cwd <path>` is the binary's own working-directory flag ("workspace directory"). The `< "$PROMPT"` redirection is part of the same command. `--permission full` is the write-capable unattended mode, for a builder role only: never pass it from this skill, which covers review stages.
 
 | Flag | Why |
 |---|---|
@@ -43,7 +18,7 @@ independent of any flag's own guarantee.
 | `--permission off` | documented, unmeasured: read-only, unattended (use for a reviewer, in a clone) |
 | `--permission full` | unattended with write access (builder roles only, out of this skill's scope) |
 | `--cwd` | workspace; `--cwd "$CLONE"` on every call |
-| `--model provider/model` | pin the slug from `models.mcode` in `.harness/local.yaml` |
+| `--model provider/model` | pin the slug |
 | `--input -` | read prompt from stdin (`--input-format text` / `json`) |
 | `--file PATH` | attach a file (repeatable) |
 | `--timeout 15m` | a review call often needs longer than the default |
@@ -52,7 +27,36 @@ independent of any flag's own guarantee.
 | `--output-schema` | JSON Schema for the final answer |
 | `-o` / `--output-last-message PATH` | final agent message on disk |
 
-Slugs: `models.mcode` in `.harness/local.yaml`, refreshed by hand when
-the operator measures a new one for this account.
-
 Do not start the interactive TUI from an orchestrator turn.
+
+## Prompt input
+
+Stdin (`--input -`) or `--file`. `$CLONE` and `$PROMPT` are defined in [clone-isolation.md](clone-isolation.md), Terms.
+
+## Isolation
+
+Read-only flag documented, not yet measured on this kit: `--permission off` disables tool approval entirely rather than auto-approving it, which is the binary's own read-only mode. No probe is recorded confirming it refuses a file-create and a shell-command attempt, so until a dated probe is on record `mcode` runs in a disposable clone ([clone-isolation.md](clone-isolation.md)) for review and planning alike. The flag is used in addition to, never instead of, the comparison every clone call gets ([live-tree-freeze.md](live-tree-freeze.md)).
+
+## Model flag
+
+`--model <provider>/<slug>`, from `models.mcode` in `.harness/local.yaml`, refreshed by hand when the operator measures a new slug for this account.
+
+## Timeout
+
+`--timeout 15m` bounds the time.
+
+## Output capture
+
+Reply on stdout; `-o` / `--output-last-message PATH` writes the final agent message to disk; `--output-format` selects `text`, `json` or `stream-json`.
+
+## Failure signals
+
+unknown
+
+## Known gotchas
+
+None recorded in [gotchas.md](gotchas.md).
+
+## Measured on
+
+2026-10-16 (`mcode exec --help`: `--cwd`). `--permission off`: unknown (not measured).
