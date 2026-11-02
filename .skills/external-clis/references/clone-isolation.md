@@ -7,7 +7,7 @@ read-only mode. `codex` keeps its own sandbox and never uses it.
 
 Every mention of this mechanism carries one qualification, stated in full:
 
-disposable clone; writes outside it are detected on the live tree (R5), never prevented; writes outside the project are not detected
+disposable clone; writes outside it are detected on the live tree, never prevented; writes outside the project are not detected
 
 The clone is a
 working directory, not a sandbox. The CLI runs as the same OS user and still
@@ -18,13 +18,15 @@ else and lets the delegate throw that directory away.
 This file defines only the clone lifecycle. Which binaries may plan is decided
 under "The planning call" in `SKILL.md`, not here.
 
-Terms: `<project>` is the project root (the live tree). `$CLONE` is the exact
+## Terms
+
+`<project>` is the project root (the live tree). `$CLONE` is the exact
 clone path. Shell variables do not survive between separate tool calls, so the
 call stores the literal path that `mktemp` printed, and every later command
 (verification, comparison, removal) uses that literal string, not `$CLONE`.
 `<call-id>` is chosen once by the Coordinator before step 1, as
 `<task id>-<binary>-<n>` with `<n>` a per-batch counter, and may contain only
-`[A-Za-z0-9_-]`; anything else is `isolation unavailable`. It is used verbatim
+`[A-Za-z0-9_-]`; anything else is `isolation_unavailable`. It is used verbatim
 in both names of a call: `dh-cli-<call-id>-XXXXXXXX` (the clone) and
 `dh-freeze-<call-id>-XXXXXXXX` (the freeze directory, which also holds the
 call's prompt file). Calls that overlap in time share one freeze directory,
@@ -35,12 +37,16 @@ the batch) starts and stored as a literal path. Every `mktemp` template, every
 removal guard and the orphan sweep use `<tmp root>`, never the unresolved
 variable.
 
+`$PROMPT` is the literal path of the call's prompt file, written into the command as that literal string, like `$CLONE`. A clone call creates it with `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )` inside the call's freeze directory ([live-tree-freeze.md](live-tree-freeze.md), section 5); it is unique per call and is removed with that directory. A call without a clone (`codex`, the `agy` review) creates it with `( umask 077; mktemp "<tmp root>/dh-prompt-XXXXXXXX" )` and removes it in its own cleanup (an interrupted call can leave it behind, mode 0600; it is not swept and is left for the owner).
+
+## Project requirement
+
 The project must have `.harness/` and `.claude/settings*.json` git-ignored. If
 it does not, the live tree holds them as tracked or untracked files, the clone
 would carry them, the absence checks in step 2 fail, and every call ends as
-`isolation unavailable`. It is never fixed up by deleting them from the clone.
+`isolation_unavailable`. It is never fixed up by deleting them from the clone.
 
-## 1. Create the clone (R2)
+## 1. Create the clone
 
 Before creating anything, the project must pass one of two branches, chosen by
 what `<project>/.git` is:
@@ -53,7 +59,7 @@ what `<project>/.git` is:
   `test -f "<project>/.git" && test ! -L "<project>/.git"` must pass. The layout
   of the gitfile is validated by `dh` (Go), never restated or re-checked here:
   the shell only consumes `linked_worktree`.
-- (c) Anything else is `isolation unavailable`: `dh` missing or failing,
+- (c) Anything else is `isolation_unavailable`: `dh` missing or failing,
   `linked_worktree` null, `.git` a symlink, a bare repository, a submodule, an
   invalid layout, content outside the gitfile format, or a `.git` that is not
   a regular file at the check right before the clone.
@@ -63,7 +69,7 @@ disposable temporary folder, for both branches. The kit never uses the
 worktree as the sandbox and never uses `git worktree` for the sandbox.
 Hypothesis to prove (T-2805): the clone of a linked worktree starts at the
 worktree's `HEAD`. If it does not, the match in step 2 fails and the call ends
-`isolation unavailable`; the hypothesis can only block a call, never open a gap.
+`isolation_unavailable`; the hypothesis can only block a call, never open a gap.
 
 Run these in order. Every git command in this file, in every step, runs with
 the prefix `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1` (the commands
@@ -96,7 +102,7 @@ Verify before going on. Each check must pass:
 - `test ! -e "$CLONE/.git/objects/info/alternates"`.
 - `test ! -e "$CLONE/.git/logs"`.
 
-## 2. Populate the clone and match it (R3)
+## 2. Populate the clone and match it
 
 The clone must hold the state under judgment: the current commit, plus the
 tracked modifications and the new non-ignored files of the live tree at the
@@ -118,7 +124,7 @@ global or system configuration cannot change or run anything there.
    `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$CLONE" apply` (no `--index`).
 3. New files: from `<project>`, list them with
    `git ls-files -z --others --exclude-standard`. Any entry ending in `/` (a
-   nested repository shows as `sub/`) is `isolation unavailable` on its own,
+   nested repository shows as `sub/`) is `isolation_unavailable` on its own,
    before anything is copied; it is not left to the match. If the list is
    empty, skip the copy. Otherwise run, under `set -o pipefail` so a failing
    `ls-files` is not masked by the `tar` stages,
@@ -148,11 +154,11 @@ Then match. All of these must hold:
 
 A state that does not reproduce exactly (a rename, a mode change, a symlink, a
 submodule, a nested repository (refused before the copy), a binary file, or an XY that the two-step
-population cannot recreate) is `isolation unavailable` (step 4). The mismatch
+population cannot recreate) is `isolation_unavailable` (step 4). The mismatch
 is the gate. Never adjust the clone by hand until it matches, and never
 continue on the live tree instead.
 
-## 3. Use the clone and remove it (R8)
+## 3. Use the clone and remove it
 
 Fix the CLI's working directory to the stored clone path with the binary's
 own working-directory flag, written inside the single command that starts with
@@ -171,7 +177,7 @@ inside the live tree before the binary changes directory; the call therefore
 has no `timeout` or other wrapper before the binary. The
 prompt does not carry the live tree's absolute path.
 
-When the call ends (success, transport failure, timeout or change detected),
+When the call ends (success, transport failure, timeout or `tree_changed`),
 and after the comparisons of the live tree and of the clone have run, the
 delegate removes the clone with `rm -rf` on the exact stored path, and only
 that. Guard first; all of these must hold: the parent directory of the
@@ -182,9 +188,9 @@ fails the guard is never passed to `rm`. Then confirm the directory no longer ex
 from the clone is copied or merged into the live tree: the verdict or the plan
 text comes back as the reply, as before.
 
-## 4. Isolation unavailable (R11)
+## 4. Isolation unavailable
 
-The call is not-run, with the reason `isolation unavailable` ("isolamento
+The call is not-run, with the reason `isolation_unavailable` ("isolamento
 indisponivel" in the owner's language), when any of these holds: the project
 is not a git repository; the step 1 branch fails (`dh` missing or failing,
 `linked_worktree` null with a `.git` that is not a directory, `.git` a symlink,
@@ -201,7 +207,7 @@ fallback: a binary with no read-only mode is never run on the live tree in
 place of the clone. The round is not spent, and the call counts as neither an
 approval nor a rejection.
 
-## 5. Orphan sweep (R9)
+## 5. Orphan sweep
 
 Interrupted runs can leave clones behind. Once per batch of dispatches, run by
 the delegate (a dispatched `qa-verifier`) before the first CLI call of the batch and never inside a
@@ -226,7 +232,7 @@ The conditions are conjunctive. Never touch a directory that fails any one of
 them: no prefix, a symlink, no marker, another user, a live PID, or a recent
 `started` is left alone, including a directory of another project.
 
-## 6. Parallel calls (R10)
+## 6. Parallel calls
 
 Two calls in clones at the same time each get their own `<call-id>` and their
 own `$CLONE` (distinct `mktemp` results). Each call removes only its own
@@ -236,23 +242,23 @@ before the first of them; then every clone created, populated and matched;
 then every prompt written; only then the first CLI started. Calls are dispatched in closed groups: a new clone call never starts while a
 CLI from an earlier group is still running. They share one
 freeze directory (named after the first call), each with its own clone and
-prompt file. R5 and the reversion run only after the last one has ended; any R5 difference marks every overlapping call not-run,
-`change detected`, and R6 stays per clone (`references/live-tree-freeze.md`,
+prompt file. The live-tree comparison and the reversion run only after the last one has ended; any live-tree difference marks every overlapping call not-run,
+`tree_changed`, and the clone comparison stays per clone (`references/live-tree-freeze.md`,
 Order). The cap of two concurrent specialists and the serialization of
 `opencode` do not change.
 
 ## 7. What stays outside the clone (residual, stated in full)
 
-The clone is a working directory, not a sandbox: disposable clone; writes outside it are detected on the live tree (R5), never prevented; writes outside the project are not detected.
+The clone is a working directory, not a sandbox: disposable clone; writes outside it are detected on the live tree, never prevented; writes outside the project are not detected.
 
-What the live-tree comparison (R5) covers: the list of
+What the live-tree comparison covers: the list of
 `git status --porcelain -uall --ignored` with the hash of each path; the hash
 of every tracked file; the output of `git ls-files -v --stage` (index flags
 and blob ids, which catches `--skip-worktree` and `--assume-unchanged`); the
 bytes of the resolved harness dir in mode `repo`, wherever it is (inside the
 project, or the main checkout's `.harness/`, not the copy inside the worktree,
 when the project is a linked worktree; in mode `global` it is outside the freeze of this clone procedure,
-while the step 7 freeze of `SKILL.md`, for a call without a clone, saves it in
+while the freeze of [live-tree-compare.md](live-tree-compare.md), for a call without a clone, saves it in
 both modes), of `.claude/settings*.json` and, from the common dir `<C>`
 (`<project>/.git` for a normal checkout, `linked_worktree.commondir` for a
 linked worktree), of `hooks/`, `config`, `config.worktree` (when present), `info/`,
@@ -271,10 +277,10 @@ impossible, no git command runs and the verdict is discarded, not-run,
 `not revertible`. An item absent in both snapshots
 is not a difference and never an error. The trust paths of `<C>`, both `config.worktree` files, the gitfile, `<admin>/commondir` and `<admin>/gitdir` are restored; the files under `refs/`, the
 `worktrees/` entries and the other admin dir items are detected only: a
-change is `change detected` and is reported as `not revertible: <path>`.
+change is `tree_changed` and is reported as `not revertible: <path>`.
 
-Not covered by R5, so not detected (this list of live git-dir paths is the one
-the author knows and is not exhaustive; any live git-dir path R5 does not name
+Not covered by the live-tree comparison, so not detected (this list of live git-dir paths is the one
+the author knows and is not exhaustive; any live git-dir path that comparison does not name
 is outside the coverage): `index` as raw bytes (only its logical content
 is read by `ls-files`; the same for the `index` of each worktree admin dir),
 `logs/` (reflogs), loose objects and packs, `modules/`, `FETCH_HEAD`,
@@ -323,6 +329,6 @@ under `<tmp root>`: it is not swept, and it is left for the owner to remove.
 
 Also not detected: (c) a write to the live tree that is undone before the
 second snapshot or that preserves the bytes; (f) a concurrent write by another
-process, the Coordinator included, which step 7 of `SKILL.md` already says to
+process, the Coordinator included, which `live-tree-compare.md` already says to
 avoid. Only an operating-system isolation would close these; it is a later
 batch.

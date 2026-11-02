@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-10-31</b></span>
-          <span class="chip">status <b>0.37.0 · vivo</b></span>
+           <span class="chip">data <b>2026-11-02</b></span>
+          <span class="chip">status <b>0.38.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.38.0 · Skill external-clis reorganizada</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> o <code>SKILL.md</code> da skill <code>external-clis</code> ficou só com o procedimento genérico e uma tabela-índice de binários; cada receita em <code>references/</code> segue os mesmos campos fixos, com <code>unknown</code> onde não há medição. Um único contrato de veredito e uma tabela de classificação de falhas (<code>not_installed</code>, <code>auth_required</code>, <code>rate_limited</code>, <code>timed_out</code>, <code>no_signal</code>, <code>tree_changed</code>, <code>isolation_unavailable</code>). Referências novas: <code>live-tree-compare.md</code> e <code>planning-call.md</code>. Uma regra mudou: chamada de CLI não rodada não tem nova tentativa automática, e o Coordenador avisa o dono na hora, com o revisor e o motivo classificado. Sem agente, skill nem comando novo (13 agentes, 22 skills, 19 + 1 comandos).</p>
+        <p><strong>Relações:</strong> <code>.skills/external-clis/SKILL.md</code>; <code>CHANGELOG.md</code> 0.38.0.</p>
+        <p><strong>Testado?</strong> Checagens determinísticas (<code>dh validate</code>, build, <code>go test</code>); sem eval nova.</p>
+      </div>
 
       <div class="card">
         <h3>0.37.0 · Contexto enxuto do Coordenador (PRD-032)</h3>
@@ -1840,7 +1848,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.37.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.38.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

@@ -1,25 +1,23 @@
 # Live-tree freeze, clone comparison and prompt hygiene
 
 This file is the comparison procedure for a CLI call that runs in a disposable
-clone (lifecycle in [clone-isolation.md](clone-isolation.md)). It replaces
-step 7 of `SKILL.md` for such a call; step 7 as written stays in force for a
-call without a clone (`codex`, and the `agy` review on the live tree). The `agy`
-live-tree review of a project whose `.git` is not a directory (a linked
-worktree; a deliberate superset that also covers submodule and bare) ends
-`isolation unavailable` and does not run: its step-7 freeze reads `.git/hooks/`
-and `.git/config` of `<project>/.git`, which are not folders there (`SKILL.md` step 7).
+clone (lifecycle in [clone-isolation.md](clone-isolation.md)). A call without
+a clone (`codex`, and the `agy` review on the live tree) uses
+[live-tree-compare.md](live-tree-compare.md) instead, which also explains why
+the `agy` live-tree review of a project whose `.git` is not a directory ends
+`isolation_unavailable` and does not run.
 
 The delegate runs every step of this file: a dispatched `qa-verifier`, or
 `builder` in lane `infra` (`SKILL.md`, "Who runs the call"). It returns the
-verdict line and the relative path of the raw output; the Coordinator runs
+verdict signal and the relative path of the raw output; the Coordinator runs
 none of these steps.
 
 The qualification for every mention of this mechanism, stated in full:
 
-disposable clone; writes outside it are detected on the live tree (R5), never prevented; writes outside the project are not detected
+disposable clone; writes outside it are detected on the live tree, never prevented; writes outside the project are not detected
 
-Two comparisons run, on two trees. The live-tree comparison (R5) detects and
-reverts what the CLI wrote where it should not. The clone comparison (R6)
+Two comparisons run, on two trees. The live-tree comparison detects and
+reverts what the CLI wrote where it should not. The clone comparison
 judges whether the CLI changed the content it was given. Neither prevents
 anything.
 
@@ -28,7 +26,7 @@ anything.
 1. Preconditions and freeze (section 1). The precondition is step 1 of
    clone-isolation.md: `.git` a real directory, or a gitfile with a non-null
    `linked_worktree` and the `test -f`/`test ! -L` check right before the clone;
-   anything else is `isolation unavailable`. When clone calls overlap in time,
+   anything else is `isolation_unavailable`. When clone calls overlap in time,
    take one freeze before the first of them. Save the copies outside the
    project tree and outside the clone: create a freeze directory with
    `mktemp -d "<tmp root>/dh-freeze-<call-id>-XXXXXXXX"` (`<tmp root>` and
@@ -37,7 +35,7 @@ anything.
    same two lines as the clone marker (`pid=` and `started=`,
    clone-isolation.md step 1). Then compute the digest of the freeze (end of
    section 1). If any step of this freeze fails (a missing tool included, see the note on
-   GNU tools in Notation), the call is not-run, `isolation unavailable`: no
+   GNU tools in Notation), the call is not-run, `isolation_unavailable`: no
    CLI starts and no comparison runs. Remove the partial freeze directory under
    the step 8 guard.
 2. Create, populate and match every overlapping clone (clone-isolation.md steps
@@ -71,7 +69,7 @@ anything.
    section 7 (a process that outlives the call); it does not close it, since a
    child that has a different pid is missed. Report it as `leftover processes` in the
    Workspace check.
-5. When a call ends, recompare its clone (section 3, R6). R6 stays per clone.
+5. When a call ends, recompare its clone (section 3). That comparison stays per clone.
 6. After the last overlapping call has ended, and only then, on the live tree:
    verify the freeze digest, extract the copies, compare and restore the trust
    paths with non-git tools (section 2, part A), and, only when part A reports no
@@ -88,19 +86,19 @@ group is the set of calls that overlap in time under one freeze.
 
 Nothing else may write to the live tree or to the `<harness dir>` between step 1 and step 6, the delegate and the Coordinator included (the freeze directory is shared by overlapping calls, so this covers all of them): a build, a
 package regeneration or a test run started in parallel changes files the
-comparison then blames on the CLI (the measured case is in step 7 of
-`SKILL.md`). Overlapping clone calls are governed by the same rule: R5 and the
+comparison then blames on the CLI (the measured case is in
+`live-tree-compare.md`). Overlapping clone calls are governed by the same rule: the live-tree comparison and the
 reversion run only after the last one has ended, because a sibling's reversion
-would otherwise hide the writer. Any R5 difference marks every overlapping call
-not-run, `change detected`, as `coordinator.md` already does for calls without
+would otherwise hide the writer. Any live-tree difference marks every overlapping call
+not-run, `tree_changed`, as `coordinator.md` already does for calls without
 a clone. The cap of two concurrent specialists is unchanged. The reversion in
 section 4 is only sound when no process started by the call is still running; a
 process that outlives the call can write again after the reversion, and that
 stays undetected (clone-isolation.md section 7, item (b)). Either wait, or run
 the parallel work in a separate checkout.
 
-Not-run reasons for a clone call: `change detected` ("mudança detectada"),
-from this file, and `isolation unavailable` ("isolamento indisponivel"), from
+Not-run reasons for a clone call: `tree_changed` ("mudança detectada"),
+from this file, and `isolation_unavailable` ("isolamento indisponivel"), from
 clone-isolation.md step 4. Both discard the verdict, neither counts as an
 approval or a rejection, and neither spends a correction round.
 
@@ -120,7 +118,7 @@ the override it ran none). `<project>` is the live tree.
 This file assumes GNU tools in a few places: `sha256sum` (macOS: `shasum -a 256`),
 `stat -c` (BSD: `stat -f`) and `tar --null -T`.
 A tool that is missing during the freeze, with no equivalent, is
-`isolation unavailable`.
+`isolation_unavailable`.
 
 Hashing rule for one path, used everywhere below: a regular file is hashed
 with `R5GIT hash-object --no-filters -- <path>`; a symlink is recorded as its
@@ -132,14 +130,14 @@ GNU, `stat -f %Lp` on BSD). Entries that are neither a regular file nor a
 symlink (directories, fifos, sockets) are handled by the freeze list of
 section 1, not by this rule.
 
-## 1. Freeze the live tree (R5)
+## 1. Freeze the live tree
 
 RISK-002 prevention: nothing writes to the tree or to the `<harness dir>` between the freeze and the comparison, the Coordinator included. Detection and revert below cover the resolved `<harness dir>` in mode `repo`, wherever it is (inside the project, or the main checkout's `.harness/` when the project is a linked worktree); in mode `global` it is outside the freeze of this procedure (RISK-002 residual).
 
 Run from `<project>`. Record all of these, before the call:
 
 - The trust paths, as bytes and mode, saved with non-git tools (`cp -p`, or
-  `tar` from an explicit NUL list, below): everything under the resolved `<harness dir>` in mode `repo`, wherever it is (inside the project, or the main checkout's `.harness/` when the project is a linked worktree), and under `.harness/` when it exists. In mode `global` the harness dir (`<home>/projects/<name>/`) is outside the freeze of this procedure, a stated RISK-002 residual; only the step 7 freeze of `SKILL.md`, for a call without a clone, saves it by bytes in both modes;
+  `tar` from an explicit NUL list, below): everything under the resolved `<harness dir>` in mode `repo`, wherever it is (inside the project, or the main checkout's `.harness/` when the project is a linked worktree), and under `.harness/` when it exists. In mode `global` the harness dir (`<home>/projects/<name>/`) is outside the freeze of this procedure, a stated RISK-002 residual; only the freeze of `live-tree-compare.md`, for a call without a clone, saves it by bytes in both modes;
   `.claude/settings.json` and `.claude/settings.local.json` (each when
   present, and the list of those absent); from the common dir `<C>`, `hooks/`,
   `config`, `config.worktree` (when present), `info/`, `HEAD` and `packed-refs`; for a linked worktree, also the admin dir `config.worktree` (read from the `gitdir` field of `linked_worktree`; part (b) below); and every `.gitattributes` file
@@ -186,7 +184,7 @@ Run from `<project>`. Record all of these, before the call:
   `config.worktree`, the files under `refs/` and the presence of `locked`. An
   item absent in both snapshots is not a difference and never an error. The raw
   `index` files (of the common dir and of each admin dir) stay out of the freeze.
-  A change in these items during the call is `change detected`, as in a normal
+  A change in these items during the call is `tree_changed`, as in a normal
   checkout, and the verdict is discarded. Except the restored trust paths above, they are not
   saved for reversion: each is reported as `not revertible: <path>`, like an
   altered ignored path.
@@ -227,11 +225,11 @@ manifest: the hash list, the `status` list, `ls-files -v --stage`,
 the digest in the delegate's own session output, never in a file the CLI can
 reach. This detects tampering with the copies; it does not prevent it.
 
-## 2. Compare the live tree, after the call (R5)
+## 2. Compare the live tree, after the call
 
 Before part A, verify the freeze: recompute the `sha256sum` of `live.tar` and of
 the manifest files and compare with the digest the delegate kept. A mismatch
-is `change detected` plus `freeze tampered`: nothing is restored from the
+is `tree_changed` plus `freeze tampered`: nothing is restored from the
 copies, no git command runs, and the report lists only the digest mismatch and
 a `find` listing of the live trust paths for the owner to restore by hand (no
 `cmp` against the untrusted copies). This is detection, not prevention: a CLI
@@ -274,22 +272,22 @@ absent at the freeze. On a difference, restore from the freeze copy or remove
 the planted file before any git command. If it cannot be restored or removed,
 no git command runs at all: skip part B and the reversion, and record the
 verdict as discarded, not-run, with the reason `not revertible`. No git
-command runs in part A. A difference here is `change detected`.
+command runs in part A. A difference here is `tree_changed`.
 
 Order: every part A byte comparison and restoration happens before the first git
 command of part B; the git commands of part B and of the reversion (items 3 to
 5 of section 4) run only after part A reports no remaining difference.
 
 Part B, then the git-based comparison. Recompute every other item of section 1
-and compare each with the freeze. Any difference is `change detected`: a path
+and compare each with the freeze. Any difference is `tree_changed`: a path
 created (absent, now present), deleted or altered (a different hash, mode or
 link text); an index entry whose flag letter or blob id differs; a ref
 created, moved or deleted (`for-each-ref` differs). The verdict is discarded
 regardless of what the CLI said, the rest of the reversion of section 4 (items
 1 and 2 for the other paths, then items 3 to 5) runs, and the report says
-`change detected`.
+`tree_changed`.
 
-## 3. Freeze and compare the clone (R6)
+## 3. Freeze and compare the clone
 
 Right after the match of clone-isolation.md step 2, record the judged set: the
 tracked paths (`R5GIT -C <clone path> ls-files -z`) and the untracked
@@ -299,7 +297,7 @@ each with its hash (`deleted` when absent).
 Before the clone is removed, recompute the hash of each path of that initial
 set:
 
-- A changed hash, or a removed path of the set, is `change detected`. The
+- A changed hash, or a removed path of the set, is `tree_changed`. The
   verdict is discarded and nothing is reverted: the clone is thrown away.
 - Ignored paths of the clone and any new untracked file are outside the set.
   Neither reaches the live tree nor changes the judged content, so neither
@@ -307,7 +305,7 @@ set:
   is not in the initial set) is recorded as a note in the call's report.
 - The clone's `.git`, including `dh-cli.lock`, is not compared.
 
-## 4. Revert the live tree (R5)
+## 4. Revert the live tree
 
 Revert from the freeze copies, and for a clean tracked path from `HEAD` (item
 3). Never write through an existing path: what is there now is removed first,
@@ -316,7 +314,7 @@ Items 1 and 2 first restore the trust paths and the `.gitattributes` files, in
 part A of section 2, with no git command; in part B they run again for every
 other path. Items 3 to 5 run only in part B, after part A. Afterwards recompute
 section 1 and confirm it equals the freeze; if it does not, report `reversion
-incomplete` beside `change detected`.
+incomplete` beside `tree_changed`.
 
 1. **A path created** (absent before): `rm -rf -- <path>`, which does not
    follow a symlink. A tracked path saved with letter `S` whose worktree file
@@ -384,14 +382,14 @@ incomplete` beside `change detected`.
    the trust paths, so a `packed-refs` that differs after this item is
    restored again from the freeze copy (item 2, no git command).
 
-The reversion restores what R5 saved copies for, `config.worktree` included. The
+The reversion restores what the live-tree freeze saved copies for, `config.worktree` included. The
 other git-dir items of section 1 are detected and reported as
-`not revertible: <path>`, never reverted. It does not restore what R5 does not name:
+`not revertible: <path>`, never reverted. It does not restore what that freeze does not name:
 objects a `git tag -a` wrote, reflogs and the other live git-dir paths listed
 in clone-isolation.md section 7 stay as the CLI left them, and the verdict is
 already discarded.
 
-## 5. The prompt (R4, R7)
+## 5. The prompt
 
 The prompt carries the context as it does today: role, skill and bundle. A clone
 call writes it to a file created by `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )`,
@@ -403,13 +401,13 @@ own cleanup.) It
 keeps the `commands.test`/`commands.lint` block from the anti-delegation
 clause, and those commands run in the clone.
 
-R4 is hygiene, not a boundary. The prompt must not contain the absolute path
+The no-live-path rule is hygiene, not a boundary. The prompt must not contain the absolute path
 of the live tree; check with `grep -F -- "<absolute path of the project>" <prompt file>`,
 which must find nothing. The CLI can find that path by other means (the
 comparisons above detect what it does with it), so this does not prevent a
 write.
 
-R7. An artifact that a legitimate test generates in the clone (an ignored file
+An artifact that a legitimate test generates in the clone (an ignored file
 or a new untracked file) is outside the judged set and does not discard the
 verdict; a test that rewrites a tracked file discards it like any other change.
 A check result a CLI reports is never evidence: a dispatched `qa-verifier`
@@ -421,7 +419,7 @@ approval.
 
 ## 6. What the report carries
 
-The "Workspace check" line of the Output format in `SKILL.md` takes, for a
+The "Workspace check" line of the reply block in `SKILL.md` ("Who runs the call") takes, for a
 call in a clone: `clean` or `reverted (<what changed, now reverted>)` for the
 live tree; `clone removed: <path>` once the clone is gone; and
 `notes: <new untracked files in the clone>` when section 3 found any; and
@@ -429,7 +427,7 @@ live tree; `clone removed: <path>` once the clone is gone; and
 altered ignored path is reported as `not revertible: <path>`.
 
 The residual of clone-isolation.md section 7 applies unchanged: disposable
-clone; writes outside it are detected on the live tree (R5), never prevented;
+clone; writes outside it are detected on the live tree, never prevented;
 writes outside the project are not detected. It also holds for the freeze
 directory. It contains copies of the `<harness dir>`, of `.harness/`, of `.claude/settings*.json` and of
 the dirty or untracked non-ignored files, it sits in `<tmp root>`, and a

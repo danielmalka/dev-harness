@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.0 — 2026-11-02
+
+- **Skill `external-clis` reorganizada**: o `SKILL.md` ficou só com o procedimento genérico e uma tabela-índice de binários (binário, isolamento, receita); cada receita em `references/` segue os mesmos campos fixos (invocação, entrada do prompt, isolamento, flag de modelo, timeout, captura da saída, sinais de falha, armadilhas, medido em, com `unknown` onde não há medição). Um único contrato de veredito e uma tabela de classificação de falhas com os tipos `not_installed`, `auth_required`, `rate_limited`, `timed_out`, `no_signal`, `tree_changed` e `isolation_unavailable`. Duas referências novas, `live-tree-compare.md` e `planning-call.md`; ids internos removidos.
+- **Chamada de CLI não rodada**: não há nova tentativa automática; o Coordenador avisa o dono na hora, com o revisor e o motivo classificado.
+- Sem agente, skill nem comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
+
 ## 0.37.0 — 2026-10-31
 
 - **Contexto enxuto do Coordenador (PRD-032, ADR-010)**: cada subagente responde dentro de um teto de 200 palavras, com formato próprio por papel; relatório com mais de 40 linhas vai para `<pasta da tarefa>/reports/<papel>-<n>.md`, escrito por `builder`, `qa-verifier`, `docs-guide` ou `debugger`. O `reviewer` e o `repo-scout` não têm ferramenta de escrita e respondem inline. Com mais de um revisor na etapa, um `docs-guide` funde os relatórios em `reports/<etapa>-merged-<rodada>.md`, e o Coordenador lê só esse arquivo.
