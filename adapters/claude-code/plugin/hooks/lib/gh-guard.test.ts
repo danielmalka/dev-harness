@@ -53,7 +53,7 @@ const denied = [
   // owner decision 2026-11-04: `git` plus a write word anywhere is denied; the p4 false positive is accepted
   "sed 's/p4/x/' f | git commit-tree", 'git log --oneline | grep p4', 'git status && echo p4', 'grep -n "git" f | sed "s/p4/x/"',
   // F3: a bare glob token stays out of the read form
-  'gh api repos/o/r/issues ?F title=x', 'gh api ?x repos/o/r',
+  'gh api repos/o/r/issues ?F title=x', 'gh api ?x repos/o/r', 'gh repo view --repo o/r?ref=main',
   // fix-r2 G1: with `$` or a backtick the verb may come from an expansion, so the write word counts anywhere
   'git $(:; echo push)', 'git $(\necho push)', 'x=push; git $x', 'set -- push; git "$@"', 'for v in push; do git $v; done',
   'git -C $(pwd | cat) push', 'git `echo push`',
@@ -176,5 +176,8 @@ test('cloneAsk: PowerShell', () => {
     expect(cloneAsk('git `' + nl + 'clone https://h/o/r', true)).toBe('o/r')
     expect(cloneAsk('gh repo \\' + nl + 'clone o/r')).toBe('o/r')
     expect(cloneAsk('git clone \\' + nl + 'https://h/o/r')).toBe('o/r')
+    // in-word continuation (BUG-053-FU)
+    expect(cloneAsk('git cl\\' + nl + 'one https://h/o/r')).toBe('o/r')
+    expect(cloneAsk('git cl`' + nl + 'one https://h/o/r', true)).toBe('o/r')
   }
 })

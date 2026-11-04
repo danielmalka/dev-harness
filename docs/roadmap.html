@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-11-04</b></span>
-          <span class="chip">status <b>0.38.1 · vivo</b></span>
+          <span class="chip">status <b>0.38.2 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.38.2 · Resíduos da guarda de gh</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> A pergunta de clone remoto (#54) agora vê uma continuação de linha no meio da palavra (<code>git cl\&lt;LF&gt;one &lt;url&gt;</code>, ou crase no PowerShell), testando a continuação como espaço e como nada. O <code>?</code> só vale como leitura em <code>gh api</code>; em outros grupos (<code>gh repo view --repo o/r?ref=main</code>) deixa de ser leitura. Sem agente, skill nem comando novo (13 agentes, 22 skills, 19 + 1 comandos).</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.38.2.</p>
+        <p><strong>Testado?</strong> Não verificado pelo docs-guide: as checagens citadas são dado dos builders. Sem eval nova.</p>
+      </div>
 
       <div class="card">
         <h3>0.38.1 · Correções das issues #53 e #54</h3>
@@ -1856,7 +1864,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.38.1, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.38.2, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
