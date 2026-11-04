@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.38.1 — 2026-11-04
+
+- **Correções das issues #53 e #54**:
+  - **`dh link`**: continua saindo com 0; quando a pasta ligada não tem marcador de harness (`project.yaml`, `MEMORY.md`, `EPOCHAL.md`, `RISKS.md`, `tasks/`, `prd/`), avisa no stderr e manda rodar `/dh:setup`.
+  - **`dh doctor`**: fora de um checkout do kit, imprime "kit validation: not applicable (not a kit checkout)" e não falha; uma falha real de validação do kit nomeia a checagem que falhou e os marcadores de layout esperados.
+  - **`/dh:setup`**: caminho só de documentação para pasta que não é git (comandos `null`, `REVIEW.md` lista os documentos críticos, formato do `project.yaml` a partir de `profiles/examples/project.yaml`).
+  - **Guarda de `gh` (mod)**: a detecção de escrita em git não muda nesta versão; vale a regra do 0.38.0 (`git` mais uma palavra de escrita em qualquer lugar do comando). Trade-off aceito: o falso positivo de `git p4` (issue #53) continua; contorno: subagentes usam as ferramentas Grep e Read em vez de um pipeline no Bash. `?` é aceito em leituras de `gh api` (por exemplo `?ref=<sha>`).
+  - **Clone ou download de repositório remoto (#54)**: `git clone`, `gh repo clone`, `gh api` de tarball ou zipball e `git fetch <url>` pedem autorização do dono. No Claude Code, o mod pergunta ao dono (aviso com o nome do repositório) para todo tipo de agente e na sessão principal; os subagentes do kit (`dh:*`) mantêm a negativa existente para `gh repo clone`. `gh search code` e leitura de arquivo por `gh api` passam sem aviso. A checagem é por palavra e falha para o lado seguro: pode pedir também em comandos como `git fetch origin main:main`.
+- Sem agente, skill nem comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
+
 ## 0.38.0 — 2026-11-02
 
 - **Skill `external-clis` reorganizada**: o `SKILL.md` ficou só com o procedimento genérico e uma tabela-índice de binários (binário, isolamento, receita); cada receita em `references/` segue os mesmos campos fixos (invocação, entrada do prompt, isolamento, flag de modelo, timeout, captura da saída, sinais de falha, armadilhas, medido em, com `unknown` onde não há medição). Um único contrato de veredito e uma tabela de classificação de falhas com os tipos `not_installed`, `auth_required`, `rate_limited`, `timed_out`, `no_signal`, `tree_changed` e `isolation_unavailable`. Duas referências novas, `live-tree-compare.md` e `planning-call.md`; ids internos removidos.

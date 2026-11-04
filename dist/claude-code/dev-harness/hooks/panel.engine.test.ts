@@ -418,3 +418,16 @@ test('27i PowerShell without a string command is denied as unreadable for a kit 
   expect(((await $.tool.call({ tool: 'PowerShell', agentId: undefined } as any)) as any).deny).toBe(undefined)
   expect(((await $.tool.call({ tool: 'Monitor', agentId: 'ag1' } as any)) as any).deny).toBe(undefined)
 })
+
+test('issue 54: tool.check asks naming the repo for a remote clone; reads and a rule deny are untouched', async ($, on) => {
+  world(on)
+  let verdict: any = { decision: 'allow' }
+  on('tool.check', () => verdict)
+  const check = (command: string) => $.tool.check({ tool: 'Bash', input: { command } } as any) as Promise<any>
+  const a = await check('git clone https://github.com/o/r.git')
+  expect([a.decision, a.reason]).toEqual(['ask', expect.stringContaining('o/r')])
+  expect((await check('git clone git@host:.git')).decision).toBe('ask') // empty repository name still asks
+  expect((await check('git clone ../local d')).decision).toBe('allow')
+  verdict = { decision: 'deny', reason: 'rule' }
+  expect((await check('git clone https://github.com/o/r.git')).decision).toBe('deny')
+})

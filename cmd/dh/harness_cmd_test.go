@@ -210,3 +210,25 @@ func TestConfigCommand(t *testing.T) {
 		t.Errorf("after unset: %q", out)
 	}
 }
+
+func TestLinkWarnsWhenNoHarnessMarker(t *testing.T) {
+	home, repo := env(t)
+	if err := os.MkdirAll(filepath.Join(home, "projects", "demo", "pdocs"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	code, out, e := dh(t, "link", "demo", repo)
+	if code != 0 || !strings.Contains(out, "mode: none") {
+		t.Fatalf("%d %q", code, out)
+	}
+	if !strings.Contains(e, "no harness marker") || !strings.Contains(e, "project.yaml") || !strings.Contains(e, "/dh:setup") {
+		t.Errorf("missing warning: %q", e)
+	}
+}
+
+func TestLinkNoWarningWhenHarness(t *testing.T) {
+	_, repo := env(t)
+	code, _, e := dh(t, "link", repo)
+	if code != 0 || e != "" {
+		t.Errorf("%d %q", code, e)
+	}
+}

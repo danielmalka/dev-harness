@@ -1,6 +1,7 @@
 package doctor
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -32,8 +33,10 @@ func Run(target string, out io.Writer) int {
 
 	report, err := kit.Validate(target, kit.Options{})
 	validateStatus := 0
-	if err != nil {
-		fmt.Fprintln(out, err)
+	if errors.Is(err, kit.ErrUnrecognizedLayout) {
+		fmt.Fprintln(out, "kit validation: not applicable (not a kit checkout)")
+	} else if err != nil {
+		fmt.Fprintln(out, "kit validation failed:", err)
 		validateStatus = 1
 	} else {
 		kit.WriteReport(out, report)

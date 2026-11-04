@@ -17,6 +17,8 @@ Target and notes: $ARGUMENTS (default to the current working directory and say s
 
 Review guide, in both modes (skill `project-onboarding`): when the project has no review guide file, dispatch a specialist (`builder`, lane `infra`; not the Coordinator, since the file is new) to create `REVIEW.md` at the repository root from `templates/en/REVIEW.md`, then write `review_guide: REVIEW.md` (a repository-relative path, never absolute or with `..`) in `project.yaml`. The file is always English, whatever `language` says. When the file exists but the key is absent, record the key and leave the file untouched. When the key points to an existing file, change nothing. Never overwrite.
 
+Docs-only project (no code): a folder that is not a git repository is accepted; record `commands` fields as null; `REVIEW.md` lists only the critical documents or paths; the `project.yaml` shape comes from `profiles/examples/project.yaml`.
+
 Repository bootstrap (opt-in, skill `project-onboarding`): after the profile, offer to write the repository map `<harness dir>/REPO-MAP.md`; the owner accepts or declines. With `bootstrap` in the arguments, skip the profile and refresh only the map. Get the `HEAD` sha from a `qa-verifier` run (`git rev-parse HEAD`) and dispatch `docs-guide` (model `sonnet`, skills `repository-mapping` and `project-onboarding`) with it and the `repo-scout` findings; when it reports more than 15 top-level directories, ask the owner to name the scope. In `repo` mode the file is versioned.
 
 ## Prerequisites
