@@ -97,3 +97,18 @@ func Link(home, repo, name string, off bool) (Resolved, error) {
 	}
 	return resolveIn(home, repo, c), nil
 }
+
+// LinkedDir is the <home>/projects/<name> folder the registry maps repo to, or "" when unlinked.
+func LinkedDir(home, repo string) string {
+	c, err := LoadConfig(home)
+	if err != nil {
+		return ""
+	}
+	if cr, err := canon(repo); err == nil {
+		repo = cr
+	}
+	if name, ok := c.Projects[repo]; ok && validName(name) {
+		return filepath.Join(home, "projects", name)
+	}
+	return ""
+}

@@ -40,3 +40,14 @@ func TestRunReportsRequiredSectionsAndMatchesValidator(t *testing.T) {
 		})
 	}
 }
+
+func TestRunNotKitCheckoutIsNotAFailure(t *testing.T) {
+	t.Setenv("DH_HOME", t.TempDir())
+	var output bytes.Buffer
+	if status := Run(t.TempDir(), &output); status != 0 {
+		t.Fatalf("status %d\n%s", status, output.String())
+	}
+	if !strings.Contains(output.String(), "kit validation: not applicable (not a kit checkout)") {
+		t.Errorf("missing not-applicable line:\n%s", output.String())
+	}
+}

@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { ghDenied, ghWriteVerb } from './gh-guard.ts'
+import { cloneAsk, ghDenied, ghWriteVerb } from './gh-guard.ts'
 
 // PRD-027 R2. Denied: any string verb.
 const denied = [
@@ -43,7 +43,20 @@ const denied = [
   'GH pr merge 1', 'Git push', 'git-lfs push origin main', 'gh api --hostname evil.example repos/o/r',
   'gh api --hostname=evil.example repos/o/r', 'gh api https://evil.example/x', 'GH pr view 1',
   // accepted false positives (PRD 2.3)
-  'cd x && gh pr view 1', 'git log --grep push', 'git log --grep=push', 'git commit -m "push the fix"', "rg 'git push' docs",
+  'cd x && gh pr view 1', "rg 'git push' docs",
+  // BUG-053 item 4: the write word is the git subcommand, after global options
+  'git -C x p4 submit', 'git -c a=b svn dcommit', 'git --git-dir x push', 'git --git-dir=x --work-tree y subtree push',
+  'git --no-pager -C x push', 'git --namespace n push', 'echo x | git -C d push',
+  // BUG-053 fix-r1 F1: the write word anywhere in the git segment; xargs-fed git; accepted segment false positives
+  'git -C "/tmp/a b" push', 'git -c "user.name=a b" push', 'echo push | xargs git', "git $'push'", 'git {push,}',
+  'git --attr-source HEAD push', 'git log --grep push', 'git commit -m "push the fix"', 'git 2>&1 push',
+  // owner decision 2026-11-04: `git` plus a write word anywhere is denied; the p4 false positive is accepted
+  "sed 's/p4/x/' f | git commit-tree", 'git log --oneline | grep p4', 'git status && echo p4', 'grep -n "git" f | sed "s/p4/x/"',
+  // F3: a bare glob token stays out of the read form
+  'gh api repos/o/r/issues ?F title=x', 'gh api ?x repos/o/r',
+  // fix-r2 G1: with `$` or a backtick the verb may come from an expansion, so the write word counts anywhere
+  'git $(:; echo push)', 'git $(\necho push)', 'x=push; git $x', 'set -- push; git "$@"', 'for v in push; do git $v; done',
+  'git -C $(pwd | cat) push', 'git `echo push`',
 ]
 const allowed = [
   'gh pr view 1 --json title', 'gh pr diff 1', 'gh api repos/o/r/pulls/1', 'gh api repos/o/r/pulls/1 --jq .title',
@@ -60,6 +73,11 @@ const allowed = [
   'git status --porcelain -uall', '/usr/bin/gh pr view 1', 'gh auth status -h github.com', 'gh auth status --active',
   'gh auth status --hostname=h.example -a', 'gh pr view 1 -R o/r', 'gh pr -R o/r view 1', 'gh run watch 123', 'git log --oneline',
   'npm run gh-pages', 'ghq list', 'git status', 'gh pr view 1', 'gh api repos/o/r --jq .name', 'git log', 'ls gh-pages',
+  // BUG-053 items 4 and 5
+  'gh api repos/o/r/contents/p?ref=abc123',
+  'gh api repos/o/r/contents/p?ref=abc --jq .sha',
+  // fix-r2 G1: `$` without a write word, and a stray `git` / `p4` without `$`, still pass
+  'git log $(git rev-parse HEAD)', 'git -C $(pwd) status', 'echo $HOME | git commit-tree',
 ]
 
 test('ghWriteVerb: denied commands return a verb', () => {
@@ -95,4 +113,68 @@ test('ghDenied: scope by agent type', () => {
   expect(ghDenied('git push', 'a', 'dh:qa-verifier')).toEqual({ verb: 'git push', unknown: false })
   expect(ghDenied('git push', 'a', undefined)).toEqual({ verb: 'git push', unknown: true })
   expect(ghDenied('gh pr view 1', 'a', 'dh:qa-verifier')).toBe(undefined)
+})
+
+// BUG-053 item 5: `?` only; `&` and the flag table stay shut.
+test('ghWriteVerb: api query string', () => {
+  expect(ghWriteVerb('gh api repos/o/r/contents/p?ref=sha&x=1')).toBe('gh api')
+  expect(ghWriteVerb('gh api repos/o/r/contents/p?ref=sha -f a=b')).toBe('gh api')
+})
+
+// Issue #54: a remote clone or download asks the owner (never denies), naming the repository.
+const asks: [string, string][] = [
+  ['git clone https://github.com/o/r.git', 'o/r'], ['git clone --depth 1 -b main git@github.com:o/r.git d', 'o/r'],
+  ['cd /tmp && git clone ssh://git@host/o/r', 'o/r'], ['gh repo clone o/r', 'o/r'], ['gh repo clone o/r -- --depth 1', 'o/r'],
+  ['gh api repos/o/r/tarball/main', 'o/r'], ['gh api /repos/o/r/zipball', 'o/r'], ['gh api repos/o/r/tarball/v1 > x.tgz', 'o/r'],
+  ['git fetch https://github.com/o/r.git', 'o/r'], ['git fetch git@github.com:o/r.git main', 'o/r'],
+  ['git -C x clone https://h.example/o/r', 'o/r'], ['gh.exe repo clone o/r', 'o/r'],
+  // fix-r1 F2 and F4
+  ['git clone host:org/repo.git', 'org/repo'], ['git fetch host:org/repo.git', 'org/repo'], ['git clone -c "a=b c" host:org/repo.git', 'org/repo'],
+  ['gh repo fork o/r --clone', 'o/r'], ['git pull https://h.example/o/r', 'o/r'], ['git submodule add https://h.example/o/r d', 'o/r'],
+  ['git submodule add git@h.example:o/r.git', 'o/r'],
+  // fix-r2 G2: scp remote with a single path component; the repository is the first non-option argument
+  ['git clone host:repo', 'repo'], ['git clone --depth 1 -b main host:repo d', 'repo'], ['git fetch host:repo', 'repo'],
+  ['git pull host:repo main', 'repo'], ['git submodule add -b main host:repo d', 'repo'], ['git clone -c "a=b c" host:repo', 'repo'],
+  // fix-r2: clone / submodule add check every non-option argument (an unknown value option cannot hide the repository)
+  ['git clone ./local host:d', 'd'], ['git clone --reference-if-able /x https://h/o/r', 'o/r'], ['git clone --unknown-opt v host:o/r', 'o/r'],
+  ['git submodule add --unknown-opt v host:o/r', 'o/r'],
+  // owner decision 2026-11-04: word-based and fail-safe; no subcommand parsing
+  ['git -C fetch clone https://host/o/r', 'o/r'], ['git -c "user.name=\\";x" clone host:o/r', 'o/r'],
+  // fix-r4 H1: fork clone flag forms; H2: a remote hidden inside a token
+  ['gh repo fork o/r -c', 'o/r'], ['gh repo fork o/r --clone=1', 'o/r'], ['gh repo fork o/r --clone=t', 'o/r'],
+  ['git clone {git@github.com:o/r,}', 'o/r'], ['git -c remote.x.url=git@h:o/r fetch x', 'o/r'],
+  // fix-r5 J1: an empty repository name still asks; J2: remote add / archive --remote; J3: autocorrect hides the verb
+  ['git clone git@host:.git', 'a remote repository'], ['git remote add -f o https://host/a/b', 'a/b'],
+  ['git archive --remote=ssh://host/a/b HEAD', 'a/b'], ['git -c help.autocorrect=1 clon https://host/a/b', 'a/b'],
+  ['git fetch origin main:main', 'main'], ['git pull origin host:x', 'x'], ['git clone ./local host:d', 'd'],
+]
+const noAsk = [
+  'git clone ../local d', 'git clone /srv/repo.git', 'git fetch origin', 'git fetch', 'gh search code foo',
+  'gh api repos/o/r/contents/README.md', 'gh api repos/o/r/contents/p?ref=sha', 'gh pr view 1', 'git log --oneline',
+  'grep -rn "git clone https://x.example/o/r" docs/', 'git status',
+  'git pull', 'git pull origin main', 'git submodule update', 'gh repo fork o/r', 'gh repo view o/r --clone',
+  // fix-r2 G2: later arguments (refspecs, directories) are not the repository; one-letter hosts are drive letters
+  'git fetch origin a:bc', 'git remote -v', 'git remote add o ./local', 'git clone C:/x d', 'git clone ./a:b',
+]
+
+test('cloneAsk: remote clone and download forms name the repository', () => {
+  for (const [cmd, repo] of asks) expect([cmd, cloneAsk(cmd)]).toEqual([cmd, repo])
+})
+
+test('cloneAsk: reads and local clones produce no ask', () => {
+  for (const cmd of noAsk) expect([cmd, cloneAsk(cmd)]).toEqual([cmd, undefined])
+})
+
+test('cloneAsk: PowerShell', () => {
+  expect(cloneAsk('git clone https://github.com/o/r', true)).toBe('o/r')
+  expect(cloneAsk('git clone C:\\x d', true)).toBe(undefined)
+  // fix-r6: a line continuation (backtick or backslash + newline) is a space, so it cannot hide the verb
+  for (const nl of ['\n', '\r\n']) {
+    expect(cloneAsk('gh repo `' + nl + 'clone o/r', true)).toBe('o/r')
+    expect(cloneAsk('gh repo fork o/r `' + nl + '--clone', true)).toBe('o/r')
+    expect(cloneAsk('gh api `' + nl + 'repos/o/r/tarball', true)).toBe('o/r')
+    expect(cloneAsk('git `' + nl + 'clone https://h/o/r', true)).toBe('o/r')
+    expect(cloneAsk('gh repo \\' + nl + 'clone o/r')).toBe('o/r')
+    expect(cloneAsk('git clone \\' + nl + 'https://h/o/r')).toBe('o/r')
+  }
 })

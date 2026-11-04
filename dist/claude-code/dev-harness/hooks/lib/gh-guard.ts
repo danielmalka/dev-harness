@@ -14,7 +14,7 @@ const READ: Record<string, string[]> = {
   pr: ['view', 'diff', 'list', 'status', 'checks'], issue: ['view', 'list', 'status'], repo: ['view', 'list'],
   run: ['view', 'list', 'watch'], release: ['view', 'list'], workflow: ['view', 'list'],
 }
-const SAFE = /^[A-Za-z0-9 ._/:=,@%+-]+$/
+const SAFE = /^[A-Za-z0-9 ._/:=,@%+?-]+$/ // `?` for a query string; `&` stays out
 const API_FLAG = /^(--paginate|-i|--include|--silent)$/ // flags without a value
 const API_VALUE = /^(--jq|-q|--cache)$/ // flags with a value, consumed with the next token
 const API_EQ = /^(--jq|--cache)=/
@@ -27,6 +27,7 @@ function isGhRead(raw: string): boolean {
   let i = 1
   while (isR(t[i])) { if (i + 1 >= t.length) return false; i += 2 }
   const group = t[i]
+  if (t.some(x => x.includes('?') && !/^[^?-][^?]*\/[^?]*\?/.test(x))) return false // `?` only in an endpoint, never a bare glob
   if (!group || group === '--version' || group === 'status' || group === 'search') return true
   const rest = t.slice(i + 1)
   if (group === 'api' || group === 'auth') {
@@ -46,6 +47,37 @@ function isGhRead(raw: string): boolean {
     if (isR(rest[j])) { if (++j >= rest.length) return false } else a.push(rest[j]!)
   }
   return !!READ[group] && (!a[0] || READ[group]!.includes(a[0]))
+}
+
+// Issue #54: the repository a remote clone or download names, or undefined. The caller asks the owner (never denies).
+// Word-based and fail-safe: `git` plus clone / fetch / pull / submodule anywhere, and any token that looks remote
+// (a URL, `user@host:path`, or `host:path` with a host of 2+ chars, so `c:/x` is local). No subcommand parsing.
+// shortcut: `git fetch origin main:main` and `git clone ./local host:d` ask too; the ask is a prompt, never a deny.
+// Unanchored, so a remote inside a token (`{git@h:o/r,}`, `url=git@h:o/r`) is found; the match is the repository part.
+const REMOTE = /[^\s{,=]*:\/\/[^\s,}]*|[\w.-]+@[\w.-]+:[^\s,}]*|(?<![\w.-])[\w.-]{2,}:(?!\/\/)[^\s,}]+/
+const FETCHY = word('(?:clone|fetch|pull|submodule|remote|archive|autocorrect)') // autocorrect: `-c help.autocorrect=1 clon` hides the verb
+const repoOf = (a: string) => (a.replace(/[;&|)<>]+$/, '').replace(/^[\w.-]{2,}:(?!\/\/)/, '').replace(/^.*?(:\/\/[^/]*\/|@[^:]*:)/, '').replace(/\.git$|\/$/g, '').split('/').slice(-2).join('/')) || 'a remote repository' // never empty: the caller asks on `!== undefined`
+export function cloneAsk(command: string, powershell = false): string | undefined {
+  if (!powershell && /^\s*(grep|egrep|fgrep)\s/.test(command) && !/[;|&$()<>`\n]/.test(command)) return undefined
+  const lc = command.toLowerCase().replace(powershell ? /`\r?\n/g : /\\\r?\n/g, ' ').replace(/['"]/g, '')
+  // Bash: backslashes removed, and as `/`; PowerShell: backtick removed, backslash as `/`.
+  for (const t of powershell ? [lc.replace(/`/g, '').replace(/\\/g, '/')] : [lc.replace(/\\/g, ''), lc.replace(/\\/g, '/')]) {
+    const r = GIT.test(t) && FETCHY.test(t) && REMOTE.exec(t)
+    if (r) return repoOf(r[0])
+    for (const m of t.matchAll(new RegExp(GH.source, 'g'))) {
+      const tok = t.slice(m.index! + 2).replace(/^\.exe/, '').split(/[;|&\n]/)[0]!.trim().split(/\s+/)
+      const plain = tok.filter(x => !x.startsWith('-'))
+      if (plain[0] === 'repo' && (plain[1] === 'clone' || (plain[1] === 'fork' && tok.some(x => x === '-c' || x.startsWith('--clone'))))) return repoOf(plain[2] ?? 'the current repository')
+      const dl = plain[0] === 'api' && plain.find(x => /tarball|zipball/.test(x))
+      if (dl) return /repos\/([^/]+\/[^/]+)/.exec(dl)?.[1] ?? repoOf(dl)
+    }
+  }
+  return undefined
+}
+
+export const ASK_MSG = {
+  en: (repo: string) => `dev-harness: this command downloads the remote repository \`${repo}\`. Confirm with the owner before it runs.`,
+  'pt-br': (repo: string) => `dev-harness: este comando baixa o repositório remoto \`${repo}\`. Confirme com o dono antes de rodar.`,
 }
 
 // The name for the deny message: `gh pr merge`, `git push`, or just `gh` / `git`.

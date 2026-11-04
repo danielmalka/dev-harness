@@ -174,6 +174,9 @@ func resolveTarget(target string) (string, error) {
 	return resolved, nil
 }
 
+// ErrUnrecognizedLayout: the target is neither the kit source nor the generated package.
+var ErrUnrecognizedLayout = errors.New("unrecognized layout")
+
 func detectLayout(target string, sourceOnly bool) (string, error) {
 	if isDir(filepath.Join(target, "agents")) && isDir(filepath.Join(target, ".claude-plugin")) {
 		return "package", nil
@@ -185,7 +188,7 @@ func detectLayout(target string, sourceOnly bool) (string, error) {
 		}
 		return "source", nil
 	}
-	return "", fmt.Errorf("unrecognized layout: %s", target)
+	return "", fmt.Errorf("%w: %s (expected .agents/ and .commands/ for the source layout, or agents/ and .claude-plugin/ for the package)", ErrUnrecognizedLayout, target)
 }
 
 func layoutDirs(target, layout string) map[string]string {

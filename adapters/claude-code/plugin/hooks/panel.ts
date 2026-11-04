@@ -7,7 +7,7 @@ import {
   COMMIT, commandDir, deniesAiMention, gateAt, type Harness, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand,
   isHarnessPath, MSG, native, parseGateCommands, parseHarness, parseLanguage, taskStatus,
 } from './lib/gate.ts'
-import { GH_MSG, ghDenied } from './lib/gh-guard.ts'
+import { ASK_MSG, GH_MSG, cloneAsk, ghDenied } from './lib/gh-guard.ts'
 export { commandDir, deniesAiMention, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand, isHarnessPath, native, parseGateCommands, parseHarness, parseLanguage, resolvePath, taskStatus }
 
 // ponytail: module-level state; a mod reload resets the gate (current session only).
@@ -367,6 +367,17 @@ export const register: Register = on => {
       // a PowerShell call without a readable command is denied for a kit subagent; a Monitor without one is not a shell command
       const denied = ok || tool === 'PowerShell' ? await guardGh($, ok ? e.command : '', e.agentId, !ok, tool === 'PowerShell').catch(() => undefined) : undefined
       return denied ? { deny: denied } : next(e)
+    }).catch(failOpen)
+  }
+
+  // Issue #54: a remote clone or download asks the owner, for every agent type and the main session. The deny
+  // above runs first at tool.call, so a command it refuses never gets here; an existing deny from the rules stays.
+  for (const tool of ['Bash', 'Monitor', 'PowerShell']) {
+    on('tool.check', { tool } as any, async ($, e: any, next) => {
+      const r = await next(e)
+      const cmd = e.input?.command
+      const repo = r.decision === 'deny' || typeof cmd !== 'string' ? undefined : cloneAsk(cmd, tool === 'PowerShell')
+      return repo !== undefined ? { ...r, decision: 'ask' as const, reason: ASK_MSG[(await readProject($)).lang](repo) } : r
     }).catch(failOpen)
   }
 

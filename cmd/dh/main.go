@@ -331,6 +331,9 @@ func runLink(args []string, stdout, stderr io.Writer) int {
 	} else {
 		printResolved(stdout, r)
 	}
+	if d := harness.LinkedDir(home, dir); r.Mode == "none" && d != "" {
+		fmt.Fprintf(stderr, "warning: link stored, but %s has no harness marker yet (project.yaml, MEMORY.md, EPOCHAL.md, RISKS.md, tasks/ or prd/); run /dh:setup to create the harness\n", d)
+	}
 	return 0
 }
 
