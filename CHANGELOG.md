@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.39.0 — 2026-11-04
+
+- **Oferta de limpeza no fim do fluxo**: ao fim de um fluxo, de preferência depois do merge e da tag, o Coordenador oferece remover os worktrees e as branches locais que deixam de ser usados, em lista numerada para o dono escolher item a item. A segunda lista, separada, traz outras branches locais já mescladas na branch padrão (conferidas contra ela, não só por `git branch -d`; branch só local é sinalizada). Nada sai sem o sim do dono, nunca `--force`, e o item mantido vai ao `MEMORY.md`. As checagens de segurança do worktree em `.commands/build.md` ficam e passam a preparar a oferta em vez de remover sozinhas.
+- Sem agente, skill nem comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
+
 ## 0.38.2 — 2026-11-04
 
 - **Guarda de `gh` (mod), dois resíduos do 0.38.1**: a pergunta de clone remoto agora também vê uma continuação de linha no meio da palavra (`git cl\<LF>one <url>`, ou crase no PowerShell), testando a continuação como espaço e como nada; e o `?` só vale como leitura em `gh api` (`gh repo view --repo o/r?ref=main` não é leitura).
