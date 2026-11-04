@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.2 — 2026-11-04
+
+- **Guarda de `gh` (mod), dois resíduos do 0.38.1**: a pergunta de clone remoto agora também vê uma continuação de linha no meio da palavra (`git cl\<LF>one <url>`, ou crase no PowerShell), testando a continuação como espaço e como nada; e o `?` só vale como leitura em `gh api` (`gh repo view --repo o/r?ref=main` não é leitura).
+- Sem agente, skill nem comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
+
 ## 0.38.1 — 2026-11-04
 
 - **Correções das issues #53 e #54**:

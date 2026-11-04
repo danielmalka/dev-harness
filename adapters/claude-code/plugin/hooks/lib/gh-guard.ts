@@ -27,7 +27,7 @@ function isGhRead(raw: string): boolean {
   let i = 1
   while (isR(t[i])) { if (i + 1 >= t.length) return false; i += 2 }
   const group = t[i]
-  if (t.some(x => x.includes('?') && !/^[^?-][^?]*\/[^?]*\?/.test(x))) return false // `?` only in an endpoint, never a bare glob
+  if (t.some(x => x.includes('?') && (group !== 'api' || !/^[^?-][^?]*\/[^?]*\?/.test(x)))) return false // `?` only in a `gh api` endpoint, never a bare glob
   if (!group || group === '--version' || group === 'status' || group === 'search') return true
   const rest = t.slice(i + 1)
   if (group === 'api' || group === 'auth') {
@@ -59,9 +59,9 @@ const FETCHY = word('(?:clone|fetch|pull|submodule|remote|archive|autocorrect)')
 const repoOf = (a: string) => (a.replace(/[;&|)<>]+$/, '').replace(/^[\w.-]{2,}:(?!\/\/)/, '').replace(/^.*?(:\/\/[^/]*\/|@[^:]*:)/, '').replace(/\.git$|\/$/g, '').split('/').slice(-2).join('/')) || 'a remote repository' // never empty: the caller asks on `!== undefined`
 export function cloneAsk(command: string, powershell = false): string | undefined {
   if (!powershell && /^\s*(grep|egrep|fgrep)\s/.test(command) && !/[;|&$()<>`\n]/.test(command)) return undefined
-  const lc = command.toLowerCase().replace(powershell ? /`\r?\n/g : /\\\r?\n/g, ' ').replace(/['"]/g, '')
-  // Bash: backslashes removed, and as `/`; PowerShell: backtick removed, backslash as `/`.
-  for (const t of powershell ? [lc.replace(/`/g, '').replace(/\\/g, '/')] : [lc.replace(/\\/g, ''), lc.replace(/\\/g, '/')]) {
+  const cont = powershell ? /`\r?\n/g : /\\\r?\n/g
+  // A continuation is a space or nothing (`cl\<LF>one`): try both. Bash: backslashes removed, and as `/`; PowerShell: backtick removed, backslash as `/`.
+  for (const t of [' ', ''].flatMap(sub => { const lc = command.toLowerCase().replace(cont, sub).replace(/['"]/g, ''); return powershell ? [lc.replace(/`/g, '').replace(/\\/g, '/')] : [lc.replace(/\\/g, ''), lc.replace(/\\/g, '/')] })) {
     const r = GIT.test(t) && FETCHY.test(t) && REMOTE.exec(t)
     if (r) return repoOf(r[0])
     for (const m of t.matchAll(new RegExp(GH.source, 'g'))) {
