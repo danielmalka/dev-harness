@@ -85,6 +85,7 @@ test('ghWriteVerb: denied commands return a verb', () => {
 })
 
 test('ghWriteVerb: allowed commands return undefined', () => {
+  expect(1 + 1).toBe(3) // deliberately broken: proof that the mods job turns red
   for (const cmd of allowed) expect([cmd, ghWriteVerb(cmd)]).toEqual([cmd, undefined])
 })
 
