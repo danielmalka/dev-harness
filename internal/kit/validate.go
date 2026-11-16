@@ -782,7 +782,7 @@ func iterTextFiles(root string) []string {
 			return nil
 		}
 		if entry.IsDir() {
-			if contains([]string{".git", "dist", "node_modules", "__pycache__", ".codegraph", ".understand-anything", ".pytest_cache"}, entry.Name()) {
+			if contains([]string{".git", "dist", "node_modules", "__pycache__", ".codegraph", ".understand-anything", ".pytest_cache", ".worktrees"}, entry.Name()) {
 				return filepath.SkipDir
 			}
 			return nil

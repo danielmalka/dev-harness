@@ -10,6 +10,8 @@
 | Depends on | PRD-014 (global harness, delivered), PRD-008 and ADR-002 (clone isolation of CLI reviewers, delivered) |
 | Delivery | One pull request, version 0.33.0 |
 
+Note 2026-11-16: R63 (the sibling folder `<checkout>.worktrees`) is replaced by PRD-033: the worktree folder is `<checkout>/.worktrees/<task-id>`. The rest of this PRD stands.
+
 ## 1. Problem
 
 Two needs ride in one batch. Both belong to the development flow.

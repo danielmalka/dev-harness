@@ -45,6 +45,9 @@ The project must have `.harness/` and `.claude/settings*.json` git-ignored. If
 it does not, the live tree holds them as tracked or untracked files, the clone
 would carry them, the absence checks in step 2 fail, and every call ends as
 `isolation_unavailable`. It is never fixed up by deleting them from the clone.
+The development worktrees of the kit live in `<project>/.worktrees/`, which must
+be git-ignored too (`/dh:setup` adds the line): otherwise their files are
+untracked, the clone would copy them and the comparison would judge them.
 
 ## 1. Create the clone
 
@@ -293,7 +296,11 @@ Residuals of accepting a linked worktree, not detected or not prevented (ADR-008
   to the `.git/config` of a normal checkout);
 - the tree of the main checkout and of other worktrees is outside the
   `<project>` of the call and falls under "a write outside the project
-  directory" in (a) below;
+  directory" in (a) below. When the `<project>` is the main checkout, the
+  worktrees in its ignored `.worktrees/` folder are inside it: the
+  `--ignored` status lists them, so a builder write there during the call
+  discards the verdict (a false alarm, never a miss; review the worktree path
+  instead of the main checkout while a worktree is being written);
 - the gitfile can be swapped between the validation and the clone; this is
   detected only if the swap persists until the second snapshot;
 - the global harness dir stays outside the freeze of this clone procedure.

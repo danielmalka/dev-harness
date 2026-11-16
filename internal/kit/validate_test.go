@@ -223,6 +223,23 @@ func TestPrivatePathsSkipEvalsBaselinesAndResults(t *testing.T) {
 	}
 }
 
+// A development worktree lives in <repo>/.worktrees/<id> (PRD-033) and holds a full copy of the repository: the walkers must not
+// read it as part of the repository, or every private path, link and secret check runs twice and fails on the copy.
+func TestValidateSkipsWorktreesFolder(t *testing.T) {
+	root := syntheticRoot(t)
+	writeFixture(t, filepath.Join(root, "evals", "cases", "x", "notes.md"), "clean\n")
+	writeFixture(t, filepath.Join(root, ".worktrees", "T-1", "evals", "cases", "x", "notes.md"), "path /home/someone/project\n")
+	writeFixture(t, filepath.Join(root, ".worktrees", "T-1", "docs", "a.md"), "[broken](missing.md)\n")
+
+	report, err := Validate(root, Options{SkipMinimumCounts: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if joined := strings.Join(report.Errors, "\n"); strings.Contains(joined, ".worktrees") {
+		t.Fatalf("errors = %v, want the .worktrees folder skipped", report.Errors)
+	}
+}
+
 func TestAntiDelegationClauseParity(t *testing.T) {
 	block := "## External CLI reviewers\n\n```\nrule one\nrule two\n```\n"
 	skillBlock := "## The anti-delegation clause\n\n```\nrule one\nrule two\n```\n"

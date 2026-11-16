@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aceito (validação de documento aprovada em 2026-10-27, rodada 2) |
+| Status | aceito (validação de documento aprovada em 2026-10-27, rodada 2); D1 emendada em 2026-11-16 pelo PRD-033 (a pasta passa a ser `<checkout>/.worktrees/<task-id>`) |
 | Data | 2026-10-27 |
 | Decisor | Daniel Malka (dono), PRD-028 aprovado em 2026-10-27 com as suposições A1–A8 |
 | Origem | PRD-028 (R1–R36, R56, R61–R63); pendências do PRD: pasta do worktree (A5) e ferramenta do motor × `git worktree add` |
@@ -62,15 +62,21 @@ D5 e D6 têm uma opção viável cada (R9; R22–R25); a seção 3 registra só 
 
 ## 3. Decisão
 
-### D1 · Pasta: A, irmã do checkout principal
+### D1 · Pasta: dentro do checkout principal, `.worktrees/` (emenda de 2026-11-16, PRD-033)
 
-- Caminho: `<pai do checkout principal>/<nome da pasta do checkout>.worktrees/<task-id>`. O `<task-id>` é o da tarefa (`/dh:build`) ou o `AUTO-<n>` (`/dh:auto`) e só aceita `[A-Za-z0-9_-]`; outro caractere encerra pela R17.
-- Colisão: dois repositórios não dividem nome na mesma pasta pai, e um `task-id` só tem um worktree. Caminho existente que não seja o worktree registrado da mesma tarefa (ver D6, retomada) encerra pela R17; nunca há sufixo automático.
-- Ignore: fora da árvore, o `git status` do checkout principal não o vê; nenhuma mudança em `.gitignore`.
-- Registro (R16): o caminho entra no registro da tarefa relativo ao checkout principal, `../<nome>.worktrees/<task-id>`, mais a branch. O despacho ao builder (R14) leva o caminho absoluto, calculado na hora e nunca gravado em arquivo versionado. Assim, nem o registro em modo `repo` (versionado) nem este ADR carregam caminho absoluto privado.
-- Motivo decisivo: B quebra a trava de commit (`gate.ts` linha 40) sem mudar o mod; A mantém o worktree no mesmo sistema de arquivos do repo (no WSL, um repo em `/mnt/c` não ganha worktree em ext4) e não depende de `<home>`.
-- Descartadas: B, pela trava de commit e por misturar código em `<home>`, que é registro; C, por cruzar sistema de arquivos e exigir mais uma pasta global sem dono; D, por violar A5 e precisar de ignore.
-- Preferência declarada: nenhuma.
+A decisão original (2026-10-27) foi a opção A, a pasta irmã `<pai>/<nome-do-repo>.worktrees/<task-id>`. O dono fixou depois, para os bots, a regra `<repo>/.worktrees/<tarefa>` e decidiu (2026-11-16, achado A2 do dossiê) que o kit não diverge dela. A opção escolhida passa a ser a D da tabela, com a pasta `.worktrees/` no lugar de `.claude/worktrees/`.
+
+- Caminho: `<checkout principal>/.worktrees/<task-id>`. O `<task-id>` é o da tarefa (`/dh:build`) ou o `AUTO-<n>` (`/dh:auto`) e só aceita `[A-Za-z0-9_-]`; outro caractere encerra pela R17.
+- Colisão: um `task-id` só tem um worktree. Caminho existente que não seja o worktree registrado da mesma tarefa (ver D6, retomada) encerra pela R17; nunca há sufixo automático.
+- Ignore: a pasta fica dentro da árvore, então precisa estar no `.gitignore` do projeto. O `/dh:setup` acrescenta a linha `.worktrees/` (a única edição de `.gitignore` que ele faz) e o `/dh:build` confere com `git check-ignore` antes de criar; sem o ignore, encerra pela R17 e pede o `/dh:setup` ou a linha, sem editar nada. Sem o ignore, os arquivos do worktree entrariam como não rastreados no checkout principal e no clone do isolamento de CLI.
+- O `dh validate` ignora a pasta `.worktrees/` ao varrer o repositório; sem isso a cópia do repositório dentro dela era validada como se fosse parte dele (caminho privado, link quebrado) e falhava.
+- Registro (R16): o caminho entra no registro da tarefa relativo ao checkout principal, `.worktrees/<task-id>`, mais a branch. O despacho ao builder (R14) leva o caminho absoluto, calculado na hora e nunca gravado em arquivo versionado. Assim, nem o registro em modo `repo` (versionado) nem este ADR carregam caminho absoluto privado.
+- Compatibilidade: um registro anterior à 0.40.0 guarda a pasta irmã antiga `../<nome>.worktrees/<task-id>`. O `/dh:resume` e a oferta de limpeza aceitam esse caminho para esse worktree existente; todo worktree novo usa o caminho novo. Nada é migrado ou movido.
+- Resolvedor e trava de commit não mudam: o resolvedor (D3) lê o gitfile e não depende de onde a pasta está; um worktree em `<repo>/.worktrees/<id>/` não tem `/.harness/` no caminho (`gate.ts` linha 40), então o código do builder não vira registro.
+- Motivo decisivo: uma regra só para os bots e para o kit; no Claude Code a pasta fica dentro do diretório da sessão e não pede permissão de escrita extra, o que também fecha a pendência medida na consequência abaixo.
+- Residual aceito: com o `<project>` de uma chamada de CLI sendo o checkout principal, os worktrees da pasta `.worktrees/` entram na foto `--ignored`, e uma escrita do builder lá durante a chamada descarta o veredito (alarme falso, nunca omissão); a revisão aponta o caminho do worktree, não o do checkout principal, enquanto um worktree está sendo escrito (`clone-isolation.md`, seção 7).
+- Descartadas: A, a pasta irmã (decisão original), por divergir da regra do dono e por pedir permissão de escrita fora do diretório da sessão; B, por quebrar a trava de commit e misturar código em `<home>`, que é registro; C, por cruzar sistema de arquivos e exigir mais uma pasta global sem dono.
+- Preferência declarada: o dono, a regra `<repo>/.worktrees/<tarefa>`.
 
 ### D2 · Criação: A, `git worktree add` pelo Coordenador
 
@@ -127,8 +133,9 @@ D5 e D6 têm uma opção viável cada (R9; R22–R25); a seção 3 registra só 
 ## 4. Consequências
 
 - Fica mais fácil: rodar um lote sem sujar o checkout principal; chamar revisor CLI de dentro de um worktree; achar harness dir e pdocs de qualquer worktree ligado.
-- Fica mais difícil: o resolvedor ganha um caminho de validação de arquivos do git; a foto R5 cresce (gitfile, administração do worktree, `refs/` como arquivos); no Claude Code, o builder escreve fora do diretório da sessão e pode pedir permissão para a pasta `<nome>.worktrees` irmã (medir; configurar a pasta em `additionalDirectories` se pedir).
+- Fica mais difícil: o resolvedor ganha um caminho de validação de arquivos do git; a foto R5 cresce (gitfile, administração do worktree, `refs/` como arquivos); o projeto passa a depender de uma linha `.worktrees/` no `.gitignore` (o `/dh:setup` a acrescenta e o `/dh:build` confere).
 - Dívida assumida: R12 só em prosa até o dono decidir pôr `worktree` na lista da trava (candidato do PRD, revisão de segurança própria); repositório bare com worktrees fica sem suporte; `dh link` rodado dentro de um worktree registraria o caminho do worktree (fora do PRD-028).
+- Contratos afetados pela emenda do PRD-033: `.commands/build.md` (caminho e conferência do ignore), `.commands/resume.md` e `.commands/auto.md` (caminho relativo), `.commands/setup.md` (linha do `.gitignore`), `clone-isolation.md` (requisito e residual) e o `dh validate` (pasta ignorada).
 - Contratos afetados: `dh harness-path --json` ganha `linked_worktree` e `defaults.worktree` (aditivos); `dh config` ganha `worktree`; `clone-isolation.md` e `live-tree-freeze.md` trocam o passo 1 e a lista da foto; `.commands/build.md` e `.commands/auto.md` ganham criação, despacho com caminho absoluto, registro e limpeza; o registro de tarefa ganha caminho relativo e branch.
 
 ## 5. Validação

@@ -293,7 +293,7 @@ func TestR18_R19_R26_R61_RealGitWorktree(t *testing.T) {
 			}
 			g(main, "add", ".")
 			g(main, "commit", "-q", "-m", "i")
-			wt := filepath.Join(base, mode, "main.worktrees", "T-X")
+			wt := filepath.Join(main, ".worktrees", "T-X") // PRD-033: inside the main checkout, ignored there
 			g(main, "worktree", "add", "-q", "-b", "t-x", wt)
 			if mode == "global" {
 				if c, _, e := dh(t, "link", "proj", main); c != 0 {
