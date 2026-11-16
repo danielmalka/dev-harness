@@ -46,6 +46,9 @@ jobs:
         run: npm install -g @anthropic-ai/claude-code@latest
       - name: Mod tests
         run: |
+          # The runner shell is `bash -e` without pipefail: without this line `tee`
+          # hides the exit code of the CLI and a failed test still turns the job green.
+          set -o pipefail
           claude plugin test dist/claude-code/dev-harness | tee mods.log
           # A run that finds no test must not pass.
           grep -Eq '^ *[1-9][0-9]* pass$' mods.log
