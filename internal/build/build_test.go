@@ -3,6 +3,7 @@ package build
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -223,5 +224,53 @@ func writeBuildFixture(t *testing.T, root, relative, contents string, mode os.Fi
 	}
 	if err := os.Chmod(path, mode); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestBuildKeepsManifestStampUntilSourcesChange(t *testing.T) {
+	root := minimalRoot(t)
+	output := filepath.Join(t.TempDir(), "dev-harness")
+	options := Options{Output: output, NoBinaries: true, SkipMinimumCounts: true}
+	read := func() string {
+		t.Helper()
+		data, err := os.ReadFile(filepath.Join(output, "harness-manifest.json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(data)
+	}
+	if err := Build(root, options, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	first := read()
+	var parsed manifest
+	if err := json.Unmarshal([]byte(first), &parsed); err != nil {
+		t.Fatal(err)
+	}
+	// Age the stamp: an unchanged tree must keep it, so the time source cannot leak in.
+	aged := strings.Replace(first, parsed.GeneratedAt, "2000-01-01T00:00:00Z", 1)
+	if err := os.WriteFile(filepath.Join(output, "harness-manifest.json"), []byte(aged), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := Build(root, options, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	if got := read(); got != aged {
+		t.Fatalf("manifest changed on an unchanged tree:\n%s", got)
+	}
+	skill := filepath.Join(root, ".skills", "sample", "SKILL.md")
+	body, err := os.ReadFile(skill)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(skill, append(body, []byte("\nChanged.\n")...), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := Build(root, options, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	changed := read()
+	if changed == aged || strings.Contains(changed, "2000-01-01T00:00:00Z") {
+		t.Fatalf("editing a skill did not refresh the manifest:\n%s", changed)
 	}
 }

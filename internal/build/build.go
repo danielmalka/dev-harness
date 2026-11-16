@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -17,7 +18,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/kit"
 )
 
-const defaultVersion = "0.39.0"
+const defaultVersion = "0.39.1"
 
 type Target struct {
 	OS   string
@@ -53,6 +54,7 @@ type manifest struct {
 	License     string           `json:"license"`
 	Generated   bool             `json:"generated"`
 	GeneratedAt string           `json:"generated_at"`
+	ContentSHA  string           `json:"content_sha256"`
 	Source      string           `json:"source"`
 	Runtime     runtimeInfo      `json:"runtime"`
 	Inventory   inventory        `json:"inventory"`
@@ -160,14 +162,17 @@ func Build(root string, options Options, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	generatedAt := time.Now().UTC().Format("2006-01-02T15:04:05Z")
+	contentSHA, err := packageDigest(pkg)
+	if err != nil {
+		return err
+	}
 	manifestData := manifest{
-		Name:        "dev-harness",
-		Version:     version,
-		License:     "MIT",
-		Generated:   true,
-		GeneratedAt: generatedAt,
-		Source:      "dh build",
+		Name:       "dev-harness",
+		Version:    version,
+		License:    "MIT",
+		Generated:  true,
+		ContentSHA: contentSHA,
+		Source:     "dh build",
 		Runtime: runtimeInfo{
 			Primary:        "claude-code",
 			Load:           "claude --plugin-dir dist/claude-code/dev-harness --agent coordinator",
@@ -177,6 +182,7 @@ func Build(root string, options Options, out io.Writer) error {
 		Inventory: inventoryFor(pkg),
 		Binaries:  binaries,
 	}
+	manifestData.GeneratedAt = stableGeneratedAt(manifestData, filepath.Join(options.Output, "harness-manifest.json"), filepath.Join(root, "harness-manifest.json"))
 	manifestBytes, err := json.MarshalIndent(manifestData, "", "  ")
 	if err != nil {
 		return err
@@ -569,4 +575,67 @@ func withEnvironment(environment []string, values map[string]string) []string {
 		result = append(result, name+"="+value)
 	}
 	return result
+}
+
+// stableGeneratedAt keeps generated_at when nothing else in the manifest changed, so a rebuild
+// of an unchanged tree leaves git clean. It reads the manifests of the previous build (package
+// output first, then the root copy) and falls back to the current time when none matches.
+func stableGeneratedAt(next manifest, previousPaths ...string) string {
+	for _, path := range previousPaths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		var previous manifest
+		if json.Unmarshal(data, &previous) != nil || previous.GeneratedAt == "" {
+			continue
+		}
+		stamp := previous.GeneratedAt
+		previous.GeneratedAt, next.GeneratedAt = "", ""
+		if reflect.DeepEqual(previous, next) {
+			return stamp
+		}
+	}
+	return time.Now().UTC().Format("2006-01-02T15:04:05Z")
+}
+
+// packageDigest hashes the relative path and content of every packaged file except bin/ (each
+// binary already has its own sha256 entry) and the manifest itself, so any source edit, such as
+// the text of one skill, changes the manifest.
+func packageDigest(pkg string) (string, error) {
+	var files []string
+	err := filepath.WalkDir(pkg, func(path string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		relative, err := filepath.Rel(pkg, path)
+		if err != nil {
+			return err
+		}
+		relative = filepath.ToSlash(relative)
+		if entry.IsDir() {
+			if relative == "bin" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if relative != "harness-manifest.json" {
+			files = append(files, relative)
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	sort.Strings(files)
+	hash := sha256.New()
+	for _, relative := range files {
+		data, err := os.ReadFile(filepath.Join(pkg, filepath.FromSlash(relative)))
+		if err != nil {
+			return "", err
+		}
+		fmt.Fprintf(hash, "%s\x00%d\x00", relative, len(data))
+		hash.Write(data)
+	}
+	return hex.EncodeToString(hash.Sum(nil)), nil
 }
