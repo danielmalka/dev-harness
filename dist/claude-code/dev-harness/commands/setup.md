@@ -34,7 +34,7 @@ The `project-onboarding` report with the mode, the registration, the proposed pr
 - When no shipped profile matches, the profile is "none, custom"; leave unsupported fields unset rather than guessing a command.
 - Never install, upgrade or configure tooling, and never modify the project's own instruction files.
 - Never edit `.gitignore`, except to append the single line `.worktrees/` when it is not ignored (Routing); only `local.yaml` (written later, on the first CLI reviewer call) should stay ignored.
-- Only the Coordinator writes `MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
+- Only the Coordinator writes `MEMORY.md`, `EPOCHAL.md` and `RISKS.md`, and the first `MEMORY.md` with `dh memory write --expect absent` (`context-handoff`, memory write guard).
 
 ## Next
 `/dh:understand` to map the first area, or `/dh:discover` when the request is still an idea.

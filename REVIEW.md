@@ -16,7 +16,7 @@ One entry per recurring problem. Copy the block for each new rule.
 
 ### Count in docs drifts from the real count
 
-- Symptom: a doc, README or tutorial states a count (13 agents; 19 commands in files plus 1 registered by the mod) that no longer matches the sources, or one language states a different number than its mirror.
+- Symptom: a doc, README or tutorial states a count (13 agents; 20 commands in files plus 1 registered by the mod) that no longer matches the sources, or one language states a different number than its mirror.
 - Why it matters: the owner trusts the stated counts; `AGENTS.md` fixes them ("Agentes (13)"). A stale number says the kit lost or gained capability when it did not.
 - Example: `docs/tutorial.html:781`
 

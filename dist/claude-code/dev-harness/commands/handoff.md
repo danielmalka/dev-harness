@@ -25,7 +25,7 @@ The `context-handoff` record: objective and authorization, constraints carried f
 - Carry a sourced constraint forward verbatim; a recorded constraint with unknown provenance stays unresolved rather than being dropped.
 - Never invent past state, a granted authorization or a check result; unverified items are marked hypothesis.
 - `docs-guide` drafts but never edits the memory files.
-- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
+- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`, and `MEMORY.md` only through the memory write guard (`context-handoff`).
 
 ## Next
 `/dh:resume` in the next session, or `/dh:consolidate-memory` when the memory record has grown past what execution needs.

@@ -18,10 +18,15 @@ var (
 // lock takes <home>/config.lock (O_CREATE|O_EXCL), retrying every 50 ms up to lockWait. A lock
 // older than lockStale is removed once. The returned func releases it.
 func lock(home string) (func(), error) {
-	if err := os.MkdirAll(home, dirPerm); err != nil {
+	return lockNamed(home, "config.lock")
+}
+
+// lockNamed is lock for any lock file name in dir (MEMORY.md.lock uses it too, PRD-034).
+func lockNamed(dir, name string) (func(), error) {
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
 		return nil, err
 	}
-	path := filepath.Join(home, "config.lock")
+	path := filepath.Join(dir, name)
 	deadline := time.Now().Add(lockWait)
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
@@ -53,7 +58,7 @@ func lock(home string) (func(), error) {
 			continue
 		}
 		if time.Now().After(deadline) {
-			return nil, fmt.Errorf("timed out waiting for %s (another dh link running? remove the file if not)", path)
+			return nil, fmt.Errorf("timed out waiting for %s (another dh process running? remove the file if not)", path)
 		}
 		time.Sleep(50 * time.Millisecond)
 	}

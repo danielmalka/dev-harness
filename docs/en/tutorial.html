@@ -739,7 +739,7 @@ footer.doc-foot {
         <tbody>
           <tr><td><code>project.yaml</code></td><td>Project profile: <code>language</code>, <code>commands</code>, <code>reviewers</code>, <code>review_guide</code>. See Configuration.</td></tr>
           <tr><td><code>local.yaml</code></td><td>CLI paths and slugs for this machine. No secrets.</td></tr>
-          <tr><td><code>MEMORY.md</code></td><td>Active state: current work, decisions, blockers, next step.</td></tr>
+          <tr><td><code>MEMORY.md</code></td><td>Active state: current work, decisions, blockers, next step. The kit writes it only through the hash guard (<code>dh memory write --expect</code>): if another session wrote after the read, the write is refused.</td></tr>
           <tr><td><code>EPOCHAL.md</code></td><td>Archive of memory batches, written by <code>/dh:consolidate-memory</code>. Read only for a concrete historical question.</td></tr>
           <tr><td><code>RISKS.md</code></td><td>Severe incidents, with cause, resolution and prevention.</td></tr>
           <tr><td><code>tasks/&lt;id&gt;/</code></td><td><code>PLAN.md</code>, <code>TASK.md</code> (ticket), <code>PLAN.review.md</code>, <code>evidence/</code>, handoffs; <code>AUTO-&lt;n&gt;/BRIEF.md</code> holds the <code>Stage:</code> of a <code>/dh:auto</code> run.</td></tr>
@@ -778,7 +778,7 @@ footer.doc-foot {
       <div class="callout">There is no migration command: these lines are all there is.</div>
 
       <h2 id="flows"><span class="n">06</span>Flows</h2>
-      <p>The kit has 13 agents and 19 commands. You talk to the Coordinator; it dispatches the specialists and holds the authorization: nothing is installed, committed, published or deployed without you authorizing it.</p>
+      <p>The kit has 13 agents and 20 commands. You talk to the Coordinator; it dispatches the specialists and holds the authorization: nothing is installed, committed, published or deployed without you authorizing it.</p>
       <h3>Feature, from ask to release</h3>
       <ol class="steps">
         <li><strong><code>/dh:discover</code> &lt;idea&gt;.</strong> <code>product-discovery</code> asks one blocking question at a time and writes the PRD in English (Problem, Solution, Rules, Docs), with short writing rules. A <code>document-validator</code> reviews it for up to 2 rounds, and every review opens with a <code>## Comprehension</code> block (two paraphrases, what the document proposes and how the current system works as the document states it, written before the findings); you get the PRD after <code>approved</code> or the cap.</li>
@@ -802,7 +802,8 @@ footer.doc-foot {
       <ol class="steps">
         <li><strong><code>/dh:handoff</code></strong> records objective, constraints, files, decisions, evidence and the next step under <code>.harness/tasks/&lt;id&gt;/</code>. With no objective it stops and asks.</li>
         <li><strong><code>/dh:resume</code></strong> in the next session reconciles the record with the tree (<code>repo-scout</code> checks the files) and continues only what is already authorized. Where the two disagree, the tree wins.</li>
-        <li><strong><code>/dh:consolidate-memory</code></strong> archives <code>MEMORY.md</code> into <code>EPOCHAL.md</code>, verifies the copy and only then shortens the memory. It asks you to confirm that no other session is writing.</li>
+        <li><strong><code>/dh:consolidate-memory</code></strong> archives <code>MEMORY.md</code> into <code>EPOCHAL.md</code>, verifies the copy and only then shortens the memory. It does not ask whether another session writes: the hash guard (<code>dh memory hash</code> when it reads, <code>dh memory write --expect</code> when it writes) refuses the trim if <code>MEMORY.md</code> changed since it was read, and the memory stays intact.</li>
+        <li><strong><code>/dh:dream [N]</code></strong> only reads: it gathers the findings of the reviews and QA (<code>reports/</code>, <code>*.review.md</code>) and of <code>MEMORY.md</code>, and writes one new file, <code>proposals/&lt;date&gt;_DREAM_PROPOSAL.md</code>, with every finding that appeared in at least N distinct tasks (default 2): "this repeated N times; make it an automatic check (skill, gate or rule)?", with examples and origin. It never applies anything; you decide each item.</li>
       </ol>
       <h3>Kit care: /dh:improve</h3>
       <p>For a concrete case where the kit misbehaved (prompt, expected, observed). <code>harness-maintainer</code> names the owning asset, makes the smallest edit in the sources (<code>.agents/</code>, <code>.skills/</code>, <code>.commands/</code>, <code>templates/</code>, <code>profiles/</code>; never <code>dist/</code>) and measures before and after with a paid eval (running <code>/dh:improve</code> counts as your request for it). Afterwards, <code>/dh:doctor</code>.</p>
@@ -855,9 +856,10 @@ reviewers:
         <tbody>
           <tr><td><code>auto</code></td><td>An idea, PRD or PLAN.md and you want the whole path on one branch</td><td>State in <code>.harness/tasks/AUTO-&lt;n&gt;/BRIEF.md</code>, plus whatever each chained stage produces; PR and tag only if the questionnaire authorized them</td><td>You, through the 7-item questionnaire; each stage keeps its own gate</td></tr>
           <tr><td><code>build</code></td><td>One authorized, ready slice (ticket)</td><td>Slice code, the <code>incremental-implementation</code> report, the QA matrix, an independent review</td><td><code>qa-verifier</code> and one reviewer on the first pass; you authorize the slice</td></tr>
-          <tr><td><code>consolidate-memory</code></td><td><code>MEMORY.md</code> grew past what execution needs</td><td>A batch archived in <code>EPOCHAL.md</code> and a shorter <code>MEMORY.md</code></td><td>You confirm no other session is writing</td></tr>
+          <tr><td><code>consolidate-memory</code></td><td><code>MEMORY.md</code> grew past what execution needs</td><td>A batch archived in <code>EPOCHAL.md</code> and a shorter <code>MEMORY.md</code></td><td>You ask; the hash guard refuses if another session wrote</td></tr>
           <tr><td><code>discover</code></td><td>A vague ask that must become a PRD with acceptance</td><td>A PRD with Problema, Solução, Regras and Docs</td><td><code>document-validator</code>, then you</td></tr>
           <tr><td><code>doctor</code></td><td>Check kit, runtime and project; nothing is written</td><td>A diagnosis report (inventory, environment, gaps)</td><td>Nobody: it only observes</td></tr>
+          <tr><td><code>dream</code></td><td>Find what repeats in the reviews and QA of several tasks</td><td>A proposal in <code>proposals/&lt;date&gt;_DREAM_PROPOSAL.md</code>: "this repeated N times; make it a check?", with examples and origin; nothing is applied</td><td>You decide each item</td></tr>
           <tr><td><code>document</code></td><td>The change alters how someone uses, runs or continues the work</td><td>A document at the authorized path (tutorial, runbook, handoff, ADR)</td><td><code>document-validator</code> when it is a PRD, TASK or ADR; you</td></tr>
           <tr><td><code>fix</code></td><td>A defect with the literal error or reproduction steps</td><td>Debugging report, fix with a regression test, evidence</td><td><code>qa-verifier</code> and one reviewer on the first pass; you authorize file changes</td></tr>
           <tr><td><code>handoff</code></td><td>End of a session or a change of agent</td><td>A record in <code>.harness/tasks/&lt;id&gt;/</code> and an updated <code>MEMORY.md</code></td><td>You, who provide the objective and authorized scope</td></tr>
