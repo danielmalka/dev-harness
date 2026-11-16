@@ -274,3 +274,37 @@ func TestBuildKeepsManifestStampUntilSourcesChange(t *testing.T) {
 		t.Fatalf("editing a skill did not refresh the manifest:\n%s", changed)
 	}
 }
+
+func TestPackageDigestIgnoresCRLFInTextButNotInBinaries(t *testing.T) {
+	pkg := t.TempDir()
+	write := func(name string, data []byte) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(pkg, name), data, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	digest := func() string {
+		t.Helper()
+		sum, err := packageDigest(pkg)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return sum
+	}
+	write("SKILL.md", []byte("---\nname: sample\n---\nBody line.\n"))
+	write("blob.dat", []byte{0, 1, '\r', '\n', 2})
+	lf := digest()
+	write("SKILL.md", []byte("---\r\nname: sample\r\n---\r\nBody line.\r\n"))
+	if got := digest(); got != lf {
+		t.Fatalf("CRLF text changed the digest: %s != %s", got, lf)
+	}
+	write("SKILL.md", []byte("---\nname: sample\n---\nBody line changed.\n"))
+	if digest() == lf {
+		t.Fatal("changed text kept the digest")
+	}
+	write("SKILL.md", []byte("---\nname: sample\n---\nBody line.\n"))
+	write("blob.dat", []byte{0, 1, '\n', 2})
+	if digest() == lf {
+		t.Fatal("binary content with \\r\\n removed kept the digest")
+	}
+}

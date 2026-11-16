@@ -1,6 +1,7 @@
 package build
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -601,7 +602,8 @@ func stableGeneratedAt(next manifest, previousPaths ...string) string {
 
 // packageDigest hashes the relative path and content of every packaged file except bin/ (each
 // binary already has its own sha256 entry) and the manifest itself, so any source edit, such as
-// the text of one skill, changes the manifest.
+// the text of one skill, changes the manifest. Text files hash with CRLF read as LF, so a Windows
+// checkout gives the same digest; binary files (a NUL in the first 8 KB) keep their bytes.
 func packageDigest(pkg string) (string, error) {
 	var files []string
 	err := filepath.WalkDir(pkg, func(path string, entry os.DirEntry, walkErr error) error {
@@ -634,8 +636,22 @@ func packageDigest(pkg string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		data = normalizeLineEndings(data)
 		fmt.Fprintf(hash, "%s\x00%d\x00", relative, len(data))
 		hash.Write(data)
 	}
 	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+// normalizeLineEndings turns CRLF into LF in text files. A file with a NUL byte in its first
+// 8 KB is binary and returned unchanged.
+func normalizeLineEndings(data []byte) []byte {
+	head := data
+	if len(head) > 8192 {
+		head = head[:8192]
+	}
+	if bytes.IndexByte(head, 0) >= 0 {
+		return data
+	}
+	return bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n"))
 }

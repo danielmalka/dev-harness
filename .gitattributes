@@ -1,0 +1,14 @@
+# Text is stored and checked out with LF, so a Windows checkout does not change the
+# content_sha256 of the generated manifest (internal/build packageDigest).
+* text=auto eol=lf
+
+# Binaries are never converted.
+dist/claude-code/dev-harness/bin/** binary
+*.exe binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

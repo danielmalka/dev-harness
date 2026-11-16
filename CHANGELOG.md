@@ -2,7 +2,7 @@
 
 ## 0.39.1 — 2026-11-16
 
-- **`dh build` com manifesto estável (A8 do dossiê, cartão 218)**: o `harness-manifest.json` só troca o `generated_at` quando o conteúdo muda; rodar `dh build` de novo numa árvore igual deixa o `git status` limpo. O manifesto ganha o campo `content_sha256` (hash dos caminhos e do conteúdo de tudo o que vai no pacote, menos `bin/`, que já tem o `sha256` de cada binário e o próprio manifesto), então editar o texto de uma skill muda o manifesto, e o `generated_at` com ele.
+- **`dh build` com manifesto estável (A8 do dossiê, cartão 218)**: o `harness-manifest.json` só troca o `generated_at` quando o conteúdo muda; rodar `dh build` de novo numa árvore igual deixa o `git status` limpo. O manifesto ganha o campo `content_sha256` (hash dos caminhos e do conteúdo de tudo o que vai no pacote, menos `bin/`, que já tem o `sha256` de cada binário e o próprio manifesto), então editar o texto de uma skill muda o manifesto, e o `generated_at` com ele. O hash lê CRLF como LF nos arquivos de texto (binário = NUL nos primeiros 8 KB, bytes intactos), então um checkout no Windows dá o mesmo `content_sha256`; o novo `.gitattributes` (`* text=auto eol=lf`, binários marcados) mantém o texto em LF.
 - Sem agente, skill nem comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
 
 ## 0.39.0 — 2026-11-04
