@@ -65,6 +65,7 @@ Read every finding first; verify each against the tree before implementing. Push
 - [<path>:<line>] <pattern> - Guide rule: <Ignore entry title> (or: none.)
 ## Spec compliance
 - Implemented | Partial (what is missing) | Missing | Unrequested: <item> (or: No spec available. Axis not run.)
+- Documentation: <documents updated by the change, or "missing: <document> still says <stale claim>", or "no documentation impact, because <reason>">
 ## Maintainability notes (non-blocking)
 ## Checks observed: <command> - passed | failed | not-run | reported (unverified)
 ## Verdict
@@ -77,6 +78,9 @@ Read every finding first; verify each against the tree before implementing. Push
 Mark `passed` or `failed` only for a command you ran; author-reported checks are `reported (unverified)`, others `not-run`. The Coordinator merges several reviewers' findings (`.agents/coordinator.md`, "External CLI reviewers"); this skill defines only `Reported by:`.
 
 Severity scale: **Critical** blocks (data loss, corruption, authorization bypass, broken core behavior, or a silent failure hiding one). **Major** blocks (missing or wrong requirement, contract changed under its consumers, regression on a real path, untested data-loss path, untraced required axis). **Minor** does not block (narrow edge case, weak message, low-risk test gap). **Cosmetic** never blocks (naming, formatting, tooling-enforced).
+
+## Documentation gate
+A change that alters behavior, architecture, operation, or a decision the owner recorded is not reviewable as complete until the documents it invalidates are updated in the same change: `README`, `AGENTS.md`, and `docs/DECISIONS.md`, or the project's equivalents named in its instruction files. Check each of the four against the requirement and the diff; when one changed and no matching document did, raise **Major** `documentation not updated: <document> still says <stale claim>` with verdict `request changes`. A change that touches none of the four says so in one line; silence is not a pass. Stale documentation unrelated to this change is a non-blocking note, never this finding. Name the documents you checked and any you could not find.
 ## In-flight doubt
 The Coordinator dispatches this section by name, as a call separate from the end-of-slice review. You receive the artifact and contract only, never the author's claim or reasoning. Find what breaks. Findings keep their fields; the verdict line is `Review status: approve | request changes | incomplete`; the four angles are not required. No tree edits; spawn no reviewer.
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.39.2 — 2026-11-16
+
+- **Documentation gate nas três skills de revisão (A1 do dossiê, cartão 216)**: as cópias instaladas de `code-review`, `document-review` e `regression-testing` estavam à frente do `.skills/`, e a regra dos perfis "dev-harness vence" apontava para a versão mais antiga. A seção passa a ser fonte no kit: o `code-review` ganha a linha `Documentation` no formato do relatório e a seção "Documentation gate", com achado **Major** `documentation not updated` e veredito `request changes` quando a mudança invalida documento e não o atualiza; o `document-review` exige, em todo documento que vira contrato, a seção que nomeia os documentos que a própria mudança invalida e o que muda em cada um (achado `gap` quando falta ou quando só lista nomes), e passa a reportá-la no cabeçalho; o `regression-testing` ganha o passo 14 e o bloco `Documentation` na saída, com documentação faltando como `failed`. Nenhum agente, skill ou comando novo. Comandos: 19 + 1. Agentes: 13. Skills: 22.
+
 ## 0.39.1 — 2026-11-16
 
 - **`dh build` com manifesto estável (A8 do dossiê, cartão 218)**: o `harness-manifest.json` só troca o `generated_at` quando o conteúdo muda; rodar `dh build` de novo numa árvore igual deixa o `git status` limpo. O manifesto ganha o campo `content_sha256` (hash dos caminhos e do conteúdo de tudo o que vai no pacote, menos `bin/`, que já tem o `sha256` de cada binário e o próprio manifesto), então editar o texto de uma skill muda o manifesto, e o `generated_at` com ele. O hash lê CRLF como LF nos arquivos de texto (binário = NUL nos primeiros 8 KB, bytes intactos), então um checkout no Windows dá o mesmo `content_sha256`; o novo `.gitattributes` (`* text=auto eol=lf`, binários marcados) mantém o texto em LF. Se o `content_sha256` e o resto do manifesto voltarem a ser iguais aos do `HEAD` (editar uma fonte e desfazer), o `generated_at` do commit é reaproveitado (sem git, segue como antes).

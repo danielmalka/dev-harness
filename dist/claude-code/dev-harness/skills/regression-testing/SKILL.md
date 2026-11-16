@@ -52,6 +52,7 @@ This procedure turns acceptance criteria into executed checks and returns a matr
 11. **Report, do not record.** Results, defects, and any incident go to the Coordinator, the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`. Detailed evidence belongs under `.harness/tasks/<id>/`. When a ticket is marked done, its `Concluído em` (`Done on` in en) header line is filled with today's date, `AAAA-MM-DD`.
 12. **Default to test-first, owned by the builder.** The builder writes the failing test and records the expected failure before changing code, and QA verifies that red result and the green result after the change; the red-first rule in step 6 stays for bug regression tests.
 13. **Apply three heuristics against empty tests.** See the new test fail for the expected reason before it counts. Delete a test that still passes when every function under test returns nothing. When an honest test is impractical, report the check as not-run and do not write a weak test.
+14. **Check the documentation the change invalidates.** A change to behavior, architecture, operation, or a recorded owner decision must update `README`, `AGENTS.md`, and `docs/DECISIONS.md` (or the project equivalents named in its instruction files) in the same change. Treat `documentation updated` as a criterion: missing documentation is `failed`, reported like any other defect with the document and the stale claim; a change that touches none of those four states that explicitly. Verification never edits the documents itself, it only reports them.
 
 ## Output format
 
@@ -63,6 +64,9 @@ This procedure turns acceptance criteria into executed checks and returns a matr
 | Criterion | Check (exact command) | Result | Evidence |
 | --- | --- | --- | --- |
 | <id or text> | <command> | passed / failed / not-run | <relative path or output line> |
+
+## Documentation
+- <document updated - what changed in it> | missing: <document> still says <stale claim> | no documentation impact, because <reason>
 
 ## Failure detection proof
 - <test name> - <prior evidence or authorized isolated fixture>, observed failure <message>, current evaluated state <result>; or <not-run and reason>

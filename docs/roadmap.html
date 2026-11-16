@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-11-16</b></span>
-          <span class="chip">status <b>0.39.1 · vivo</b></span>
+          <span class="chip">status <b>0.39.2 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -700,7 +700,15 @@ profiles/"] --> B["dh build"]
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
 
-      <div class="card">
+            <div class="card">
+        <h3>0.39.2 · Documentation gate na fonte</h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> As cópias instaladas de <code>code-review</code>, <code>document-review</code> e <code>regression-testing</code> estavam à frente do <code>.skills/</code>, e a regra "dev-harness vence" apontava para a versão mais antiga. A seção passa a ser fonte no kit: o <code>code-review</code> ganha a linha <code>Documentation</code> no formato do relatório e a seção "Documentation gate", com achado <strong>Major</strong> quando a mudança invalida documento e não o atualiza; o <code>document-review</code> exige a seção que nomeia os documentos que a própria mudança invalida e o que muda em cada um, com achado <code>gap</code> quando falta ou quando só lista nomes; o <code>regression-testing</code> ganha o passo 14 e o bloco <code>Documentation</code> na saída, com documentação faltando como <code>failed</code>. Sem agente, skill nem comando novo (13 agentes, 22 skills, 19 + 1 comandos).</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.39.2; <code>.skills/code-review/SKILL.md</code>, <code>.skills/document-review/SKILL.md</code> e <code>.skills/regression-testing/SKILL.md</code>.</p>
+        <p><strong>Testado?</strong> Checagens determinísticas (<code>dh validate .</code> e <code>go run ./cmd/dh build</code>), com a árvore limpa depois do build; sem eval nova.</p>
+      </div>
+
+<div class="card">
         <h3>0.39.1 · Manifesto estável no <code>dh build</code></h3>
         <p><strong>Status:</strong> concluído.</p>
         <p><strong>Resumo:</strong> O <code>harness-manifest.json</code> só troca o <code>generated_at</code> quando o conteúdo muda; um segundo <code>dh build</code> numa árvore igual deixa o <code>git status</code> limpo. O manifesto ganha <code>content_sha256</code> (caminhos e conteúdo do pacote, menos <code>bin/</code> e o próprio manifesto), então editar uma skill muda o manifesto. Sem agente, skill nem comando novo (13 agentes, 22 skills, 19 + 1 comandos).</p>
@@ -1880,7 +1888,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.39.1, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.39.2, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
