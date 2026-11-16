@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/danielmalka/dev-harness/internal/kit"
 )
@@ -306,5 +308,83 @@ func TestPackageDigestIgnoresCRLFInTextButNotInBinaries(t *testing.T) {
 	write("blob.dat", []byte{0, 1, '\n', 2})
 	if digest() == lf {
 		t.Fatal("binary content with \\r\\n removed kept the digest")
+	}
+}
+
+func TestBuildEditAndUndoGoesBackToCommittedStamp(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+	root := minimalRoot(t)
+	output := filepath.Join(t.TempDir(), "dev-harness")
+	options := Options{Output: output, NoBinaries: true, SkipMinimumCounts: true, UpdateRootManifest: true}
+	if err := Build(root, options, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	rootManifest := filepath.Join(root, "harness-manifest.json")
+	data, err := os.ReadFile(rootManifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var parsed manifest
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		t.Fatal(err)
+	}
+	const committed = "2000-01-01T00:00:00Z"
+	if err := os.WriteFile(rootManifest, []byte(strings.Replace(string(data), parsed.GeneratedAt, committed, 1)), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	git := func(args ...string) {
+		t.Helper()
+		cmd := exec.Command("git", append([]string{"-C", root, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false"}, args...)...)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v\n%s", args, err, out)
+		}
+	}
+	git("init", "-q")
+	git("add", "harness-manifest.json")
+	git("commit", "-q", "-m", "manifest")
+	stamp := func() string {
+		t.Helper()
+		data, err := os.ReadFile(rootManifest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var m manifest
+		if err := json.Unmarshal(data, &m); err != nil {
+			t.Fatal(err)
+		}
+		return m.GeneratedAt
+	}
+	skill := filepath.Join(root, ".skills", "sample", "SKILL.md")
+	original, err := os.ReadFile(skill)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(skill, append(original, []byte("edit\n")...), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := Build(root, options, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	if stamp() == committed {
+		t.Fatal("editing a skill kept the committed stamp")
+	}
+	if err := os.WriteFile(skill, original, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := Build(root, options, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	if got := stamp(); got != committed {
+		t.Fatalf("undoing the edit gave stamp %s, want the committed %s", got, committed)
+	}
+}
+
+func TestStableGeneratedAtWithoutGitFallsBackToNow(t *testing.T) {
+	t.Setenv("PATH", "")
+	got := stableGeneratedAt(manifest{}, t.TempDir(), filepath.Join(t.TempDir(), "none.json"))
+	if _, err := time.Parse("2006-01-02T15:04:05Z", got); err != nil {
+		t.Fatalf("stamp %q is not a timestamp: %v", got, err)
 	}
 }

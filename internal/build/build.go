@@ -183,7 +183,7 @@ func Build(root string, options Options, out io.Writer) error {
 		Inventory: inventoryFor(pkg),
 		Binaries:  binaries,
 	}
-	manifestData.GeneratedAt = stableGeneratedAt(manifestData, filepath.Join(options.Output, "harness-manifest.json"), filepath.Join(root, "harness-manifest.json"))
+	manifestData.GeneratedAt = stableGeneratedAt(manifestData, root, filepath.Join(options.Output, "harness-manifest.json"))
 	manifestBytes, err := json.MarshalIndent(manifestData, "", "  ")
 	if err != nil {
 		return err
@@ -579,14 +579,22 @@ func withEnvironment(environment []string, values map[string]string) []string {
 }
 
 // stableGeneratedAt keeps generated_at when nothing else in the manifest changed, so a rebuild
-// of an unchanged tree leaves git clean. It reads the manifests of the previous build (package
-// output first, then the root copy) and falls back to the current time when none matches.
-func stableGeneratedAt(next manifest, previousPaths ...string) string {
-	for _, path := range previousPaths {
-		data, err := os.ReadFile(path)
-		if err != nil {
-			continue
+// of an unchanged tree leaves git clean. Candidates, in order: the manifest of the previous build
+// (package output), the root copy on disk, and the root manifest committed at HEAD, so editing a
+// source and undoing the edit goes back to the committed stamp. Without git or a commit, the HEAD
+// candidate is skipped. No match falls back to the current time.
+func stableGeneratedAt(next manifest, root string, outputManifest string) string {
+	rootManifest := filepath.Join(root, "harness-manifest.json")
+	candidates := [][]byte{}
+	for _, path := range []string{outputManifest, rootManifest} {
+		if data, err := os.ReadFile(path); err == nil {
+			candidates = append(candidates, data)
 		}
+	}
+	if data, err := exec.Command("git", "-C", root, "show", "HEAD:harness-manifest.json").Output(); err == nil {
+		candidates = append(candidates, data)
+	}
+	for _, data := range candidates {
 		var previous manifest
 		if json.Unmarshal(data, &previous) != nil || previous.GeneratedAt == "" {
 			continue

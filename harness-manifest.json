@@ -3,7 +3,7 @@
   "version": "0.39.1",
   "license": "MIT",
   "generated": true,
-  "generated_at": "2026-11-16T11:04:51Z",
+  "generated_at": "2026-11-16T11:07:57Z",
   "content_sha256": "8b1c305f53412be593f9987a365064fa5da43b5bdf7151d66869d811b35647e3",
   "source": "dh build",
   "runtime": {
@@ -104,31 +104,31 @@
       "os": "linux",
       "arch": "amd64",
       "path": "bin/linux_amd64/dh",
-      "sha256": "ccd3f44224c6f65c308941a56bd62ffb395918999996e9f7731c12aa6447e00d"
+      "sha256": "d40ae1c52a4365d5d6a720ca5d654f8d891dde9bb74c96914a5fa5585d60f02b"
     },
     {
       "os": "linux",
       "arch": "arm64",
       "path": "bin/linux_arm64/dh",
-      "sha256": "7ad6554675d0d5201d80ab6bfd996a77e3975269e1745f42f90b7df0f8f71d2f"
+      "sha256": "a521a3a387765254f317089576d90708a2582d3819e71f9889f6f21d09d0f13a"
     },
     {
       "os": "darwin",
       "arch": "amd64",
       "path": "bin/darwin_amd64/dh",
-      "sha256": "e403877183d2d2c11b90dff6daa4826887ab924ac11720c11ee68ffc9b582f0f"
+      "sha256": "db54e006c3893afaeaac3d311a88df3cbbb7a1e1f45b9ef6bb1ef1dd676da326"
     },
     {
       "os": "darwin",
       "arch": "arm64",
       "path": "bin/darwin_arm64/dh",
-      "sha256": "fa9d2deca2872d78309b2cc4dcd8568e16c1678265c11145b81f46de69954745"
+      "sha256": "d2b35f27f11c2d6d1314dca7203b0f8038def62f04f0c50388ddf104493b028f"
     },
     {
       "os": "windows",
       "arch": "amd64",
       "path": "bin/windows_amd64/dh.exe",
-      "sha256": "45959697cd03a02e928951a38c366a6be300b1d1bfc09dd4ed5596045af7081b"
+      "sha256": "038abab33ac5be0a2b38be5e6e620a8a645d40b5f5d79a24cef71ebe4f06e0d7"
     }
   ]
 }
