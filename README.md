@@ -81,7 +81,7 @@ Opcional; o kit não precisa de nenhum dos dois.
 
 - [Início rápido](docs/inicio-rapido.html) e [tutorial](docs/tutorial.html): comece por aqui. [Roadmap](docs/roadmap.html) e [`CHANGELOG.md`](CHANGELOG.md): o que foi entregue e o que vem.
 - `docs/prd/`, `docs/adr/` e `docs/discovery/`: histórico de design, em pt-br.
-- `evals/`: histórico de medição; não é preciso para usar o kit.
+- `evals/`: histórico de medição; não é preciso para usar o kit. Os evals não rodam na CI: o workflow `evals` é só manual (`workflow_dispatch`), para medir uma funcionalidade durante a implementação.
 - [`docs/plano-produto.html`](docs/plano-produto.html): plano de produto, em pt-br e interno.
 - Páginas em inglês: os mesmos temas dentro de `docs/en/` (início rápido: `docs/en/quick-start.html`).
 

@@ -81,7 +81,7 @@ Optional; the kit needs neither of them.
 
 - [Quick start](docs/en/quick-start.html) and [tutorial](docs/en/tutorial.html): start here. [Roadmap](docs/en/roadmap.html) and [`CHANGELOG.md`](CHANGELOG.md): what shipped and what is next.
 - `docs/prd/`, `docs/adr/` and `docs/discovery/`: design history, in Portuguese.
-- `evals/`: measurement history; not needed to use the kit.
+- `evals/`: measurement history; not needed to use the kit. Evals do not run in CI: the `evals` workflow is manual only (`workflow_dispatch`), to measure one feature while it is being implemented.
 - [`docs/plano-produto.html`](docs/plano-produto.html): product plan, Portuguese and internal.
 - Portuguese pages: the same topics under Portuguese names in `docs/` (quick start: `docs/inicio-rapido.html`).
 
