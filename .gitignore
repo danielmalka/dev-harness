@@ -11,3 +11,6 @@ ignored/
 # Written by Claude Code when it loads the plugin with --plugin-dir; not build output
 dist/*/*/tsconfig.json
 dist/*/*/.claude-plugin/types/
+
+# agent worktrees
+.worktrees/
