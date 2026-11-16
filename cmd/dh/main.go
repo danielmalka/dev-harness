@@ -53,6 +53,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runProjects(args[1:], stdout, stderr)
 	case "config":
 		return runConfig(args[1:], stdout, stderr)
+	case "memory":
+		return runMemory(args[1:], stdin, stdout, stderr)
 	}
 	if args[0] == "build" {
 		return runBuild(args[1:], stdout, stderr)
@@ -174,8 +176,109 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
+// runMemory is the hash guard of MEMORY.md (PRD-034): `hash` prints the sha256 (or "absent"); `write` is a compare-and-swap.
+// Exit codes: 0 ok, 1 usage or I/O error, 3 the file changed since it was read (nothing written).
+func runMemory(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	const memUsage = "usage: dh memory hash [dir] | dh memory write --expect <sha256|absent> [--from <file>] [dir]"
+	if len(args) == 0 {
+		printError(stderr, memUsage)
+		return 1
+	}
+	switch args[0] {
+	case "hash":
+		if len(args) > 2 {
+			printError(stderr, memUsage)
+			return 1
+		}
+		dir, ok := memoryDir(args[1:], stderr)
+		if !ok {
+			return 1
+		}
+		sum, err := harness.MemoryHash(dir)
+		if err != nil {
+			printError(stderr, err.Error())
+			return 1
+		}
+		fmt.Fprintln(stdout, sum)
+		return 0
+	case "write":
+		flags := flag.NewFlagSet("dh memory write", flag.ContinueOnError)
+		flags.SetOutput(stderr)
+		expect := flags.String("expect", "", "sha256 of MEMORY.md as read, or absent")
+		from := flags.String("from", "", "file with the new content (default: standard input)")
+		if err := flags.Parse(args[1:]); err != nil || *expect == "" || flags.NArg() > 1 {
+			if err == nil {
+				printError(stderr, memUsage)
+			}
+			return 1
+		}
+		dir, ok := memoryDir(flags.Args(), stderr)
+		if !ok {
+			return 1
+		}
+		var content []byte
+		var err error
+		if *from != "" {
+			content, err = os.ReadFile(*from)
+		} else {
+			content, err = io.ReadAll(stdin)
+		}
+		if err != nil {
+			printError(stderr, err.Error())
+			return 1
+		}
+		sum, err := harness.WriteMemory(dir, *expect, content)
+		if harness.IsMemoryChanged(err) {
+			printError(stderr, err.Error())
+			return 3
+		}
+		if err != nil {
+			printError(stderr, err.Error())
+			return 1
+		}
+		fmt.Fprintln(stdout, "written "+sum)
+		return 0
+	default:
+		printError(stderr, memUsage)
+		return 1
+	}
+}
+
+// memoryDir resolves the harness dir of the optional project dir argument, like `dh harness-path`; mode none is an error.
+func memoryDir(pos []string, stderr io.Writer) (string, bool) {
+	dir := "."
+	if len(pos) == 1 {
+		dir = pos[0]
+	}
+	repo, err := filepath.Abs(dir)
+	if err != nil {
+		printError(stderr, err.Error())
+		return "", false
+	}
+	if st, err := os.Stat(repo); err != nil || !st.IsDir() {
+		printError(stderr, repo+" is not a directory")
+		return "", false
+	}
+	home, err := harness.EnsureHome()
+	if err != nil {
+		printError(stderr, err.Error())
+		return "", false
+	}
+	c, err := harness.LoadConfig(home)
+	if err != nil {
+		printError(stderr, err.Error())
+		return "", false
+	}
+	r := harness.Resolve(repo, c)
+	if r.Mode == "none" || r.Dir == "" {
+		printError(stderr, "no harness dir for "+repo+" (mode none): run /dh:setup first")
+		return "", false
+	}
+	return r.Dir, true
+}
+
 func usage() string {
-	return "usage: dh <snapshot <event|subagents|statusline|prune>|validate [--source-only] [path]|build [--targets os/arch,...] [--no-binaries]|doctor [plugin-dir-or-kit-root]|dashboard [--port N] [--stale D] [--done-decay D] [--detach]|harness-path [dir] [--json]|link [name] [--off] [dir] [--json]|projects [--json]|config [--json]|config set <key> <value>|config unset <key>>"
+	return "usage: dh <memory <hash|write>|snapshot <event|subagents|statusline|prune>|validate [--source-only] [path]|build [--targets os/arch,...] [--no-binaries]|doctor [plugin-dir-or-kit-root]|dashboard [--port N] [--stale D] [--done-decay D] [--detach]|harness-path [dir] [--json]|link [name] [--off] [dir] [--json]|projects [--json]|config [--json]|config set <key> <value>|config unset <key>>"
 }
 
 func pruneDays(args []string) (int, error) {

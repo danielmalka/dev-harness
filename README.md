@@ -46,16 +46,18 @@ No modo global, a pasta `~/.harness/` (`DH_HOME` muda o lugar) é única por má
 
 | Onde | O que | Quem grava |
 | --- | --- | --- |
-| `<repositório>/.harness/` | modo repositório: MEMORY, EPOCHAL, RISKS, `project.yaml`, tarefas, PRDs, ADRs | Coordenador e comandos `/dh:` |
+| `<repositório>/.harness/` | modo repositório: MEMORY, EPOCHAL, RISKS, `project.yaml`, tarefas, PRDs, ADRs, propostas do `/dh:dream` | Coordenador e comandos `/dh:` |
 | `~/.harness/config.yaml` | registro de projetos e padrões (`language`, `mode`, `worktree`, `dashboard.sprites`) | só o `dh` (`dh config`, `dh link`) |
 | `~/.harness/projects/<nome>/` | modo global: os mesmos registros do `.harness/` | Coordenador e comandos `/dh:` |
-| `<repositório>/REVIEW.md` | guia de revisão do projeto, criado pelo `/dh:setup` quando falta, nos dois modos; único arquivo que o setup grava na árvore em modo global; nunca sobrescreve | `/dh:setup` (via especialista) |
+| `<repositório>/REVIEW.md` | guia de revisão do projeto, criado pelo `/dh:setup` quando falta, nos dois modos; em modo global é, com a linha `.worktrees/` do `.gitignore`, tudo o que o setup grava na árvore; nunca sobrescreve | `/dh:setup` (via especialista) |
 | `~/.harness/sessions/` | snapshot por sessão do Claude Code (`dh snapshot prune` apaga os com mais de 7 dias) | mod do plugin |
 | `~/.harness/dashboard/` | token de parada do dashboard, por porta | dashboard |
 | `~/.harness/projects/<nome>/pdocs/` | documentação HTML do projeto (`/dh:document pdocs`) | docs-guide |
 | `127.0.0.1:4747` | dashboard local, só nesta máquina, quando você o inicia com `/dashboard` | binário `dh` |
 
 Com `worktree` em `always` (ou quando você pede), `/dh:build` e `/dh:auto` trabalham num worktree em `.worktrees/<id>`, dentro do checkout e ignorado pelo git (o `/dh:setup` acrescenta a linha `.worktrees/` ao `.gitignore`). Quando o `/dh:plan` deixa decisões em aberto, ele gera uma página HTML de aprovação em `pdocs`. Detalhes na seção "Configuração" do [tutorial](docs/tutorial.html).
+
+O Coordenador grava o `MEMORY.md` por uma trava de hash (`dh memory hash` ao ler, `dh memory write --expect <hash>` ao gravar): se outra sessão escreveu no meio, a gravação é recusada e ele relê e refaz a edição; o `/dh:consolidate-memory` não pergunta mais se outra sessão escreve. O `/dh:dream [N]` só lê as revisões, o QA e o `MEMORY.md` e propõe, num arquivo novo, checagens automáticas para o que se repete em N tarefas (padrão 2); não aplica nada.
 
 ## Desligar
 

@@ -46,16 +46,18 @@ In global mode, the `~/.harness/` folder (`DH_HOME` moves it) is unique per mach
 
 | Where | What | Written by |
 | --- | --- | --- |
-| `<repository>/.harness/` | repository mode: MEMORY, EPOCHAL, RISKS, `project.yaml`, tasks, PRDs, ADRs | Coordinator and `/dh:` commands |
+| `<repository>/.harness/` | repository mode: MEMORY, EPOCHAL, RISKS, `project.yaml`, tasks, PRDs, ADRs, proposals of `/dh:dream` | Coordinator and `/dh:` commands |
 | `~/.harness/config.yaml` | project registry and defaults (`language`, `mode`, `worktree`, `dashboard.sprites`) | only `dh` (`dh config`, `dh link`) |
 | `~/.harness/projects/<name>/` | global mode: the same records as `.harness/` | Coordinator and `/dh:` commands |
-| `<repository>/REVIEW.md` | project review guide, created by `/dh:setup` when missing, in both modes; the only file setup writes in the tree in global mode; never overwrites | `/dh:setup` (via a specialist) |
+| `<repository>/REVIEW.md` | project review guide, created by `/dh:setup` when missing, in both modes; in global mode it is, with the `.worktrees/` line of `.gitignore`, all setup writes in the tree; never overwrites | `/dh:setup` (via a specialist) |
 | `~/.harness/sessions/` | one snapshot per Claude Code session (`dh snapshot prune` deletes those older than 7 days) | plugin mod |
 | `~/.harness/dashboard/` | dashboard stop token, per port | dashboard |
 | `~/.harness/projects/<name>/pdocs/` | project HTML documentation (`/dh:document pdocs`) | docs-guide |
 | `127.0.0.1:4747` | local dashboard, this machine only, when you start it with `/dashboard` | `dh` binary |
 
 With `worktree` set to `always` (or when you ask), `/dh:build` and `/dh:auto` work in a worktree at `.worktrees/<id>`, inside the checkout and ignored by git (`/dh:setup` adds the `.worktrees/` line to `.gitignore`). When `/dh:plan` leaves open decisions, it generates an HTML approval page in `pdocs`. Details in the "Configuration" section of the [tutorial](docs/en/tutorial.html).
+
+The Coordinator writes `MEMORY.md` through a hash guard (`dh memory hash` when it reads, `dh memory write --expect <hash>` when it writes): if another session wrote in the middle, the write is refused and it re-reads and redoes the edit; `/dh:consolidate-memory` no longer asks whether another session writes. `/dh:dream [N]` only reads the reviews, the QA and `MEMORY.md` and proposes, in a new file, automatic checks for what repeats across N tasks (default 2); it applies nothing.
 
 ## Turn things off
 

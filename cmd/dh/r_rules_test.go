@@ -256,12 +256,13 @@ func TestR18_ProjectsJSONParityWithAPIState(t *testing.T) {
 
 func TestR18_NoNewSlashCommands(t *testing.T) {
 	ents, err := os.ReadDir("../../.commands")
-	if err != nil || len(ents) != 19 {
-		t.Fatalf("%v: %d files in .commands, want 19", err, len(ents))
+	// 19 files until 0.40.0; PRD-034 adds `dream` (20). `dh` subcommands never become /dh: commands.
+	if err != nil || len(ents) != 20 {
+		t.Fatalf("%v: %d files in .commands, want 20", err, len(ents))
 	}
 	for _, e := range ents {
 		n := strings.TrimSuffix(e.Name(), ".md")
-		if n == "link" || n == "projects" || n == "harness-path" {
+		if n == "link" || n == "projects" || n == "harness-path" || n == "memory" {
 			t.Errorf("unexpected command %s", n)
 		}
 	}
