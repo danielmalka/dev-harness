@@ -87,7 +87,7 @@ Opcional; o kit não precisa de nenhum dos dois.
 
 ## Para quem contribui
 
-Esta seção é só para quem mantém o kit; quem usa não precisa dela. Regras completas em [`CONTRIBUTING.md`](CONTRIBUTING.md). Requer Go 1.22+ (e Python 3 só para a fixture `slice-01`).
+Esta seção é só para quem mantém o kit; quem usa não precisa dela. Regras completas em [`CONTRIBUTING.md`](CONTRIBUTING.md). Requer Go 1.22+ (e Python 3 para a fixture `slice-01` e para o `stamp.sh` da `doc-template-html`).
 
 ```bash
 go test ./...
