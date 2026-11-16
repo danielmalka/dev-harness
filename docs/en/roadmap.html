@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Kit state by release, what is planned with a PRD or fixed decision, and what is still a discovery idea.</p>
         <div class="chips">
            <span class="chip">date <b>2026-11-16</b></span>
-          <span class="chip">status <b>0.39.2 · live</b></span>
+          <span class="chip">status <b>0.40.0 · live</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tasks completed per release, sourced from <code>CHANGELOG.md</code>. "Tested?" only claims execution when a
         file proves it (a CI step, content under <code>evals/baselines/</code>); otherwise it is recorded as not
         tested.</p>
+
+      <div class="card">
+        <h3>0.40.0 · Kit worktree in <code>.worktrees/</code></h3>
+        <p><strong>Status:</strong> done.</p>
+        <p><strong>Summary:</strong> <code>/dh:build</code> and <code>/dh:auto</code> create the worktree in <code>&lt;checkout&gt;/.worktrees/&lt;id&gt;</code>, inside the checkout, no longer in the sibling folder <code>&lt;checkout&gt;.worktrees</code>: the kit now follows the rule the owner already fixed for the bots. The folder is git-ignored: <code>/dh:setup</code> adds the <code>.worktrees/</code> line (the only <code>.gitignore</code> edit it makes) and <code>/dh:build</code> stops before it creates the worktree if the folder is not ignored. Records made before 0.40.0 are still accepted by <code>/dh:resume</code>, and nothing is moved. <code>dh validate</code> now skips <code>.worktrees/</code> (before, the copy of the repository inside it failed the validation). ADR-008 D1 is amended. No new agent, skill or command (13 agents, 22 skills, 19 + 1 commands).</p>
+        <p><strong>Relations:</strong> <code>CHANGELOG.md</code> 0.40.0; <code>docs/prd/PRD-033-worktree-in-repo.md</code>; <code>docs/adr/ADR-008-worktree-de-desenvolvimento.md</code>; <code>.commands/build.md</code>, <code>.commands/setup.md</code> and <code>.commands/resume.md</code>.</p>
+        <p><strong>Tested?</strong> <code>go test ./...</code>, <code>dh validate .</code> and <code>go run ./cmd/dh build</code> with no difference in <code>dist/</code>; the new validator test reproduced before the fix; a test with a real <code>git worktree add</code> in <code>&lt;repo&gt;/.worktrees/</code>, in modes <code>repo</code> and <code>global</code>; clean-clone proof; no new eval.</p>
+      </div>
 
             <div class="card">
         <h3>0.39.2 · Documentation gate in the source</h3>
@@ -1888,7 +1896,7 @@ OTEL and Agent SDK — not planning"]
 
       <h2 id="fontes"><span class="n">06</span>Sources</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.39.2, base for the Delivered section.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 to 0.40.0, base for the Delivered section.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> and <code>-after.md</code> — before/after
           measurement for the 0.6.0 batch (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

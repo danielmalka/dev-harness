@@ -6,7 +6,7 @@ argument-hint: "[target directory or setup notes | bootstrap]"
 metadata:
   roles: [coordinator, repo-scout]
   skills: [project-onboarding]
-  writes: project.yaml and missing records in the harness dir; REPO-MAP.md in the harness dir when the owner accepts; REVIEW.md at the repository root when absent
+  writes: project.yaml and missing records in the harness dir; REPO-MAP.md in the harness dir when the owner accepts; REVIEW.md at the repository root when absent; the line `.worktrees/` in the project `.gitignore` when it is not ignored
 disable-model-invocation: true
 ---
 ## Role
@@ -16,6 +16,8 @@ Act as the kit `coordinator` in this session (read the bundled `coordinator` age
 Target and notes: $ARGUMENTS (default to the current working directory and say so). Dispatch `repo-scout` with the Agent tool, model `haiku`, to contribute the read-only inventory part of the kit skill `project-onboarding`: stack, manifests, existing project instructions, discoverable test, lint, build and run commands with their source. Then load `project-onboarding` yourself and produce the profile from that inventory. Decide where the records live, in this order: (1) run `dh harness-path --json` (the bundled `bin/dh` (`bin\dh.cmd` on Windows) from the loaded plugin directory, as in `.commands/doctor.md`; every `dh` call here uses it) and read `defaults`; (2) the mode is `defaults.mode` when filled, otherwise ask the owner once for this project (`repo` or `global`); with `defaults` all empty (no `config.yaml` or no keys) use today's defaults; (3) in `repo`, create `<repo>/.harness/` with the records from the templates; (4) run `dh link [name]`, which always registers the project (in `repo` it only registers, so `<home>/projects/<name>/` does not exist afterwards; in `global` it also creates that folder), then paste the `defaults.reviewers` block into the new `project.yaml`; from then on the project's own values win. Never Read `config.yaml`. In `global` the records are born in `<home>/projects/<name>/` and the only file written in the repository tree is `REVIEW.md` (see the review guide step below); remind the owner to add `~/.harness` to `additionalDirectories` in `~/.claude/settings.json` (never write it).
 
 Review guide, in both modes (skill `project-onboarding`): when the project has no review guide file, dispatch a specialist (`builder`, lane `infra`; not the Coordinator, since the file is new) to create `REVIEW.md` at the repository root from `templates/en/REVIEW.md`, then write `review_guide: REVIEW.md` (a repository-relative path, never absolute or with `..`) in `project.yaml`. The file is always English, whatever `language` says. When the file exists but the key is absent, record the key and leave the file untouched. When the key points to an existing file, change nothing. Never overwrite.
+
+Worktree ignore, in a git repository: the kit's development worktrees live in `<repo>/.worktrees/<task-id>`. Run `git check-ignore -q .worktrees/x` at the repository root; when it fails, dispatch a specialist (`builder`, lane `infra`) to append the single line `.worktrees/` to the root `.gitignore` (creating the file when it is absent), then run the check again. Report it under Created or Left untouched. A folder that is not a git repository needs nothing.
 
 Docs-only project (no code): a folder that is not a git repository is accepted; record `commands` fields as null; `REVIEW.md` lists only the critical documents or paths; the `project.yaml` shape comes from `profiles/examples/project.yaml`.
 
@@ -31,7 +33,7 @@ The `project-onboarding` report with the mode, the registration, the proposed pr
 - Never overwrite or edit an existing record in the harness dir; an existing file is left untouched and reported. The one exception is `REPO-MAP.md`, derived data that a refresh may overwrite.
 - When no shipped profile matches, the profile is "none, custom"; leave unsupported fields unset rather than guessing a command.
 - Never install, upgrade or configure tooling, and never modify the project's own instruction files.
-- Never edit `.gitignore`; only `local.yaml` (written later, on the first CLI reviewer call) should stay ignored.
+- Never edit `.gitignore`, except to append the single line `.worktrees/` when it is not ignored (Routing); only `local.yaml` (written later, on the first CLI reviewer call) should stay ignored.
 - Only the Coordinator writes `MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
 
 ## Next

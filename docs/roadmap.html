@@ -662,7 +662,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-11-16</b></span>
-          <span class="chip">status <b>0.39.2 · vivo</b></span>
+          <span class="chip">status <b>0.40.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.40.0 · Worktree do kit em <code>.worktrees/</code></h3>
+        <p><strong>Status:</strong> concluído.</p>
+        <p><strong>Resumo:</strong> O <code>/dh:build</code> e o <code>/dh:auto</code> criam o worktree em <code>&lt;checkout&gt;/.worktrees/&lt;id&gt;</code>, dentro do checkout, e não mais na pasta irmã <code>&lt;checkout&gt;.worktrees</code>: o kit passa a seguir a regra que o dono já fixou para os bots. A pasta fica no <code>.gitignore</code>: o <code>/dh:setup</code> acrescenta a linha <code>.worktrees/</code> (a única edição de <code>.gitignore</code> que ele faz) e o <code>/dh:build</code> encerra antes de criar o worktree se ela não estiver ignorada. Registros anteriores à 0.40.0 seguem aceitos pelo <code>/dh:resume</code>, e nada é movido. O <code>dh validate</code> passa a ignorar <code>.worktrees/</code> (antes a cópia do repositório dentro dela falhava a validação). A ADR-008 D1 é emendada. Sem agente, skill ou comando novo (13 agentes, 22 skills, 19 + 1 comandos).</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.40.0; <code>docs/prd/PRD-033-worktree-in-repo.md</code>; <code>docs/adr/ADR-008-worktree-de-desenvolvimento.md</code>; <code>.commands/build.md</code>, <code>.commands/setup.md</code> e <code>.commands/resume.md</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code>, <code>dh validate .</code> e <code>go run ./cmd/dh build</code> sem diferença em <code>dist/</code>; teste novo do validador reproduzido antes do conserto; teste com <code>git worktree add</code> real em <code>&lt;repo&gt;/.worktrees/</code>, nos modos <code>repo</code> e <code>global</code>; prova de clone limpo; sem eval nova.</p>
+      </div>
 
             <div class="card">
         <h3>0.39.2 · Documentation gate na fonte</h3>
@@ -1888,7 +1896,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.39.2, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.40.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

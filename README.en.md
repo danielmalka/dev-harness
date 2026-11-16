@@ -55,7 +55,7 @@ In global mode, the `~/.harness/` folder (`DH_HOME` moves it) is unique per mach
 | `~/.harness/projects/<name>/pdocs/` | project HTML documentation (`/dh:document pdocs`) | docs-guide |
 | `127.0.0.1:4747` | local dashboard, this machine only, when you start it with `/dashboard` | `dh` binary |
 
-With `worktree` set to `always` (or when you ask), `/dh:build` and `/dh:auto` work in a sibling worktree `<checkout>.worktrees/<id>`. When `/dh:plan` leaves open decisions, it generates an HTML approval page in `pdocs`. Details in the "Configuration" section of the [tutorial](docs/en/tutorial.html).
+With `worktree` set to `always` (or when you ask), `/dh:build` and `/dh:auto` work in a worktree at `.worktrees/<id>`, inside the checkout and ignored by git (`/dh:setup` adds the `.worktrees/` line to `.gitignore`). When `/dh:plan` leaves open decisions, it generates an HTML approval page in `pdocs`. Details in the "Configuration" section of the [tutorial](docs/en/tutorial.html).
 
 ## Turn things off
 

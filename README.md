@@ -55,7 +55,7 @@ No modo global, a pasta `~/.harness/` (`DH_HOME` muda o lugar) é única por má
 | `~/.harness/projects/<nome>/pdocs/` | documentação HTML do projeto (`/dh:document pdocs`) | docs-guide |
 | `127.0.0.1:4747` | dashboard local, só nesta máquina, quando você o inicia com `/dashboard` | binário `dh` |
 
-Com `worktree` em `always` (ou quando você pede), `/dh:build` e `/dh:auto` trabalham num worktree irmão `<checkout>.worktrees/<id>`. Quando o `/dh:plan` deixa decisões em aberto, ele gera uma página HTML de aprovação em `pdocs`. Detalhes na seção "Configuração" do [tutorial](docs/tutorial.html).
+Com `worktree` em `always` (ou quando você pede), `/dh:build` e `/dh:auto` trabalham num worktree em `.worktrees/<id>`, dentro do checkout e ignorado pelo git (o `/dh:setup` acrescenta a linha `.worktrees/` ao `.gitignore`). Quando o `/dh:plan` deixa decisões em aberto, ele gera uma página HTML de aprovação em `pdocs`. Detalhes na seção "Configuração" do [tutorial](docs/tutorial.html).
 
 ## Desligar
 
