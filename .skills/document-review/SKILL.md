@@ -1,6 +1,6 @@
 ---
 name: document-review
-description: Use when a document that becomes a contract must be judged against the material it was written from, before it reaches the owner: a PRD from discovery notes, a story from a PRD, a plan from a brief, an ADR from the decision that forced it. Also use when a rejected document comes back corrected and the previous findings must be settled instead of restated. Do not use to write or repair the document, to review code, or to open a discussion with the owner point by point.
+description: "Use when a document that becomes a contract must be judged against the material it was written from, before it reaches the owner: a PRD from discovery notes, a story from a PRD, a plan from a brief, an ADR from the decision that forced it. Also use when a rejected document comes back corrected and the previous findings must be settled instead of restated. Do not use to write or repair the document, to review code, or to open a discussion with the owner point by point."
 author: malka
 metadata:
   provenance: adapted
