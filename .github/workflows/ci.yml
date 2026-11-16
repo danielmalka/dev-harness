@@ -20,12 +20,35 @@ jobs:
       - name: Package matches committed sources and binaries
         run: |
           git diff --exit-code --stat -- dist ':(exclude)dist/claude-code/dev-harness/harness-manifest.json' ':(exclude)dist/claude-code/dev-harness/GENERATED.txt'
-          python3 - <<'PY'
-          import json,subprocess
-          a=json.load(open('harness-manifest.json'))['binaries']
-          print('binaries reproduced:',len(a))
-          PY
       - name: Validate package
         run: go run ./cmd/dh validate .
-      - name: Fixture
-        run: cd evals/fixtures/slice-01 && python3 -m unittest test_greet.py 2>&1 | tail -3 || true
+      # The fixture starts red on purpose (the exercise is to fix it): it must fail
+      # with exactly the 2 expected failures, not pass and not break another way.
+      - name: Fixture fails as expected
+        working-directory: evals/fixtures/slice-01
+        run: |
+          if python3 -m unittest test_greet.py > "$RUNNER_TEMP/fixture.log" 2>&1; then
+            echo "::error::the fixture passes; it must start red"
+            exit 1
+          fi
+          tail -3 "$RUNNER_TEMP/fixture.log"
+          grep -qx 'FAILED (failures=2)' "$RUNNER_TEMP/fixture.log"
+  mods:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Needs only the CLI binary: no login and no API key (checked with an empty
+      # HOME and a bare environment). Not pinned on purpose: the mod API is early
+      # access (ADR-005), and this job exists to catch a break when it changes.
+      # It tests the committed package (what users install); the `kit` job proves
+      # that package matches the sources.
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code@latest
+      - name: Mod tests
+        run: |
+          # The runner shell is `bash -e` without pipefail: without this line `tee`
+          # hides the exit code of the CLI and a failed test still turns the job green.
+          set -o pipefail
+          claude plugin test dist/claude-code/dev-harness | tee mods.log
+          # A run that finds no test must not pass.
+          grep -Eq '^ *[1-9][0-9]* pass$' mods.log
