@@ -1,6 +1,6 @@
 ---
 name: document-review
-description: Use when a document that becomes a contract must be judged against the material it was written from, before it reaches the owner: a PRD from discovery notes, a story from a PRD, a plan from a brief, an ADR from the decision that forced it. Also use when a rejected document comes back corrected and the previous findings must be settled instead of restated. Do not use to write or repair the document, to review code, or to open a discussion with the owner point by point.
+description: "Use when a document that becomes a contract must be judged against the material it was written from, before it reaches the owner: a PRD from discovery notes, a story from a PRD, a plan from a brief, an ADR from the decision that forced it. Also use when a rejected document comes back corrected and the previous findings must be settled instead of restated. Do not use to write or repair the document, to review code, or to open a discussion with the owner point by point."
 author: malka
 metadata:
   provenance: adapted
@@ -66,6 +66,12 @@ The context bundle of a document-stage round holds exactly five items: the docum
 
 9. **Hand it back.** The verdict, the findings and the report body go to the Coordinator, who has `docs-guide` write the file after judging the content. Do not edit the document and do not address the owner. Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.harness/RISKS.md`.
 
+## Documentation section (mandatory in the document)
+
+Every document that becomes a contract carries a section naming the documentation its own change will invalidate and what changes in each: `README`, `AGENTS.md`, `docs/DECISIONS.md`, or the project's equivalents named in its instruction files. A behavior change names the README usage it edits; an architectural or owner decision names the DECISIONS entry and the AGENTS.md rule it preserves or replaces; an operational change names the runbook or operations section. A document that alters none of the four says so explicitly, with the reason; silence is not compliance.
+
+A missing section, or one that lists documents without saying what changes in them, is a blocking finding of category `gap` titled `documentation section missing|unspecified`, located where the section belongs. It is not a seventh review category: it is checked inside Gaps and Organization and blocks on the same rule as any gap. On a second round it keeps its identifier and its state.
+
 ## The round protocol, from the Coordinator's side
 
 1. The author role writes the document. For a PRD, that is `product-discovery`.
@@ -89,6 +95,7 @@ Every review has `## Comprehension`, `approved` with zero findings included. Wri
 - What the document proposes: <at most 5 sentences, your own words; a copied phrase is in quotation marks>
 - How the current system works, as the document states it: <at most 5 sentences, your own words>
 - Sections not paraphrased: <section ids, or none>
+- Documentation section: <present at section <n>, naming <documents> | missing | present but unspecified>
 
 ## Findings
 - P1
@@ -124,6 +131,7 @@ The report body, returned with the reply and written by `docs-guide` to `<docume
 - What the document proposes: <at most 5 sentences, your own words; a copied phrase is in quotation marks>
 - How the current system works, as the document states it: <at most 5 sentences, your own words>
 - Sections not paraphrased: <section ids, or none>
+- Documentation section: <present at section <n>, naming <documents> | missing | present but unspecified>
 
 ## Findings
 
