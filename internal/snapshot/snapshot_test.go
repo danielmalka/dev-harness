@@ -130,7 +130,7 @@ func TestStatuslineMergesAndCountsActiveAgents(t *testing.T) {
 	if err := Statusline(dir, strings.NewReader(input), &output); err != nil {
 		t.Fatal(err)
 	}
-	if output.String() != "Sonnet · ctx 42% · $0.12 · 1 agents active\n" {
+	if output.String() != "Sonnet · ctx 42% · $0.12 · 1 agente ativo\n" {
 		t.Fatalf("output = %q", output.String())
 	}
 	snapshot := readTestSnapshot(t, dir, "s1")

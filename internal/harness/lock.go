@@ -58,7 +58,7 @@ func lockNamed(dir, name string) (func(), error) {
 			continue
 		}
 		if time.Now().After(deadline) {
-			return nil, fmt.Errorf("timed out waiting for %s (another dh process running? remove the file if not)", path)
+			return nil, fmt.Errorf("tempo esgotado esperando %s (há outro processo dh rodando? se não, apague o arquivo)", path)
 		}
 		time.Sleep(50 * time.Millisecond)
 	}

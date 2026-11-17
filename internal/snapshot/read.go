@@ -12,13 +12,13 @@ import (
 )
 
 // ErrPartial means the file is empty or truncated JSON (a writer is mid-write); callers skip it for this cycle.
-var ErrPartial = errors.New("partial snapshot")
+var ErrPartial = errors.New("snapshot parcial")
 
 // ErrTooLarge means the file is over MaxFileBytes and is not read (a snapshot is a few KB).
-var ErrTooLarge = errors.New("snapshot too large")
+var ErrTooLarge = errors.New("snapshot grande demais")
 
 // ErrNotRegular means the path is a symlink, FIFO, device or directory: never followed or read.
-var ErrNotRegular = errors.New("not a regular file")
+var ErrNotRegular = errors.New("não é um arquivo comum")
 
 // MaxFileBytes bounds what a poll reads from any one snapshot file.
 const MaxFileBytes = 1 << 20

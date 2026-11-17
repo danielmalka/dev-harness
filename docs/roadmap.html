@@ -661,8 +661,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-11-16</b></span>
-          <span class="chip">status <b>0.41.0 · vivo</b></span>
+           <span class="chip">data <b>2026-11-17</b></span>
+          <span class="chip">status <b>0.42.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -675,15 +675,15 @@ footer.doc-foot {
   .agents/                13 papéis — fonte canônica
   .skills/                22 skills — fonte canônica
   .commands/              20 comandos — fonte canônica
-  templates/{en,pt-br}/   8 templates em en/, 6 em pt-br/ — fonte canônica
+  templates/              8 templates em pt-BR, numa pasta só — fonte canônica
   profiles/               7 perfis de stack — fonte canônica
   dist/                   pacote gerado por `dh build` — não se edita à mão
   docs/                   PRDs, ADRs, tutoriais, plano de produto, este roadmap
   evals/                  cases, baselines, rubrics, fixtures de avaliação
   adapters/               guias de uso manual por outras IAs (generic) e o pacote Claude Code (claude-code)</code></pre>
       </div>
-      <p>Contagem atual (<code>harness-manifest.json</code>): 13 agentes, 20 comandos, 22 skills, 7 perfis, 14 templates
-        (8 en + 6 pt-br), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
+      <p>Contagem atual (<code>harness-manifest.json</code>): 13 agentes, 20 comandos, 22 skills, 7 perfis, 8 templates
+        (numa pasta só), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
       <pre class="mermaid">
 flowchart LR
     A["Fontes canônicas
@@ -699,6 +699,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.42.0 · O kit é só pt-BR (ADR-011, fatia S1)</h3>
+        <p><strong>Status:</strong> concluído (primeira de cinco fatias; a migração termina na 0.46.0).</p>
+        <p><strong>Resumo:</strong> ADR-011. A opção <code>language</code> deixa de existir: <code>dh config set language</code> responde chave desconhecida, e uma linha antiga no <code>project.yaml</code> ou no <code>config.yaml</code> é lida, ignorada e avisada pelo <code>dh doctor</code>. <code>templates/</code> vira uma pasta só, em pt-BR (PRD e <code>REVIEW.md</code> traduzidos). Chave opcional <code>conventions.code_language</code> (<code>en</code> ou <code>pt-br</code>) para o idioma de commits e comentários de código do projeto, inglês se nada definir. Mensagens do <code>dh</code> e dos mods em pt-BR; <code>doc-template-html</code> sem <code>--lang</code>; <code>roadmap_check</code> e <code>doc_counts</code> só em pt.</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.42.0; <code>docs/adr/ADR-011-kit-so-ptbr.md</code>; <code>internal/harness/config*.go</code>, <code>internal/harness/project.go</code>, <code>internal/kit/validate.go</code>; <code>adapters/claude-code/plugin/hooks/lib/</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> (inclui os casos de <code>language</code> como chave desconhecida, linha antiga lida, ignorada e preservada, e <code>conventions.code_language</code>), testes dos mods, <code>go vet ./...</code>, <code>dh validate .</code> e <code>go run ./cmd/dh build</code> sem diferença em <code>dist/</code>; prova de clone limpo; sem eval nova.</p>
+      </div>
 
       <div class="card">
         <h3>0.41.0 · Trava de hash no <code>MEMORY.md</code> e <code>/dh:dream</code></h3>
@@ -1904,7 +1912,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.41.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.42.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

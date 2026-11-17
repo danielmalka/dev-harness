@@ -104,7 +104,7 @@ func TestWarningsUseRegisteredNameAndEpochalReadError(t *testing.T) {
 	mk(t, f, "x")
 	var m Metrics
 	w := strings.Join(fileMetrics(&m, "custom", f), "\n")
-	if m.Epochal.Batches != nil || !strings.Contains(w, "custom: EPOCHAL.md unreadable.") || strings.Contains(w, "EPOCHAL.md unreadable (not") {
+	if m.Epochal.Batches != nil || !strings.Contains(w, "custom: EPOCHAL.md ilegível.") || strings.Contains(w, "EPOCHAL.md ilegível (não") {
 		t.Fatalf("epochal: %+v %q", m.Epochal, w)
 	}
 }
@@ -129,7 +129,7 @@ func TestSymlinkedHarnessDirRefused(t *testing.T) {
 			t.Fatalf("metrics read through symlink: %+v", p.Metrics)
 		}
 	}
-	if !strings.Contains(strings.Join(st.Warnings, "\n"), "lnk: harness folder is a symlink") {
+	if !strings.Contains(strings.Join(st.Warnings, "\n"), "lnk: a pasta do harness é um symlink") {
 		t.Fatalf("warnings: %v", st.Warnings)
 	}
 }

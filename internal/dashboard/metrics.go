@@ -98,7 +98,7 @@ func (c *counts) addDone(t ticketFacts, project, ticket string) string {
 		c.undated++
 	case end.Before(start):
 		c.undated++
-		return fmt.Sprintf("%s: ticket %s: Done on is before Created: counted as undated.", project, ticket)
+		return fmt.Sprintf("%s: ticket %s: Concluído em é anterior a Criado: contado como sem data.", project, ticket)
 	default:
 		c.daysSum += dayCount(start, end)
 		c.daysN++
@@ -162,7 +162,7 @@ func prdMetrics(status map[string]string, dates map[string][2]string, byPRD map[
 			s, e := parseISO(dates[id][0]), parseISO(dates[id][1])
 			if pm.Started != nil && pm.Delivered != nil {
 				if e.Before(s) {
-					warns = append(warns, fmt.Sprintf("%s: %s: delivery date is before Created: no duration.", project, id))
+					warns = append(warns, fmt.Sprintf("%s: %s: a data de entrega é anterior a Criado: sem duração.", project, id))
 				} else {
 					d := dayCount(s, e)
 					pm.Days = &d
@@ -185,10 +185,10 @@ func fileMetrics(m *Metrics, project, harnessDir string) []string {
 	if symlinked(harnessDir) {
 		m.Memory = MemoryStat{}
 		m.Epochal = EpochalStat{}
-		return []string{fmt.Sprintf("%s: harness folder is a symlink: metrics skipped.", project)}
+		return []string{fmt.Sprintf("%s: a pasta do harness é um symlink: métricas ignoradas.", project)}
 	}
 	refuse := func(file string) {
-		warns = append(warns, fmt.Sprintf("%s: %s unreadable (not a regular file or over 1 MiB).", project, file))
+		warns = append(warns, fmt.Sprintf("%s: %s ilegível (não é arquivo comum ou passa de 1 MiB).", project, file))
 	}
 	if b, err := readCappedIn(harnessDir, "RISKS.md"); err == nil {
 		n := countIncidents(string(b))
@@ -213,7 +213,7 @@ func fileMetrics(m *Metrics, project, harnessDir string) []string {
 		m.Epochal = e
 	} else if !errors.Is(err, fs.ErrNotExist) {
 		m.Epochal = EpochalStat{}
-		warns = append(warns, fmt.Sprintf("%s: EPOCHAL.md unreadable.", project))
+		warns = append(warns, fmt.Sprintf("%s: EPOCHAL.md ilegível.", project))
 	}
 	return warns
 }

@@ -55,13 +55,13 @@ func Link(home, repo, name string, off bool) (Resolved, error) {
 		return resolveIn(home, repo, c), nil
 	}
 	if !isDir(repo) {
-		return Resolved{}, fmt.Errorf("%s is not a directory", repo)
+		return Resolved{}, fmt.Errorf("%s não é um diretório", repo)
 	}
 	if name == "" {
 		name = filepath.Base(repo)
 	}
 	if !validName(name) {
-		return Resolved{}, fmt.Errorf("invalid project name %q: use a single folder name (pass an explicit name)", name)
+		return Resolved{}, fmt.Errorf("nome de projeto inválido %q: use o nome de uma pasta só (passe um nome explícito)", name)
 	}
 	for p, n := range c.Projects {
 		if !filepath.IsAbs(p) || p != filepath.Clean(p) { // hand-edited key: never stat it
@@ -75,7 +75,7 @@ func Link(home, repo, name string, off bool) (Resolved, error) {
 			continue
 		}
 		if _, serr := os.Stat(p); !errors.Is(serr, os.ErrNotExist) {
-			return Resolved{}, fmt.Errorf("name %q is already used by %s: pass an explicit name (dh link <name>)", name, p)
+			return Resolved{}, fmt.Errorf("o nome %q já é usado por %s: passe um nome explícito (dh link <nome>)", name, p)
 		}
 		delete(c.Projects, p) // stale entry: its repository is gone, relink
 	}
@@ -85,7 +85,7 @@ func Link(home, repo, name string, off bool) (Resolved, error) {
 			return Resolved{}, err
 		}
 		if !isDir(d) {
-			return Resolved{}, errors.New(d + " exists and is not a directory")
+			return Resolved{}, errors.New(d + " existe e não é um diretório")
 		}
 		if err := tighten(d, dirPerm); err != nil {
 			return Resolved{}, err

@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { commandDir, deniesAiMention, native, resolvePath, isGateCommand, isHarnessPath, parseGateCommands, parseLanguage, taskStatus } from './panel'
+import { commandDir, deniesAiMention, native, resolvePath, isGateCommand, isHarnessPath, parseGateCommands, taskStatus } from './panel'
 
 test('only commit/PR text that mentions AI is denied', () => {
   expect(deniesAiMention('git commit -m "feat: x\n\nCo-Authored-By: Claude Opus"')).toBe(true)
@@ -39,13 +39,6 @@ test('reads dh task status', () => {
   expect(taskStatus('**Status: pronta para QA/revisão.**')).toBe('open')
   expect(taskStatus('**Status:** concluído.')).toBe('done')
   expect(taskStatus('sem tabela')).toBe('open')
-})
-
-test('language follows project.yaml, English by default', () => {
-  expect(parseLanguage('language: pt-br\nname: x')).toBe('pt-br')
-  expect(parseLanguage('name: x\nlanguage: "pt-br"')).toBe('pt-br')
-  expect(parseLanguage('language: en')).toBe('en')
-  expect(parseLanguage('name: x')).toBe('en')
 })
 
 test('.harness/ paths do not dirty the gate, other paths do', () => {

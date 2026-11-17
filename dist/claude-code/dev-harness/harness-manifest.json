@@ -1,10 +1,10 @@
 {
   "name": "dev-harness",
-  "version": "0.41.0",
+  "version": "0.42.0",
   "license": "MIT",
   "generated": true,
-  "generated_at": "2026-11-16T21:56:13Z",
-  "content_sha256": "07c3e10beb22b69a34ac4dca47a4ec9c0cccfbdaf9299dd7c48de1c3816c3701",
+  "generated_at": "2026-11-17T23:51:58Z",
+  "content_sha256": "2a90ecee29576541d20a495503d6f80b255393a9fe8bc598024ce057bfe763b4",
   "source": "dh build",
   "runtime": {
     "primary": "claude-code",
@@ -84,20 +84,14 @@
       "typescript-web"
     ],
     "templates": [
-      "en/ADR.md",
-      "en/EPOCHAL.md",
-      "en/MEMORY.md",
-      "en/PRD.md",
-      "en/REVIEW.md",
-      "en/RFC.md",
-      "en/RISKS.md",
-      "en/TASK.md",
-      "pt-br/ADR.md",
-      "pt-br/EPOCHAL.md",
-      "pt-br/MEMORY.md",
-      "pt-br/RFC.md",
-      "pt-br/RISKS.md",
-      "pt-br/TASK.md"
+      "ADR.md",
+      "EPOCHAL.md",
+      "MEMORY.md",
+      "PRD.md",
+      "REVIEW.md",
+      "RFC.md",
+      "RISKS.md",
+      "TASK.md"
     ]
   },
   "binaries": [
@@ -105,31 +99,31 @@
       "os": "linux",
       "arch": "amd64",
       "path": "bin/linux_amd64/dh",
-      "sha256": "6f7c9a3dd7ebfb3d6bcbe2d59662dcac6879b9dbc2173e53025f9d952154ea87"
+      "sha256": "c2d2bc9d71130c71e0bfa5c82ba38b051526a25a7f7419d976ba53992f01b177"
     },
     {
       "os": "linux",
       "arch": "arm64",
       "path": "bin/linux_arm64/dh",
-      "sha256": "683cb8b9f19fca756501487f6c1e543950176d8b6e6105fb5f0d97fd9630f6ba"
+      "sha256": "9af3ef5a9f07880b892cc22186c5806dce3eac6ee1e4575c94d1fd7d3a760848"
     },
     {
       "os": "darwin",
       "arch": "amd64",
       "path": "bin/darwin_amd64/dh",
-      "sha256": "c61bf7d77ccf389615d332208a522dd91f43fb86d6fc8c7ab332208cc1457e05"
+      "sha256": "c7543ea57db206cf471e98251fea8f8e9db6332c0237611ed3920cbd216d854e"
     },
     {
       "os": "darwin",
       "arch": "arm64",
       "path": "bin/darwin_arm64/dh",
-      "sha256": "b80e046d675220fce0e0f008153bdd3650018250a39ed565528f7531f8f2e3df"
+      "sha256": "c45cf2b05f76c439ee3b5a6667819317f5da80195b4effd8ddd74fcefa7db1a4"
     },
     {
       "os": "windows",
       "arch": "amd64",
       "path": "bin/windows_amd64/dh.exe",
-      "sha256": "d12b5131849bbb486143a5f973b15d3bceaa36fe186e7f14420a33d0d7bfb9fb"
+      "sha256": "c68d244476585f8f7a88a8a74185a9658b42ca091800db302dcb1c61ff23bb8f"
     }
   ]
 }

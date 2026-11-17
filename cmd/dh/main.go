@@ -32,7 +32,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 	if args[0] == "doctor" {
 		if len(args) > 2 {
-			printError(stderr, "usage: dh doctor [plugin-dir-or-kit-root]")
+			printError(stderr, "uso: dh doctor [pasta-do-plugin-ou-raiz-do-kit]")
 			return 1
 		}
 		target := "."
@@ -92,10 +92,10 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			printError(stderr, err.Error())
 			return 1
 		}
-		fmt.Fprintf(stdout, "pruned %d\n", count)
+		fmt.Fprintf(stdout, "removidos %d\n", count)
 		return 0
 	default:
-		printError(stderr, "unknown snapshot subcommand: "+args[1])
+		printError(stderr, "subcomando de snapshot desconhecido: "+args[1])
 		return 1
 	}
 }
@@ -103,11 +103,11 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 func runBuild(args []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("dh build", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	targets := flags.String("targets", "", "comma-separated GOOS/GOARCH targets")
-	noBinaries := flags.Bool("no-binaries", false, "skip cross-compiled binaries")
+	targets := flags.String("targets", "", "alvos GOOS/GOARCH separados por vírgula")
+	noBinaries := flags.Bool("no-binaries", false, "não gera os binários multiplataforma")
 	if err := flags.Parse(args); err != nil || flags.NArg() != 0 {
 		if err == nil {
-			printError(stderr, "usage: dh build [--targets os/arch,...] [--no-binaries]")
+			printError(stderr, "uso: dh build [--targets os/arch,...] [--no-binaries]")
 		}
 		return 1
 	}
@@ -137,7 +137,7 @@ func parseTargets(value string) ([]build.Target, error) {
 	for _, part := range parts {
 		pieces := strings.Split(part, "/")
 		if len(pieces) != 2 || pieces[0] == "" || pieces[1] == "" {
-			return nil, fmt.Errorf("invalid target: %s", part)
+			return nil, fmt.Errorf("alvo inválido: %s", part)
 		}
 		result = append(result, build.Target{OS: pieces[0], Arch: pieces[1]})
 	}
@@ -151,14 +151,14 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 	for _, arg := range args {
 		if arg == "--source-only" {
 			if sourceOnly {
-				printError(stderr, "usage: dh validate [--source-only] [path]")
+				printError(stderr, "uso: dh validate [--source-only] [caminho]")
 				return 1
 			}
 			sourceOnly = true
 			continue
 		}
 		if targetSet {
-			printError(stderr, "usage: dh validate [--source-only] [path]")
+			printError(stderr, "uso: dh validate [--source-only] [caminho]")
 			return 1
 		}
 		target = arg
@@ -178,8 +178,9 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 
 // runMemory is the hash guard of MEMORY.md (PRD-034): `hash` prints the sha256 (or "absent"); `write` is a compare-and-swap.
 // Exit codes: 0 ok, 1 usage or I/O error, 3 the file changed since it was read (nothing written).
+// The tokens `absent` and `written <hash>` are a contract the kit skills document, so they stay as they are; only the errors are in pt-BR.
 func runMemory(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	const memUsage = "usage: dh memory hash [dir] | dh memory write --expect <sha256|absent> [--from <file>] [dir]"
+	const memUsage = "uso: dh memory hash [pasta] | dh memory write --expect <sha256|absent> [--from <arquivo>] [pasta]"
 	if len(args) == 0 {
 		printError(stderr, memUsage)
 		return 1
@@ -204,8 +205,8 @@ func runMemory(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	case "write":
 		flags := flag.NewFlagSet("dh memory write", flag.ContinueOnError)
 		flags.SetOutput(stderr)
-		expect := flags.String("expect", "", "sha256 of MEMORY.md as read, or absent")
-		from := flags.String("from", "", "file with the new content (default: standard input)")
+		expect := flags.String("expect", "", "sha256 do MEMORY.md como foi lido, ou absent")
+		from := flags.String("from", "", "arquivo com o novo conteúdo (padrão: entrada padrão)")
 		if err := flags.Parse(args[1:]); err != nil || *expect == "" || flags.NArg() > 1 {
 			if err == nil {
 				printError(stderr, memUsage)
@@ -256,7 +257,7 @@ func memoryDir(pos []string, stderr io.Writer) (string, bool) {
 		return "", false
 	}
 	if st, err := os.Stat(repo); err != nil || !st.IsDir() {
-		printError(stderr, repo+" is not a directory")
+		printError(stderr, repo+" não é um diretório")
 		return "", false
 	}
 	home, err := harness.EnsureHome()
@@ -271,14 +272,14 @@ func memoryDir(pos []string, stderr io.Writer) (string, bool) {
 	}
 	r := harness.Resolve(repo, c)
 	if r.Mode == "none" || r.Dir == "" {
-		printError(stderr, "no harness dir for "+repo+" (mode none): run /dh:setup first")
+		printError(stderr, "não há harness dir para "+repo+" (mode none): rode /dh:setup antes")
 		return "", false
 	}
 	return r.Dir, true
 }
 
 func usage() string {
-	return "usage: dh <memory <hash|write>|snapshot <event|subagents|statusline|prune>|validate [--source-only] [path]|build [--targets os/arch,...] [--no-binaries]|doctor [plugin-dir-or-kit-root]|dashboard [--port N] [--stale D] [--done-decay D] [--detach]|harness-path [dir] [--json]|link [name] [--off] [dir] [--json]|projects [--json]|config [--json]|config set <key> <value>|config unset <key>>"
+	return "uso: dh <memory <hash|write>|snapshot <event|subagents|statusline|prune>|validate [--source-only] [caminho]|build [--targets os/arch,...] [--no-binaries]|doctor [pasta-do-plugin-ou-raiz-do-kit]|dashboard [--port N] [--stale D] [--done-decay D] [--detach]|harness-path [pasta] [--json]|link [nome] [--off] [pasta] [--json]|projects [--json]|config [--json]|config set <chave> <valor>|config unset <chave>>"
 }
 
 func pruneDays(args []string) (int, error) {
@@ -286,11 +287,11 @@ func pruneDays(args []string) (int, error) {
 		return 7, nil
 	}
 	if len(args) != 2 || args[0] != "--days" {
-		return 0, fmt.Errorf("usage: dh snapshot prune [--days N]")
+		return 0, fmt.Errorf("uso: dh snapshot prune [--days N]")
 	}
 	days, err := strconv.Atoi(args[1])
 	if err != nil || days < 0 {
-		return 0, fmt.Errorf("invalid days: %s", args[1])
+		return 0, fmt.Errorf("dias inválidos: %s", args[1])
 	}
 	return days, nil
 }
@@ -337,7 +338,7 @@ func printResolved(w io.Writer, r harness.Resolved) {
 func runHarnessPath(args []string, stdout, stderr io.Writer) int {
 	pos, f, ok := splitArgs(args, "--json")
 	if !ok || len(pos) > 1 {
-		printError(stderr, "usage: dh harness-path [dir] [--json]")
+		printError(stderr, "uso: dh harness-path [pasta] [--json]")
 		return 1
 	}
 	dir := "."
@@ -350,7 +351,7 @@ func runHarnessPath(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if st, err := os.Stat(repo); err != nil || !st.IsDir() {
-		printError(stderr, repo+" is not a directory")
+		printError(stderr, repo+" não é um diretório")
 		return 1
 	}
 	home, err := harness.EnsureHome()
@@ -369,7 +370,6 @@ func runHarnessPath(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	type defaults struct {
-		Language  string `json:"language"`
 		Mode      string `json:"mode"`
 		Reviewers string `json:"reviewers"`
 		Worktree  string `json:"worktree"`
@@ -387,7 +387,7 @@ func runHarnessPath(args []string, stdout, stderr io.Writer) int {
 		Pdocs          string            `json:"pdocs"`
 		Defaults       defaults          `json:"defaults"`
 		LinkedWorktree *harness.LinkedWT `json:"linked_worktree"`
-	}{r, harness.PdocsDir(home, c.Projects[key]), defaults{c.Language, c.Mode, c.ReviewersRaw, worktreeOr(c.Worktree)}, lw})
+	}{r, harness.PdocsDir(home, c.Projects[key]), defaults{c.Mode, c.ReviewersRaw, worktreeOr(c.Worktree)}, lw})
 	return 0
 }
 
@@ -402,7 +402,7 @@ func worktreeOr(v string) string {
 // runLink: with one positional, a value with a path separator or "."/".." is the directory,
 // anything else is the name; with two, they are name then dir.
 func runLink(args []string, stdout, stderr io.Writer) int {
-	usageMsg := "usage: dh link [name] [--off] [dir] [--json]"
+	usageMsg := "uso: dh link [nome] [--off] [pasta] [--json]"
 	pos, f, ok := splitArgs(args, "--off", "--json")
 	if !ok || len(pos) > 2 {
 		printError(stderr, usageMsg)
@@ -435,7 +435,7 @@ func runLink(args []string, stdout, stderr io.Writer) int {
 		printResolved(stdout, r)
 	}
 	if d := harness.LinkedDir(home, dir); r.Mode == "none" && d != "" {
-		fmt.Fprintf(stderr, "warning: link stored, but %s has no harness marker yet (project.yaml, MEMORY.md, EPOCHAL.md, RISKS.md, tasks/ or prd/); run /dh:setup to create the harness\n", d)
+		fmt.Fprintf(stderr, "aviso: link gravado, mas %s ainda não tem marcador de harness (project.yaml, MEMORY.md, EPOCHAL.md, RISKS.md, tasks/ ou prd/); rode /dh:setup para criar o harness\n", d)
 	}
 	return 0
 }
@@ -443,7 +443,7 @@ func runLink(args []string, stdout, stderr io.Writer) int {
 func runProjects(args []string, stdout, stderr io.Writer) int {
 	pos, f, ok := splitArgs(args, "--json")
 	if !ok || len(pos) != 0 {
-		printError(stderr, "usage: dh projects [--json]")
+		printError(stderr, "uso: dh projects [--json]")
 		return 1
 	}
 	home, err := harness.EnsureHome()
@@ -457,7 +457,7 @@ func runProjects(args []string, stdout, stderr io.Writer) int {
 	}
 	list, warns := harness.Projects(home)
 	for _, w := range warns {
-		printError(stderr, "warning: "+w)
+		printError(stderr, "aviso: "+w)
 	}
 	if f["--json"] {
 		if list == nil {
@@ -475,7 +475,7 @@ func runProjects(args []string, stdout, stderr io.Writer) int {
 func runConfig(args []string, stdout, stderr io.Writer) int {
 	pos, f, ok := splitArgs(args, "--json")
 	if !ok || len(pos) > 3 || (len(pos) > 0 && (pos[0] != "set" || len(pos) != 3) && (pos[0] != "unset" || len(pos) != 2)) {
-		printError(stderr, "usage: dh config [--json] | dh config set <key> <value> | dh config unset <key>")
+		printError(stderr, "uso: dh config [--json] | dh config set <chave> <valor> | dh config unset <chave>")
 		return 1
 	}
 	home, err := harness.EnsureHome()
@@ -501,13 +501,12 @@ func runConfig(args []string, stdout, stderr io.Writer) int {
 	}
 	if f["--json"] {
 		writeJSON(stdout, struct {
-			Language string `json:"language"`
 			Mode     string `json:"mode"`
 			Sprites  string `json:"dashboard.sprites"`
 			Worktree string `json:"worktree"`
-		}{c.Language, c.Mode, c.Sprites, c.Worktree})
+		}{c.Mode, c.Sprites, c.Worktree})
 		return 0
 	}
-	fmt.Fprintf(stdout, "language: %s\nmode: %s\ndashboard.sprites: %s\nworktree: %s\n", c.Language, c.Mode, c.Sprites, c.Worktree)
+	fmt.Fprintf(stdout, "mode: %s\ndashboard.sprites: %s\nworktree: %s\n", c.Mode, c.Sprites, c.Worktree)
 	return 0
 }

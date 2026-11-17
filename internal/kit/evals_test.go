@@ -31,7 +31,7 @@ func TestReadFileGuardedRejectsSymlinkAndOversizedFile(t *testing.T) {
 	if err == nil {
 		t.Fatal("want error for oversized file")
 	}
-	if !strings.Contains(err.Error(), "read limit") {
+	if !strings.Contains(err.Error(), "limite de leitura") {
 		t.Fatalf("err = %v, want a message naming the read limit", err)
 	}
 
@@ -73,10 +73,10 @@ func TestEvalFieldPathRejectsSymlinks(t *testing.T) {
 		t.Fatal(err)
 	}
 	joined := strings.Join(report.Errors, "\n")
-	if !strings.Contains(joined, "context.add_dirs is or passes through a symlink: fixtures/outside") {
+	if !strings.Contains(joined, "context.add_dirs é ou passa por um link simbólico: fixtures/outside") {
 		t.Fatalf("errors = %v, want symlink rejection", report.Errors)
 	}
-	if strings.Contains(joined, "escapes case directory") {
+	if strings.Contains(joined, "sai da pasta do caso") {
 		t.Fatalf("errors = %v, want symlink rejection reported instead of a lexical-escape message", report.Errors)
 	}
 }
@@ -99,7 +99,7 @@ func TestEvalGraderTargetRejectsSymlink(t *testing.T) {
 		t.Fatal(err)
 	}
 	joined := strings.Join(report.Errors, "\n")
-	if !strings.Contains(joined, "target.path is or passes through a symlink: linked.txt") {
+	if !strings.Contains(joined, "target.path é ou passa por um link simbólico: linked.txt") {
 		t.Fatalf("errors = %v, want symlink rejection", report.Errors)
 	}
 }
@@ -124,7 +124,7 @@ func TestEvalCaseYAMLSymlinkIsReportedNotSkipped(t *testing.T) {
 		t.Fatal(err)
 	}
 	joined := strings.Join(report.Errors, "\n")
-	if !strings.Contains(joined, "case.yaml") || !strings.Contains(joined, "not a regular file") {
+	if !strings.Contains(joined, "case.yaml") || !strings.Contains(joined, "não é um arquivo comum") {
 		t.Fatalf("errors = %v, want case.yaml symlink reported", report.Errors)
 	}
 }
@@ -148,7 +148,7 @@ func TestEvalGraderSymlinkIsReportedNotSkipped(t *testing.T) {
 		t.Fatal(err)
 	}
 	joined := strings.Join(report.Errors, "\n")
-	if !strings.Contains(joined, "graders/g.md") || !strings.Contains(joined, "not a regular file") {
+	if !strings.Contains(joined, "graders/g.md") || !strings.Contains(joined, "não é um arquivo comum") {
 		t.Fatalf("errors = %v, want grader symlink reported", report.Errors)
 	}
 }
@@ -167,7 +167,7 @@ func TestEvalGraderOversizeIsReportedNotSkipped(t *testing.T) {
 		t.Fatal(err)
 	}
 	joined := strings.Join(report.Errors, "\n")
-	if !strings.Contains(joined, "graders/g.md") || !strings.Contains(joined, "read limit") {
+	if !strings.Contains(joined, "graders/g.md") || !strings.Contains(joined, "limite de leitura") {
 		t.Fatalf("errors = %v, want oversized grader reported with path and limit", report.Errors)
 	}
 }
@@ -194,7 +194,7 @@ func TestSymlinkedCaseSubdirectoriesRejected(t *testing.T) {
 				t.Fatal(err)
 			}
 			joined := strings.Join(report.Errors, "\n")
-			if !strings.Contains(joined, name+" is a symbolic link") {
+			if !strings.Contains(joined, name+" é um link simbólico") {
 				t.Fatalf("errors = %v, want %s rejected as a symbolic link", report.Errors, name)
 			}
 			if strings.Contains(joined, "leaked.md") {

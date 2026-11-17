@@ -18,13 +18,13 @@ import (
 func Run(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("dh dashboard", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	port := fs.Int("port", DefaultPort, "TCP port on 127.0.0.1")
-	stale := fs.Duration("stale", DefaultStale, "a session whose snapshot is older than this is not shown as open")
-	decay := fs.Duration("done-decay", snapshot.DefaultDoneDecay, "how long 'done' shows before reading as idle")
-	detach := fs.Bool("detach", false, "start in the background, print the URL and exit (no-op if already running)")
-	stop := fs.Bool("stop", false, "ask the dashboard on --port to exit (never kills a process)")
+	port := fs.Int("port", DefaultPort, "porta TCP em 127.0.0.1")
+	stale := fs.Duration("stale", DefaultStale, "uma sessão cujo snapshot é mais velho que isto não aparece como aberta")
+	decay := fs.Duration("done-decay", snapshot.DefaultDoneDecay, "por quanto tempo 'done' aparece antes de virar ocioso")
+	detach := fs.Bool("detach", false, "inicia em segundo plano, imprime a URL e sai (não faz nada se já estiver rodando)")
+	stop := fs.Bool("stop", false, "pede ao dashboard da --port que saia (nunca mata um processo)")
 	fs.Usage = func() {
-		fmt.Fprintln(stderr, "usage: dh dashboard [--port N] [--stale D] [--done-decay D] [--detach | --stop]")
+		fmt.Fprintln(stderr, "uso: dh dashboard [--port N] [--stale D] [--done-decay D] [--detach | --stop]")
 		fs.PrintDefaults()
 	}
 	if err := fs.Parse(args); err != nil {
@@ -38,7 +38,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if *stop && *detach {
-		fmt.Fprintln(stderr, "--stop and --detach are mutually exclusive")
+		fmt.Fprintln(stderr, "--stop e --detach não podem ser usados juntos")
 		fs.Usage()
 		return 1
 	}
@@ -63,7 +63,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	cfg := Config{Home: home, SnapshotDir: snapshot.SnapshotDir(),
 		Stale: *stale, DoneDecay: *decay, Port: *port}
 	if tok, _, err := newStopToken(*port); err != nil {
-		fmt.Fprintln(stderr, "warning: --stop disabled, cannot write the stop token:", err)
+		fmt.Fprintln(stderr, "aviso: --stop desativado, não foi possível gravar o token de parada:", err)
 	} else {
 		cfg.StopToken = tok
 	}
@@ -101,13 +101,13 @@ func startDetachedWith(port int, url string, argv []string, probe func(int) bool
 	}
 	self, err := os.Executable()
 	if err != nil {
-		fmt.Fprintln(stderr, "cannot locate own binary:", err)
+		fmt.Fprintln(stderr, "não foi possível localizar o próprio binário:", err)
 		return 1
 	}
 	cmd := exec.Command(self, argv...)
 	detachAttrs(cmd) // stdio stays nil = /dev/null
 	if err := cmd.Start(); err != nil {
-		fmt.Fprintln(stderr, "cannot start dashboard:", err)
+		fmt.Fprintln(stderr, "não foi possível iniciar o dashboard:", err)
 		return 1
 	}
 	exited := make(chan struct{})
@@ -119,7 +119,7 @@ func startDetachedWith(port int, url string, argv []string, probe func(int) bool
 				fmt.Fprintln(stdout, url)
 				return 0
 			}
-			fmt.Fprintf(stderr, "dashboard did not start on port %d (busy by another program?)\n", port)
+			fmt.Fprintf(stderr, "o dashboard não iniciou na porta %d (ocupada por outro programa?)\n", port)
 			return 1
 		case <-time.After(100 * time.Millisecond):
 		}
@@ -128,6 +128,6 @@ func startDetachedWith(port int, url string, argv []string, probe func(int) bool
 			return 0
 		}
 	}
-	fmt.Fprintln(stderr, "dashboard did not answer in time on port", port)
+	fmt.Fprintln(stderr, "o dashboard não respondeu a tempo na porta", port)
 	return 1
 }

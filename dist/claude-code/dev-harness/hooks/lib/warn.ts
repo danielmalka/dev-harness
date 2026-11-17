@@ -34,16 +34,16 @@ export async function warnWrite(
     if (e.tool === 'Edit') {
       const n = Math.max(lines(e.old_string), lines(e.new_string))
       if (n <= WARN_LINES) return undefined
-      why = `${n}-line Edit`
+      why = `Edit de ${n} linhas`
     } else {
       if (typeof e.content !== 'string') return undefined
       const n = lines(e.content)
       const there = await exists(abs)
       if (there === undefined) return undefined // unknown: fail open
       if (n <= WARN_LINES && there) return undefined
-      why = there ? `${n}-line Write` : 'Write of a new file'
+      why = there ? `Write de ${n} linhas` : 'Write de um arquivo novo'
     }
-    return `Coordinator: ${why} on ${e.file_path}. Dispatch a builder for work beyond a small correction (${WARN_LINES} lines, one existing file) (dev-harness runtime guard, warning only).`
+    return `Coordinator: ${why} em ${e.file_path}. Despache um builder para trabalho além de uma correção pequena (${WARN_LINES} linhas, um arquivo existente) (trava de runtime do dev-harness, só aviso).`
   } catch {
     return undefined // fail open
   }

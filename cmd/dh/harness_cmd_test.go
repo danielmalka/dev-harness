@@ -39,7 +39,7 @@ func TestHarnessPathCreatesHomeAndReportsNone(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &got); err != nil {
 		t.Fatal(err, out)
 	}
-	if got.Mode != "none" || got.Dir != "" || len(got.Defaults) != 4 {
+	if got.Mode != "none" || got.Dir != "" || len(got.Defaults) != 3 {
 		t.Errorf("%+v", got)
 	}
 	if _, err := os.Stat(filepath.Join(home, "sessions")); err != nil {
@@ -66,7 +66,7 @@ func TestDefaultsVerbatimAndRegistryNotWritten(t *testing.T) {
 	_, out, _ := dh(t, "harness-path", "--json", repo)
 	var got struct{ Defaults map[string]string }
 	json.Unmarshal([]byte(out), &got)
-	if got.Defaults["language"] != "pt-br" || got.Defaults["mode"] != "global" ||
+	if _, has := got.Defaults["language"]; has || got.Defaults["mode"] != "global" ||
 		got.Defaults["reviewers"] != "reviewers:\n  code:\n    - claude" {
 		t.Errorf("%v", got.Defaults)
 	}
@@ -132,7 +132,7 @@ func TestLinkCollisionExitsOne(t *testing.T) {
 		t.Fatal("first link")
 	}
 	code, _, e := dh(t, "link", other)
-	if code != 1 || !strings.Contains(e, "explicit name") {
+	if code != 1 || !strings.Contains(e, "nome explícito") {
 		t.Errorf("%d %q", code, e)
 	}
 	if code, _, _ := dh(t, "link", "other-name", other); code != 0 {
@@ -185,19 +185,19 @@ func TestHarnessPathPdocsField(t *testing.T) {
 func TestConfigCommand(t *testing.T) {
 	env(t)
 	code, out, _ := dh(t, "config")
-	if code != 0 || out != "language: \nmode: \ndashboard.sprites: \nworktree: \n" {
+	if code != 0 || out != "mode: \ndashboard.sprites: \nworktree: \n" {
 		t.Fatalf("empty: %d %q", code, out)
 	}
 	sp := t.TempDir()
-	for _, a := range [][]string{{"language", "pt-br"}, {"mode", "global"}, {"dashboard.sprites", sp}} {
+	for _, a := range [][]string{{"mode", "global"}, {"dashboard.sprites", sp}} {
 		if code, _, e := dh(t, "config", "set", a[0], a[1]); code != 0 {
 			t.Fatalf("set %v: %s", a, e)
 		}
 	}
-	if _, out, _ = dh(t, "config"); out != "language: pt-br\nmode: global\ndashboard.sprites: "+sp+"\nworktree: \n" {
+	if _, out, _ = dh(t, "config"); out != "mode: global\ndashboard.sprites: "+sp+"\nworktree: \n" {
 		t.Errorf("text: %q", out)
 	}
-	if _, out, _ = dh(t, "config", "--json"); out != `{"language":"pt-br","mode":"global","dashboard.sprites":"`+sp+"\",\"worktree\":\"\"}\n" {
+	if _, out, _ = dh(t, "config", "--json"); out != `{"mode":"global","dashboard.sprites":"`+sp+"\",\"worktree\":\"\"}\n" {
 		t.Errorf("json: %q", out)
 	}
 	if code, _, e := dh(t, "config", "set", "mode", "foo"); code != 1 || e == "" {
@@ -211,6 +211,37 @@ func TestConfigCommand(t *testing.T) {
 	}
 }
 
+// ADR-011: `dh config set language <value>` exits non-zero with the SAME message as any unknown key (only the key name changes); `dh config` lists the key neither in text
+// nor in JSON; and a legacy `language` line in config.yaml is read, ignored and not rewritten by a `config set` of another key.
+func TestConfigSetLanguageIsUnknownKeyLikeFoo(t *testing.T) {
+	home, _ := env(t)
+	codeLang, _, errLang := dh(t, "config", "set", "language", "en")
+	codeFoo, _, errFoo := dh(t, "config", "set", "foo", "x")
+	if codeLang == 0 || codeLang != codeFoo {
+		t.Fatalf("exit: language=%d foo=%d", codeLang, codeFoo)
+	}
+	if strings.Replace(errLang, `"language"`, `"foo"`, 1) != errFoo || !strings.Contains(errLang, `chave desconhecida "language" (mode, dashboard.sprites, worktree)`) {
+		t.Errorf("mensagens:\n  language: %q\n  foo:      %q", errLang, errFoo)
+	}
+	if code, _, e := dh(t, "config", "unset", "language"); code == 0 || !strings.Contains(e, "chave desconhecida") {
+		t.Errorf("unset language: %d %q", code, e)
+	}
+	p := filepath.Join(home, "config.yaml")
+	os.WriteFile(p, []byte("# meu\nlanguage: en\nmode: global\n"), 0o600)
+	if code, out, _ := dh(t, "config", "--json"); code != 0 || strings.Contains(out, "language") {
+		t.Errorf("config --json: %d %q", code, out)
+	}
+	if code, out, _ := dh(t, "config"); code != 0 || strings.Contains(out, "language") {
+		t.Errorf("config: %d %q", code, out)
+	}
+	if code, _, e := dh(t, "config", "set", "mode", "repo"); code != 0 {
+		t.Fatalf("set mode: %s", e)
+	}
+	if b, _ := os.ReadFile(p); string(b) != "# meu\nlanguage: en\nmode: repo\nprojects:\n" { // o `projects:` vazio é o que todo SaveConfig acrescenta quando falta
+		t.Errorf("a linha antiga não foi preservada: %q", b)
+	}
+}
+
 func TestLinkWarnsWhenNoHarnessMarker(t *testing.T) {
 	home, repo := env(t)
 	if err := os.MkdirAll(filepath.Join(home, "projects", "demo", "pdocs"), 0o755); err != nil {
@@ -220,7 +251,7 @@ func TestLinkWarnsWhenNoHarnessMarker(t *testing.T) {
 	if code != 0 || !strings.Contains(out, "mode: none") {
 		t.Fatalf("%d %q", code, out)
 	}
-	if !strings.Contains(e, "no harness marker") || !strings.Contains(e, "project.yaml") || !strings.Contains(e, "/dh:setup") {
+	if !strings.Contains(e, "marcador de harness") || !strings.Contains(e, "project.yaml") || !strings.Contains(e, "/dh:setup") {
 		t.Errorf("missing warning: %q", e)
 	}
 }

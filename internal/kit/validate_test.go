@@ -22,7 +22,7 @@ func TestSyntheticKitMutations(t *testing.T) {
 				text := readFixture(t, path)
 				writeFixture(t, path, strings.Replace(text, "author: test\n", "", 1))
 			},
-			want: "missing author",
+			want: "author ausente",
 		},
 		{
 			name: "skill description",
@@ -31,53 +31,60 @@ func TestSyntheticKitMutations(t *testing.T) {
 				text := readFixture(t, path)
 				writeFixture(t, path, strings.Replace(text, "Use when", "Apply when", 1))
 			},
-			want: "description must start with",
+			want: "description deve começar com",
 		},
 		{
-			name: "template parity",
+			name: "skill description in pt-BR passes",
 			mutate: func(t *testing.T, root string) {
-				if err := os.Remove(filepath.Join(root, "templates", "pt-br", "TASK.md")); err != nil {
-					t.Fatal(err)
-				}
-			},
-			want: "is not present in every language",
-		},
-		{
-			name: "PRD only in en passes",
-			mutate: func(t *testing.T, root string) {
-				writeFixture(t, filepath.Join(root, "templates", "en", "PRD.md"), "# PRD\n")
+				path := filepath.Join(root, ".skills", "sample", "SKILL.md")
+				text := readFixture(t, path)
+				writeFixture(t, path, strings.Replace(text, "Use when", "Use quando", 1))
 			},
 		},
 		{
-			name: "PRD also in pt-br fails",
-			mutate: func(t *testing.T, root string) {
-				writeFixture(t, filepath.Join(root, "templates", "en", "PRD.md"), "# PRD\n")
-				writeFixture(t, filepath.Join(root, "templates", "pt-br", "PRD.md"), "# PRD\n")
-			},
-			want: "PRD.md must exist only in en/",
+			name:   "skill description still in the old English form passes during the transition",
+			mutate: func(t *testing.T, root string) {},
 		},
 		{
-			name: "REVIEW only in en passes",
+			name: "template language folder en/ is rejected",
 			mutate: func(t *testing.T, root string) {
-				writeFixture(t, filepath.Join(root, "templates", "en", "REVIEW.md"), "# Review\n")
+				writeFixture(t, filepath.Join(root, "templates", "en", "TASK.md"), "# Task\n")
+			},
+			want: "a subpasta de idioma en/ não existe mais",
+		},
+		{
+			name: "template language folder pt-br/ is rejected",
+			mutate: func(t *testing.T, root string) {
+				writeFixture(t, filepath.Join(root, "templates", "pt-br", "TASK.md"), "# Task\n")
+			},
+			want: "a subpasta de idioma pt-br/ não existe mais",
+		},
+		{
+			name: "PRD and REVIEW live in templates/ like any other template",
+			mutate: func(t *testing.T, root string) {
+				writeFixture(t, filepath.Join(root, "templates", "PRD.md"), "# PRD\n")
+				writeFixture(t, filepath.Join(root, "templates", "REVIEW.md"), "# Review\n")
 			},
 		},
 		{
-			name: "REVIEW also in pt-br fails",
+			name: "reference to a missing template",
 			mutate: func(t *testing.T, root string) {
-				writeFixture(t, filepath.Join(root, "templates", "en", "REVIEW.md"), "# Review\n")
-				writeFixture(t, filepath.Join(root, "templates", "pt-br", "REVIEW.md"), "# Review\n")
+				writeFixture(t, filepath.Join(root, ".agents", "alpha.md"), agentFixture("alpha")+"Use templates/NOPE.md.\n")
 			},
-			want: "REVIEW.md must exist only in en/",
+			want: "template ausente templates/NOPE.md",
 		},
 		{
-			name: "TASK only in en fails",
+			name: "reference with the old language folder checks the file in templates/",
 			mutate: func(t *testing.T, root string) {
-				if err := os.Remove(filepath.Join(root, "templates", "pt-br", "TASK.md")); err != nil {
-					t.Fatal(err)
-				}
+				writeFixture(t, filepath.Join(root, ".agents", "alpha.md"), agentFixture("alpha")+"Use templates/<lang>/TASK.md e templates/en/TASK.md e templates/pt-br/TASK.md.\n")
 			},
-			want: "TASK.md is not present in every language",
+		},
+		{
+			name: "reference with the old language folder to a missing file",
+			mutate: func(t *testing.T, root string) {
+				writeFixture(t, filepath.Join(root, ".agents", "alpha.md"), agentFixture("alpha")+"Use templates/en/PRD.md.\n")
+			},
+			want: "template ausente templates/PRD.md",
 		},
 		{
 			name: "missing command role",
@@ -86,7 +93,7 @@ func TestSyntheticKitMutations(t *testing.T) {
 				text := readFixture(t, path)
 				writeFixture(t, path, strings.Replace(text, "roles: [alpha]", "roles: [missing-role]", 1))
 			},
-			want: "missing role missing-role",
+			want: "papel missing-role ausente",
 		},
 	}
 
@@ -136,7 +143,7 @@ func TestPackageCoverageChecksContent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Passed() || !strings.Contains(strings.Join(report.Errors, "\n"), "package differs") {
+	if report.Passed() || !strings.Contains(strings.Join(report.Errors, "\n"), "pacote difere em") {
 		t.Fatalf("errors = %v, want package differs", report.Errors)
 	}
 }
@@ -164,7 +171,7 @@ func TestCoverageEvalsExclusions(t *testing.T) {
 		t.Fatal(err)
 	}
 	joined := strings.Join(report.Errors, "\n")
-	if !strings.Contains(joined, "package missing evals/cases/x/case.yaml") {
+	if !strings.Contains(joined, "pacote sem evals/cases/x/case.yaml") {
 		t.Fatalf("errors = %v, want package missing evals/cases/x/case.yaml", report.Errors)
 	}
 	if strings.Contains(joined, "baselines") || strings.Contains(joined, "archive") || strings.Contains(joined, "results") || strings.Contains(joined, "__pycache__") {
@@ -186,7 +193,7 @@ func TestCoverageEvalsExclusions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(strings.Join(report2.Errors, "\n"), "package extra evals/cases/y/case.yaml") {
+	if !strings.Contains(strings.Join(report2.Errors, "\n"), "pacote com sobra evals/cases/y/case.yaml") {
 		t.Fatalf("errors = %v, want package extra evals/cases/y/case.yaml", report2.Errors)
 	}
 }
@@ -254,7 +261,7 @@ func TestAntiDelegationClauseParity(t *testing.T) {
 		want           string
 	}{
 		{name: "identical", coordinator: block, skill: skillBlock, writeSkillFile: true, want: ""},
-		{name: "divergent", coordinator: block, skill: divergentBlock, writeSkillFile: true, want: "anti-delegation clause differs between .agents/coordinator.md and .skills/external-clis/SKILL.md"},
+		{name: "divergent", coordinator: block, skill: divergentBlock, writeSkillFile: true, want: "a cláusula anti-delegação difere entre .agents/coordinator.md e .skills/external-clis/SKILL.md"},
 		{name: "whitespace only", coordinator: block, skill: whitespaceBlock, writeSkillFile: true, want: ""},
 		{name: "skill file absent", coordinator: block, writeSkillFile: false, want: ""},
 	}
@@ -305,7 +312,7 @@ func TestEvalReferences(t *testing.T) {
 				caseDir := filepath.Join(root, "evals", "cases", "x")
 				writeFixture(t, filepath.Join(caseDir, "case.yaml"), "context:\n  add_dirs:\n    - fixtures/nao-existe\n")
 			},
-			want: "context.add_dirs unresolved: fixtures/nao-existe",
+			want: "context.add_dirs não resolvido: fixtures/nao-existe",
 		},
 		{
 			name: "escaping add_dirs",
@@ -314,7 +321,7 @@ func TestEvalReferences(t *testing.T) {
 				caseDir := filepath.Join(root, "evals", "cases", "x")
 				writeFixture(t, filepath.Join(caseDir, "case.yaml"), "context:\n  add_dirs:\n    - ../outro-caso/fixtures\n")
 			},
-			want: "context.add_dirs escapes case directory: ../outro-caso/fixtures",
+			want: "context.add_dirs sai da pasta do caso: ../outro-caso/fixtures",
 		},
 		{
 			name: "grader target.path outside case",
@@ -323,7 +330,7 @@ func TestEvalReferences(t *testing.T) {
 				writeFixture(t, filepath.Join(caseDir, "case.yaml"), "id: x\n")
 				writeFixture(t, filepath.Join(caseDir, "graders", "g.md"), "---\ntarget:\n  source: file\n  path: ../../../outside.txt\n---\ngrader\n")
 			},
-			want: "target.path escapes case directory: ../../../outside.txt",
+			want: "target.path sai da pasta do caso: ../../../outside.txt",
 		},
 	}
 	for _, test := range tests {
@@ -336,7 +343,7 @@ func TestEvalReferences(t *testing.T) {
 			}
 			joined := strings.Join(report.Errors, "\n")
 			if test.noError {
-				if strings.Contains(joined, "unresolved") || strings.Contains(joined, "escapes case directory") {
+				if strings.Contains(joined, "não resolvido") || strings.Contains(joined, "sai da pasta do caso") {
 					t.Fatalf("errors = %v, want no eval-reference error", report.Errors)
 				}
 				return
@@ -368,7 +375,7 @@ func syntheticRoot(t *testing.T) string {
 	root := t.TempDir()
 	for _, path := range []string{
 		".agents", ".commands", ".skills/sample", "profiles",
-		"templates/en", "templates/pt-br",
+		"templates",
 	} {
 		if err := os.MkdirAll(filepath.Join(root, path), 0o755); err != nil {
 			t.Fatal(err)
@@ -382,9 +389,7 @@ func syntheticRoot(t *testing.T) string {
 	for _, profile := range []string{"base", "go-api", "typescript-web", "kotlin", "python", "typescript-api"} {
 		writeFixture(t, filepath.Join(root, "profiles", profile+".yaml"), "id: "+profile+"\n")
 	}
-	for _, lang := range []string{"en", "pt-br"} {
-		writeFixture(t, filepath.Join(root, "templates", lang, "TASK.md"), "# Task\n")
-	}
+	writeFixture(t, filepath.Join(root, "templates", "TASK.md"), "# Task\n")
 	return root
 }
 
@@ -467,7 +472,7 @@ func TestCheckCountsAgentMinimum(t *testing.T) {
 		t.Fatalf("13 agents: errors = %v, want none", errs)
 	}
 	checkCounts(inventory(12), &errs)
-	if len(errs) != 1 || errs[0] != "agents: 12 < 13" {
+	if len(errs) != 1 || errs[0] != "agentes: 12 < 13" {
 		t.Fatalf("12 agents: errors = %v, want [agents: 12 < 13]", errs)
 	}
 }
@@ -491,7 +496,7 @@ func TestCheckCountsRequiresNewProfiles(t *testing.T) {
 		}
 		var errs []string
 		checkCounts(inv, &errs)
-		if len(errs) != 1 || errs[0] != "missing profile: "+drop {
+		if len(errs) != 1 || errs[0] != "perfil ausente: "+drop {
 			t.Fatalf("drop %s: errors = %v", drop, errs)
 		}
 	}

@@ -108,12 +108,12 @@ func TestStopTokenAndShutdown(t *testing.T) {
 func TestStopCommand(t *testing.T) {
 	port, _, done := startServing(t)
 	var out, errb bytes.Buffer
-	if rc := Stop(port, &out, &errb); rc != 0 || !strings.Contains(out.String(), "stopped dashboard on port") {
+	if rc := Stop(port, &out, &errb); rc != 0 || !strings.Contains(out.String(), "parado") {
 		t.Fatalf("rc=%d out=%q err=%q", rc, out.String(), errb.String())
 	}
 	<-done
 	out.Reset()
-	if rc := Stop(port, &out, &errb); rc != 0 || !strings.Contains(out.String(), "no dashboard on port") {
+	if rc := Stop(port, &out, &errb); rc != 0 || !strings.Contains(out.String(), "não há dashboard na porta") {
 		t.Fatalf("idempotent: rc=%d out=%q", rc, out.String())
 	}
 }
@@ -138,11 +138,11 @@ func TestStopRefusesForeignAndOldServers(t *testing.T) {
 		t.Fatal(err)
 	}
 	var out, errb bytes.Buffer
-	if rc := Stop(portOf(t, plain), &out, &errb); rc != 1 || !strings.Contains(errb.String(), "held by another program") {
+	if rc := Stop(portOf(t, plain), &out, &errb); rc != 1 || !strings.Contains(errb.String(), "está com outro programa") {
 		t.Fatalf("plain: rc=%d err=%q", rc, errb.String())
 	}
 	errb.Reset()
-	if rc := Stop(portOf(t, old), &out, &errb); rc != 1 || !strings.Contains(errb.String(), "predates --stop") {
+	if rc := Stop(portOf(t, old), &out, &errb); rc != 1 || !strings.Contains(errb.String(), "é anterior ao --stop") {
 		t.Fatalf("old: rc=%d err=%q", rc, errb.String())
 	}
 }
@@ -207,7 +207,7 @@ func TestStopRefusesSymlinkedTokenFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	var out, errb bytes.Buffer
-	if rc := Stop(port, &out, &errb); rc != 1 || !strings.Contains(errb.String(), "stop token not found") {
+	if rc := Stop(port, &out, &errb); rc != 1 || !strings.Contains(errb.String(), "token de parada não encontrado") {
 		t.Fatalf("rc=%d err=%q", rc, errb.String())
 	}
 	_ = post(t, port, tok, nil)
@@ -260,7 +260,7 @@ func TestStopWithoutTokenFile(t *testing.T) {
 	p, _ := tokenPath(port)
 	_ = os.Remove(p)
 	var out, errb bytes.Buffer
-	if rc := Stop(port, &out, &errb); rc != 1 || !strings.Contains(errb.String(), "stop token not found") {
+	if rc := Stop(port, &out, &errb); rc != 1 || !strings.Contains(errb.String(), "token de parada não encontrado") {
 		t.Fatalf("rc=%d err=%q", rc, errb.String())
 	}
 	_ = post(t, port, tok, nil) // stop with the server's real token
@@ -272,7 +272,7 @@ func TestStopWithRejectedToken(t *testing.T) {
 	p, _ := tokenPath(port)
 	_ = os.WriteFile(p, []byte("not-the-token"), 0o600)
 	var out, errb bytes.Buffer
-	if rc := Stop(port, &out, &errb); rc != 1 || !strings.Contains(errb.String(), "stop token rejected") {
+	if rc := Stop(port, &out, &errb); rc != 1 || !strings.Contains(errb.String(), "token de parada recusado") {
 		t.Fatalf("rc=%d err=%q", rc, errb.String())
 	}
 	_ = post(t, port, tok, nil) // stop with the server's real token

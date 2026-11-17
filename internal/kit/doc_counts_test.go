@@ -6,16 +6,15 @@ import (
 	"testing"
 )
 
-// fixedDocCountInventory stands in for real counts of 19 agents, 17 commands,
-// 21 skills, 4 profiles, 16 templates, matching this repository's shape on
-// 2026-09-22, without depending on the repository's real content.
+// fixedDocCountInventory stands in for real counts of 19 agents, 17 commands, 21 skills, 4 profiles and 8 templates (this repository's shape after ADR-011, with
+// `templates/` in a single folder), without depending on the repository's real content.
 func fixedDocCountInventory() Inventory {
 	return Inventory{
 		Agents:    make([]string, 19),
 		Commands:  make([]string, 17),
 		Skills:    make([]string, 21),
 		Profiles:  make([]string, 4),
-		Templates: make([]string, 16),
+		Templates: make([]string, 8),
 	}
 }
 
@@ -30,13 +29,13 @@ func TestCheckDocumentedCounts(t *testing.T) {
 		{
 			name:    "correct current-state enumeration, pt-br",
 			path:    "docs/roadmap.html",
-			content: "<p>Contagem atual: 19 agentes, 17 comandos, 21 skills, 4 perfis, 16 templates</p>",
+			content: "<p>Contagem atual: 19 agentes, 17 comandos, 21 skills, 4 perfis, 8 templates</p>",
 			noError: true,
 		},
 		{
-			name:    "correct current-state enumeration, en",
+			name:    "o espelho em inglês (docs/en/) é ignorado, mesmo com contagem velha em pt-BR",
 			path:    "docs/en/roadmap.html",
-			content: "<p>Current count: 19 agents, 17 commands, 21 skills, 4 profiles, 16 templates</p>",
+			content: "<p>Esperado: 18 agentes, 17 comandos, 19 skills, 3 perfis</p>",
 			noError: true,
 		},
 		{
@@ -44,20 +43,16 @@ func TestCheckDocumentedCounts(t *testing.T) {
 			path:    "docs/tutoriais/00-primeira-maquina.html",
 			content: "<p>Esperado: 18 agentes, 17 comandos, 19 skills, 3 perfis</p>",
 			want: []string{
-				"documented agents count is 18, real count is 19",
-				"documented skills count is 19, real count is 21",
-				"documented profiles count is 3, real count is 4",
+				"a contagem documentada de agents é 18, a real é 19",
+				"a contagem documentada de skills é 19, a real é 21",
+				"a contagem documentada de profiles é 3, a real é 4",
 			},
 		},
 		{
-			name:    "stale expected-state enumeration, en",
+			name:    "o espelho em inglês, numa subpasta de docs/en/, também é ignorado",
 			path:    "docs/en/tutorials/00-first-machine.html",
-			content: "<p>Expected: 18 agents, 17 commands, 19 skills, 3 profiles</p>",
-			want: []string{
-				"documented agents count is 18, real count is 19",
-				"documented skills count is 19, real count is 21",
-				"documented profiles count is 3, real count is 4",
-			},
+			content: "<p>Esperado: 18 agentes, 17 comandos, 19 skills, 3 perfis</p>",
+			noError: true,
 		},
 		{
 			name:    "per-language aside is a single-noun line, not compared even with an anchor word",
@@ -66,9 +61,9 @@ func TestCheckDocumentedCounts(t *testing.T) {
 			noError: true,
 		},
 		{
-			name:    "per-language aside, english phrasing, anchor word present",
-			path:    "docs/en/roadmap.html",
-			content: "<p>Current: 8 templates in pt-br, mirrored per language.</p>",
+			name:    "contagem em inglês não é mais reconhecida (o kit é só pt-BR)",
+			path:    "docs/roadmap.html",
+			content: "<p>Current count: 18 agents, 17 commands, 19 skills, 3 profiles</p>",
 			noError: true,
 		},
 		{
@@ -86,14 +81,14 @@ func TestCheckDocumentedCounts(t *testing.T) {
 		{
 			name:    "single mention with an anchor word is still only one noun",
 			path:    "docs/roadmap.html",
-			content: "<p>Current count: 5 agents somewhere unrelated</p>",
+			content: "<p>Atual: 5 agentes em algum lugar sem relação</p>",
 			noError: true,
 		},
 		{
 			name:    "README at root is scanned",
 			path:    "README.md",
 			content: "Esperado: 18 agentes, 17 comandos, 19 skills, 3 perfis",
-			want:    []string{"README.md:1: documented agents count is 18, real count is 19"},
+			want:    []string{"README.md:1: a contagem documentada de agents é 18, a real é 19"},
 		},
 		{
 			name:    "non-doc extension under docs/ is ignored",
@@ -104,7 +99,7 @@ func TestCheckDocumentedCounts(t *testing.T) {
 		{
 			name:    "correct enumeration produces no error even with an anchor word",
 			path:    "README.en.md",
-			content: "Expected: 19 agents, 17 commands, 21 skills, 4 profiles, 16 templates",
+			content: "Esperado: 18 agentes, 17 comandos, 19 skills, 3 perfis",
 			noError: true,
 		},
 	}
@@ -130,7 +125,7 @@ func TestCheckDocumentedCounts(t *testing.T) {
 				}
 			}
 			// commands (17 == 17 in the stale cases) must not be reported.
-			if strings.Contains(joined, "documented commands count") {
+			if strings.Contains(joined, "a contagem documentada de commands") {
 				t.Fatalf("errors = %v, want the matching commands count left unreported", errs)
 			}
 		})
@@ -142,17 +137,17 @@ func TestCheckDocumentedCounts(t *testing.T) {
 // one file.
 func TestCheckDocumentedCountsMultipleFilesAndLines(t *testing.T) {
 	root := t.TempDir()
-	writeFixture(t, filepath.Join(root, "docs", "a.html"), "line one\nline two\nCurrent count: 18 agents, 17 commands\n")
-	writeFixture(t, filepath.Join(root, "docs", "sub", "b.md"), "Esperado: 3 perfis, 16 templates\n")
+	writeFixture(t, filepath.Join(root, "docs", "a.html"), "linha um\nlinha dois\nContagem atual: 18 agentes, 17 comandos\n")
+	writeFixture(t, filepath.Join(root, "docs", "sub", "b.md"), "Esperado: 3 perfis, 8 templates\n")
 
 	var errs []string
 	checkDocumentedCounts(root, fixedDocCountInventory(), &errs)
 	joined := strings.Join(errs, "\n")
 
-	if !strings.Contains(joined, "docs/a.html:3: documented agents count is 18, real count is 19") {
+	if !strings.Contains(joined, "docs/a.html:3: a contagem documentada de agents é 18, a real é 19") {
 		t.Fatalf("errors = %v, want a.html:3 agents mismatch", errs)
 	}
-	if !strings.Contains(joined, "docs/sub/b.md:1: documented profiles count is 3, real count is 4") {
+	if !strings.Contains(joined, "docs/sub/b.md:1: a contagem documentada de profiles é 3, a real é 4") {
 		t.Fatalf("errors = %v, want b.md:1 profiles mismatch", errs)
 	}
 }

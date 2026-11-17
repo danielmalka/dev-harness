@@ -87,7 +87,7 @@ func TestWriteMemoryChangedInTheMiddle(t *testing.T) {
 	if !IsMemoryChanged(err) {
 		t.Fatalf("want conflict, got %v", err)
 	}
-	for _, want := range []string{read, sha("v2 by someone else"), "someone wrote it in the middle", "Nothing was written"} {
+	for _, want := range []string{read, sha("v2 by someone else"), "alguém escreveu no meio", "Nada foi gravado"} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("message %q lacks %q", err, want)
 		}

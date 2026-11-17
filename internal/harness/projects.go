@@ -46,13 +46,13 @@ func Projects(home string) ([]Project, []string) {
 		out = append(out, Project{Name: c.Projects[p], Path: p, Mode: r.Mode, Harness: r.Dir})
 	}
 	if bad > 0 {
-		warns = append(warns, fmt.Sprintf("%d registry key(s) ignored: not an absolute, clean path", bad))
+		warns = append(warns, fmt.Sprintf("%d chave(s) do registro ignorada(s): não é um caminho absoluto e limpo", bad))
 	}
 	if skipped > 0 {
-		warns = append(warns, fmt.Sprintf("%d registered project(s) skipped: path missing or no harness (run dh link)", skipped))
+		warns = append(warns, fmt.Sprintf("%d projeto(s) registrado(s) ignorado(s): o caminho não existe ou não tem harness (rode dh link)", skipped))
 	}
 	if len(out) > MaxProjects {
-		warns = append(warns, fmt.Sprintf("%d projects registered: showing the first %d", len(out), MaxProjects))
+		warns = append(warns, fmt.Sprintf("%d projetos registrados: mostrando os primeiros %d", len(out), MaxProjects))
 		out = out[:MaxProjects]
 	}
 	return out, warns

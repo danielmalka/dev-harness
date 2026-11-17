@@ -42,10 +42,6 @@ func SaveConfig(home string, c Config) error {
 		have[s.key] = true
 		raw := strings.Join(s.lines, "")
 		switch s.key {
-		case "language":
-			if c.Language != old.Language {
-				raw = scalarKeep("language", c.Language, s)
-			}
 		case "mode":
 			if c.Mode != old.Mode {
 				raw = scalarKeep("mode", c.Mode, s)
@@ -70,9 +66,6 @@ func SaveConfig(home string, c Config) error {
 		out.WriteString(nl(raw))
 	}
 	tail := ""
-	if !have["language"] {
-		tail += scalarLine("language", c.Language)
-	}
 	if !have["mode"] {
 		tail += scalarLine("mode", c.Mode)
 	}

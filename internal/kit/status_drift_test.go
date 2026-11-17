@@ -39,9 +39,9 @@ func TestStatusDrift(t *testing.T) {
 		want      string // substring of the single expected error; "" = clean
 	}{
 		{"a open ticket on delivered PRD", "entregue em 0.1.0", map[string]string{
-			"T-1": "| Status | pronta |\n| Story / PRD | PRD-003 |\n"}, "T-1 open"},
+			"T-1": "| Status | pronta |\n| Story / PRD | PRD-003 |\n"}, "T-1 aberto"},
 		{"b all done, PRD open", "aprovado", map[string]string{
-			"T-1": "| Status | concluída |\n| PRD (RF-<n>) | PRD-003 (R1) |\n"}, "all 1 linked tickets are done"},
+			"T-1": "| Status | concluída |\n| PRD (RF-<n>) | PRD-003 (R1) |\n"}, "os 1 tickets ligados estão concluídos"},
 		{"clean open", "aprovado", map[string]string{
 			"T-1": "| Status | concluída |\n| Story / PRD | PRD-003 |\n",
 			"T-2": "| Status | pronta |\n| Story / PRD | PRD-003 |\n"}, ""},
@@ -94,7 +94,7 @@ func TestStatusDriftGlobalProject(t *testing.T) {
 		t.Fatalf("unregistered: got %v", errs)
 	}
 	w(filepath.Join(home, "config.yaml"), "projects:\n  \""+root+"\": p\n")
-	if errs := drift(root); len(errs) != 1 || !strings.Contains(errs[0], "all 1 linked tickets are done") {
+	if errs := drift(root); len(errs) != 1 || !strings.Contains(errs[0], "os 1 tickets ligados estão concluídos") {
 		t.Fatalf("global drift: got %v", errs)
 	}
 	os.RemoveAll(filepath.Join(home, "projects", "p", "tasks"))

@@ -1,6 +1,6 @@
 # Recipes by type
 
-Skeletons live in `assets/skeletons/<lang>/`; the placeholder is “ainda não fechado” in pt-br and “not yet settled” in en.
+Skeletons live in `assets/skeletons/`; the placeholder is “ainda não fechado”.
 
 The chrome (sidebar, hero, banner, footer) comes from `scripts/stamp.sh`. What lives here is the `h2` skeleton of each type and the markup of the primitives.
 
@@ -101,23 +101,23 @@ Use: living overview of a whole project (the `pdocs/index.html` of a repository)
 6. Domínios e bounded contexts (Domains and bounded contexts)
 7. Referências (References)
 
-Ids: `motivacao`, `como-rodar`, `planejado-desenvolvido`, `changelog`, `diagrama-macro`, `dominios`, `referencias`, the same in both languages. “Diagrama macro” is mandatory and holds at least one `<pre class="mermaid">` drawn from the repository's first-level folders. “Planejado e desenvolvido” is a `.table-wrap` with `id`, title and `Status`, plus a “gerado em AAAA-MM-DD” line.
+Ids: `motivacao`, `como-rodar`, `planejado-desenvolvido`, `changelog`, `diagrama-macro`, `dominios`, `referencias`. “Diagrama macro” is mandatory and holds at least one `<pre class="mermaid">` drawn from the repository's first-level folders. “Planejado e desenvolvido” is a `.table-wrap` with `id`, title and `Status`, plus a “gerado em AAAA-MM-DD” line.
 
 ## aprovacao
 
-Use: approval page for a plan, stamped into `pdocs`: `docs-guide` composes the JSON data file and a builder (lane `infra`) runs `stamp.sh`. Steps, proposed snippets and decision cards the owner approves or rejects, then pastes back into the chat as one Markdown block. A flat `.html`, no server write, no external script (the stamp leaves the Mermaid tag out of this type). Run the stamp with `--lang` set to the project `language`.
+Use: approval page for a plan, stamped into `pdocs`: `docs-guide` composes the JSON data file and a builder (lane `infra`) runs `stamp.sh`. Steps, proposed snippets and decision cards the owner approves or rejects, then pastes back into the chat as one Markdown block. A flat `.html`, no server write, no external script (the stamp leaves the Mermaid tag out of this type). The stamp has no language flag: the page is pt-BR (ADR-011).
 
 1. Etapas (Steps)
 2. Trechos propostos (Proposed snippets)
 3. Pontos de decisão (Decision points)
 4. Copiar decisões (Copy decisions)
 
-Ids: `etapas`, `trechos`, `decisoes`, `copiar`, the same in both languages.
+Ids: `etapas`, `trechos`, `decisoes`, `copiar`.
 
 Insertion contract (single source for `/dh:plan` and the page test). Never write the plan into the HTML by hand. Write a JSON file and pass it:
 
 ```bash
-bash <skill-folder>/scripts/stamp.sh --type aprovacao --title "…" --lang en --data plan.json --out <pdocs>/aprovacao-<slug>.html
+bash <skill-folder>/scripts/stamp.sh --type aprovacao --title "…" --data plan.json --out <pdocs>/aprovacao-<slug>.html
 ```
 
 ```json
@@ -157,7 +157,7 @@ Copied block, one entry per card in page order:
 - comment: text (later lines indented four spaces; empty comment leaves the line as "- comment:")
 ```
 
-The heading is `## Decisões` and the labels are `decisão` and `comentário` with `--lang pt-br`; the verdict values stay `approved`, `rejected`, `pending` in both. Choices persist in `localStorage` (key `dh-aprovacao:` plus the document title); every access is inside `try/catch`, and the page works with storage blocked.
+The heading is `## Decisões` and the labels are `decisão` and `comentário`; the verdict values stay `approved`, `rejected`, `pending`. Choices persist in `localStorage` (key `dh-aprovacao:` plus the document title); every access is inside `try/catch`, and the page works with storage blocked.
 
 ## Primitives
 

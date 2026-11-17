@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Emit a standalone Harness doc: shell.css + shell.js inlined, type skeleton injected.
 # Usage:
-#   stamp.sh --type feature --title "Limite por plano" --lang pt-br --out docs/limite.html
+#   stamp.sh --type feature --title "Limite por plano" --out docs/limite.html
 #   stamp.sh --sync
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -18,67 +18,35 @@ from pathlib import Path
 
 ROOT = Path(sys.argv[1])
 TYPES = ("catalogo", "plano", "feature", "melhoria", "bug", "report", "projeto", "aprovacao")
-LANG = {
-    "pt-br": {
-        "html_lang": "pt-BR",
-        "lead_default": "ainda não fechado",
-        "status_default": "rascunho",
-        "skip_link": "Ir ao conteúdo",
-        "side_sub": "Doc interno",
-        "banner": "Doc interno. Não publicar.",
-        "banner_warn": "Incidente interno. Não vazar.",
-        "title_suffix": "(não publicar)",
-        "chip_date": "data",
-        "chip_status": "status",
-        "chip_owner": "dono",
-        "chip_path": "path",
-        "chip_contact": "contato",
-        "foot_file": "Arquivo",
-        "foot_type": "tipo",
-        "foot_next": "Próximo passo",
-        "next_step": "trocar cada “ainda não fechado” por fato. Buraco continua “ainda não fechado”.",
-    },
-    "en": {
-        "html_lang": "en",
-        "lead_default": "not yet settled",
-        "status_default": "draft",
-        "skip_link": "Skip to content",
-        "side_sub": "Internal doc",
-        "banner": "Internal doc. Do not publish.",
-        "banner_warn": "Internal incident. Do not leak.",
-        "title_suffix": "(do not publish)",
-        "chip_date": "date",
-        "chip_status": "status",
-        "chip_owner": "owner",
-        "chip_path": "path",
-        "chip_contact": "contact",
-        "foot_file": "File",
-        "foot_type": "type",
-        "foot_next": "Next step",
-        "next_step": "replace every “not yet settled” with a fact. A gap stays “not yet settled”.",
-    },
+# The kit is pt-BR only (ADR-011): one set of strings and labels, no language switch.
+TEXT = {
+    "html_lang": "pt-BR",
+    "lead_default": "ainda não fechado",
+    "status_default": "rascunho",
+    "skip_link": "Ir ao conteúdo",
+    "side_sub": "Doc interno",
+    "banner": "Doc interno. Não publicar.",
+    "banner_warn": "Incidente interno. Não vazar.",
+    "title_suffix": "(não publicar)",
+    "chip_date": "data",
+    "chip_status": "status",
+    "chip_owner": "dono",
+    "chip_path": "path",
+    "chip_contact": "contato",
+    "foot_file": "Arquivo",
+    "foot_type": "tipo",
+    "foot_next": "Próximo passo",
+    "next_step": "trocar cada “ainda não fechado” por fato. Buraco continua “ainda não fechado”.",
 }
 LABELS = {
-    "pt-br": {
-        "catalogo": "Catálogo",
-        "plano": "Plano",
-        "feature": "Feature",
-        "melhoria": "Melhoria",
-        "bug": "Bug",
-        "report": "Report",
-        "projeto": "Projeto",
-        "aprovacao": "Aprovação",
-    },
-    "en": {
-        "catalogo": "Catalog",
-        "plano": "Plan",
-        "feature": "Feature",
-        "melhoria": "Improvement",
-        "bug": "Bug",
-        "report": "Report",
-        "projeto": "Project",
-        "aprovacao": "Approval",
-    },
+    "catalogo": "Catálogo",
+    "plano": "Plano",
+    "feature": "Feature",
+    "melhoria": "Melhoria",
+    "bug": "Bug",
+    "report": "Report",
+    "projeto": "Projeto",
+    "aprovacao": "Aprovação",
 }
 FONTS = (
     "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500"
@@ -113,8 +81,7 @@ SCRIPT_RE = re.compile(r"<script>.*?</script>", re.S)
 PROTECTED = {
     (ROOT / "assets" / "modelo.html").resolve(),
     (ROOT / "assets" / "catalogo-preview.html").resolve(),
-    (ROOT / "assets" / "projeto-modelo.pt-br.html").resolve(),
-    (ROOT / "assets" / "projeto-modelo.en.html").resolve(),
+    (ROOT / "assets" / "projeto-modelo.html").resolve(),
     (ROOT / "assets" / "shell.css").resolve(),
     (ROOT / "assets" / "shell.js").resolve(),
 }
@@ -142,7 +109,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--type", choices=TYPES)
     p.add_argument("--title")
     p.add_argument("--out")
-    p.add_argument("--lang", choices=tuple(LANG), default="pt-br")
     p.add_argument("--lead")
     p.add_argument("--status")
     p.add_argument("--eyebrow")
@@ -155,7 +121,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--data", help="aprovacao only: JSON file with steps, snippets and decisions")
     p.add_argument("--force", action="store_true")
     ns = p.parse_args(argv)
-    strings = LANG[ns.lang]
+    strings = TEXT
     if ns.lead is None:
         ns.lead = strings["lead_default"]
     if ns.status is None:
@@ -164,7 +130,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 
 def sync_examples(css: str, js: str) -> None:
-    for name in ("modelo.html", "catalogo-preview.html", "projeto-modelo.pt-br.html", "projeto-modelo.en.html"):
+    for name in ("modelo.html", "catalogo-preview.html", "projeto-modelo.html"):
         path = ROOT / "assets" / name
         if not path.is_file():
             continue
@@ -244,8 +210,8 @@ def chips(ns: argparse.Namespace, shown_path: str, strings: dict[str, str]) -> s
 
 
 def render(ns: argparse.Namespace, css: str, js: str) -> str:
-    strings = LANG[ns.lang]
-    skel_path = ROOT / "assets" / "skeletons" / ns.lang / f"{ns.type}.html"
+    strings = TEXT
+    skel_path = ROOT / "assets" / "skeletons" / f"{ns.type}.html"
     if not skel_path.is_file():
         die(f"missing skeleton: {skel_path}")
     skel = skel_path.read_text(encoding="utf-8").rstrip() + "\n"
@@ -254,7 +220,7 @@ def render(ns: argparse.Namespace, css: str, js: str) -> str:
             die("--data is only for --type aprovacao")
         skel = embed_data(skel, ns.data)
     title = ns.title.strip()
-    label = LABELS[ns.lang][ns.type]
+    label = LABELS[ns.type]
     eyebrow = ns.eyebrow or f"{label} · {ns.status}"
     shown_path = ns.path or ns.out
     warn = ns.banner_warn or ns.type == "bug"
@@ -326,7 +292,7 @@ def main() -> None:
         sync_examples(css, js)
         return
     if not (ns.type and ns.title and ns.out):
-        die("usage: stamp.sh --type TYPE --title TITLE --lang pt-br|en --out PATH.html\n       stamp.sh --sync")
+        die("usage: stamp.sh --type TYPE --title TITLE --out PATH.html\n       stamp.sh --sync")
     out = Path(ns.out).expanduser()
     if not out.is_absolute():
         out = Path.cwd() / out

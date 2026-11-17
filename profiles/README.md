@@ -2,7 +2,7 @@
 
 Shared, portable project conventions. English. No secrets, no absolute paths, no machine-specific binaries.
 
-A profile is a starting point for `.harness/project.yaml` in a consumer project. The consumer file also carries `language: en | pt-br`, written by setup from the language the owner used; it selects `templates/<lang>/` for records and work artifacts and the language the coordinator uses with the owner. `/dh:setup` names the closest match and copies only fields that have evidence in the repository. When nothing matches, the recorded profile is `none, custom`.
+A profile is a starting point for `.harness/project.yaml` in a consumer project. The consumer file has no language option (ADR-011); it may carry the optional `conventions.code_language: en | pt-br` (language of commit messages and code comments). `/dh:setup` names the closest match and copies only fields that have evidence in the repository. When nothing matches, the recorded profile is `none, custom`.
 
 ## Files
 

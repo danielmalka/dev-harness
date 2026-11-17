@@ -14,7 +14,7 @@ func TestConfigRoundTripPreservesBytes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c.Language != "pt-br" || c.Mode != "global" || c.Sprites != `C:\sprites dir\x` ||
+	if c.Mode != "global" || c.Sprites != `C:\sprites dir\x` ||
 		c.Projects[`C:\Users\me\repo`] != "win" || c.Projects["/a/b"] != "ab" {
 		t.Fatalf("parsed %+v", c)
 	}
@@ -29,8 +29,8 @@ func TestConfigRoundTripPreservesBytes(t *testing.T) {
 	if string(b) != sample {
 		t.Fatalf("unchanged save altered bytes:\n%s", b)
 	}
-	// add, rename, remove a project; change language; foreign lines survive
-	c.Language = "en"
+	// add, rename, remove a project; change mode; foreign lines survive (the legacy `language` line among them)
+	c.Mode = "repo"
 	c.Projects["/c/d"] = "cd"
 	c.Projects["/a/b"] = "ab2"
 	delete(c.Projects, `C:\Users\me\repo`)
@@ -39,7 +39,7 @@ func TestConfigRoundTripPreservesBytes(t *testing.T) {
 	}
 	b, _ = os.ReadFile(filepath.Join(home, "config.yaml"))
 	got := string(b)
-	for _, must := range []string{"language: en\n", "  other: keep\n", "    - cli:codex/gpt\n", "extra: 1\n", "  # first\n", "  \"/a/b\": ab2\n", "  \"/c/d\": cd\n"} {
+	for _, must := range []string{"language: pt-br\n", "mode: repo\n", "  other: keep\n", "    - cli:codex/gpt\n", "extra: 1\n", "  # first\n", "  \"/a/b\": ab2\n", "  \"/c/d\": cd\n"} {
 		if !strings.Contains(got, must) {
 			t.Errorf("missing %q in\n%s", must, got)
 		}
@@ -60,11 +60,11 @@ func TestConfigRoundTripPreservesBytes(t *testing.T) {
 func TestSaveNewConfigQuotesWindowsPath(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "new")
 	p := `C:\Users\me\repo`
-	if err := SaveConfig(home, Config{Language: "en", Projects: map[string]string{p: "r"}}); err != nil {
+	if err := SaveConfig(home, Config{Mode: "repo", Projects: map[string]string{p: "r"}}); err != nil {
 		t.Fatal(err)
 	}
 	c, err := LoadConfig(home)
-	if err != nil || c.Projects[p] != "r" || c.Language != "en" {
+	if err != nil || c.Projects[p] != "r" || c.Mode != "repo" {
 		t.Fatalf("%+v %v", c, err)
 	}
 }
@@ -74,7 +74,7 @@ func TestInvalidConfigIsReadableAndNotOverwritten(t *testing.T) {
 		"tab":       "projects:\n\t\"/a\": x\n",
 		"dupkey":    "mode: repo\nmode: global\n",
 		"dupproj":   "projects:\n  \"/a\": x\n  \"/a\": y\n",
-		"colon":     "language: a:b\n",
+		"colon":     "mode: a:b\n",
 		"unquoted":  "projects:\n  /a: x\n",
 		"badmode":   "mode: sideways\n",
 		"toplevel":  "- item\n",
@@ -86,7 +86,7 @@ func TestInvalidConfigIsReadableAndNotOverwritten(t *testing.T) {
 		p := filepath.Join(home, "config.yaml")
 		os.WriteFile(p, []byte(body), 0o600)
 		_, err := LoadConfig(home)
-		if err == nil || !strings.Contains(err.Error(), "line ") {
+		if err == nil || !strings.Contains(err.Error(), "linha ") {
 			t.Errorf("%s: err = %v", name, err)
 		}
 		if err := SaveConfig(home, Config{Projects: map[string]string{"/z": "z"}}); err == nil {
@@ -143,7 +143,7 @@ func TestProjectsListSkipsAndCaps(t *testing.T) {
 	SaveConfig(home, c)
 	list, w := Projects(home)
 	if len(list) != 1 || list[0].Mode != "global" || list[0].Name != "repo" || len(w) != 1 ||
-		!strings.Contains(w[0], "1 registered project(s) skipped") {
+		!strings.Contains(w[0], "1 projeto(s) registrado(s) ignorado(s)") {
 		t.Fatalf("%+v %v", list, w)
 	}
 	// cap
@@ -211,7 +211,34 @@ func TestProjectsSkipsBadKeys(t *testing.T) {
 	home := t.TempDir()
 	os.WriteFile(filepath.Join(home, "config.yaml"), []byte("projects:\n  \"rel/x\": a\n  \"/tmp/../tmp\": b\n"), 0o600)
 	list, warns := Projects(home)
-	if len(list) != 0 || len(warns) == 0 || !strings.Contains(strings.Join(warns, ";"), "2 registry key(s) ignored") {
+	if len(list) != 0 || len(warns) == 0 || !strings.Contains(strings.Join(warns, ";"), "2 chave(s) do registro ignorada(s)") {
 		t.Fatalf("list=%v warns=%v", list, warns)
+	}
+}
+
+// ADR-011: a `language:` line from before 0.42.0 is read and ignored (any value, even one the old reader refused) and SaveConfig preserves it byte for byte.
+func TestLegacyLanguageLineIsReadIgnoredAndPreserved(t *testing.T) {
+	for _, line := range []string{"language: en\n", "language: pt-br\n", "language: fr\n", "language: a:b\n", "language: \"x\" # c\n"} {
+		home := t.TempDir()
+		body := "# meu\n" + line + "mode: global\n# fim\nprojects:\n  \"/a\": a\n"
+		os.WriteFile(filepath.Join(home, "config.yaml"), []byte(body), 0o600)
+		c, err := LoadConfig(home)
+		if err != nil || c.Mode != "global" || c.Projects["/a"] != "a" {
+			t.Fatalf("%q: %+v %v", line, c, err)
+		}
+		c.Mode = "repo"
+		if err := SaveConfig(home, c); err != nil {
+			t.Fatal(err)
+		}
+		b, _ := os.ReadFile(filepath.Join(home, "config.yaml"))
+		if want := "# meu\n" + line + "mode: repo\n# fim\nprojects:\n  \"/a\": a\n"; string(b) != want {
+			t.Errorf("%q: o save mexeu na linha antiga:\n%s", line, b)
+		}
+		if !HasLegacyLanguage(body) {
+			t.Errorf("%q: HasLegacyLanguage deveria ser verdadeiro", line)
+		}
+	}
+	if HasLegacyLanguage("# language: en\nmode: repo\ndashboard:\n  language: en\n") {
+		t.Error("comentário e chave indentada não são a opção antiga")
 	}
 }

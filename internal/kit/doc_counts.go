@@ -11,34 +11,28 @@ import (
 
 // docCountAnchor and docCountClaim implement checkDocumentedCounts.
 //
-// docCountClaim recognizes "<N> <noun>" for each of the five kit-content
-// nouns the validator already counts, in both languages ("skills" and
-// "templates" are spelled the same in pt-br and en). docCountAnchor
-// recognizes the current/expected-state words this repository's prose
-// actually uses around a real count claim ("Contagem atual: ...",
-// "Current count: ...", "Esperado: ...", "Expected: ...").
+// docCountClaim recognizes "<N> <noun>" for each of the five kit-content nouns the validator already counts, in pt-BR (the kit is pt-BR only since ADR-011).
+// docCountAnchor recognizes the current/expected-state words this repository's prose actually uses around a real count claim ("Contagem atual: ...", "Esperado: ...").
 var (
-	docCountAnchor = lazyRe(`(?i)\b(atual|esperado|current|expected)\b`)
-	docCountClaim  = lazyRe(`\b(\d+)\s+(agentes|agents|comandos|commands|skills|perfis|profiles|templates)\b`)
+	docCountAnchor = lazyRe(`(?i)\b(atual|esperado)\b`)
+	docCountClaim  = lazyRe(`\b(\d+)\s+(agentes|comandos|skills|perfis|templates)\b`)
 )
 
-// canonicalCountNoun folds the pt-br and en spellings of a counted noun onto
-// one name, so "19 agentes" and "19 agents" are recognized as the same claim.
+// canonicalCountNoun maps the pt-BR spelling of a counted noun to the canonical name the inventory uses.
 func canonicalCountNoun(word string) string {
 	switch word {
-	case "agentes", "agents":
+	case "agentes":
 		return "agents"
-	case "comandos", "commands":
+	case "comandos":
 		return "commands"
-	case "perfis", "profiles":
+	case "perfis":
 		return "profiles"
 	default:
-		return word // skills, templates: identical in both languages
+		return word // skills, templates: same name in the inventory
 	}
 }
 
-// realDocumentedCount returns the real count the validator computed for a
-// canonical noun, or -1 if the noun is not one it tracks.
+// realDocumentedCount returns the real count the validator computed for a canonical noun, or -1 if the noun is not one it tracks.
 func realDocumentedCount(inv Inventory, canonical string) int {
 	switch canonical {
 	case "agents":
@@ -55,35 +49,20 @@ func realDocumentedCount(inv Inventory, canonical string) int {
 	return -1
 }
 
-// checkDocumentedCounts flags prose across docs/**/*.html, docs/**/*.md and
-// README*.md that states a kit content count no longer matching the real
-// count Validate just computed from disk (agents, commands, skills,
-// profiles, templates). Recurring failure this repository keeps hitting:
-// such prose silently falls behind reality, and nothing used to catch it.
+// checkDocumentedCounts flags prose across docs/**/*.html, docs/**/*.md and README.md that states a kit content count no longer matching the real count Validate just
+// computed from disk (agents, commands, skills, profiles, templates). Recurring failure this repository keeps hitting: such prose silently falls behind reality, and nothing
+// used to catch it. Only pt-BR files are read (ADR-011); the former English mirror, `docs/en/` and `README.en.md`, is ignored until S4 removes it.
 //
-// A line is compared only when it both (a) names at least two of the five
-// nouns and (b) carries one of the current/expected-state anchor words above,
-// in the same physical line. Both conditions are load-bearing for avoiding
-// false positives, which are worse than a miss here:
+// A line is compared only when it both (a) names at least two of the five nouns and (b) carries one of the current/expected-state anchor words above, in the same physical
+// line. Both conditions are load-bearing for avoiding false positives, which are worse than a miss here:
 //
-//   - Without the two-noun requirement, a per-language aside such as
-//     "8 templates espelhados por idioma" ("8 templates in pt-br") would be
-//     compared against the total template count (16) and wrongly flagged —
-//     it is a single-noun line describing a different quantity, not a total
-//     count claim.
-//   - Without the anchor-word requirement, a changelog entry describing a
-//     past release ("Resumo: 18 agentes, 17 comandos e 19 skills" under a
-//     0.1.0 card) or the product plan's dated "Inspeção desta revisão: ...
-//     18 agentes" narrative would be flagged even though the numbers were
-//     correct as of that past point in time, not stale documentation of the
-//     current state. Neither carries "atual/current" or "esperado/expected".
+//   - Without the two-noun requirement, a standalone aside such as "8 templates por idioma" would be compared against the total template count and wrongly flagged:
+//     it is a single-noun line describing a different quantity, not a total count claim.
+//   - Without the anchor-word requirement, a changelog entry describing a past release ("Resumo: 18 agentes, 17 comandos e 19 skills" under a 0.1.0 card) would be flagged
+//     even though the numbers were correct as of that point in time. Neither carries "atual" or "esperado".
 //
-// This narrows the check to exactly the shape this repository's real
-// current-state claims use (verified against docs/roadmap.html and
-// docs/en/roadmap.html, whose "Contagem atual"/"Current count" line is
-// correct today, and against the historical lines above, which must not
-// fire). A count claim that uses neither anchor word, or that appears alone
-// on its line, is deliberately left unchecked.
+// This narrows the check to exactly the shape this repository's real current-state claims use. A count claim that uses neither anchor word, or that appears alone on its
+// line, is deliberately left unchecked.
 func checkDocumentedCounts(root string, inv Inventory, errors *[]string) {
 	for _, path := range docCountFiles(root) {
 		text, err := readText(path)
@@ -115,7 +94,7 @@ func checkDocumentedCounts(root string, inv Inventory, errors *[]string) {
 				real := realDocumentedCount(inv, canonical)
 				if real >= 0 && claimed != real {
 					*errors = append(*errors, fmt.Sprintf(
-						"%s:%d: documented %s count is %d, real count is %d",
+						"%s:%d: a contagem documentada de %s é %d, a real é %d",
 						filepath.ToSlash(rel), lineNumber+1, canonical, claimed, real,
 					))
 				}
@@ -124,14 +103,19 @@ func checkDocumentedCounts(root string, inv Inventory, errors *[]string) {
 	}
 }
 
-// docCountFiles lists every docs/**/*.html, docs/**/*.md and README*.md
-// under root, in sorted order.
+// docCountFiles lists every docs/**/*.html, docs/**/*.md and README.md under root, in sorted order, without the English mirror (`docs/en/` and `README.en.md`, removed in S4).
 func docCountFiles(root string) []string {
 	var paths []string
 	docsRoot := filepath.Join(root, "docs")
 	if isDir(docsRoot) {
 		_ = filepath.WalkDir(docsRoot, func(path string, entry os.DirEntry, err error) error {
-			if err != nil || entry.IsDir() {
+			if err != nil {
+				return nil
+			}
+			if entry.IsDir() {
+				if path == filepath.Join(docsRoot, "en") {
+					return filepath.SkipDir
+				}
 				return nil
 			}
 			switch strings.ToLower(filepath.Ext(path)) {
@@ -141,8 +125,9 @@ func docCountFiles(root string) []string {
 			return nil
 		})
 	}
-	readmes, _ := filepath.Glob(filepath.Join(root, "README*.md"))
-	paths = append(paths, readmes...)
+	if readme := filepath.Join(root, "README.md"); isFile(readme) {
+		paths = append(paths, readme)
+	}
 	sort.Strings(paths)
 	return paths
 }

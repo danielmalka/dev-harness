@@ -23,8 +23,8 @@ var shaHex = regexp.MustCompile(`^[0-9a-f]{64}$`)
 type MemoryChangedError struct{ Expected, Found string }
 
 func (e *MemoryChangedError) Error() string {
-	return fmt.Sprintf("%s changed since it was read (expected %s, found %s): someone wrote it in the middle. "+
-		"Nothing was written. Read %s again and redo the edit", MemoryFile, e.Expected, e.Found, MemoryFile)
+	return fmt.Sprintf("%s mudou desde que foi lido (esperado %s, achei %s): alguém escreveu no meio. "+
+		"Nada foi gravado. Leia o %s de novo e refaça a edição", MemoryFile, e.Expected, e.Found, MemoryFile)
 }
 
 // IsMemoryChanged reports whether err is a MemoryChangedError.
@@ -56,10 +56,10 @@ func hashBytes(b []byte) string {
 // Residual (PRD-034 R7): a writer that bypasses this function and lands between the compare and the rename is lost.
 func WriteMemory(dir, expect string, content []byte) (string, error) {
 	if expect != MemoryAbsent && !shaHex.MatchString(expect) {
-		return "", fmt.Errorf("--expect must be a sha256 (64 lower-case hex digits) or %q, got %q", MemoryAbsent, expect)
+		return "", fmt.Errorf("--expect deve ser um sha256 (64 dígitos hexadecimais minúsculos) ou %q, recebi %q", MemoryAbsent, expect)
 	}
 	if len(content) == 0 {
-		return "", fmt.Errorf("refusing to write an empty %s", MemoryFile)
+		return "", fmt.Errorf("recusei gravar um %s vazio", MemoryFile)
 	}
 	release, err := lockNamed(dir, MemoryFile+".lock")
 	if err != nil {

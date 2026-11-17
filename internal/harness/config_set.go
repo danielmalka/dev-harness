@@ -8,7 +8,7 @@ import (
 )
 
 // ConfigKeys are the scalar keys `dh config` can read and write, in display order.
-var ConfigKeys = []string{"language", "mode", "dashboard.sprites", "worktree"}
+var ConfigKeys = []string{"mode", "dashboard.sprites", "worktree"}
 
 // SetConfigValue sets (or, with value "" and unset, clears) one scalar key of <home>/config.yaml.
 // The load-modify-save runs under config.lock like Link; an invalid existing file is an error and
@@ -16,12 +16,13 @@ var ConfigKeys = []string{"language", "mode", "dashboard.sprites", "worktree"}
 func SetConfigValue(home, key, value string, unset bool) error {
 	switch key {
 	case "reviewers":
-		return fmt.Errorf("reviewers is not editable here: edit config.yaml or .harness/project.yaml by hand")
+		return fmt.Errorf("reviewers não é editável aqui: edite config.yaml ou .harness/project.yaml à mão")
 	case "projects":
-		return fmt.Errorf("projects is not editable here: use dh link")
-	case "language", "mode", "dashboard.sprites", "worktree":
+		return fmt.Errorf("projects não é editável aqui: use dh link")
+	case "mode", "dashboard.sprites", "worktree":
 	default:
-		return fmt.Errorf("unknown key %q (language, mode, dashboard.sprites, worktree)", key)
+		// `language` lands here like any nonexistent key: the option is gone (ADR-011), with no special message.
+		return fmt.Errorf("chave desconhecida %q (%s)", key, strings.Join(ConfigKeys, ", "))
 	}
 	if unset {
 		value = ""
@@ -38,8 +39,6 @@ func SetConfigValue(home, key, value string, unset bool) error {
 		return err
 	}
 	switch key {
-	case "language":
-		c.Language = value
 	case "mode":
 		c.Mode = value
 	case "worktree":
@@ -52,17 +51,13 @@ func SetConfigValue(home, key, value string, unset bool) error {
 
 func validConfigValue(key, v string) error {
 	switch key {
-	case "language":
-		if v != "en" && v != "pt-br" {
-			return fmt.Errorf("invalid language %q (en, pt-br)", v)
-		}
 	case "mode":
 		if v != "repo" && v != "global" {
-			return fmt.Errorf("invalid mode %q (repo, global)", v)
+			return fmt.Errorf("mode inválido %q (repo, global)", v)
 		}
 	case "worktree":
 		if v != "always" && v != "on-request" {
-			return fmt.Errorf("invalid worktree %q (always, on-request)", v)
+			return fmt.Errorf("worktree inválido %q (always, on-request)", v)
 		}
 	default: // same rule as the dashboard's spritesDirOf
 		p := v
@@ -72,7 +67,7 @@ func validConfigValue(key, v string) error {
 			}
 		}
 		if fi, err := os.Stat(p); !filepath.IsAbs(p) || err != nil || !fi.IsDir() {
-			return fmt.Errorf("dashboard.sprites %q is not an absolute existing directory", v)
+			return fmt.Errorf("dashboard.sprites %q não é um diretório absoluto que exista", v)
 		}
 	}
 	return nil

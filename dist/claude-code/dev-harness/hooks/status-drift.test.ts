@@ -54,10 +54,10 @@ test('clean state has no drift', () => {
   expect(findDrift([{ id: 'T-1', md: T('concluída', 'PRD-001') }, { id: 'T-2', md: T('pronta', 'PRD-002') }], prds, taskStatus)).toEqual([])
 })
 
-test('message lists tickets in both languages', () => {
+test('message lists the tickets, in pt-BR only (ADR-011)', () => {
   const d = [{ prd: 'PRD-001', kind: 'open-in-delivered' as const, tickets: ['T-1', 'T-9'] }]
-  expect(driftMessage(d, 'en')).toContain('T-1, T-9')
-  expect(driftMessage(d, 'en')).toContain('commit again')
-  expect(driftMessage(d, 'pt-br')).toContain('T-1, T-9')
-  expect(driftMessage(d, 'pt-br')).toContain('commite de novo')
+  expect(driftMessage(d)).toContain('T-1, T-9')
+  expect(driftMessage(d)).toContain('commite de novo')
+  expect(driftMessage(d, '/proj')).toContain('Verificado só em /proj')
+  expect(driftMessage(d)).not.toMatch(/commit again|still open/)
 })

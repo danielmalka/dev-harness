@@ -14,8 +14,8 @@ import (
 	"github.com/danielmalka/dev-harness/internal/harness"
 )
 
-var ErrMissingSessionID = errors.New("missing session_id")
-var errNoHome = errors.New("cannot determine the harness home: set DH_HOME, HOME or USERPROFILE")
+var ErrMissingSessionID = errors.New("session_id ausente")
+var errNoHome = errors.New("não foi possível determinar a pasta do harness: defina DH_HOME, HOME ou USERPROFILE")
 
 type Snapshot struct {
 	Schema      int             `json:"schema"`
@@ -362,7 +362,7 @@ func Prune(dir string, days int) (int, error) {
 			parseErr = json.Unmarshal(data, &snapshot)
 			if parseErr == nil {
 				if snapshot.UpdatedAt == "" {
-					parseErr = errors.New("missing updated_at")
+					parseErr = errors.New("updated_at ausente")
 				} else {
 					var updatedAt time.Time
 					updatedAt, parseErr = time.Parse(time.RFC3339, snapshot.UpdatedAt)
@@ -396,7 +396,7 @@ func decodeJSON(r io.Reader, dst any) error {
 	var extra any
 	if err := decoder.Decode(&extra); err != io.EOF {
 		if err == nil {
-			return errors.New("input contains more than one JSON value")
+			return errors.New("a entrada tem mais de um valor JSON")
 		}
 		return err
 	}
@@ -500,7 +500,11 @@ func writeStatusline(w io.Writer, snapshot Snapshot, hasContextPercentage, hasCo
 				active++
 			}
 		}
-		parts = append(parts, fmt.Sprintf("%d agents active", active))
+		label := "agentes ativos"
+		if active == 1 {
+			label = "agente ativo"
+		}
+		parts = append(parts, fmt.Sprintf("%d %s", active, label))
 	}
 	if len(parts) == 0 {
 		return nil

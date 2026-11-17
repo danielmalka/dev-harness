@@ -17,26 +17,26 @@ import (
 
 var snapshotMention = regexp.MustCompile(`bin/dh(\.cmd)?\\?"? +snapshot`)
 
-// Run prints the read-only diagnosis and returns the validator exit status.
+// Run prints the read-only diagnosis and returns the exit status (validator and harness).
 func Run(target string, out io.Writer) int {
 	if target == "" {
 		target = "."
 	}
 	targetForDisplay := absolutePath(target)
 
-	fmt.Fprintln(out, "## Mode")
-	fmt.Fprintln(out, "diagnosis (read-only; creates <home> and <home>/sessions only when missing)")
+	fmt.Fprintln(out, "## Modo")
+	fmt.Fprintln(out, "diagnóstico (somente leitura; cria <home> e <home>/sessions só quando faltam)")
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "## Kit")
-	fmt.Fprintf(out, "target: %s\n", targetForDisplay)
-	fmt.Fprintln(out, "validator: embedded dh validate")
+	fmt.Fprintf(out, "alvo: %s\n", targetForDisplay)
+	fmt.Fprintln(out, "validador: dh validate embutido")
 
 	report, err := kit.Validate(target, kit.Options{})
 	validateStatus := 0
 	if errors.Is(err, kit.ErrUnrecognizedLayout) {
-		fmt.Fprintln(out, "kit validation: not applicable (not a kit checkout)")
+		fmt.Fprintln(out, "validação do kit: não se aplica (não é um checkout do kit)")
 	} else if err != nil {
-		fmt.Fprintln(out, "kit validation failed:", err)
+		fmt.Fprintln(out, "a validação do kit falhou:", err)
 		validateStatus = 1
 	} else {
 		kit.WriteReport(out, report)
@@ -46,8 +46,8 @@ func Run(target string, out io.Writer) int {
 	}
 
 	fmt.Fprintln(out)
-	fmt.Fprintln(out, "## Environment")
-	fmt.Fprintln(out, "| Layer | Check | Command or observation | Status | Evidence |")
+	fmt.Fprintln(out, "## Ambiente")
+	fmt.Fprintln(out, "| Camada | Checagem | Comando ou observação | Estado | Evidência |")
 	fmt.Fprintln(out, "|---|---|---|---|---|")
 	probe(out, "runtime", "python3", "python3", "--version")
 	probe(out, "runtime", "git", "git", "--version")
@@ -55,19 +55,25 @@ func Run(target string, out io.Writer) int {
 
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "## Harness")
-	printHarness(out)
+	harnessProblems := printHarness(out)
 
 	fmt.Fprintln(out)
-	fmt.Fprintln(out, "## Limits")
-	fmt.Fprintln(out, "- Nothing was installed, upgraded or configured.")
-	fmt.Fprintln(out, "- Claude Code discovery of commands and agents is unverified unless this session loaded the plugin.")
-	fmt.Fprintln(out, "- A missing claude binary blocks loading the plugin; it does not block reading the docs.")
+	fmt.Fprintln(out, "## Limites")
+	fmt.Fprintln(out, "- Nada foi instalado, atualizado nem configurado.")
+	fmt.Fprintln(out, "- A descoberta de comandos e agentes pelo Claude Code não foi verificada, a menos que esta sessão tenha carregado o plugin.")
+	fmt.Fprintln(out, "- A falta do binário claude impede carregar o plugin; não impede ler a documentação.")
 	printRF07(out, targetForDisplay)
 
-	if validateStatus == 0 {
-		fmt.Fprintln(out, "status: passed")
-	} else {
-		fmt.Fprintln(out, "status: failed (validator errors above)")
+	switch {
+	case validateStatus != 0:
+		fmt.Fprintln(out, "status: reprovado (erros do validador acima)")
+	case harnessProblems != 0:
+		fmt.Fprintln(out, "status: reprovado (erros do harness acima)")
+	default:
+		fmt.Fprintln(out, "status: aprovado")
+	}
+	if harnessProblems != 0 {
+		return 1
 	}
 	return validateStatus
 }
@@ -76,20 +82,20 @@ func probe(out io.Writer, layer, check string, args ...string) {
 	command := strings.Join(args, " ")
 	path, err := exec.LookPath(args[0])
 	if err != nil {
-		fmt.Fprintf(out, "| %s | %s | %s | missing | command not found |\n", layer, check, command)
+		fmt.Fprintf(out, "| %s | %s | %s | ausente | comando não encontrado |\n", layer, check, command)
 		return
 	}
 	result := exec.Command(path, args[1:]...)
 	data, err := result.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(out, "| %s | %s | %s | unknown | probe failed |\n", layer, check, command)
+		fmt.Fprintf(out, "| %s | %s | %s | desconhecido | a sonda falhou |\n", layer, check, command)
 		return
 	}
 	trimmed := strings.ReplaceAll(strings.TrimSpace(string(data)), "\n", " ")
 	if len(trimmed) > 120 {
 		trimmed = trimmed[:120]
 	}
-	fmt.Fprintf(out, "| %s | %s | %s | present | %s |\n", layer, check, command, trimmed)
+	fmt.Fprintf(out, "| %s | %s | %s | presente | %s |\n", layer, check, command, trimmed)
 }
 
 func printRF07(out io.Writer, target string) {
@@ -109,9 +115,9 @@ func printRF07(out io.Writer, target string) {
 			binary += ".exe"
 		}
 		if isFile(binary) {
-			fmt.Fprintf(out, "- binary %s: present (%s)\n", platform, binary)
+			fmt.Fprintf(out, "- binário %s: presente (%s)\n", platform, binary)
 		} else {
-			fmt.Fprintf(out, "- binary %s: missing (%s)\n", platform, binary)
+			fmt.Fprintf(out, "- binário %s: ausente (%s)\n", platform, binary)
 		}
 		printPluginFile(out, "hooks", filepath.Join(packageRoot, "hooks", "hooks.json"))
 		printPluginFile(out, "settings", filepath.Join(packageRoot, "settings.json"))
@@ -119,24 +125,24 @@ func printRF07(out io.Writer, target string) {
 
 	snapshotDir := snapshot.SnapshotDir()
 	if snapshotDir == "" {
-		fmt.Fprintln(out, "- snapshot directory: skipped (harness home unknown)")
+		fmt.Fprintln(out, "- pasta de snapshots: ignorada (home do harness desconhecido)")
 	} else if err := probeSnapshotDir(snapshotDir); err != nil {
-		fmt.Fprintf(out, "- snapshot directory: not writable (%s: %v)\n", snapshotDir, err)
+		fmt.Fprintf(out, "- pasta de snapshots: sem permissão de escrita (%s: %v)\n", snapshotDir, err)
 	} else {
-		fmt.Fprintf(out, "- snapshot directory: writable (%s)\n", snapshotDir)
+		fmt.Fprintf(out, "- pasta de snapshots: gravável (%s)\n", snapshotDir)
 	}
 }
 
 func printPluginFile(out io.Writer, name, path string) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Fprintf(out, "- %s: missing (%s)\n", name, path)
+		fmt.Fprintf(out, "- %s: ausente (%s)\n", name, path)
 		return
 	}
 	if snapshotMention.Match(data) {
-		fmt.Fprintf(out, "- %s: present and mentions dh snapshot (%s)\n", name, path)
+		fmt.Fprintf(out, "- %s: presente e cita dh snapshot (%s)\n", name, path)
 	} else {
-		fmt.Fprintf(out, "- %s: present but does not mention dh snapshot (%s)\n", name, path)
+		fmt.Fprintf(out, "- %s: presente, mas não cita dh snapshot (%s)\n", name, path)
 	}
 }
 

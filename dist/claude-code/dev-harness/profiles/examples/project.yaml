@@ -2,7 +2,6 @@
 # Copy is not automatic: setup writes this file only when it is absent and writing is authorized.
 # This example is documentation. It is not a stack profile.
 
-language: en
 profile: go-api
 profile_source: profiles/go-api.yaml
 commands:
@@ -24,6 +23,11 @@ conventions_applied:
 conflicts: []
 notes:
   - Existing AGENTS.md (canonical) and CLAUDE.md outrank this file.
+# conventions.code_language is optional: the language of commit messages and code comments (en or pt-br).
+# Without it, and without a definition in AGENTS.md, CLAUDE.md or README.md, English applies. dh doctor rejects any other value.
+# Setup writes it only when it finds the definition in one of those files.
+# conventions:
+#   code_language: en
 # reviewers: is optional; absent means Claude only, with no other CLI to rotate.
 # When reviewers.code is set, the first code entry of a task is claude if listed,
 # otherwise the first entry; a later entry of the same task advances one entry.

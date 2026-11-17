@@ -70,7 +70,7 @@ func TestMemoryWriteCommand(t *testing.T) {
 	// someone else writes between my read and my write
 	os.WriteFile(mem, []byte("v4 by another session"), 0o644)
 	code, _, e = dh(t, "memory", "write", "--expect", shaOf("v3 from file"), "--from", draft, repo)
-	if code != 3 || !strings.Contains(e, "someone wrote it in the middle") || !strings.Contains(e, shaOf("v4 by another session")) {
+	if code != 3 || !strings.Contains(e, "alguém escreveu no meio") || !strings.Contains(e, shaOf("v4 by another session")) {
 		t.Fatalf("conflict: %d %q", code, e)
 	}
 	if b, _ := os.ReadFile(mem); string(b) != "v4 by another session" {
@@ -102,7 +102,7 @@ func TestMemoryWriteAbsentAndUsage(t *testing.T) {
 			t.Errorf("%s: exit %d, want 1", name, code)
 		}
 	}
-	if code, _, e := dhStdin(t, "", "memory", "write", "--expect", shaOf("first memory"), repo); code != 1 || !strings.Contains(e, "empty") {
+	if code, _, e := dhStdin(t, "", "memory", "write", "--expect", shaOf("first memory"), repo); code != 1 || !strings.Contains(e, "vazio") {
 		t.Errorf("empty content: %d %q", code, e)
 	}
 	if b, _ := os.ReadFile(mem); string(b) != "first memory" {

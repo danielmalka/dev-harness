@@ -125,7 +125,7 @@ func TestListenBusy(t *testing.T) {
 	for i := strings.LastIndex(port, ":") + 1; i < len(port); i++ {
 		p = p*10 + int(port[i]-'0')
 	}
-	if _, err := Listen(p); err == nil || !strings.Contains(err.Error(), "busy") {
+	if _, err := Listen(p); err == nil || !strings.Contains(err.Error(), "ocupada") {
 		t.Fatalf("want busy error, got %v", err)
 	}
 }

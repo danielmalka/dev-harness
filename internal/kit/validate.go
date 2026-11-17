@@ -29,10 +29,9 @@ var (
 	privatePattern  = lazyRe(`(/home/|/Users/|[A-Za-z]:\\)`)
 )
 
-var templateLanguages = []string{"en", "pt-br"}
-
-// englishOnlyTemplates may exist only in templates/en/ (the PRD and the review guide are always written in English).
-var englishOnlyTemplates = []string{"PRD.md", "REVIEW.md"}
+// legacyTemplateLanguageDirs are the language subfolders `templates/` had up to 0.41.0. Since 0.42.0 (ADR-011) the templates sit directly in `templates/`, all in
+// pt-BR, and one of these folders coming back fails the validator.
+var legacyTemplateLanguageDirs = []string{"en", "pt-br"}
 
 var allowedModels = map[string]bool{
 	"haiku":  true,
@@ -111,33 +110,33 @@ func Validate(target string, options Options) (Report, error) {
 		checkRequiredPackageFiles(packageRoot, &report.Errors)
 		license := filepath.Join(resolved, "LICENSE")
 		if _, err := os.Stat(license); err != nil {
-			report.Errors = append(report.Errors, "LICENSE missing at kit root")
+			report.Errors = append(report.Errors, "LICENSE ausente na raiz do kit")
 		} else if text, err := readText(license); err != nil {
 			report.Errors = append(report.Errors, fmt.Sprintf("%s: %v", license, err))
 		} else if !strings.Contains(text, "MIT License") {
-			report.Errors = append(report.Errors, "LICENSE is not MIT")
+			report.Errors = append(report.Errors, "LICENSE não é MIT")
 		}
 	}
 	return report, nil
 }
 
 func WriteReport(w io.Writer, report Report) {
-	fmt.Fprintf(w, "target: %s\n", report.Target)
+	fmt.Fprintf(w, "alvo: %s\n", report.Target)
 	fmt.Fprintf(w, "layout: %s\n", report.Layout)
-	writeInventory(w, "agents", report.Inventory.Agents)
-	writeInventory(w, "commands", report.Inventory.Commands)
+	writeInventory(w, "agentes", report.Inventory.Agents)
+	writeInventory(w, "comandos", report.Inventory.Commands)
 	writeInventory(w, "skills", report.Inventory.Skills)
-	writeInventory(w, "profiles", report.Inventory.Profiles)
+	writeInventory(w, "perfis", report.Inventory.Profiles)
 	writeInventory(w, "templates", report.Inventory.Templates)
-	fmt.Fprintf(w, "errors: %d\n", len(report.Errors))
+	fmt.Fprintf(w, "erros: %d\n", len(report.Errors))
 	if report.Passed() {
-		fmt.Fprintln(w, "status: passed")
+		fmt.Fprintln(w, "status: aprovado")
 		return
 	}
 	for _, problem := range report.Errors {
 		fmt.Fprintf(w, "  - %s\n", problem)
 	}
-	fmt.Fprintln(w, "status: failed")
+	fmt.Fprintln(w, "status: reprovado")
 }
 
 func Run(target string, options Options, w io.Writer) int {
@@ -164,18 +163,18 @@ func resolveTarget(target string) (string, error) {
 	resolved, err := filepath.EvalSymlinks(abs)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return "", fmt.Errorf("missing target: %s", abs)
+			return "", fmt.Errorf("alvo ausente: %s", abs)
 		}
 		return "", err
 	}
 	if _, err := os.Stat(resolved); err != nil {
-		return "", fmt.Errorf("missing target: %s", abs)
+		return "", fmt.Errorf("alvo ausente: %s", abs)
 	}
 	return resolved, nil
 }
 
 // ErrUnrecognizedLayout: the target is neither the kit source nor the generated package.
-var ErrUnrecognizedLayout = errors.New("unrecognized layout")
+var ErrUnrecognizedLayout = errors.New("layout não reconhecido")
 
 func detectLayout(target string, sourceOnly bool) (string, error) {
 	if isDir(filepath.Join(target, "agents")) && isDir(filepath.Join(target, ".claude-plugin")) {
@@ -188,7 +187,7 @@ func detectLayout(target string, sourceOnly bool) (string, error) {
 		}
 		return "source", nil
 	}
-	return "", fmt.Errorf("%w: %s (expected .agents/ and .commands/ for the source layout, or agents/ and .claude-plugin/ for the package)", ErrUnrecognizedLayout, target)
+	return "", fmt.Errorf("%w: %s (esperado .agents/ e .commands/ para o layout de fontes, ou agents/ e .claude-plugin/ para o pacote)", ErrUnrecognizedLayout, target)
 }
 
 func layoutDirs(target, layout string) map[string]string {
@@ -246,10 +245,9 @@ func inventory(dirs map[string]string) Inventory {
 		profiles = append(profiles, strings.TrimSuffix(filepath.Base(path), ".yaml"))
 	}
 	templates := make([]string, 0)
-	for lang, names := range listTemplates(dirs["templates"]) {
-		for name := range names {
-			templates = append(templates, lang+"/"+name)
-		}
+	names, _ := listTemplates(dirs["templates"])
+	for name := range names {
+		templates = append(templates, name)
 	}
 	sort.Strings(templates)
 	return Inventory{Agents: agents, Commands: commands, Skills: skills, Profiles: profiles, Templates: templates}
@@ -258,7 +256,7 @@ func inventory(dirs map[string]string) Inventory {
 func writeInventory(w io.Writer, name string, values []string) {
 	fmt.Fprintf(w, "%s: %d\n", name, len(values))
 	if len(values) == 0 {
-		fmt.Fprintln(w, "  (none)")
+		fmt.Fprintln(w, "  (nenhum)")
 		return
 	}
 	fmt.Fprintf(w, "  %s\n", strings.Join(values, ", "))
@@ -297,29 +295,22 @@ func listSkills(directory string) []string {
 	return paths
 }
 
-func listTemplates(directory string) map[string]map[string]bool {
-	found := make(map[string]map[string]bool)
+// listTemplates returns the template names (`templates/*.md`, no subfolder) and any legacy language subfolders that still exist.
+func listTemplates(directory string) (names map[string]bool, legacyDirs []string) {
+	names = make(map[string]bool)
 	entries, err := os.ReadDir(directory)
 	if err != nil {
-		return found
+		return names, nil
 	}
-	for _, lang := range entries {
-		if !lang.IsDir() || !contains(templateLanguages, lang.Name()) {
-			continue
+	for _, entry := range entries {
+		switch {
+		case entry.IsDir() && contains(legacyTemplateLanguageDirs, entry.Name()):
+			legacyDirs = append(legacyDirs, entry.Name())
+		case !entry.IsDir() && filepath.Ext(entry.Name()) == ".md":
+			names[entry.Name()] = true
 		}
-		names := make(map[string]bool)
-		files, err := os.ReadDir(filepath.Join(directory, lang.Name()))
-		if err != nil {
-			continue
-		}
-		for _, file := range files {
-			if !file.IsDir() && filepath.Ext(file.Name()) == ".md" {
-				names[file.Name()] = true
-			}
-		}
-		found[lang.Name()] = names
 	}
-	return found
+	return names, legacyDirs
 }
 
 func listProfiles(directory string) []string {
@@ -339,17 +330,17 @@ func listProfiles(directory string) []string {
 
 func checkCounts(inv Inventory, errors *[]string) {
 	if len(inv.Agents) < MinAgents {
-		*errors = append(*errors, fmt.Sprintf("agents: %d < %d", len(inv.Agents), MinAgents))
+		*errors = append(*errors, fmt.Sprintf("agentes: %d < %d", len(inv.Agents), MinAgents))
 	}
 	if len(inv.Commands) < MinCommands {
-		*errors = append(*errors, fmt.Sprintf("commands: %d < %d", len(inv.Commands), MinCommands))
+		*errors = append(*errors, fmt.Sprintf("comandos: %d < %d", len(inv.Commands), MinCommands))
 	}
 	if len(inv.Skills) < MinSkills {
 		*errors = append(*errors, fmt.Sprintf("skills: %d < %d", len(inv.Skills), MinSkills))
 	}
 	for _, required := range []string{"base", "go-api", "typescript-web", "kotlin", "python", "typescript-api"} {
 		if !contains(inv.Profiles, required) {
-			*errors = append(*errors, "missing profile: "+required)
+			*errors = append(*errors, "perfil ausente: "+required)
 		}
 	}
 }
@@ -363,22 +354,22 @@ func checkAgents(dirs map[string]string, errors *[]string) {
 		}
 		fm := frontmatter(text)
 		if fm == "" {
-			*errors = append(*errors, path+": missing frontmatter")
+			*errors = append(*errors, path+": frontmatter ausente")
 			continue
 		}
 		name := field(fm, "name")
 		stem := strings.TrimSuffix(filepath.Base(path), ".md")
 		if name != "" && name != stem {
-			*errors = append(*errors, fmt.Sprintf("%s: name %q != %q", path, name, stem))
+			*errors = append(*errors, fmt.Sprintf("%s: name %q diferente de %q", path, name, stem))
 		}
 		if name == "" {
-			*errors = append(*errors, path+": missing name")
+			*errors = append(*errors, path+": name ausente")
 		}
 		model := modelPattern().FindStringSubmatch(fm)
 		if len(model) == 0 {
-			*errors = append(*errors, path+": missing model")
+			*errors = append(*errors, path+": model ausente")
 		} else if !allowedModels[model[1]] {
-			*errors = append(*errors, fmt.Sprintf("%s: model %q not in [haiku opus sonnet]", path, model[1]))
+			*errors = append(*errors, fmt.Sprintf("%s: model %q fora de [haiku opus sonnet]", path, model[1]))
 		}
 		checkAuthorAndTools(path, fm, errors)
 	}
@@ -394,11 +385,12 @@ func checkSkills(dirs map[string]string, errors *[]string) {
 		fm := frontmatter(text)
 		folder := filepath.Base(filepath.Dir(path))
 		if field(fm, "name") != folder {
-			*errors = append(*errors, fmt.Sprintf("%s: name %q != folder %q", path, field(fm, "name"), folder))
+			*errors = append(*errors, fmt.Sprintf("%s: name %q diferente da pasta %q", path, field(fm, "name"), folder))
 		}
 		checkAuthor(path, fm, errors)
-		if !strings.HasPrefix(description(fm), "Use when") {
-			*errors = append(*errors, path+`: description must start with "Use when"`)
+		// Transition (0.42.0 to 0.44.0): "Use when" (old English form) and "Use quando" both pass; 0.45.0 accepts only "Use quando".
+		if d := description(fm); !strings.HasPrefix(d, "Use quando") && !strings.HasPrefix(d, "Use when") {
+			*errors = append(*errors, path+`: description deve começar com "Use quando" ("Use when" ainda é aceito até a 0.44.0)`)
 		}
 	}
 }
@@ -412,31 +404,31 @@ func checkCommands(dirs map[string]string, errors *[]string) {
 		}
 		fm := frontmatter(text)
 		if fm == "" {
-			*errors = append(*errors, path+": missing frontmatter")
+			*errors = append(*errors, path+": frontmatter ausente")
 			continue
 		}
 		stem := strings.TrimSuffix(filepath.Base(path), ".md")
 		if name := field(fm, "name"); name != stem {
-			*errors = append(*errors, fmt.Sprintf("%s: name %q != %q", path, name, stem))
+			*errors = append(*errors, fmt.Sprintf("%s: name %q diferente de %q", path, name, stem))
 		}
 		checkAuthor(path, fm, errors)
 		for _, key := range []string{"argument-hint", "metadata", "roles", "skills", "writes"} {
 			if key == "roles" || key == "skills" || key == "writes" {
 				if !metadataField(fm, key) {
-					*errors = append(*errors, fmt.Sprintf("%s: missing metadata.%s", path, key))
+					*errors = append(*errors, fmt.Sprintf("%s: metadata.%s ausente", path, key))
 				}
 			} else if field(fm, key) == "" && !hasKey(fm, key) {
-				*errors = append(*errors, fmt.Sprintf("%s: missing %s", path, key))
+				*errors = append(*errors, fmt.Sprintf("%s: %s ausente", path, key))
 			}
 		}
 		for _, role := range listField(fm, "roles") {
 			if !containsStem(listMarkdown(dirs["agents"]), role) {
-				*errors = append(*errors, fmt.Sprintf("%s: missing role %s", path, role))
+				*errors = append(*errors, fmt.Sprintf("%s: papel %s ausente", path, role))
 			}
 		}
 		for _, skill := range listField(fm, "skills") {
 			if !containsSkill(listSkills(dirs["skills"]), skill) {
-				*errors = append(*errors, fmt.Sprintf("%s: missing skill %s", path, skill))
+				*errors = append(*errors, fmt.Sprintf("%s: skill %s ausente", path, skill))
 			}
 		}
 	}
@@ -452,7 +444,7 @@ func checkProfiles(dirs map[string]string, errors *[]string) {
 		id := regexp.MustCompile(`(?m)^id:\s*(\S+)`).FindStringSubmatch(text)
 		stem := strings.TrimSuffix(filepath.Base(path), ".yaml")
 		if len(id) == 0 {
-			*errors = append(*errors, path+": missing id")
+			*errors = append(*errors, path+": id ausente")
 		} else if id[1] != stem {
 			*errors = append(*errors, fmt.Sprintf("%s: id %q != %q", path, id[1], stem))
 		}
@@ -464,13 +456,13 @@ func checkProfiles(dirs map[string]string, errors *[]string) {
 func checkAuthorAndTools(path, fm string, errors *[]string) {
 	checkAuthor(path, fm, errors)
 	if regexp.MustCompile(`(?m)^tools:`).MatchString(fm) && !hasListField(fm, "tools") {
-		*errors = append(*errors, path+": empty tools")
+		*errors = append(*errors, path+": tools vazio")
 	}
 }
 
 func checkAuthor(path, fm string, errors *[]string) {
 	if field(fm, "author") == "" {
-		*errors = append(*errors, path+": missing author")
+		*errors = append(*errors, path+": author ausente")
 	}
 }
 
@@ -494,57 +486,24 @@ func checkLinks(root string, errors *[]string) {
 			targetAbs, _ := filepath.Abs(target)
 			if !strings.HasPrefix(targetAbs, rootAbs) {
 				if strings.HasPrefix(href, "../") || strings.HasPrefix(href, "./") || strings.HasPrefix(href, "/") || strings.Contains(href, "/") {
-					*errors = append(*errors, fmt.Sprintf("%s: link escapes tree: %s", path, href))
+					*errors = append(*errors, fmt.Sprintf("%s: link sai da árvore: %s", path, href))
 				}
 				continue
 			}
 			if !isFileOrDir(target) {
-				*errors = append(*errors, fmt.Sprintf("%s: unresolved link %s", path, href))
+				*errors = append(*errors, fmt.Sprintf("%s: link não resolvido %s", path, href))
 			}
 		}
 	}
 }
 
-func withoutEnglishOnly(names map[string]bool) map[string]bool {
-	out := make(map[string]bool, len(names))
-	for n := range names {
-		if !contains(englishOnlyTemplates, n) {
-			out[n] = true
-		}
-	}
-	return out
-}
-
+// checkTemplateRefs checks that `templates/` is a single folder with no language subfolder, and that every `templates/<file>.md` cited in the sources exists in it. Citations
+// with the old subfolder (`templates/en/X.md`, `templates/pt-br/X.md`, `templates/<lang>/X.md`) are still accepted during the transition (0.42.0 to 0.44.0, until agents,
+// commands and skills are rewritten in slices S2 and S3): the language of the citation is ignored and the file name is checked in `templates/`. The guard against the old format is S5.
 func checkTemplateRefs(dirs map[string]string, errors *[]string) {
-	byLang := listTemplates(dirs["templates"])
-	for _, lang := range templateLanguages {
-		if byLang[lang] == nil {
-			*errors = append(*errors, "templates: missing language directory "+lang+"/")
-		}
-	}
-	langs := make([]string, 0)
-	for _, lang := range templateLanguages {
-		if byLang[lang] != nil {
-			langs = append(langs, lang)
-		}
-	}
-	if len(langs) > 1 {
-		base := withoutEnglishOnly(byLang[langs[0]])
-		for _, lang := range langs[1:] {
-			for _, name := range sortedKeys(symmetricDifference(base, withoutEnglishOnly(byLang[lang]))) {
-				*errors = append(*errors, fmt.Sprintf("templates: %s is not present in every language (%s vs %s)", name, langs[0], lang))
-			}
-		}
-	}
-	for _, lang := range langs {
-		if lang == "en" {
-			continue
-		}
-		for _, name := range englishOnlyTemplates {
-			if byLang[lang][name] {
-				*errors = append(*errors, fmt.Sprintf("templates: %s must exist only in en/ (found in %s/)", name, lang))
-			}
-		}
+	names, legacyDirs := listTemplates(dirs["templates"])
+	for _, dir := range legacyDirs {
+		*errors = append(*errors, fmt.Sprintf("templates: a subpasta de idioma %s/ não existe mais: os templates ficam direto em templates/ (ADR-011)", dir))
 	}
 	for _, root := range []string{dirs["agents"], dirs["commands"], dirs["skills"]} {
 		if !isDir(root) {
@@ -559,18 +518,8 @@ func checkTemplateRefs(dirs map[string]string, errors *[]string) {
 				continue
 			}
 			for _, match := range templatePattern().FindAllStringSubmatch(text, -1) {
-				lang, name := match[1], match[2]
-				targets := langs
-				if contains(englishOnlyTemplates, name) {
-					targets = []string{"en"}
-				}
-				if lang != "" && !strings.HasPrefix(lang, "<") {
-					targets = []string{lang}
-				}
-				for _, target := range targets {
-					if !byLang[target][name] {
-						*errors = append(*errors, fmt.Sprintf("%s: missing template %s/%s", path, target, name))
-					}
+				if name := match[2]; !names[name] {
+					*errors = append(*errors, fmt.Sprintf("%s: template ausente templates/%s", path, name))
 				}
 			}
 		}
@@ -596,7 +545,7 @@ func checkPrivatePaths(root string, errors *[]string) {
 		}
 		for lineNumber, line := range strings.Split(text, "\n") {
 			if privatePattern().MatchString(line) && !strings.Contains(line, "code.claude.com") {
-				*errors = append(*errors, fmt.Sprintf("%s:%d: private path", rel, lineNumber+1))
+				*errors = append(*errors, fmt.Sprintf("%s:%d: caminho privado", rel, lineNumber+1))
 			}
 		}
 	}
@@ -605,7 +554,7 @@ func checkPrivatePaths(root string, errors *[]string) {
 func checkPlugin(packageRoot string, errors *[]string) map[string]any {
 	path := filepath.Join(packageRoot, ".claude-plugin", "plugin.json")
 	if !isFile(path) {
-		*errors = append(*errors, path+": missing")
+		*errors = append(*errors, path+": ausente")
 		return nil
 	}
 	text, err := readText(path)
@@ -615,17 +564,17 @@ func checkPlugin(packageRoot string, errors *[]string) map[string]any {
 	}
 	var data map[string]any
 	if err := json.Unmarshal([]byte(text), &data); err != nil {
-		*errors = append(*errors, fmt.Sprintf("%s: invalid JSON: %v", path, err))
+		*errors = append(*errors, fmt.Sprintf("%s: JSON inválido: %v", path, err))
 		return nil
 	}
 	if data["name"] != "dh" {
-		*errors = append(*errors, "plugin.json name must be dh")
+		*errors = append(*errors, "plugin.json: name deve ser dh")
 	}
 	if data["license"] != "MIT" {
-		*errors = append(*errors, "plugin.json license must be MIT")
+		*errors = append(*errors, "plugin.json: license deve ser MIT")
 	}
 	if value, ok := data["version"].(string); !ok || value == "" {
-		*errors = append(*errors, "plugin.json missing version")
+		*errors = append(*errors, "plugin.json: version ausente")
 	}
 	return data
 }
@@ -633,12 +582,12 @@ func checkPlugin(packageRoot string, errors *[]string) map[string]any {
 func checkRequiredPackageFiles(packageRoot string, errors *[]string) {
 	for _, required := range []string{"settings.json", "hooks/hooks.json", "harness-manifest.json", "GENERATED.txt"} {
 		if !isFile(filepath.Join(packageRoot, filepath.FromSlash(required))) {
-			*errors = append(*errors, "package missing "+required)
+			*errors = append(*errors, "pacote sem "+required)
 		}
 	}
 	wrapper := filepath.Join(packageRoot, "bin", "dh")
 	if !isExecutable(wrapper) {
-		*errors = append(*errors, "package missing executable bin/dh")
+		*errors = append(*errors, "pacote sem o executável bin/dh")
 	}
 	manifestPath := filepath.Join(packageRoot, "harness-manifest.json")
 	text, err := readText(manifestPath)
@@ -647,7 +596,7 @@ func checkRequiredPackageFiles(packageRoot string, errors *[]string) {
 	}
 	var data map[string]any
 	if err := json.Unmarshal([]byte(text), &data); err != nil {
-		*errors = append(*errors, fmt.Sprintf("%s: invalid JSON: %v", manifestPath, err))
+		*errors = append(*errors, fmt.Sprintf("%s: JSON inválido: %v", manifestPath, err))
 		return
 	}
 	rawBinaries, exists := data["binaries"]
@@ -656,24 +605,24 @@ func checkRequiredPackageFiles(packageRoot string, errors *[]string) {
 	}
 	binaries, ok := rawBinaries.([]any)
 	if !ok {
-		*errors = append(*errors, "harness-manifest.json binaries must be an array")
+		*errors = append(*errors, "harness-manifest.json: binaries deve ser uma lista")
 		return
 	}
 	for _, raw := range binaries {
 		entry, ok := raw.(map[string]any)
 		if !ok {
-			*errors = append(*errors, "harness-manifest.json contains an invalid binary entry")
+			*errors = append(*errors, "harness-manifest.json: entrada de binário inválida")
 			continue
 		}
 		path, ok := entry["path"].(string)
 		path = filepath.ToSlash(path)
 		parts := strings.Split(path, "/")
 		if !ok || len(parts) != 3 || parts[0] != "bin" || !strings.Contains(parts[1], "_") || (parts[2] != "dh" && parts[2] != "dh.exe") {
-			*errors = append(*errors, "harness-manifest.json binary path must be bin/<os>_<arch>/dh[.exe]")
+			*errors = append(*errors, "harness-manifest.json: o caminho do binário deve ser bin/<os>_<arch>/dh[.exe]")
 			continue
 		}
 		if !isExecutable(filepath.Join(packageRoot, filepath.FromSlash(path))) {
-			*errors = append(*errors, "package missing executable "+path)
+			*errors = append(*errors, "pacote sem o executável "+path)
 		}
 	}
 	if len(binaries) == 0 {
@@ -700,21 +649,21 @@ func checkCoverage(sourceDirs map[string]string, packageRoot string, errors *[]s
 	for _, pair := range pairs {
 		sourceFiles := relativeFiles(pair.source)
 		if !isDir(pair.dest) {
-			*errors = append(*errors, "package missing "+pair.dest)
+			*errors = append(*errors, "pacote sem "+pair.dest)
 			continue
 		}
 		destFiles := relativeFiles(pair.dest)
 		for rel := range difference(sourceFiles, destFiles) {
-			*errors = append(*errors, fmt.Sprintf("package missing %s/%s", filepath.Base(pair.source), filepath.ToSlash(rel)))
+			*errors = append(*errors, fmt.Sprintf("pacote sem %s/%s", filepath.Base(pair.source), filepath.ToSlash(rel)))
 		}
 		for rel := range difference(destFiles, sourceFiles) {
-			*errors = append(*errors, fmt.Sprintf("package extra %s/%s", filepath.Base(pair.dest), filepath.ToSlash(rel)))
+			*errors = append(*errors, fmt.Sprintf("pacote com sobra %s/%s", filepath.Base(pair.dest), filepath.ToSlash(rel)))
 		}
 		for rel := range intersection(sourceFiles, destFiles) {
 			sourcePath := filepath.Join(pair.source, rel)
 			destPath := filepath.Join(pair.dest, rel)
 			if !sameFileHash(sourcePath, destPath) {
-				*errors = append(*errors, fmt.Sprintf("package differs %s/%s", filepath.Base(pair.source), filepath.ToSlash(rel)))
+				*errors = append(*errors, fmt.Sprintf("pacote difere em %s/%s", filepath.Base(pair.source), filepath.ToSlash(rel)))
 			}
 		}
 	}
@@ -722,16 +671,16 @@ func checkCoverage(sourceDirs map[string]string, packageRoot string, errors *[]s
 		sourcePath := filepath.Join(sourceDirs["scripts"], name)
 		destPath := filepath.Join(packageRoot, "scripts", name)
 		if isFile(sourcePath) && isFile(destPath) && !sameFileHash(sourcePath, destPath) {
-			*errors = append(*errors, "package differs scripts/"+name)
+			*errors = append(*errors, "pacote difere em scripts/"+name)
 		}
 	}
 	srcSkills := skillNames(sourceDirs["skills"])
 	dstSkills := skillNames(filepath.Join(packageRoot, "skills"))
 	for name := range difference(srcSkills, dstSkills) {
-		*errors = append(*errors, "package missing skill "+name)
+		*errors = append(*errors, "pacote sem a skill "+name)
 	}
 	for name := range difference(dstSkills, srcSkills) {
-		*errors = append(*errors, "package extra skill "+name)
+		*errors = append(*errors, "pacote com skill sobrando "+name)
 	}
 	sort.Strings(*errors)
 }
@@ -934,10 +883,10 @@ func readFileGuarded(path string) ([]byte, error) {
 		return nil, err
 	}
 	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("%s: not a regular file (refusing to follow a symlink or read a special file)", path)
+		return nil, fmt.Errorf("%s: não é um arquivo comum (recusa seguir symlink ou ler arquivo especial)", path)
 	}
 	if info.Size() > maxReadableFileSize {
-		return nil, fmt.Errorf("%s: %d bytes exceeds the %d byte read limit", path, info.Size(), maxReadableFileSize)
+		return nil, fmt.Errorf("%s: %d bytes passam do limite de leitura de %d bytes", path, info.Size(), maxReadableFileSize)
 	}
 	file, err := os.Open(path)
 	if err != nil {
@@ -949,7 +898,7 @@ func readFileGuarded(path string) ([]byte, error) {
 		return nil, err
 	}
 	if len(data) > maxReadableFileSize {
-		return nil, fmt.Errorf("%s: exceeds the %d byte read limit", path, maxReadableFileSize)
+		return nil, fmt.Errorf("%s: passa do limite de leitura de %d bytes", path, maxReadableFileSize)
 	}
 	return data, nil
 }

@@ -27,7 +27,7 @@ A forma curta `/plugin marketplace add danielmalka/dev-harness` também funciona
 
 Na sessão, dentro do projeto, rode `/dh:doctor` e depois `/dh:setup`. O primeiro diagnostica o ambiente; o segundo escolhe o modo (`.harness/` no repositório ou pasta global `~/.harness/`) e registra o projeto. Depois use os comandos de trabalho (`/dh:discover`, `/dh:plan`, `/dh:build`, `/dh:review`, `/dh:verify`, ou `/dh:auto` para encadear). Passo a passo: [tutorial](docs/tutorial.html) e [início rápido](docs/inicio-rapido.html).
 
-O Coordenador responde no idioma em que você escreve (inglês por padrão). O `/dh:setup` grava `language: en` ou `language: pt-br` em `project.yaml`; o PRD é sempre em inglês.
+O kit é só pt-BR: o Coordenador responde em português, o `/dh:setup` não pergunta idioma e o PRD é escrito em pt-BR. Um `language:` antigo no `project.yaml` é ignorado (o `/dh:doctor` avisa).
 
 ## Atualizar
 
@@ -47,7 +47,7 @@ No modo global, a pasta `~/.harness/` (`DH_HOME` muda o lugar) é única por má
 | Onde | O que | Quem grava |
 | --- | --- | --- |
 | `<repositório>/.harness/` | modo repositório: MEMORY, EPOCHAL, RISKS, `project.yaml`, tarefas, PRDs, ADRs, propostas do `/dh:dream` | Coordenador e comandos `/dh:` |
-| `~/.harness/config.yaml` | registro de projetos e padrões (`language`, `mode`, `worktree`, `dashboard.sprites`) | só o `dh` (`dh config`, `dh link`) |
+| `~/.harness/config.yaml` | registro de projetos e padrões (`mode`, `worktree`, `dashboard.sprites`) | só o `dh` (`dh config`, `dh link`) |
 | `~/.harness/projects/<nome>/` | modo global: os mesmos registros do `.harness/` | Coordenador e comandos `/dh:` |
 | `<repositório>/REVIEW.md` | guia de revisão do projeto, criado pelo `/dh:setup` quando falta, nos dois modos; em modo global é, com a linha `.worktrees/` do `.gitignore`, tudo o que o setup grava na árvore; nunca sobrescreve | `/dh:setup` (via especialista) |
 | `~/.harness/sessions/` | snapshot por sessão do Claude Code (`dh snapshot prune` apaga os com mais de 7 dias) | mod do plugin |

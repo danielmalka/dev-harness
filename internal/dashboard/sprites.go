@@ -49,28 +49,28 @@ func LoadSprites(dir string) *Sprites {
 		return s // absent is normal
 	}
 	if skipped(err) {
-		s.Warnings = append(s.Warnings, "poses.json not a regular file or over 1 MiB, using default map")
+		s.Warnings = append(s.Warnings, "poses.json não é arquivo comum ou passa de 1 MiB, usando o mapa padrão")
 		return s
 	}
 	if err != nil {
-		s.Warnings = append(s.Warnings, "poses.json unreadable, using default map")
+		s.Warnings = append(s.Warnings, "poses.json ilegível, usando o mapa padrão")
 		return s
 	}
 	var over map[string]PoseSpec
 	dec := json.NewDecoder(bytes.NewReader(b))
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&over); err != nil {
-		s.Warnings = append(s.Warnings, "poses.json invalid JSON, using default map")
+		s.Warnings = append(s.Warnings, "poses.json com JSON inválido, usando o mapa padrão")
 		return s
 	}
 	for st, spec := range over {
 		_, ours := statePriority[st]
 		if !ours && !jevmonOnlyState[st] {
-			s.Warnings = append(s.Warnings, fmt.Sprintf("poses.json unknown state %q, using default map", st))
+			s.Warnings = append(s.Warnings, fmt.Sprintf("poses.json: estado desconhecido %q, usando o mapa padrão", st))
 			return s
 		}
 		if !KnownPose(spec.Pose) || spec.FPS < 0 || spec.FPS > 60 {
-			s.Warnings = append(s.Warnings, fmt.Sprintf("poses.json invalid entry for %q, using default map", st))
+			s.Warnings = append(s.Warnings, fmt.Sprintf("poses.json: entrada inválida para %q, usando o mapa padrão", st))
 			return s
 		}
 	}

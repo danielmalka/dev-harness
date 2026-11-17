@@ -23,7 +23,7 @@ import (
 func tokenPath(port int) (string, error) {
 	dir := harness.DashboardDir()
 	if dir == "" {
-		return "", errors.New("cannot determine the harness home: set DH_HOME, HOME or USERPROFILE")
+		return "", errors.New("não foi possível determinar a pasta do harness: defina DH_HOME, HOME ou USERPROFILE")
 	}
 	return filepath.Join(dir, "stop-"+strconv.Itoa(port)+".token"), nil
 }
@@ -73,12 +73,12 @@ func newStopToken(port int) (token, path string, err error) {
 func Stop(port int, stdout, stderr io.Writer) int {
 	addr := net.JoinHostPort("127.0.0.1", strconv.Itoa(port))
 	if !portOpen(addr) {
-		fmt.Fprintf(stdout, "no dashboard on port %d\n", port)
+		fmt.Fprintf(stdout, "não há dashboard na porta %d\n", port)
 		return 0
 	}
 	c := http.Client{Timeout: 2 * time.Second}
 	other := func() int {
-		fmt.Fprintf(stderr, "port %d is held by another program, not a dh dashboard\n", port)
+		fmt.Fprintf(stderr, "a porta %d está com outro programa, não com um dashboard do dh\n", port)
 		return 1
 	}
 	resp, err := c.Get("http://" + addr + "/api/state")
@@ -91,41 +91,41 @@ func Stop(port int, stdout, stderr io.Writer) int {
 	}
 	path, err := tokenPath(port)
 	if err != nil {
-		fmt.Fprintln(stderr, "cannot locate the stop token:", err)
+		fmt.Fprintln(stderr, "não foi possível localizar o token de parada:", err)
 		return 1
 	}
 	tok, err := snapshot.ReadCapped(path) // refuses symlink, FIFO and oversize
 	if err != nil {
-		fmt.Fprintf(stderr, "stop token not found (%s): the dashboard on port %d was not started by this user or predates --stop; stop it manually\n", path, port)
+		fmt.Fprintf(stderr, "token de parada não encontrado (%s): o dashboard na porta %d não foi iniciado por este usuário ou é anterior ao --stop; pare-o à mão\n", path, port)
 		return 1
 	}
 	req, _ := http.NewRequest(http.MethodPost, "http://"+addr+"/api/stop", nil)
 	req.Header.Set(stopHeader, strings.TrimSpace(string(tok)))
 	resp, err = c.Do(req)
 	if err != nil {
-		fmt.Fprintln(stderr, "stop request failed:", err)
+		fmt.Fprintln(stderr, "o pedido de parada falhou:", err)
 		return 1
 	}
 	resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusNoContent:
 	case http.StatusNotFound, http.StatusMethodNotAllowed:
-		fmt.Fprintf(stderr, "the dh dashboard on port %d predates --stop (0.19.x or older); stop it manually once\n", port)
+		fmt.Fprintf(stderr, "o dashboard do dh na porta %d é anterior ao --stop (0.19.x ou mais velho); pare-o à mão uma vez\n", port)
 		return 1
 	case http.StatusForbidden:
-		fmt.Fprintln(stderr, "stop token rejected")
+		fmt.Fprintln(stderr, "token de parada recusado")
 		return 1
 	default:
-		fmt.Fprintf(stderr, "unexpected answer to stop: %s\n", resp.Status)
+		fmt.Fprintf(stderr, "resposta inesperada ao pedido de parada: %s\n", resp.Status)
 		return 1
 	}
 	for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); time.Sleep(50 * time.Millisecond) {
 		if !portOpen(addr) {
-			fmt.Fprintf(stdout, "stopped dashboard on port %d\n", port)
+			fmt.Fprintf(stdout, "dashboard da porta %d parado\n", port)
 			return 0
 		}
 	}
-	fmt.Fprintf(stderr, "dashboard on port %d did not stop in time\n", port)
+	fmt.Fprintf(stderr, "o dashboard da porta %d não parou a tempo\n", port)
 	return 1
 }
 

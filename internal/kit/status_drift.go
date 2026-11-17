@@ -81,10 +81,10 @@ func checkStatusDrift(root string, errors *[]string) {
 		c, delivered := byPRD[id], strings.HasPrefix(status[id], "entregue em") || strings.HasPrefix(status[id], "delivered on")
 		sort.Strings(c.open)
 		if delivered && len(c.open) > 0 {
-			*errors = append(*errors, fmt.Sprintf("%s: expected no open ticket for a PRD marked \"entregue em\" or \"delivered on\", found %s open", id, strings.Join(c.open, ", ")))
+			*errors = append(*errors, fmt.Sprintf("%s: esperado nenhum ticket aberto para um PRD marcado \"entregue em\" ou \"delivered on\", achei %s aberto", id, strings.Join(c.open, ", ")))
 		}
 		if !delivered && c.total > 0 && c.done == c.total {
-			*errors = append(*errors, fmt.Sprintf("%s: expected Status starting with \"entregue em\" or \"delivered on\" because all %d linked tickets are done, found %q", id, c.total, status[id]))
+			*errors = append(*errors, fmt.Sprintf("%s: esperado Status começando com \"entregue em\" ou \"delivered on\" porque os %d tickets ligados estão concluídos, achei %q", id, c.total, status[id]))
 		}
 	}
 }
