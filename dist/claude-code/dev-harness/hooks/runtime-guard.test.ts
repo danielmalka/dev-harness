@@ -25,7 +25,7 @@ test('registers agent.spawn and Write+Edit tool.call hooks', () => {
 // R3
 test('R3 spawn with parentAgentId is denied', () => {
   const r = spawn({ parentAgentId: 'a1' })
-  expect(r.deny).toContain('only the Coordinator dispatches agents')
+  expect(r.deny).toContain('só o Coordinator despacha agentes')
 })
 test('R3 spawn without parentAgentId passes', () => {
   expect(spawn({})).toBe(NEXT)
@@ -69,7 +69,7 @@ for (const tool of ['Write', 'Edit']) {
       for (const r of await file(tool, { file_path: `/h/projects/x/${f}`, agentId: 's' }, fake({ DH_HOME: '/h', HOME: '/u' }))) expect(r.deny).toContain(`/h/projects/x/${f}`)
     })
     test(`R8 ${tool} ~/.harness/projects/x/${f} (HOME) with agentId is denied`, async () => {
-      for (const r of await file(tool, { file_path: `/u/.harness/projects/x/${f}`, agentId: 's' }, fake({ HOME: '/u' }))) expect(r.deny).toContain('written only by the Coordinator')
+      for (const r of await file(tool, { file_path: `/u/.harness/projects/x/${f}`, agentId: 's' }, fake({ HOME: '/u' }))) expect(r.deny).toContain('só é escrito pelo Coordinator')
     })
     test(`R8 ${tool} <home>/projects/x/${f} by the Coordinator passes`, async () => {
       for (const r of await file(tool, { file_path: `/h/projects/x/${f}` }, fake({ DH_HOME: '/h' }))) expect(r).toBe(NEXT)
@@ -95,13 +95,13 @@ for (const tool of ['Write', 'Edit']) {
 for (const tool of ['Write', 'Edit']) {
   test(`R8 ${tool} leading ~ expands to the user home (HOME, else USERPROFILE)`, async () => {
     for (const p of ['~/.harness/projects/x/MEMORY.md', '~/.harness/MEMORY.md', '~\\.harness\\projects\\x\\RISKS.md'])
-      for (const r of await file(tool, { file_path: p, agentId: 's' }, fake({ HOME: '/u' }, '/elsewhere'))) expect(r.deny).toContain('written only by the Coordinator')
+      for (const r of await file(tool, { file_path: p, agentId: 's' }, fake({ HOME: '/u' }, '/elsewhere'))) expect(r.deny).toContain('só é escrito pelo Coordinator')
     for (const r of await file(tool, { file_path: '~/.harness/projects/x/MEMORY.md', agentId: 's' }, fake({ USERPROFILE: '/w' }, '/elsewhere'))) expect(r.deny).toContain('/w/.harness/projects/x/MEMORY.md')
     for (const r of await file(tool, { file_path: '~/.harness/projects/x/notes/MEMORY.md', agentId: 's' }, fake({ HOME: '/u' }))) expect(r).toBe(NEXT)
   })
   test(`R8 ${tool} both patterns are case-insensitive (a look-alike denied is the safe side)`, async () => {
     for (const p of ['/p/.HARNESS/memory.md', '.Harness/Risks.MD', '/h/Projects/x/Memory.md', '/H/projects/x/EPOCHAL.md'])
-      for (const r of await file(tool, { file_path: p, agentId: 's' }, fake({ DH_HOME: '/h' }))) expect(r.deny).toContain('written only by the Coordinator')
+      for (const r of await file(tool, { file_path: p, agentId: 's' }, fake({ DH_HOME: '/h' }))) expect(r.deny).toContain('só é escrito pelo Coordinator')
   })
 }
 test('R8 protectedHit without a user home leaves ~ literal (relative to cwd)', () => {
@@ -142,7 +142,7 @@ for (const tool of ['Write', 'Edit']) {
   test(`engine: ${tool} on .harness/RISKS.md with agentId is denied end to end`, async ($, on) => {
     on('tool.call', { tool }, () => ({ result: 'ok' }) as any)
     const r: any = await $.tool.call({ tool, file_path: '.harness/RISKS.md', agentId: 'sub' } as any)
-    expect(r.text ?? r.deny).toContain('written only by the Coordinator')
+    expect(r.text ?? r.deny).toContain('só é escrito pelo Coordinator')
   })
 }
 test('engine: spawn from the test (no parent) is not denied', async ($, on) => {
@@ -166,15 +166,15 @@ test('R3 pdocs: subagent may write under projects/x/pdocs/, records outside it s
 const L = (n: number) => Array.from({ length: n }, (_, i) => `l${i}`).join('\n')
 const W = (e: any, ex: any = () => true, home = '/h', cwd = '/proj') => warnWrite({ tool: 'Edit', ...e }, home, cwd, ex)
 test('R5 warn: Edit with 6 changed lines warns, 5 does not (larger side counts)', async () => {
-  expect(await W({ file_path: 'src/a.ts', old_string: L(6), new_string: 'x' })).toContain('6-line Edit')
+  expect(await W({ file_path: 'src/a.ts', old_string: L(6), new_string: 'x' })).toContain('Edit de 6 linhas')
   expect(await W({ file_path: 'src/a.ts', old_string: 'x', new_string: L(6) })).toContain('src/a.ts')
   expect(await W({ file_path: 'src/a.ts', old_string: L(5), new_string: L(5) })).toBe(undefined)
   expect(await W({ file_path: 'src/a.ts', old_string: L(5) + '\n', new_string: 'x' })).toBe(undefined) // trailing newline
 })
 test('R5 warn: Write content over 5 lines warns; new file warns; small existing file does not', async () => {
   const w = (e: any, ex: any) => warnWrite({ tool: 'Write', ...e }, '/h', '/proj', ex)
-  expect(await w({ file_path: 'a.ts', content: L(6) }, () => true)).toContain('6-line Write')
-  expect(await w({ file_path: 'a.ts', content: 'x' }, () => false)).toContain('new file')
+  expect(await w({ file_path: 'a.ts', content: L(6) }, () => true)).toContain('Write de 6 linhas')
+  expect(await w({ file_path: 'a.ts', content: 'x' }, () => false)).toContain('arquivo novo')
   expect(await w({ file_path: 'a.ts', content: L(5) }, async () => true)).toBe(undefined)
 })
 test('R5 warn: exists unknown or throwing fails open', async () => {
@@ -213,7 +213,7 @@ test('R6 warnThenNext: always calls next(e), never denies, toasts only when warn
   const e1 = { tool: 'Edit', file_path: 'src/a.ts', old_string: L(7), new_string: 'x' }
   expect(await warnThenNext($, e1, '/h', '/proj', next)).toBe(NEXT)
   expect(toasts.length).toBe(1)
-  expect(toasts[0]).toContain('warning only')
+  expect(toasts[0]).toContain('só aviso')
   expect(await warnThenNext($, { ...e1, old_string: 'x' }, '/h', '/proj', next)).toBe(NEXT)
   expect(await warnThenNext($, { ...e1, agentId: 's' }, '/h', '/proj', next)).toBe(NEXT)
   expect(toasts.length).toBe(1)

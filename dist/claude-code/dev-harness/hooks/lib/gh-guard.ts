@@ -56,7 +56,7 @@ function isGhRead(raw: string): boolean {
 // Unanchored, so a remote inside a token (`{git@h:o/r,}`, `url=git@h:o/r`) is found; the match is the repository part.
 const REMOTE = /[^\s{,=]*:\/\/[^\s,}]*|[\w.-]+@[\w.-]+:[^\s,}]*|(?<![\w.-])[\w.-]{2,}:(?!\/\/)[^\s,}]+/
 const FETCHY = word('(?:clone|fetch|pull|submodule|remote|archive|autocorrect)') // autocorrect: `-c help.autocorrect=1 clon` hides the verb
-const repoOf = (a: string) => (a.replace(/[;&|)<>]+$/, '').replace(/^[\w.-]{2,}:(?!\/\/)/, '').replace(/^.*?(:\/\/[^/]*\/|@[^:]*:)/, '').replace(/\.git$|\/$/g, '').split('/').slice(-2).join('/')) || 'a remote repository' // never empty: the caller asks on `!== undefined`
+const repoOf = (a: string) => (a.replace(/[;&|)<>]+$/, '').replace(/^[\w.-]{2,}:(?!\/\/)/, '').replace(/^.*?(:\/\/[^/]*\/|@[^:]*:)/, '').replace(/\.git$|\/$/g, '').split('/').slice(-2).join('/')) || 'um repositório remoto' // never empty: the caller asks on `!== undefined`
 export function cloneAsk(command: string, powershell = false): string | undefined {
   if (!powershell && /^\s*(grep|egrep|fgrep)\s/.test(command) && !/[;|&$()<>`\n]/.test(command)) return undefined
   const cont = powershell ? /`\r?\n/g : /\\\r?\n/g
@@ -67,7 +67,7 @@ export function cloneAsk(command: string, powershell = false): string | undefine
     for (const m of t.matchAll(new RegExp(GH.source, 'g'))) {
       const tok = t.slice(m.index! + 2).replace(/^\.exe/, '').split(/[;|&\n]/)[0]!.trim().split(/\s+/)
       const plain = tok.filter(x => !x.startsWith('-'))
-      if (plain[0] === 'repo' && (plain[1] === 'clone' || (plain[1] === 'fork' && tok.some(x => x === '-c' || x.startsWith('--clone'))))) return repoOf(plain[2] ?? 'the current repository')
+      if (plain[0] === 'repo' && (plain[1] === 'clone' || (plain[1] === 'fork' && tok.some(x => x === '-c' || x.startsWith('--clone'))))) return repoOf(plain[2] ?? 'o repositório atual')
       const dl = plain[0] === 'api' && plain.find(x => /tarball|zipball/.test(x))
       if (dl) return /repos\/([^/]+\/[^/]+)/.exec(dl)?.[1] ?? repoOf(dl)
     }
@@ -75,10 +75,8 @@ export function cloneAsk(command: string, powershell = false): string | undefine
   return undefined
 }
 
-export const ASK_MSG = {
-  en: (repo: string) => `dev-harness: this command downloads the remote repository \`${repo}\`. Confirm with the owner before it runs.`,
-  'pt-br': (repo: string) => `dev-harness: este comando baixa o repositório remoto \`${repo}\`. Confirme com o dono antes de rodar.`,
-}
+// The kit is pt-BR only (ADR-011): one message, no language pair.
+export const ASK_MSG = (repo: string) => `dev-harness: este comando baixa o repositório remoto \`${repo}\`. Confirme com o dono antes de rodar.`
 
 // The name for the deny message: `gh pr merge`, `git push`, or just `gh` / `git`.
 function verbOf(text: string, ghHit: boolean): string {
@@ -106,16 +104,13 @@ export function ghWriteVerb(command: string, powershell = false): string | undef
 }
 
 // PRD-027 R6: who may run it, and no retry, no workaround. `unknown` = the agentId has no recorded type.
-export const GH_MSG = {
-  en: (verb: string, unknown: boolean) => `dev-harness: \`${verb}\` is a remote write.${unknown ? ' Denied because the subagent type is unknown (unknown subagent type).' : ''} Only release-manager or the main session may run it. Do not retry and do not work around it; report it to the Coordinator. For a text search, use the Grep tool.`,
-  'pt-br': (verb: string, unknown: boolean) => `dev-harness: \`${verb}\` é uma escrita remota.${unknown ? ' Negado porque o tipo do subagente é desconhecido (unknown subagent type).' : ''} Só o release-manager ou a sessão principal pode rodá-lo. Não tente de novo nem contorne; avise o Coordinator. Para busca de texto, use a ferramenta Grep.`,
-}
+export const GH_MSG = (verb: string, unknown: boolean) => `dev-harness: \`${verb}\` é uma escrita remota.${unknown ? ' Negado porque o tipo do subagente é desconhecido (unknown subagent type).' : ''} Só o release-manager ou a sessão principal pode rodá-lo. Não tente de novo nem contorne; avise o Coordinator. Para busca de texto, use a ferramenta Grep.`
 
 // The deny for a Bash call, or undefined. Kit subagents (dh:) other than release-manager and unknown ids are
 // denied on a match; the main session (no agentId) and non-kit subagents are not.
 export function ghDenied(command: string, agentId: unknown, type: string | undefined, unreadable = false, powershell = false): { verb: string; unknown: boolean } | undefined {
   if (!agentId) return undefined
   if (type !== undefined && (type === 'dh:release-manager' || !type.startsWith('dh:'))) return undefined
-  const verb = unreadable ? 'unreadable command' : ghWriteVerb(command, powershell)
+  const verb = unreadable ? 'comando ilegível' : ghWriteVerb(command, powershell)
   return verb ? { verb, unknown: type === undefined } : undefined
 }

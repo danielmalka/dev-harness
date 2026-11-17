@@ -5,10 +5,10 @@ import { applyEvent, iso, limitsFrom, type Ev, type Limits, type Snap } from './
 import { driftMessage, findDrift, statusValue } from './status-drift.ts'
 import {
   COMMIT, commandDir, deniesAiMention, gateAt, type Harness, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand,
-  isHarnessPath, MSG, native, parseGateCommands, parseHarness, parseLanguage, taskStatus,
+  isHarnessPath, MSG, native, parseGateCommands, parseHarness, taskStatus,
 } from './lib/gate.ts'
 import { ASK_MSG, GH_MSG, cloneAsk, ghDenied } from './lib/gh-guard.ts'
-export { commandDir, deniesAiMention, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand, isHarnessPath, native, parseGateCommands, parseHarness, parseLanguage, resolvePath, taskStatus }
+export { commandDir, deniesAiMention, harnessArgv, HARNESS_SECTION, harnessText, isGateCommand, isHarnessPath, native, parseGateCommands, parseHarness, resolvePath, taskStatus }
 
 // ponytail: module-level state; a mod reload resets the gate (current session only).
 // Absolute paths edited since the last green gate of their repository.
@@ -107,12 +107,12 @@ async function composeSection($: EngineInterface): Promise<{ id: string; text: s
   return h ? { id: HARNESS_SECTION, text: harnessText(h), scope: 'session' } : undefined
 }
 
-async function readProject($: EngineInterface, root?: string): Promise<{ gates: string[]; lang: 'en' | 'pt-br' }> {
+async function readProject($: EngineInterface, root?: string): Promise<{ gates: string[] }> {
   try {
     const y = await $.fs.read(`${await harnessDir($, root ?? await $.session.cwd())}/project.yaml`) as string
-    return { gates: parseGateCommands(y), lang: parseLanguage(y) }
+    return { gates: parseGateCommands(y) }
   } catch {
-    return { gates: [], lang: 'en' }
+    return { gates: [] }
   }
 }
 
@@ -145,7 +145,7 @@ async function driftNow($: EngineInterface, cwd: string): Promise<ReturnType<typ
 // PRD-027: the gh/git push deny for a shell-command call of any tool (Bash, Monitor, PowerShell).
 async function guardGh($: EngineInterface, command: string, agentId?: string, unreadable = false, powershell = false): Promise<string | undefined> {
   const gh = ghDenied(command, agentId, agentId ? agentTypes.get(agentId) : undefined, unreadable, powershell)
-  return gh ? GH_MSG[(await readProject($)).lang](gh.verb, gh.unknown) : undefined
+  return gh ? GH_MSG(gh.verb, gh.unknown) : undefined
 }
 
 async function guardBash($: EngineInterface, command: string, agentId?: string): Promise<string | undefined> {
@@ -154,13 +154,13 @@ async function guardBash($: EngineInterface, command: string, agentId?: string):
   const aiHit = deniesAiMention(command)
   const commit = COMMIT.exec(command)
   if (!aiHit && !commit) return undefined
-  // The commit's repository, not the session's, decides the gate, the language and the drift check.
+  // The commit's repository, not the session's, decides the gate and the drift check.
   const root = commit ? await rootOf($, command, commit.index) : await $.session.cwd()
-  const { gates, lang } = await readProject($, native(root))
-  if (aiHit) return MSG[lang].ai
-  if ([...dirty].some(f => inside(f, root))) return MSG[lang].gate(gates.length ? gates.join(' && ') : MSG[lang].gateDefault)
+  const { gates } = await readProject($, native(root))
+  if (aiHit) return MSG.ai
+  if ([...dirty].some(f => inside(f, root))) return MSG.gate(gates.length ? gates.join(' && ') : MSG.gateDefault)
   const drift = await driftNow($, native(root))
-  return drift.length ? driftMessage(drift, lang, native(root)) : undefined
+  return drift.length ? driftMessage(drift, native(root)) : undefined
 }
 
 async function markDirty<R extends { deny?: unknown; isError?: boolean }>($: EngineInterface, r: R, e: any): Promise<R> {
@@ -377,7 +377,7 @@ export const register: Register = on => {
       const r = await next(e)
       const cmd = e.input?.command
       const repo = r.decision === 'deny' || typeof cmd !== 'string' ? undefined : cloneAsk(cmd, tool === 'PowerShell')
-      return repo !== undefined ? { ...r, decision: 'ask' as const, reason: ASK_MSG[(await readProject($)).lang](repo) } : r
+      return repo !== undefined ? { ...r, decision: 'ask' as const, reason: ASK_MSG(repo) } : r
     }).catch(failOpen)
   }
 

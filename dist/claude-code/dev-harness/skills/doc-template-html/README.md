@@ -18,7 +18,6 @@ Run the stamp by its path inside this skill folder (`<skill-folder>/scripts/stam
 bash <skill-folder>/scripts/stamp.sh \
   --type feature \
   --title "Título" \
-  --lang pt-br \
   --out docs/slug.html
 ```
 
@@ -38,16 +37,13 @@ bash <skill-folder>/scripts/stamp.sh \
   --out docs/bug-webhook-502.html
 ```
 
-Other flags: `--lang pt-br|en`, `--contato`, `--path`, `--date`, `--eyebrow`, `--banner-text`, `--banner-warn`, `--force`.
-
-Language flag: `--lang pt-br|en` (default: `pt-br`).
+Other flags: `--contato`, `--path`, `--date`, `--eyebrow`, `--banner-text`, `--banner-warn`, `--force`.
 
 ```bash
 bash <skill-folder>/scripts/stamp.sh \
   --type report \
-  --title "Release report" \
-  --lang en \
-  --out docs/release-report.html
+  --title "Relatório de release" \
+  --out docs/relatorio-release.html
 ```
 
 ```bash
@@ -63,10 +59,10 @@ Open the file in `file://`. Fill every “ainda não fechado”. A hole stays �
 | `SKILL.md` | agent contract |
 | `scripts/stamp.sh` | shell with inline CSS/JS |
 | `references/types.md` | recipes + primitive markup |
-| `assets/skeletons/<lang>/<tipo>.html` | sections the stamp injects |
+| `assets/skeletons/<tipo>.html` | sections the stamp injects |
 | `assets/modelo.html` | filled feature |
 | `assets/catalogo-preview.html` | filled catalog (strip, price) |
-| `assets/projeto-modelo.<lang>.html` | filled project overview, no shell needed |
+| `assets/projeto-modelo.html` | filled project overview, no shell needed |
 | `assets/shell.css` + `shell.js` | tokens; do not link, the stamp inlines |
 
 Palette: charcoal `#0C0D10`, paper `#F1EFE8`, neon `#3DFF9A` on highlights, sand `#E2D2A8` on links and banners. Stamp refuses to overwrite the skill examples without `--force`.

@@ -27,10 +27,6 @@ export function isGateCommand(command: string, projectGates: string[]): boolean 
   return GENERIC_GATE.test(command) || projectGates.some(g => command.includes(g))
 }
 
-export function parseLanguage(projectYaml: string): 'en' | 'pt-br' {
-  return /^language:\s*(\S+)/m.exec(projectYaml)?.[1]?.replace(/^["']|["']$/g, '').toLowerCase() === 'pt-br' ? 'pt-br' : 'en'
-}
-
 // D5: dh bookkeeping under .harness/ (or, global mode, under <home>/projects/) is not code churn,
 // so it does not dirty the gate. `home` is resolvePath-normalized; '' skips the global check.
 export function isHarnessPath(p: unknown, home = ''): boolean {
@@ -67,17 +63,11 @@ export function gateAt(command: string, projectGates: string[]): number {
   return hits.length ? Math.min(...hits) : -1
 }
 
+// The kit is pt-BR only (ADR-011): one message per case, no language pairs.
 export const MSG = {
-  en: {
-    ai: 'dev-harness: commit/PR text mentions AI/Claude. Remove the mention and retry.',
-    gate: (hint: string) => `dev-harness: files were edited after the last green gate in this session. Run ${hint} and commit again.`,
-    gateDefault: "the project's quality gate (tests + lint)",
-  },
-  'pt-br': {
-    ai: 'dev-harness: commit/PR menciona IA/Claude. Remova a menção e tente de novo.',
-    gate: (hint: string) => `dev-harness: houve edição depois do último gate verde nesta sessão. Rode ${hint} e commite de novo.`,
-    gateDefault: 'o quality gate do projeto (testes + lint)',
-  },
+  ai: 'dev-harness: commit/PR menciona IA/Claude. Remova a menção e tente de novo.',
+  gate: (hint: string) => `dev-harness: houve edição depois do último gate verde nesta sessão. Rode ${hint} e commite de novo.`,
+  gateDefault: 'o quality gate do projeto (testes + lint)',
 }
 
 export function taskStatus(taskMd: string): 'done' | 'blocked' | 'open' {
@@ -113,7 +103,7 @@ export const HARNESS_SECTION = 'dh:harness'
 
 export function harnessText(h: Harness): string {
   return h.mode === 'none'
-    ? 'Dev Harness: no harness for this project (mode none). Run /dh:setup to create one, or dh link if it already exists.'
-    : `Dev Harness: mode ${h.mode}; harness dir ${JSON.stringify(h.dir)}. Records (MEMORY.md, EPOCHAL.md, RISKS.md, project.yaml, tasks/, prd/) live there.`
+    ? 'Dev Harness: nenhum harness para este projeto (mode none). Rode /dh:setup para criar um, ou dh link se ele já existir.'
+    : `Dev Harness: mode ${h.mode}; harness dir ${JSON.stringify(h.dir)}. Os registros (MEMORY.md, EPOCHAL.md, RISKS.md, project.yaml, tasks/, prd/) ficam lá.`
 }
 

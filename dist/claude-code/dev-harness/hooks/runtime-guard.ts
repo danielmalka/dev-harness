@@ -25,7 +25,7 @@ export function homeFrom(dhHome: unknown, home: unknown, userProfile: unknown, c
 
 export function denySpawn($: any, e: any, next: any) {
   try {
-    if (e.parentAgentId) return { deny: 'only the Coordinator dispatches agents (dev-harness runtime guard)' }
+    if (e.parentAgentId) return { deny: 'só o Coordinator despacha agentes (trava de runtime do dev-harness)' }
   } catch {} // fail open
   return next(e)
 }
@@ -55,7 +55,7 @@ export function protectedHit(home: string, filePath: unknown, cwd = '/', userHom
 export function guardFile(home: string, e: any, next: any, cwd = '/', userHome = '') {
   try {
     const hit = e.agentId ? protectedHit(home, e.file_path, cwd, userHome) : undefined
-    if (hit) return { deny: `${hit} is written only by the Coordinator (dev-harness runtime guard); return the proposed update instead.` }
+    if (hit) return { deny: `${hit} só é escrito pelo Coordinator (trava de runtime do dev-harness); devolva a atualização proposta.` }
   } catch {} // fail open
   return next(e)
 }

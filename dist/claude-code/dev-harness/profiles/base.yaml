@@ -8,7 +8,7 @@ commands:
   build: null
   run: null
 conventions:
-  - The coordinator answers the owner in the owner's language, English by default; the project language is recorded as `language` in .harness/project.yaml and selects templates/<lang>/ for records and work artifacts. Agent-to-agent dispatches and replies, code and commit messages are always English.
+  - The kit is pt-BR only (ADR-011): the coordinator answers the owner in Portuguese and records use `templates/`. Commit messages and code comments follow the language the project defines (AGENTS.md, CLAUDE.md, README.md, then `conventions.code_language` in .harness/project.yaml), English when nothing defines it.
   - Harness artifacts use paths relative to the consumer project root.
   - Facts, hypotheses and decisions are labeled as such.
   - Evidence status is passed, failed or not-run. A typecheck is not behavior proof.

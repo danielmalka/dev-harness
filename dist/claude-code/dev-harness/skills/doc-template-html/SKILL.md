@@ -37,7 +37,7 @@ Do not use when:
 4. Recipes and markup: [references/types.md](references/types.md)
 5. Filled feature: [assets/modelo.html](assets/modelo.html)
 6. Filled catalog: [assets/catalogo-preview.html](assets/catalogo-preview.html)
-7. Filled project overview: `assets/projeto-modelo.pt-br.html` and `assets/projeto-modelo.en.html`
+7. Filled project overview: `assets/projeto-modelo.html`
 
 `stamp.sh --sync` re-inlines CSS/JS into the skill examples.
 
@@ -68,11 +68,10 @@ Diagrams: Mermaid source in `<pre class="mermaid">`, rendered by the Mermaid CDN
 bash <skill-folder>/scripts/stamp.sh \
   --type feature \
   --title "Título" \
-  --lang pt-br \
   --out docs/slug.html
 ```
 
-`--type bug` already emits `.banner.warn`. `--type aprovacao` is the plan approval page: it takes the plan as `--data <file.json>` (never HTML by hand; contract in `references/types.md`). Other flags: `--lang`, `--lead`, `--status`, `--eyebrow`, `--date`, `--dono`, `--contato`, `--path`, `--banner-text`, `--banner-warn`, `--force`. For `--type aprovacao` never copy by hand: the stamp is the only way, because it escapes the plan data in code. If no shell is available, or the script fails, copy `assets/modelo.html` and swap sections; for type `projeto` copy `assets/projeto-modelo.<lang>.html`. Do not write `<link>` to `shell.css`.
+`--type bug` already emits `.banner.warn`. `--type aprovacao` is the plan approval page: it takes the plan as `--data <file.json>` (never HTML by hand; contract in `references/types.md`). Other flags: `--lead`, `--status`, `--eyebrow`, `--date`, `--dono`, `--contato`, `--path`, `--banner-text`, `--banner-warn`, `--force`. For `--type aprovacao` never copy by hand: the stamp is the only way, because it escapes the plan data in code. If no shell is available, or the script fails, copy `assets/modelo.html` and swap sections; for type `projeto` copy `assets/projeto-modelo.html`. Do not write `<link>` to `shell.css`.
 4. Fill every “ainda não fechado” with a fact. A hole stays “ainda não fechado”. Never lorem, never invented metrics. Markup only from `types.md`.
 5. Verify (below).
 
@@ -104,7 +103,7 @@ Hero chips, in this order when present: data, status, dono, path, contato.
 
 ## Content
 
-- Document body and chrome in the project language: pass `--lang en` or `--lang pt-br` to the stamp (default `pt-br`), taking the value from `language` in `.harness/project.yaml` when the document belongs to a consumer project, `pt-br` for this kit's own docs. Short sentences. No em dash mid-sentence.
+- Document body and chrome are pt-BR (ADR-011): the stamp has no language flag. Short sentences. No em dash mid-sentence.
 - `h2` carries the number in `.n` and the title without repeating the number in words.
 - In / out, process, table, price, strip, callout: markup in `references/types.md`. Do not invent a class.
 

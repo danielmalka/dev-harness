@@ -40,12 +40,10 @@ export function findDrift(tickets: { id: string; md: string }[], prds: Map<strin
   return out
 }
 
-export function driftMessage(drift: Drift[], lang: 'en' | 'pt-br', cwd = ''): string {
-  const pt = lang === 'pt-br'
+// pt-BR only (ADR-011). The Status values `delivered on` and `Done on` are still read for old English records.
+export function driftMessage(drift: Drift[], cwd = ''): string {
   const lines = drift.map(d => d.kind === 'open-in-delivered'
-    ? (pt ? `${d.prd}: tickets ainda abertos (${d.tickets.join(', ')}) mas o PRD está "entregue em" ou "delivered on"; conclua os tickets ou corrija o Status do PRD.`
-      : `${d.prd}: tickets still open (${d.tickets.join(', ')}) but the PRD is marked "entregue em" or "delivered on"; close the tickets or fix the PRD Status.`)
-    : (pt ? `${d.prd}: todos os tickets ligados estão concluídos mas o Status do PRD não começa com "entregue em" nem "delivered on"; atualize o Status.`
-      : `${d.prd}: all linked tickets are done but the PRD Status does not start with "entregue em" or "delivered on"; update the Status.`))
-  return `dev-harness: ${pt ? 'deriva de status entre tickets e PRD bloqueia este commit' : 'ticket/PRD status drift blocks this commit'}\n${lines.join('\n')}\n${pt ? `Corrija e commite de novo. (Verificado só em ${cwd || 'o diretório da sessão'}.)` : `Fix it and commit again. (Checked in the session directory only: ${cwd || 'cwd'}.)`}`
+    ? `${d.prd}: tickets ainda abertos (${d.tickets.join(', ')}) mas o PRD está "entregue em" ou "delivered on"; conclua os tickets ou corrija o Status do PRD.`
+    : `${d.prd}: todos os tickets ligados estão concluídos mas o Status do PRD não começa com "entregue em" nem "delivered on"; atualize o Status.`)
+  return `dev-harness: deriva de status entre tickets e PRD bloqueia este commit\n${lines.join('\n')}\nCorrija e commite de novo. (Verificado só em ${cwd || 'o diretório da sessão'}.)`
 }
