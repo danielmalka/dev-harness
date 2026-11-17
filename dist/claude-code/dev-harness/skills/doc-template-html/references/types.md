@@ -105,7 +105,7 @@ Ids: `motivacao`, `como-rodar`, `planejado-desenvolvido`, `changelog`, `diagrama
 
 ## aprovacao
 
-Use: approval page for a plan, stamped into `pdocs`: `docs-guide` composes the JSON data file and a builder (lane `infra`) runs `stamp.sh`. Steps, proposed snippets and decision cards the owner approves or rejects, then pastes back into the chat as one Markdown block. A flat `.html`, no server write, no external script (the stamp leaves the Mermaid tag out of this type). Run the stamp with `--lang` set to the project `language`.
+Use: approval page for a plan, stamped into `pdocs`: `docs-guide` composes the JSON data file and a builder (lane `infra`) runs `stamp.sh`. Steps, proposed snippets and decision cards the owner approves or rejects, then pastes back into the chat as one Markdown block. A flat `.html`, no server write, no external script (the stamp leaves the Mermaid tag out of this type). The stamp has no language flag: the page is pt-BR (ADR-011).
 
 1. Etapas (Steps)
 2. Trechos propostos (Proposed snippets)
