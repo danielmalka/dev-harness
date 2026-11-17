@@ -7,14 +7,9 @@ import (
 	"testing"
 )
 
-const (
-	rmPT = "docs/roadmap.html"
-	rmEN = "docs/en/roadmap.html"
-)
+const rmPT = "docs/roadmap.html"
 
-// Card titles copied from the real docs/roadmap.html: the 0.10.0 title holds a
-// <code> element, and "Comando de planejamento em loop" is a detail card with
-// no version prefix.
+// Card titles copied from the real docs/roadmap.html: the 0.10.0 title holds a <code> element, and "Comando de planejamento em loop" is a detail card with no version prefix.
 const (
 	cardReal010 = `0.10.0 · <code>/dh:plan-loop</code> e o planejador CLI`
 	cardDetail  = `Comando de planejamento em loop`
@@ -27,16 +22,12 @@ type rmOpts struct {
 	cards                  []string // <h3> inner text, in order
 }
 
-func rmPage(lang string, o rmOpts) string {
-	dateW, word, to := "data", "vivo", "a"
-	if lang == "en" {
-		dateW, word, to = "date", "live", "to"
-	}
+func rmPage(o rmOpts) string {
 	if o.date == "" {
 		o.date = "2026-09-25"
 	}
 	if o.status == "" {
-		o.status = "0.10.0 · " + word
+		o.status = "0.10.0 · vivo"
 	}
 	if o.rangeEnd == "" {
 		o.rangeEnd = "0.10.0"
@@ -45,7 +36,7 @@ func rmPage(lang string, o rmOpts) string {
 		o.cards = []string{cardReal010, "0.9.0 · B", "0.8.0 · C"}
 	}
 	var b strings.Builder
-	b.WriteString(`<span class="chip">` + dateW + ` <b>` + o.date + "</b></span>\n")
+	b.WriteString(`<span class="chip">data <b>` + o.date + "</b></span>\n")
 	b.WriteString(`<span class="chip">status <b>` + o.status + "</b></span>\n")
 	b.WriteString(`<span class="chip">path <b>docs/roadmap.html</b></span>` + "\n")
 	b.WriteString(`<h2 id="estrutura">S</h2>` + "\n")
@@ -53,17 +44,21 @@ func rmPage(lang string, o rmOpts) string {
 	for _, c := range o.cards {
 		b.WriteString("<h3>" + c + "</h3>\n<p>x</p>\n")
 	}
-	b.WriteString(`<h2 id="planejado">P</h2>` + "\n<h3>9.9.9 · not delivered</h3>\n")
+	b.WriteString(`<h2 id="planejado">P</h2>` + "\n<h3>9.9.9 · não entregue</h3>\n")
 	b.WriteString(`<h2 id="fontes">F</h2>` + "\n")
-	b.WriteString(`<li><code>CHANGELOG.md</code> — releases 0.1.0 ` + to + ` ` + o.rangeEnd + "</li>\n")
+	b.WriteString(`<li><code>CHANGELOG.md</code> — releases 0.1.0 a ` + o.rangeEnd + "</li>\n")
 	return b.String()
 }
 
-// rmRoot writes the fixture files; a nil page or empty changelog is not written.
-func rmRoot(t *testing.T, changelog, pt, en string) string {
+// rmRoot writes the scenario files; an empty changelog or page is not written. `extra` writes more files (relative path -> content).
+func rmRoot(t *testing.T, changelog, page string, extra map[string]string) string {
 	t.Helper()
 	root := t.TempDir()
-	for rel, content := range map[string]string{"CHANGELOG.md": changelog, rmPT: pt, rmEN: en} {
+	files := map[string]string{"CHANGELOG.md": changelog, rmPT: page}
+	for rel, content := range extra {
+		files[rel] = content
+	}
+	for rel, content := range files {
 		if content == "" {
 			continue
 		}
@@ -78,132 +73,94 @@ func rmRoot(t *testing.T, changelog, pt, en string) string {
 	return root
 }
 
-func rmRun(root string) string {
+func rmErrs(t *testing.T, changelog string, page string) []string {
+	t.Helper()
 	var errs []string
-	checkRoadmaps(root, &errs)
-	return strings.Join(errs, "\n")
+	checkRoadmaps(rmRoot(t, changelog, page, nil), &errs)
+	return errs
+}
+
+func wantErrs(t *testing.T, errs []string, fragments ...string) {
+	t.Helper()
+	if len(errs) != len(fragments) {
+		t.Fatalf("%d erros, esperado %d:\n%s", len(errs), len(fragments), strings.Join(errs, "\n"))
+	}
+	for i, w := range fragments {
+		if !strings.Contains(errs[i], w) {
+			t.Errorf("erro %d = %q, deveria conter %q", i, errs[i], w)
+		}
+	}
 }
 
 func TestCheckRoadmaps(t *testing.T) {
-	ok := func(o rmOpts) (string, string) { return rmPage("pt", o), rmPage("en", o) }
-	cards := func(c ...string) rmOpts { return rmOpts{cards: c} }
+	cards := func(c ...string) string { return rmPage(rmOpts{cards: c}) }
 	tests := []struct {
 		name      string
 		changelog string
-		pt, en    string
+		page      string
 		want      []string // substrings that must all appear; empty means no error
 	}{
-		{name: "R1 valid pair passes", changelog: rmChangelog},
-		{name: "R1 both roadmaps absent passes", changelog: rmChangelog, pt: "-", en: "-"},
-		{name: "R1 only pt present names the missing en file", changelog: rmChangelog, en: "-",
-			want: []string{rmEN + ":1: expected the roadmap file to exist"}},
-		{name: "R1 only en present names the missing pt file", changelog: rmChangelog, pt: "-",
-			want: []string{rmPT + ":1: expected the roadmap file to exist"}},
-		{name: "R1 missing CHANGELOG with roadmaps present", changelog: "-",
-			want: []string{"CHANGELOG.md:1: expected CHANGELOG.md to exist"}},
-		{name: "R1 CHANGELOG without a release heading", changelog: "# Changelog\n",
-			want: []string{"CHANGELOG.md:1: expected a heading"}},
-		{name: "R2 pt date chip differs", changelog: rmChangelog,
-			pt: "date", want: []string{rmPT + ":1: expected date chip \"2026-09-25\", found \"2026-09-01\""}},
-		{name: "R2 en date chip differs", changelog: rmChangelog,
-			en: "date", want: []string{rmEN + ":1: expected date chip \"2026-09-25\", found \"2026-09-01\""}},
-		{name: "R3 pt status chip differs", changelog: rmChangelog,
-			pt: "status", want: []string{rmPT + ":2: expected status chip \"0.10.0 · vivo\", found \"0.9.0 · vivo\""}},
-		{name: "R3 en status chip word differs", changelog: rmChangelog,
-			en: "statusword", want: []string{rmEN + ":2: expected status chip \"0.10.0 · live\", found \"0.10.0 · vivo\""}},
-		{name: "R4 pt Fontes range differs", changelog: rmChangelog,
-			pt: "range", want: []string{rmPT + ":", "expected Sources range end \"0.10.0\", found \"0.9.0\""}},
-		{name: "R4 en Fontes range differs", changelog: rmChangelog,
-			en: "range", want: []string{rmEN + ":", "expected Sources range end \"0.10.0\", found \"0.9.0\""}},
-		{name: "R5 missing card cites the entregue h2 line", changelog: rmChangelog,
-			pt: "missing", want: []string{rmPT + ":5: expected a Delivered card for 0.8.0, found none"}},
-		{name: "R5 duplicate card", changelog: rmChangelog,
-			pt: "dup", want: []string{rmPT + ":", "expected exactly one card for 0.9.0, found a duplicate"}},
-		{name: "R5 extra card without CHANGELOG heading", changelog: rmChangelog,
-			en: "extra", want: []string{rmEN + ":", "expected no card for 0.11.0 (no CHANGELOG.md heading), found one"}},
-		{name: "R6 semantic order 0.9.0 above 0.10.0", changelog: rmChangelog,
-			pt: "swap", want: []string{rmPT + ":", "found card 0.10.0 after card 0.9.0"}},
-		{name: "R6 detail card between version cards passes", changelog: rmChangelog,
-			pt: "detail-ok", en: "detail-ok"},
-		{name: "R6 detail card at the top and bottom passes", changelog: rmChangelog,
-			pt: "detail-edges", en: "detail-edges"},
-		{name: "R7 en has one card fewer", changelog: rmChangelog,
-			en: "missing", want: []string{rmEN + ":5: expected the same version cards as docs/roadmap.html, found pt [0.10.0, 0.9.0, 0.8.0] and en [0.10.0, 0.9.0]"}},
-		{name: "R7 en Fontes start differs from pt", changelog: rmChangelog,
-			en: "rangestart", want: []string{rmEN + ":", "expected Sources range start \"0.1.0\" as in docs/roadmap.html, found \"0.2.0\""}},
-		{name: "R7 same versions in another order", changelog: rmChangelog,
-			en: "swap", want: []string{rmEN + ":5: expected the same version cards", "en [0.9.0, 0.10.0, 0.8.0]"}},
-		{name: "R8 pt and en both wrong, both cited", changelog: rmChangelog,
-			pt: "date", en: "date", want: []string{rmPT + ":1: expected date chip", rmEN + ":1: expected date chip"}},
+		{name: "R1 roadmap válido passa", changelog: rmChangelog, page: rmPage(rmOpts{})},
+		{name: "R1 sem roadmap passa (pacote ou projeto consumidor)", changelog: rmChangelog},
+		{name: "R1 sem CHANGELOG com o roadmap presente", changelog: "-", page: rmPage(rmOpts{}),
+			want: []string{"CHANGELOG.md:1: esperado o CHANGELOG.md porque o roadmap existe"}},
+		{name: "R1 CHANGELOG sem título de release", changelog: "# Changelog\n", page: rmPage(rmOpts{}),
+			want: []string{"CHANGELOG.md:1: esperado um título como"}},
+		{name: "R2 chip de data diferente", changelog: rmChangelog, page: rmPage(rmOpts{date: "2026-09-01"}),
+			want: []string{rmPT + ":1: esperado chip de data \"2026-09-25\", achei \"2026-09-01\""}},
+		{name: "R3 chip de status diferente", changelog: rmChangelog, page: rmPage(rmOpts{status: "0.9.0 · vivo"}),
+			want: []string{rmPT + ":2: esperado chip de status \"0.10.0 · vivo\", achei \"0.9.0 · vivo\""}},
+		{name: "R3 chip de status com a palavra em inglês", changelog: rmChangelog, page: rmPage(rmOpts{status: "0.10.0 · live"}),
+			want: []string{rmPT + ":2: esperado chip de status \"0.10.0 · vivo\", achei \"0.10.0 · live\""}},
+		{name: "R4 fim do intervalo de Fontes diferente", changelog: rmChangelog, page: rmPage(rmOpts{rangeEnd: "0.9.0"}),
+			want: []string{rmPT + ":", "esperado fim do intervalo de fontes \"0.10.0\", achei \"0.9.0\""}},
+		{name: "R5 card faltando cita a linha do h2 entregue", changelog: rmChangelog, page: cards(cardReal010, "0.9.0 · B"),
+			want: []string{rmPT + ":5: esperado um card de Entregue para 0.8.0, achei nenhum"}},
+		{name: "R5 card duplicado", changelog: rmChangelog, page: cards(cardReal010, "0.9.0 · B", "0.9.0 · B de novo", "0.8.0 · C"),
+			want: []string{rmPT + ":", "esperado exatamente um card para 0.9.0, achei um duplicado"}},
+		{name: "R5 card extra sem título no CHANGELOG", changelog: rmChangelog, page: cards("0.11.0 · X", cardReal010, "0.9.0 · B", "0.8.0 · C"),
+			want: []string{rmPT + ":", "esperado nenhum card para 0.11.0 (sem título no CHANGELOG.md), achei um"}},
+		{name: "R6 ordem semântica: 0.9.0 acima de 0.10.0", changelog: rmChangelog, page: cards("0.9.0 · B", cardReal010, "0.8.0 · C"),
+			want: []string{rmPT + ":", "achei o card 0.10.0 depois do card 0.9.0"}},
+		{name: "R6 card de detalhe entre cards de versão passa", changelog: rmChangelog, page: cards(cardReal010, cardDetail, "0.9.0 · B", "0.8.0 · C")},
+		{name: "R6 card de detalhe no topo, no meio e no fim passa", changelog: rmChangelog, page: cards(cardDetail, cardReal010, "0.9.0 · B", cardDetail, "0.8.0 · C", cardDetail)},
+		{name: "chip de data com a palavra em inglês não é mais aceito", changelog: rmChangelog, page: strings.Replace(rmPage(rmOpts{}), `chip">data`, `chip">date`, 1),
+			want: []string{rmPT + ":1: esperado chip de data \"2026-09-25\", achei nenhum"}},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			ptPage, enPage := ok(rmOpts{})
-			for lang, mode := range map[string]string{"pt": tc.pt, "en": tc.en} {
-				var o rmOpts
-				word := map[string]string{"pt": "vivo", "en": "live"}[lang]
-				switch mode {
-				case "date":
-					o.date = "2026-09-01"
-				case "status":
-					o.status = "0.9.0 · " + word
-				case "statusword":
-					o.status = "0.10.0 · vivo"
-				case "range":
-					o.rangeEnd = "0.9.0"
-				case "rangestart":
-					// rewritten below on the rendered page
-				case "missing":
-					o = cards(cardReal010, "0.9.0 · B")
-				case "dup":
-					o = cards(cardReal010, "0.9.0 · B", "0.9.0 · B again", "0.8.0 · C")
-				case "extra":
-					o = cards("0.11.0 · X", cardReal010, "0.9.0 · B", "0.8.0 · C")
-				case "swap":
-					o = cards("0.9.0 · B", cardReal010, "0.8.0 · C")
-				case "detail-ok":
-					o = cards(cardReal010, cardDetail, "0.9.0 · B", "0.8.0 · C")
-				case "detail-edges":
-					o = cards(cardDetail, cardReal010, "0.9.0 · B", cardDetail, "0.8.0 · C", cardDetail)
-				case "", "-":
-					continue
-				default:
-					t.Fatalf("unknown mode %q", mode)
-				}
-				page := rmPage(lang, o)
-				if mode == "rangestart" {
-					page = strings.Replace(page, "releases 0.1.0", "releases 0.2.0", 1)
-				}
-				if lang == "pt" {
-					ptPage = page
-				} else {
-					enPage = page
-				}
-			}
-			if tc.pt == "-" {
-				ptPage = ""
-			}
-			if tc.en == "-" {
-				enPage = ""
-			}
 			cl := tc.changelog
 			if cl == "-" {
 				cl = ""
 			}
-			got := rmRun(rmRoot(t, cl, ptPage, enPage))
+			var errs []string
+			checkRoadmaps(rmRoot(t, cl, tc.page, nil), &errs)
+			got := strings.Join(errs, "\n")
 			if len(tc.want) == 0 {
 				if got != "" {
-					t.Fatalf("expected no error, got:\n%s", got)
+					t.Fatalf("esperado nenhum erro, achei:\n%s", got)
 				}
 				return
 			}
 			for _, w := range tc.want {
 				if !strings.Contains(got, w) {
-					t.Errorf("missing %q in:\n%s", w, got)
+					t.Errorf("falta %q em:\n%s", w, got)
 				}
 			}
 		})
 	}
+}
+
+// ADR-011: the English roadmap is no longer checked. A stale docs/en/roadmap.html (until S4 removes it) raises no error and is not compared with the pt one.
+func TestCheckRoadmapsIgnoresTheEnglishMirror(t *testing.T) {
+	var errs []string
+	stale := strings.Replace(rmPage(rmOpts{date: "2020-01-01", cards: []string{"0.1.0 · velho"}}), "data <b>", "date <b>", 1)
+	checkRoadmaps(rmRoot(t, rmChangelog, rmPage(rmOpts{}), map[string]string{"docs/en/roadmap.html": stale}), &errs)
+	wantErrs(t, errs)
+	// only the English roadmap, no pt one: nothing to check
+	root := rmRoot(t, rmChangelog, "", map[string]string{"docs/en/roadmap.html": stale})
+	checkRoadmaps(root, &errs)
+	wantErrs(t, errs)
 }
 
 // R6: the comparison is numeric, not lexical (0.10.0 is newer than 0.9.0).
@@ -219,163 +176,103 @@ func TestSemverLess(t *testing.T) {
 		{"1.0.0", "0.99.99", false},
 	} {
 		if got := semverLess(tc.a, tc.b); got != tc.want {
-			t.Errorf("semverLess(%s, %s) = %v, want %v", tc.a, tc.b, got, tc.want)
+			t.Errorf("semverLess(%s, %s) = %v, esperado %v", tc.a, tc.b, got, tc.want)
 		}
 	}
 }
 
-// R5/R6: the real 0.10.0 <h3> holds <code>; the parser must still see a card
-// and must skip the unversioned detail card that follows it.
+// R5/R6: the real 0.10.0 <h3> holds <code>; the parser must still see a card and skip the unversioned detail card that follows it.
 func TestParseRoadmapRealMarkup(t *testing.T) {
-	page := rmPage("pt", rmOpts{cards: []string{cardReal010, cardDetail, "0.9.0 · B"}})
-	d := parseRoadmap(rmPT, page)
-	if got := strings.Join(roadmapVersions(d), ","); got != "0.10.0,0.9.0" {
-		t.Fatalf("cards = %q, want 0.10.0,0.9.0", got)
+	d := parseRoadmap(rmPT, rmPage(rmOpts{cards: []string{cardReal010, cardDetail, "0.9.0 · B"}}))
+	var versions []string
+	for _, c := range d.cards {
+		versions = append(versions, c.version)
+	}
+	if got := strings.Join(versions, ","); got != "0.10.0,0.9.0" {
+		t.Fatalf("cards = %q, esperado 0.10.0,0.9.0", got)
 	}
 	if d.entregueLine != 5 {
-		t.Errorf("entregueLine = %d, want 5", d.entregueLine)
+		t.Errorf("entregueLine = %d, esperado 5", d.entregueLine)
 	}
 }
 
-// R8: every failure is "<file>:<line>: expected ..., found ...". A wrong pt date
-// is reported once, against the changelog; the pt/en pair is not re-compared.
+// R6: every failure is "<file>:<line>: esperado ..., achei ...", and a wrong date is reported once, against the changelog.
 func TestCheckRoadmapsErrorFormat(t *testing.T) {
-	var errs []string
-	root := rmRoot(t, rmChangelog, rmPage("pt", rmOpts{date: "2026-01-01"}), rmPage("en", rmOpts{}))
-	checkRoadmaps(root, &errs)
-	if len(errs) != 1 || !strings.HasPrefix(errs[0], rmPT+":1: expected ") {
-		t.Fatalf("errors = %q", errs)
+	errs := rmErrs(t, rmChangelog, rmPage(rmOpts{date: "2026-01-01"}))
+	if len(errs) != 1 || !strings.HasPrefix(errs[0], rmPT+":1: esperado ") {
+		t.Fatalf("erros = %q", errs)
 	}
 }
 
-// rmErrs returns the error list for a fixture where pt/en are edited by fn.
-func rmErrs(t *testing.T, changelog string, fn func(lang, page string) string) []string {
-	t.Helper()
-	pt, en := rmPage("pt", rmOpts{}), rmPage("en", rmOpts{})
-	if fn != nil {
-		pt, en = fn("pt", pt), fn("en", en)
-	}
-	var errs []string
-	checkRoadmaps(rmRoot(t, changelog, pt, en), &errs)
-	return errs
-}
-
-func wantErrs(t *testing.T, errs []string, prefixes ...string) {
-	t.Helper()
-	if len(errs) != len(prefixes) {
-		t.Fatalf("got %d errors, want %d:\n%s", len(errs), len(prefixes), strings.Join(errs, "\n"))
-	}
-	for i, w := range prefixes {
-		if !strings.Contains(errs[i], w) {
-			t.Errorf("error %d = %q, want it to contain %q", i, errs[i], w)
-		}
-	}
-}
-
-// M1: a version-shaped <h3> in a non-strict form must be reported, not ignored.
+// A version-shaped <h3> in a non-strict form must be reported, not ignored.
 func TestCheckRoadmapsVariantCards(t *testing.T) {
 	variants := map[string]struct{ h3, found string }{
-		"attribute":  {`<h3 class="x">0.9.0 · B</h3>`, `"0.9.0 · B"`},
-		"wrapped":    {"<h3>\n0.9.0 · B</h3>", `" 0.9.0 · B"`},
-		"wrapped2":   {"<h3>0.9.0\n· B</h3>", `"0.9.0 · B"`},
-		"space":      {`<h3> 0.9.0 · B</h3>`, `" 0.9.0 · B"`},
+		"atributo":   {`<h3 class="x">0.9.0 · B</h3>`, `"0.9.0 · B"`},
+		"quebrado":   {"<h3>\n0.9.0 · B</h3>", `" 0.9.0 · B"`},
+		"quebrado2":  {"<h3>0.9.0\n· B</h3>", `"0.9.0 · B"`},
+		"espaço":     {`<h3> 0.9.0 · B</h3>`, `" 0.9.0 · B"`},
 		"nbsp":       {"<h3>\u00a00.9.0 · B</h3>", `"\u00a00.9.0 · B"`},
 		"htmlnbsp":   {`<h3>&nbsp;0.9.0 · B</h3>`, `"&nbsp;0.9.0 · B"`},
-		"emdash":     {`<h3>0.9.0 — B</h3>`, `"0.9.0 — B"`},
-		"code first": {`<h3><code>0.9.0</code> · B</h3>`, `"0.9.0 · B"`},
+		"travessão":  {`<h3>0.9.0 — B</h3>`, `"0.9.0 — B"`},
+		"code antes": {`<h3><code>0.9.0</code> · B</h3>`, `"0.9.0 · B"`},
 	}
 	for name, v := range variants {
 		t.Run(name, func(t *testing.T) {
-			// A variant duplicate of an existing 0.9.0 card, in en only.
-			errs := rmErrs(t, rmChangelog, func(lang, page string) string {
-				if lang == "pt" {
-					return page
-				}
-				return strings.Replace(page, "<h3>0.8.0 · C</h3>", v.h3+"\n<h3>0.8.0 · C</h3>", 1)
-			})
-			wantErrs(t, errs, rmEN+":10: expected \"<h3>N.N.N · \", found "+v.found)
+			page := strings.Replace(rmPage(rmOpts{}), "<h3>0.8.0 · C</h3>", v.h3+"\n<h3>0.8.0 · C</h3>", 1)
+			wantErrs(t, rmErrs(t, rmChangelog, page), rmPT+":10: esperado \"<h3>N.N.N · \", achei "+v.found)
 		})
 	}
-	// Detail cards without a version stay ignored.
-	wantErrs(t, rmErrs(t, rmChangelog, func(_, page string) string {
-		return strings.Replace(page, "<h3>0.8.0 · C</h3>", "<h3>Detail card</h3>\n<h3>0.8.0 · C</h3>", 1)
-	}))
+	page := strings.Replace(rmPage(rmOpts{}), "<h3>0.8.0 · C</h3>", "<h3>Card de detalhe</h3>\n<h3>0.8.0 · C</h3>", 1)
+	wantErrs(t, rmErrs(t, rmChangelog, page)) // a detail card without a version stays ignored
 }
 
 func TestCheckRoadmapsMissingPieces(t *testing.T) {
-	t.Run("no entregue h2", func(t *testing.T) {
-		errs := rmErrs(t, rmChangelog, func(lang, page string) string {
-			if lang == "en" {
-				return strings.Replace(page, `<h2 id="entregue">`, `<h2 id="other">`, 1)
-			}
-			return page
-		})
-		wantErrs(t, errs, rmEN+`:1: expected <h2 id="entregue">, found none`)
+	t.Run("sem h2 entregue", func(t *testing.T) {
+		wantErrs(t, rmErrs(t, rmChangelog, strings.Replace(rmPage(rmOpts{}), `<h2 id="entregue">`, `<h2 id="outro">`, 1)),
+			rmPT+`:1: esperado <h2 id="entregue">, achei nenhum`)
 	})
-	t.Run("chip found none", func(t *testing.T) {
-		errs := rmErrs(t, rmChangelog, func(lang, page string) string {
-			if lang == "pt" {
-				return strings.Replace(page, `<span class="chip">status`, `<span class="chp">status`, 1)
-			}
-			return page
-		})
-		wantErrs(t, errs, rmPT+`:1: expected status chip "0.10.0 · vivo", found none`)
+	t.Run("chip de status ausente", func(t *testing.T) {
+		wantErrs(t, rmErrs(t, rmChangelog, strings.Replace(rmPage(rmOpts{}), `<span class="chip">status`, `<span class="chp">status`, 1)),
+			rmPT+`:1: esperado chip de status "0.10.0 · vivo", achei nenhum`)
 	})
-	t.Run("missing path chip on one side is not blamed on en", func(t *testing.T) {
-		errs := rmErrs(t, rmChangelog, func(lang, page string) string {
-			if lang == "pt" {
-				return strings.Replace(page, `<span class="chip">path`, `<span class="chp">path`, 1)
-			}
-			return page
-		})
-		wantErrs(t, errs, rmPT+":1: expected path chip, found none")
+	t.Run("chip de caminho ausente", func(t *testing.T) {
+		wantErrs(t, rmErrs(t, rmChangelog, strings.Replace(rmPage(rmOpts{}), `<span class="chip">path`, `<span class="chp">path`, 1)),
+			rmPT+":1: esperado o chip de caminho, achei nenhum")
 	})
-	t.Run("missing path chip on both sides", func(t *testing.T) {
-		errs := rmErrs(t, rmChangelog, func(_, page string) string {
-			return strings.Replace(page, `<span class="chip">path`, `<span class="chp">path`, 1)
-		})
-		wantErrs(t, errs, rmPT+":1: expected path chip", rmEN+":1: expected path chip")
+	t.Run("card depois do h2 de fechamento não conta", func(t *testing.T) {
+		wantErrs(t, rmErrs(t, rmChangelog, strings.Replace(rmPage(rmOpts{}), "<h3>9.9.9 · não entregue</h3>", "<h3>0.9.0 · de novo</h3>", 1)))
 	})
-	t.Run("card after the closing h2 is not counted", func(t *testing.T) {
-		errs := rmErrs(t, rmChangelog, func(lang, page string) string {
-			if lang == "en" {
-				return strings.Replace(page, "<h3>9.9.9 · not delivered</h3>", "<h3>0.9.0 · again</h3>", 1)
-			}
-			return page
-		})
-		wantErrs(t, errs)
+	t.Run("arquivos CRLF", func(t *testing.T) {
+		wantErrs(t, rmErrs(t, strings.ReplaceAll(rmChangelog, "\n", "\r\n"), strings.ReplaceAll(rmPage(rmOpts{}), "\n", "\r\n")))
 	})
-	t.Run("CRLF files", func(t *testing.T) {
-		crlf := func(_, page string) string { return strings.ReplaceAll(page, "\n", "\r\n") }
-		wantErrs(t, rmErrs(t, strings.ReplaceAll(rmChangelog, "\n", "\r\n"), crlf))
-	})
-}
-
-func TestCheckRoadmapsLanguageWords(t *testing.T) {
-	errs := rmErrs(t, rmChangelog, func(lang, page string) string {
-		if lang == "en" {
-			return strings.Replace(strings.Replace(page, "chip\">date", "chip\">data", 1), " to 0.10.0", " a 0.10.0", 1)
+	t.Run("roadmap ilegível", func(t *testing.T) {
+		root := rmRoot(t, rmChangelog, "x", nil)
+		if err := os.Remove(filepath.Join(root, "docs", "roadmap.html")); err != nil {
+			t.Fatal(err)
 		}
-		return page
+		if err := os.Mkdir(filepath.Join(root, "docs", "roadmap.html"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		var errs []string
+		checkRoadmaps(root, &errs)
+		wantErrs(t, errs, rmPT+":1: esperado ler o arquivo do roadmap")
 	})
-	wantErrs(t, errs, rmEN+":1: expected date chip word \"date\", found \"data\"", "expected Sources range word \"to\", found \"a\"")
 }
 
 func TestCheckRoadmapsChangelogHeadings(t *testing.T) {
-	t.Run("duplicate heading keeps the first date", func(t *testing.T) {
-		wantErrs(t, rmErrs(t, rmChangelog+"\n## 0.10.0 — 2020-01-01\n", nil),
-			"CHANGELOG.md:13: expected one heading per release, found 0.10.0 again")
+	page := rmPage(rmOpts{})
+	t.Run("título repetido mantém a primeira data", func(t *testing.T) {
+		wantErrs(t, rmErrs(t, rmChangelog+"\n## 0.10.0 — 2020-01-01\n", page), "CHANGELOG.md:13: esperado um título por release, achei 0.10.0 de novo")
 	})
-	t.Run("bracketed and v-prefixed headings", func(t *testing.T) {
-		wantErrs(t, rmErrs(t, rmChangelog+"\n## [0.13.0] — 2026-09-26\n", nil), "CHANGELOG.md:13: expected a heading like")
-		wantErrs(t, rmErrs(t, rmChangelog+"\n## v0.13.0 — 2026-09-26\n", nil), "CHANGELOG.md:13: expected a heading like")
+	t.Run("títulos com colchetes e com v", func(t *testing.T) {
+		wantErrs(t, rmErrs(t, rmChangelog+"\n## [0.13.0] — 2026-09-26\n", page), "CHANGELOG.md:13: esperado um título como")
+		wantErrs(t, rmErrs(t, rmChangelog+"\n## v0.13.0 — 2026-09-26\n", page), "CHANGELOG.md:13: esperado um título como")
 	})
-	t.Run("Unreleased heading is allowed", func(t *testing.T) {
-		wantErrs(t, rmErrs(t, rmChangelog+"\n## [Unreleased]\n", nil))
+	t.Run("título Unreleased é permitido", func(t *testing.T) {
+		wantErrs(t, rmErrs(t, rmChangelog+"\n## [Unreleased]\n", page))
 	})
-	t.Run("near-miss heading", func(t *testing.T) {
-		wantErrs(t, rmErrs(t, rmChangelog+"\n## 0.7.0 - 2026-09-20\n", nil),
-			"CHANGELOG.md:13: expected a heading like")
+	t.Run("título quase certo", func(t *testing.T) {
+		wantErrs(t, rmErrs(t, rmChangelog+"\n## 0.7.0 - 2026-09-20\n", page), "CHANGELOG.md:13: esperado um título como")
 	})
 }
 
@@ -384,16 +281,6 @@ func TestCheckRoadmapsRealRepo(t *testing.T) {
 	var errs []string
 	checkRoadmaps("../..", &errs)
 	if len(errs) != 0 {
-		t.Fatalf("real repo roadmap errors:\n%s", strings.Join(errs, "\n"))
+		t.Fatalf("erros do roadmap real:\n%s", strings.Join(errs, "\n"))
 	}
-}
-
-func TestCheckRoadmapsPathChipDiffers(t *testing.T) {
-	errs := rmErrs(t, rmChangelog, func(lang, page string) string {
-		if lang == "en" {
-			return strings.Replace(page, "<b>docs/roadmap.html</b>", "<b>docs/other.html</b>", 1)
-		}
-		return page
-	})
-	wantErrs(t, errs, rmEN+`:3: expected path chip "docs/roadmap.html" as in docs/roadmap.html, found "docs/other.html"`)
 }

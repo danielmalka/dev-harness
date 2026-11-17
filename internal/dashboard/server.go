@@ -87,7 +87,7 @@ func Handler(cfg Config) http.Handler {
 		got := r.Header.Get(stopHeader)
 		// defence in depth: browsers always send Origin, the CLI never does
 		if r.Header.Get("Origin") != "" || cfg.StopToken == "" || subtle.ConstantTimeCompare([]byte(got), []byte(cfg.StopToken)) != 1 {
-			http.Error(w, "forbidden", http.StatusForbidden)
+			http.Error(w, "proibido", http.StatusForbidden)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent) // body is never read
@@ -129,13 +129,13 @@ func guard(next http.Handler) http.Handler {
 		h.Set("X-Content-Type-Options", "nosniff")
 		h.Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'")
 		if !loopbackHost(r.Host) {
-			http.Error(w, "forbidden host", http.StatusForbidden)
+			http.Error(w, "host proibido", http.StatusForbidden)
 			return
 		}
 		// browsers send these; a sandboxed/cross-site page must not read /api/state or /api/memory
 		if strings.HasPrefix(r.URL.Path, "/api/") && r.URL.Path != "/api/stop" &&
 			(r.Header.Get("Origin") == "null" || r.Header.Get("Sec-Fetch-Site") == "cross-site") {
-			http.Error(w, "forbidden origin", http.StatusForbidden)
+			http.Error(w, "origem proibida", http.StatusForbidden)
 			return
 		}
 		want := http.MethodGet
@@ -144,7 +144,7 @@ func guard(next http.Handler) http.Handler {
 		}
 		if r.Method != want {
 			h.Set("Allow", want)
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			http.Error(w, "método não permitido", http.StatusMethodNotAllowed)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -257,7 +257,7 @@ func spritesDirOf(home string) (string, string) {
 		}
 	}
 	if fi, err := os.Stat(v); !filepath.IsAbs(v) || err != nil || !fi.IsDir() {
-		return "", fmt.Sprintf("dashboard.sprites %q is not an absolute existing directory: using the default set", c.Sprites)
+		return "", fmt.Sprintf("dashboard.sprites %q não é um diretório absoluto que exista: usando o conjunto padrão", c.Sprites)
 	}
 	return filepath.Clean(v), ""
 }
@@ -297,7 +297,7 @@ func buildState(cfg Config, holder *spriteHolder) state {
 	st := state{Config: jsonConfig{Home: cfg.Home, Sprites: spDir, Port: cfg.Port}, Projects: []jsonProject{}, Sessions: []jsonSession{}, Warnings: []string{}}
 	var projects []harness.Project
 	if cfg.Home == "" {
-		st.Warnings = append(st.Warnings, "harness home unknown: no projects to show.")
+		st.Warnings = append(st.Warnings, "home do harness desconhecido: sem projetos para mostrar.")
 	} else {
 		var warns []string
 		projects, warns = harness.Projects(cfg.Home)
@@ -327,7 +327,7 @@ func buildState(cfg Config, holder *spriteHolder) state {
 	progress.sweep()
 	all, skipped := snapshot.LoadDirMax(cfg.SnapshotDir, MaxSnapshots)
 	if skipped > 0 {
-		st.Warnings = append(st.Warnings, fmt.Sprintf("More than %d snapshot files: reading the newest %d.", MaxSnapshots, MaxSnapshots))
+		st.Warnings = append(st.Warnings, fmt.Sprintf("Mais de %d arquivos de snapshot: lendo os %d mais novos.", MaxSnapshots, MaxSnapshots))
 	}
 	open := OpenSessions(all, projects, now, cfg.Stale, cfg.DoneDecay)
 	for _, s := range open {
@@ -353,9 +353,9 @@ func Listen(port int) (net.Listener, error) {
 	if err != nil {
 		// ponytail: message match covers Windows, where EADDRINUSE is not the socket error code
 		if errors.Is(err, syscall.EADDRINUSE) || strings.Contains(err.Error(), "in use") || strings.Contains(err.Error(), "Only one usage") {
-			return nil, fmt.Errorf("port %d is busy: pick another with --port", port)
+			return nil, fmt.Errorf("a porta %d está ocupada: escolha outra com --port", port)
 		}
-		return nil, fmt.Errorf("cannot listen on 127.0.0.1:%d: %w", port, err)
+		return nil, fmt.Errorf("não foi possível escutar em 127.0.0.1:%d: %w", port, err)
 	}
 	return ln, nil
 }

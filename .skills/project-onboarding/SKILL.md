@@ -63,8 +63,8 @@ Two moves, one procedure: find out what this machine and this project can actual
 
 8. **Apply only what is authorized, and only where nothing exists.**
    - Decide the mode and register first (`/dh:setup` owns this): run `dh harness-path --json` (the bundled `bin/dh` (`bin\dh.cmd` on Windows) from the loaded plugin directory, as in `.commands/doctor.md`; same for `dh link`) and read `defaults`; the mode is `defaults.mode` when filled, otherwise ask the owner once for this project (`repo` or `global`); `defaults` all empty means today's defaults. In `repo`, create `<repo>/.harness/` before anything else; then run `dh link [name]`, which always registers the project (in `repo` it never creates `<home>/projects/<name>/`; in `global` it creates it), and paste the `defaults.reviewers` block into the new `project.yaml`. Never Read `config.yaml`; only the binary does. Everything below is written to the resolved harness dir (`<home>/projects/<name>/` in `global`), except the review guide step: `REVIEW.md` is the only file written in the repository tree, in both modes. In `global`, remind the owner of `~/.harness` in `additionalDirectories` of `~/.claude/settings.json`, without writing it.
-   - Record `language` in `project.yaml`: use `defaults.language` from `dh harness-path --json` when set; otherwise the owner's language (pt-br when the owner writes Portuguese, else en). State the choice in the report so the owner can correct it. This field is the owner conversation language. It selects `templates/<lang>/` for the other records and work artifacts from now on (the PRD and `REVIEW.md` are always English).
-   - Review guide, in `repo` and in `global`: when the project has no review guide file, a dispatched specialist (not the Coordinator) creates `REVIEW.md` at the repository root from `templates/en/REVIEW.md` and `review_guide: REVIEW.md` (a repository-relative path, never absolute or with `..`) is written to `project.yaml`. The file is always English, whatever `language` says. File present and key absent: record the key, leave the file untouched. Key pointing to an existing file: change nothing. Never overwrite.
+   - Language: the kit is pt-BR only (ADR-011), so setup never asks for or records a language. Record `conventions.code_language` (`en` or `pt-br`: the language of commit messages and code comments) in `project.yaml` only when a project instruction file (`AGENTS.md`, `CLAUDE.md` or `README.md`) defines it, and name that file in the report; with no definition, omit the key (English applies).
+   - Review guide, in `repo` and in `global`: when the project has no review guide file, a dispatched specialist (not the Coordinator) creates `REVIEW.md` at the repository root from `templates/REVIEW.md` and `review_guide: REVIEW.md` (a repository-relative path, never absolute or with `..`) is written to `project.yaml`. The file is written in pt-BR (ADR-011). File present and key absent: record the key, leave the file untouched. Key pointing to an existing file: change nothing. Never overwrite.
    - Create `project.yaml` only if absent. If present, compare and report each divergence; updating an existing profile is a separate scoped edit, not onboarding initialization.
    - Only the main-session Coordinator may initialize `MEMORY.md`, `EPOCHAL.md` and `RISKS.md` in the harness dir from `templates/`, within authorized configuration scope and only when absent. Other roles report missing records to the Coordinator. Never overwrite, reformat or truncate an existing record.
    - Never write inside existing project instruction files (`AGENTS.md`, `CLAUDE.md`). Conflicts get reported, not merged.
@@ -81,7 +81,7 @@ Opt-in second phase of `/dh:setup`, run only when the owner accepts or passes `b
 
 - Inputs: the `HEAD` sha, which the Coordinator gets from a `qa-verifier` run (`git rev-parse HEAD`) and passes in the dispatch. The writer copies it and does not run git. The writer reads the repository and runs no project code or scripts.
 - Stop: more than 15 top-level directories. Write nothing and return the count to the Coordinator, who asks the owner to name the scope.
-- Language: the `language` in `project.yaml`. At most 200 lines.
+- Language: `conventions.code_language` in `project.yaml` when set. At most 200 lines.
 - Every claim cites a relative path. A claim not verified is marked `hypothesis`.
 - Parts, in order:
   1. Header: date and the `HEAD` sha from the dispatch.
@@ -186,9 +186,9 @@ Input: main-session Coordinator loads the kit in a small service repository, mod
 - Conflict: it names a different test command than the manifest. Reported, not resolved.
 
 ## Changes applied
-- Created: .harness/project.yaml (was absent, language: en), re-read and verified
-- Created: .harness/MEMORY.md from templates/<lang>/MEMORY.md (was absent)
-- Created: REVIEW.md from templates/en/REVIEW.md (was absent), review_guide: REVIEW.md in project.yaml
+- Created: .harness/project.yaml (was absent), re-read and verified
+- Created: .harness/MEMORY.md from templates/MEMORY.md (was absent)
+- Created: REVIEW.md from templates/REVIEW.md (was absent), review_guide: REVIEW.md in project.yaml
 - Left untouched: the existing project instruction file
 ```
 

@@ -146,7 +146,7 @@ func TestR5_R7_DefaultsWorktree(t *testing.T) {
 	}
 }
 
-// R8 (Go side): any value loads; an unquoted ':' aborts like language does; the quoted form loads.
+// R8 (Go side): any value loads; an unquoted ':' aborts like mode does; the quoted form loads.
 func TestR8_HarnessPathScalarRules(t *testing.T) {
 	home, repo := env(t)
 	os.MkdirAll(home, 0o700)
@@ -159,7 +159,7 @@ func TestR8_HarnessPathScalarRules(t *testing.T) {
 	if g := hp(t, repo); g.Defaults["worktree"] != "a:b" {
 		t.Errorf("quoted: %v", g.Defaults)
 	}
-	for _, key := range []string{"worktree", "language"} {
+	for _, key := range []string{"worktree", "mode"} {
 		os.WriteFile(p, []byte(key+": a:b\n"), 0o600)
 		code, _, e := dh(t, "harness-path", "--json", repo)
 		if code == 0 || !strings.Contains(e, "':'") {

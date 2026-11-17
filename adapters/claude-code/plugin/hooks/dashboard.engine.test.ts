@@ -334,11 +334,11 @@ test('R20 drift (a) denies with the tickets listed', async ($, on) => {
   const r = await commit($)
   expect(String(r.deny ?? r.text)).toContain('T-1')
   expect(String(r.deny ?? r.text)).toContain('PRD-001')
-  expect(String(r.deny ?? r.text)).toContain('commit again')
+  expect(String(r.deny ?? r.text)).toContain('commite de novo')
 })
 
-test('R20 drift (b) denies; message follows pt-br', async ($, on) => {
-  world(on, { files: TASKS('concluída', 'aprovado', { [`${CWD}/.harness/project.yaml`]: 'language: pt-br\n' }) })
+test('R20 drift (b) denies; the message is pt-BR even with a legacy language: en', async ($, on) => {
+  world(on, { files: TASKS('concluída', 'aprovado', { [`${CWD}/.harness/project.yaml`]: 'language: en\n' }) })
   const r = await commit($)
   expect(String(r.deny ?? r.text)).toContain('PRD-001')
   expect(String(r.deny ?? r.text)).toContain('commite de novo')
@@ -369,7 +369,7 @@ test('R19 global drift: tickets under <home>/projects/<name>/tasks are checked',
   world(on, { harness: GLOBAL, files: {
     [`${G}/tasks/T-1/TASK.md`]: '| Status | pronta |\n| PRD (RF-<n>) | PRD-001 (R1) |\n',
     [`${CWD}/docs/prd/PRD-001-x.md`]: '| Status | entregue em 2026-01-01 |\n',
-    [`${G}/project.yaml`]: 'language: pt-br\n',
+    [`${G}/project.yaml`]: 'language: en\n',
   } })
   const r = await commit($)
   expect(String(r.deny ?? r.text)).toContain('T-1')
@@ -421,7 +421,7 @@ test('BUG-001 full cycle writes the snapshot with rate_limits and the expected a
 test('BUG-001 guards are unchanged by the snapshot: Bash AI mention still denied, tool.call still recorded', async ($, on) => {
   const w = world(on)
   const r: any = await $.tool.call({ tool: 'Bash', command: 'git commit -m "Co-Authored' + '-By: Cla' + 'ude"' } as any)
-  expect(String(r.deny)).toContain('mentions AI')
+  expect(String(r.deny)).toContain('menciona IA')
   await settled()
   expect(snap(w).activity).toBe('working')
 })

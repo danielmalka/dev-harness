@@ -102,7 +102,7 @@ func TestProjectsParityWithRegistryAndOmissions(t *testing.T) {
 			t.Fatalf("item %d: %+v vs %+v", i, g, w)
 		}
 	}
-	if len(st.Warnings) != 1 || !strings.Contains(st.Warnings[0], "2 registered project(s) skipped") {
+	if len(st.Warnings) != 1 || !strings.Contains(st.Warnings[0], "2 projeto(s) registrado(s) ignorado(s)") {
 		t.Fatalf("warnings: %v", st.Warnings)
 	}
 }
@@ -117,7 +117,7 @@ func TestProjectsCap(t *testing.T) {
 	}
 	register(t, home, repos...)
 	st, _ := getState(t, Config{Home: home, SnapshotDir: t.TempDir()})
-	if len(st.Projects) != harness.MaxProjects || len(st.Warnings) != 1 || !strings.Contains(st.Warnings[0], "showing the first") {
+	if len(st.Projects) != harness.MaxProjects || len(st.Warnings) != 1 || !strings.Contains(st.Warnings[0], "mostrando os primeiros") {
 		t.Fatalf("got %d projects, warnings %v", len(st.Projects), st.Warnings)
 	}
 }
@@ -180,7 +180,7 @@ func TestSpritesPathRules(t *testing.T) {
 	}
 	for _, bad := range []string{"rel/sp", filepath.Join(uh, "missing")} {
 		st := get(bad)
-		if st.Config.Sprites != "" || len(st.Warnings) != 1 || !strings.Contains(st.Warnings[0], "is not an absolute existing directory") {
+		if st.Config.Sprites != "" || len(st.Warnings) != 1 || !strings.Contains(st.Warnings[0], "não é um diretório absoluto que exista") {
 			t.Fatalf("%q: %+v", bad, st)
 		}
 	}

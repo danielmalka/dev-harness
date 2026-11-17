@@ -30,8 +30,7 @@ func TestBuildNoBinariesCreatesValidatedPackage(t *testing.T) {
 		"agents/alpha.md",
 		"skills/sample/SKILL.md",
 		"commands/run.md",
-		"templates/en/TASK.md",
-		"templates/pt-br/TASK.md",
+		"templates/TASK.md",
 		"profiles/base.yaml",
 		"settings.json",
 		"hooks/hooks.json",
@@ -65,7 +64,7 @@ func TestBuildNoBinariesCreatesValidatedPackage(t *testing.T) {
 	if binaries, ok := data["binaries"].([]any); !ok || len(binaries) != 0 {
 		t.Fatalf("binaries = %v, want empty array", data["binaries"])
 	}
-	if !strings.Contains(log.String(), "binaries     0") {
+	if !strings.Contains(log.String(), "binários      0") {
 		t.Fatalf("build summary missing binary count: %s", log.String())
 	}
 }
@@ -195,7 +194,7 @@ func minimalRoot(t *testing.T) string {
 	root := t.TempDir()
 	for _, path := range []string{
 		".agents", ".commands", ".skills/sample", "profiles",
-		"templates/en", "templates/pt-br", "adapters/claude-code/plugin/hooks",
+		"templates", "adapters/claude-code/plugin/hooks",
 		"adapters/claude-code/plugin/bin",
 	} {
 		if err := os.MkdirAll(filepath.Join(root, path), 0o755); err != nil {
@@ -206,8 +205,7 @@ func minimalRoot(t *testing.T) string {
 	writeBuildFixture(t, root, ".commands/run.md", "---\nname: run\ndescription: Run test\nauthor: test\nargument-hint: \"\"\nmetadata:\n  roles: [alpha]\n  skills: [sample]\n  writes: none\n---\ncommand\n", 0o644)
 	writeBuildFixture(t, root, ".skills/sample/SKILL.md", "---\nname: sample\ndescription: Use when testing\nauthor: test\nmetadata:\n  provenance: test\n---\nskill\n", 0o644)
 	writeBuildFixture(t, root, "profiles/base.yaml", "id: base\n", 0o644)
-	writeBuildFixture(t, root, "templates/en/TASK.md", "# Task\n", 0o644)
-	writeBuildFixture(t, root, "templates/pt-br/TASK.md", "# Task\n", 0o644)
+	writeBuildFixture(t, root, "templates/TASK.md", "# Task\n", 0o644)
 	writeBuildFixture(t, root, "adapters/claude-code/plugin/settings.json", "{}\n", 0o644)
 	writeBuildFixture(t, root, "adapters/claude-code/plugin/hooks/hooks.json", "{}\n", 0o644)
 	writeBuildFixture(t, root, "adapters/claude-code/plugin/bin/dh", "#!/bin/sh\n", 0o755)

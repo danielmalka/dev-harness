@@ -144,7 +144,7 @@ const asks: [string, string][] = [
   ['gh repo fork o/r -c', 'o/r'], ['gh repo fork o/r --clone=1', 'o/r'], ['gh repo fork o/r --clone=t', 'o/r'],
   ['git clone {git@github.com:o/r,}', 'o/r'], ['git -c remote.x.url=git@h:o/r fetch x', 'o/r'],
   // fix-r5 J1: an empty repository name still asks; J2: remote add / archive --remote; J3: autocorrect hides the verb
-  ['git clone git@host:.git', 'a remote repository'], ['git remote add -f o https://host/a/b', 'a/b'],
+  ['git clone git@host:.git', 'um repositório remoto'], ['git remote add -f o https://host/a/b', 'a/b'],
   ['git archive --remote=ssh://host/a/b HEAD', 'a/b'], ['git -c help.autocorrect=1 clon https://host/a/b', 'a/b'],
   ['git fetch origin main:main', 'main'], ['git pull origin host:x', 'x'], ['git clone ./local host:d', 'd'],
 ]

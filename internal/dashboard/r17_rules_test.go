@@ -132,8 +132,8 @@ func TestR12_DocsFieldAdditive(t *testing.T) {
 
 func TestR4_PdocsSkeletonsAndModels(t *testing.T) {
 	var tags []string
-	for _, lang := range []string{"pt-br", "en"} {
-		files := []string{skill + "assets/skeletons/" + lang + "/projeto.html", skill + "assets/projeto-modelo." + lang + ".html"}
+	{
+		files := []string{skill + "assets/skeletons/projeto.html", skill + "assets/projeto-modelo.html"}
 		for i, f := range files {
 			s := readF(t, f)
 			var got []string
@@ -155,8 +155,8 @@ func TestR4_PdocsSkeletonsAndModels(t *testing.T) {
 			}
 		}
 	}
-	if len(tags) != 2 || tags[0] != tags[1] || !mermaidTag.MatchString(tags[0]) {
-		t.Errorf("model script tags differ: %q", tags)
+	if len(tags) != 1 || !mermaidTag.MatchString(tags[0]) {
+		t.Errorf("model script tags: %q", tags)
 	}
 }
 
@@ -166,7 +166,7 @@ func TestR7_MermaidPinnedOnceAndFallback(t *testing.T) {
 	if len(pin) != 1 {
 		t.Fatalf("stamp.sh pins: %v", pin)
 	}
-	for _, f := range []string{"projeto-modelo.pt-br.html", "projeto-modelo.en.html"} {
+	for _, f := range []string{"projeto-modelo.html"} {
 		if !strings.Contains(readF(t, skill+"assets/"+f), pin[0]) {
 			t.Errorf("%s lacks %s", f, pin[0])
 		}

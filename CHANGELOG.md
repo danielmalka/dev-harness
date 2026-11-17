@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.42.0 — 2026-11-17
+
+- **O dev-harness é só pt-BR (ADR-011, fatia S1 de 5)**: o `/dh:setup` não pergunta mais o idioma e a opção deixou de existir: `dh config set language` responde `chave desconhecida`, e uma linha `language` antiga, no `project.yaml` ou no `config.yaml`, é lida e ignorada (nunca reescrita), com aviso no `dh doctor`. **Quem tinha `en` passa a ver o kit em pt-BR**, e os registros antigos em inglês (`MEMORY.md`, `EPOCHAL.md`, `RISKS.md`, tickets, ADR e PRD, com `Done on` e `delivered on`) continuam lidos. Commits e comentários de código seguem o idioma que o projeto define (`AGENTS.md`, `CLAUDE.md`, `README.md` ou a chave opcional `conventions.code_language` do `project.yaml`, validada pelo `dh doctor`), inglês se nenhum definir. `templates/` agora é uma pasta só, sem subpasta de idioma, com o PRD e o `REVIEW.md` traduzidos.
+  - **Código**: `language` sai de `ConfigKeys`, do `Config`, do `config_save` e do `dh config` (texto e JSON; `dh harness-path --json` perde `defaults.language`). Chave nova opcional `conventions.code_language` (`en` ou `pt-br`). O `dh validate` passa a ler `templates/` sem subpasta e reprova a volta de `templates/en/` ou `templates/pt-br/`; aceita `description` de skill com "Use quando" ou "Use when" (transição até a 0.44.0) e ainda confere citações antigas `templates/<lang>/`; o `roadmap_check` e o `doc_counts` leem só `docs/roadmap.html` e os arquivos em pt-BR (o espelho em inglês deixa de ser conferido). `dh build` copia `templates/`.
+  - **Mensagens**: todas as mensagens do `dh` (erros, avisos, uso, achados do `validate`, `doctor`, `dashboard`, `build`, `memory`) saem em pt-BR; os tokens que as skills documentam (`absent`, `written <hash>`, `mode:`, `dir:`) ficam como estavam. Os mods têm uma mensagem só, em pt-BR (`gate`, `gh-guard`, `warn`, `runtime-guard`, deriva de status); `parseLanguage` saiu.
+  - **`doc-template-html`**: sem `--lang`, sem os esqueletos em inglês e sem `projeto-modelo.en.html`; `skeletons/` e `projeto-modelo.html` são os de pt-BR.
+  - **Docs**: ADR-011 (a decisão, as consequências e as alternativas recusadas), `AGENTS.md` com a regra de idioma nova, `README.md`, tutorial, tutorial de templates e `novo-fluxo-prd.md`. O roadmap deixa de ter espelho em inglês. O resto da migração vem nas fatias seguintes: skills (0.43.0), agentes, comandos e perfis (0.44.0), docs e remoção de `docs/en/` e `README.en.md` (0.45.0), trava contra o inglês voltar (0.46.0); o histórico em inglês é traduzido em quatro lotes dentro delas.
+- Sem comando, agente ou skill novo. Comandos: 20 + 1. Agentes: 13. Skills: 22. Templates: 8.
+
 ## 0.41.0 — 2026-11-16
 
 - **Trava de hash no `MEMORY.md` e o comando `/dh:dream` (PRD-034)**: duas ideias de uma palestra sobre memória de agentes, aprovadas pelo dono.

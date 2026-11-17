@@ -131,14 +131,14 @@ func projectProgress(name, repoPath, harnessDir string, pc *progressCache) Progr
 	var warns []string
 	tasks, _ := filepath.Glob(filepath.Join(harnessDir, "tasks", "*", "TASK.md"))
 	if len(tasks) > MaxTicketsPerProj {
-		warns = append(warns, fmt.Sprintf("%s: more than %d tickets: counting the first %d.", name, MaxTicketsPerProj, MaxTicketsPerProj))
+		warns = append(warns, fmt.Sprintf("%s: mais de %d tickets: contando os %d primeiros.", name, MaxTicketsPerProj, MaxTicketsPerProj))
 		tasks = tasks[:MaxTicketsPerProj]
 	}
 	for _, f := range tasks {
 		t, err := readParsed(pc, f, parseTicket)
 		if err != nil {
 			if skipped(err) {
-				warns = append(warns, fmt.Sprintf("%s: skipped %s (not a regular file or over 1 MiB).", name, filepath.Base(filepath.Dir(f))))
+				warns = append(warns, fmt.Sprintf("%s: %s ignorado (não é arquivo comum ou passa de 1 MiB).", name, filepath.Base(filepath.Dir(f))))
 			}
 			continue
 		}
@@ -168,14 +168,14 @@ func projectProgress(name, repoPath, harnessDir string, pc *progressCache) Progr
 		files, _ := filepath.Glob(pat)
 		files = slices.DeleteFunc(files, func(f string) bool { return strings.HasSuffix(f, ".review.md") }) // before the cap
 		if len(files) > MaxTicketsPerProj {
-			warns = append(warns, fmt.Sprintf("%s: more than %d PRD files: reading the first %d.", name, MaxTicketsPerProj, MaxTicketsPerProj))
+			warns = append(warns, fmt.Sprintf("%s: mais de %d arquivos de PRD: lendo os %d primeiros.", name, MaxTicketsPerProj, MaxTicketsPerProj))
 			files = files[:MaxTicketsPerProj]
 		}
 		for _, f := range files {
 			id := prdFile().FindString(filepath.Base(f))
 			pf, err := readParsed(pc, f, parsePRD)
 			if skipped(err) {
-				warns = append(warns, fmt.Sprintf("%s: skipped %s (not a regular file or over 1 MiB).", name, filepath.Base(f)))
+				warns = append(warns, fmt.Sprintf("%s: %s ignorado (não é arquivo comum ou passa de 1 MiB).", name, filepath.Base(f)))
 			}
 			if id == "" || err != nil {
 				continue

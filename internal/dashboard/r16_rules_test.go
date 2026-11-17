@@ -22,11 +22,20 @@ func readF(t *testing.T, p string) string {
 	return string(b)
 }
 
+// templatePath is the real pt-BR template (templates/ has no language folder since 0.42.0) or the English copy kept as testdata to keep reading old English records.
+func templatePath(lang, name string) string {
+	if lang == "en" {
+		return "testdata/legacy-en/" + name
+	}
+	return "../../templates/" + name
+}
+
 func TestR1_TemplatesAndStatusVocabulary(t *testing.T) {
 	TestStatusCasesFixture(t)
 	TestStatusCasesTSCopyMatches(t)
+	// "pt-br" reads the real template; "en" reads the template copy kept as testdata (the kit is pt-BR only since 0.42.0, but old projects still have English tickets).
 	for lang, p := range map[string][2]string{"pt-br": {"Criado / atualizado", "Concluído em"}, "en": {"Created / updated", "Done on"}} {
-		md := readF(t, "../../templates/"+lang+"/TASK.md")
+		md := readF(t, templatePath(lang, "TASK.md"))
 		lines := strings.Split(md, "\n")
 		found := false
 		for i, l := range lines {
@@ -76,7 +85,7 @@ func TestR3_AdditiveStateContract(t *testing.T) {
 
 func TestR3b_IncidentsRealTemplates(t *testing.T) {
 	for _, lang := range []string{"pt-br", "en"} {
-		if n := countIncidents(readF(t, "../../templates/"+lang+"/RISKS.md")); n != 0 {
+		if n := countIncidents(readF(t, templatePath(lang, "RISKS.md"))); n != 0 {
 			t.Errorf("%s template: %d", lang, n)
 		}
 	}
@@ -86,7 +95,7 @@ func TestR3b_IncidentsRealTemplates(t *testing.T) {
 func TestR3c_EpochalRealTemplates(t *testing.T) {
 	for _, lang := range []string{"pt-br", "en"} {
 		h := t.TempDir()
-		mk(t, filepath.Join(h, "EPOCHAL.md"), readF(t, "../../templates/"+lang+"/EPOCHAL.md"))
+		mk(t, filepath.Join(h, "EPOCHAL.md"), readF(t, templatePath(lang, "EPOCHAL.md")))
 		e, err := scanEpochal(filepath.Join(h, "EPOCHAL.md"))
 		if err != nil || *e.Batches != 0 || e.LastAt != nil {
 			t.Errorf("%s: %+v %v", lang, e, err)

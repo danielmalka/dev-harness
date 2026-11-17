@@ -50,7 +50,7 @@ func sub(name string) string {
 func EnsureHome() (string, error) {
 	home := Home()
 	if home == "" {
-		return "", errors.New("cannot determine the harness home: set DH_HOME, HOME or USERPROFILE")
+		return "", errors.New("não foi possível determinar a pasta do harness: defina DH_HOME, HOME ou USERPROFILE")
 	}
 	if r, err := filepath.EvalSymlinks(home); err == nil && r != home { // <home> itself may be a symlink
 		if err := tighten(r, dirPerm); err != nil {

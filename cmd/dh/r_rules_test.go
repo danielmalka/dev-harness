@@ -84,7 +84,7 @@ func TestR4_RelinkStaleRefuseLive(t *testing.T) {
 	if code, _, _ := dh(t, "link", a); code != 0 {
 		t.Fatal("first link")
 	}
-	if code, _, e := dh(t, "link", b); code != 1 || !strings.Contains(e, "explicit name") {
+	if code, _, e := dh(t, "link", b); code != 1 || !strings.Contains(e, "nome explícito") {
 		t.Errorf("live path must refuse: %d %q", code, e)
 	}
 	if code, _, _ := dh(t, "link", "repo-b", b); code != 0 {

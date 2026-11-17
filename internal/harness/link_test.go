@@ -73,7 +73,7 @@ func TestLinkNameCollision(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err := Link(home, b, "", false)
-	if err == nil || !strings.Contains(err.Error(), "explicit name") {
+	if err == nil || !strings.Contains(err.Error(), "nome explícito") {
 		t.Fatalf("want refusal, got %v", err)
 	}
 	if r, err := Link(home, b, "app-b", false); err != nil || r.Mode != "global" {
@@ -146,7 +146,7 @@ func TestLinkNonNotExistStatErrorRefuses(t *testing.T) {
 	c, _ := LoadConfig(home)
 	c.Projects[filepath.Join(file, "sub")] = "repo"
 	SaveConfig(home, c)
-	if _, err := Link(home, repo, "", false); err == nil || !strings.Contains(err.Error(), "explicit name") {
+	if _, err := Link(home, repo, "", false); err == nil || !strings.Contains(err.Error(), "nome explícito") {
 		t.Fatalf("want refusal, got %v", err)
 	}
 }
@@ -233,7 +233,7 @@ func TestLockStaleAndTimeout(t *testing.T) {
 	os.WriteFile(path, nil, 0o600) // fresh, held
 	defer func(w time.Duration) { lockWait = w }(lockWait)
 	lockWait = 200 * time.Millisecond
-	if _, err := lock(home); err == nil || !strings.Contains(err.Error(), "timed out") {
+	if _, err := lock(home); err == nil || !strings.Contains(err.Error(), "tempo esgotado") {
 		t.Fatalf("want timeout, got %v", err)
 	}
 }

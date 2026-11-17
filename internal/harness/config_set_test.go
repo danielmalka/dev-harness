@@ -21,17 +21,17 @@ func cfgHome(t *testing.T, body string) (string, string) {
 func TestSetConfigValue(t *testing.T) {
 	dir := t.TempDir()
 	home, p := cfgHome(t, cfgBody)
-	for _, c := range []struct{ k, v string }{{"language", "pt-br"}, {"mode", "global"}, {"dashboard.sprites", dir}} {
+	for _, c := range []struct{ k, v string }{{"mode", "global"}, {"dashboard.sprites", dir}} {
 		if err := SetConfigValue(home, c.k, c.v, false); err != nil {
 			t.Fatalf("%s: %v", c.k, err)
 		}
 	}
 	got, _ := LoadConfig(home)
-	if got.Language != "pt-br" || got.Mode != "global" || got.Sprites != dir || got.Projects["/a"] != "a" {
+	if got.Mode != "global" || got.Sprites != dir || got.Projects["/a"] != "a" {
 		t.Fatalf("%+v", got)
 	}
 	b, _ := os.ReadFile(p)
-	if !strings.Contains(string(b), "# mine\n") || !strings.Contains(string(b), "reviewers:\n  code: [claude]\n") {
+	if !strings.Contains(string(b), "# mine\nlanguage: en\n") || !strings.Contains(string(b), "reviewers:\n  code: [claude]\n") {
 		t.Errorf("unmodeled lines lost:\n%s", b)
 	}
 	// "~/" is stored as typed
@@ -48,12 +48,12 @@ func TestSetConfigValue(t *testing.T) {
 func TestSetConfigValueRefusedLeavesFileIntact(t *testing.T) {
 	home, p := cfgHome(t, cfgBody)
 	for _, c := range []struct{ k, v, msg string }{
-		{"language", "fr", "invalid language"}, {"mode", "foo", "invalid mode"},
-		{"dashboard.sprites", "relativo", "not an absolute"}, {"dashboard.sprites", "/no/such/dir", "not an absolute"},
-		{"reviewers", "x", "by hand"}, {"projects", "x", "dh link"}, {"nope", "x", "unknown key"},
+		{"language", "fr", "chave desconhecida"}, {"mode", "foo", "mode inválido"},
+		{"dashboard.sprites", "relativo", "não é um diretório absoluto"}, {"dashboard.sprites", "/no/such/dir", "não é um diretório absoluto"},
+		{"reviewers", "x", "à mão"}, {"projects", "x", "dh link"}, {"nope", "x", "chave desconhecida"},
 	} {
 		for _, unset := range []bool{false, true} {
-			if unset && c.k != "reviewers" && c.k != "projects" && c.k != "nope" {
+			if unset && c.k != "reviewers" && c.k != "projects" && c.k != "nope" && c.k != "language" {
 				continue
 			}
 			err := SetConfigValue(home, c.k, c.v, unset)
@@ -68,7 +68,7 @@ func TestSetConfigValueRefusedLeavesFileIntact(t *testing.T) {
 	// an invalid existing file is an error, never overwritten
 	bad := "mode: nope\n"
 	os.WriteFile(p, []byte(bad), 0o600)
-	if err := SetConfigValue(home, "language", "en", false); err == nil {
+	if err := SetConfigValue(home, "worktree", "always", false); err == nil {
 		t.Error("want error")
 	}
 	if b, _ := os.ReadFile(p); string(b) != bad {
@@ -83,14 +83,41 @@ func TestUnsetAndCreate(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if c, _ := LoadConfig(home); c.Language != "" || c.Mode != "" || c.Sprites != "" || c.Projects["/a"] != "a" {
+	if c, _ := LoadConfig(home); c.Mode != "" || c.Sprites != "" || c.Projects["/a"] != "a" {
 		t.Errorf("%+v", c)
 	}
 	home, _ = cfgHome(t, "") // no config.yaml yet
-	if err := SetConfigValue(home, "language", "en", false); err != nil {
+	if err := SetConfigValue(home, "mode", "repo", false); err != nil {
 		t.Fatal(err)
 	}
-	if c, _ := LoadConfig(home); c.Language != "en" {
+	if c, _ := LoadConfig(home); c.Mode != "repo" {
 		t.Errorf("%+v", c)
+	}
+}
+
+// ADR-011: `language` no longer exists. `dh config set|unset language <anything>` takes the same path as ANY unknown key: same message (only the key name changes),
+// no special message, and the file is untouched.
+func TestLanguageIsUnknownKeyLikeAnyOtherNonexistentKey(t *testing.T) {
+	home, p := cfgHome(t, cfgBody)
+	for _, value := range []string{"en", "pt-br", "fr", ""} {
+		for _, unset := range []bool{false, true} {
+			errLang := SetConfigValue(home, "language", value, unset)
+			errFoo := SetConfigValue(home, "foo", value, unset)
+			if errLang == nil || errFoo == nil {
+				t.Fatalf("language=%q unset=%v: erros %v / %v", value, unset, errLang, errFoo)
+			}
+			if got, want := strings.Replace(errLang.Error(), `"language"`, `"foo"`, 1), errFoo.Error(); got != want {
+				t.Errorf("language=%q unset=%v: a mensagem difere de uma chave qualquer:\n  %s\n  %s", value, unset, got, want)
+			}
+		}
+	}
+	if err := SetConfigValue(home, "language", "en", false); err == nil || err.Error() != `chave desconhecida "language" (mode, dashboard.sprites, worktree)` {
+		t.Errorf("mensagem: %v", err)
+	}
+	if strings.Contains(strings.Join(ConfigKeys, ","), "language") {
+		t.Errorf("ConfigKeys ainda lista language: %v", ConfigKeys)
+	}
+	if b, _ := os.ReadFile(p); string(b) != cfgBody {
+		t.Errorf("o arquivo mudou:\n%s", b)
 	}
 }

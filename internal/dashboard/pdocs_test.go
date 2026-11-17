@@ -114,7 +114,7 @@ func TestPdocsStateDocsField(t *testing.T) {
 	if m := docs(); m["alpha"] {
 		t.Error("oversized should be false")
 	}
-	if st, _ := getState(t, cfg); !strings.Contains(strings.Join(st.Warnings, "|"), "alpha: pdocs/index.html is over 8 MiB") {
+	if st, _ := getState(t, cfg); !strings.Contains(strings.Join(st.Warnings, "|"), "alpha: pdocs/index.html passa de 8 MiB") {
 		t.Errorf("no warning: %v", st.Warnings)
 	}
 	os.Remove(idx)
@@ -122,7 +122,7 @@ func TestPdocsStateDocsField(t *testing.T) {
 		if m := docs(); m["alpha"] {
 			t.Error("symlink should be false")
 		}
-		if st, _ := getState(t, cfg); !strings.Contains(strings.Join(st.Warnings, "|"), "alpha: pdocs/index.html is a symlink") {
+		if st, _ := getState(t, cfg); !strings.Contains(strings.Join(st.Warnings, "|"), "alpha: pdocs/index.html é um symlink") {
 			t.Errorf("no symlink warning: %v", st.Warnings)
 		}
 	}

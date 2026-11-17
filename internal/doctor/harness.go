@@ -13,34 +13,34 @@ import (
 	"github.com/danielmalka/dev-harness/internal/harness"
 )
 
-// printHarness reports the resolved harness for the current directory (PRD-014 R14, R9, R6).
-// Read-only: ~/.claude/settings.json is only ever read.
-func printHarness(out io.Writer) {
+// printHarness reports the resolved harness for the current directory (PRD-014 R14, R9, R6) and returns how many problems fail the diagnosis
+// (today, only an invalid `conventions.code_language`). Read-only: ~/.claude/settings.json is only ever read.
+func printHarness(out io.Writer) int {
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintln(out, "harness: unavailable")
-		return
+		fmt.Fprintln(out, "harness: indisponível")
+		return 0
 	}
 	var settings string
 	if h, err := os.UserHomeDir(); err == nil {
 		settings = filepath.Join(h, ".claude", "settings.json")
 	}
-	printHarnessFor(out, cwd, harness.Home(), settings)
+	return printHarnessFor(out, cwd, harness.Home(), settings)
 }
 
-func printHarnessFor(out io.Writer, cwd, home, settings string) {
+func printHarnessFor(out io.Writer, cwd, home, settings string) int {
 	repo := absolutePath(cwd)
 	if r, err := filepath.EvalSymlinks(repo); err == nil {
 		repo = r
 	}
 	cfg, cfgErr := harness.LoadConfig(home)
 	if cfgErr != nil {
-		fmt.Fprintf(out, "warning: %v\n", cfgErr)
+		fmt.Fprintf(out, "aviso: %v\n", cfgErr)
 	}
 	res := harness.Resolve(repo, cfg)
 	if home == "" {
-		fmt.Fprintln(out, "home: unknown")
-		fmt.Fprintln(out, "hint: cannot determine the harness home: set DH_HOME, HOME or USERPROFILE")
+		fmt.Fprintln(out, "home: desconhecido")
+		fmt.Fprintln(out, "dica: não foi possível determinar a pasta do harness: defina DH_HOME, HOME ou USERPROFILE")
 	} else {
 		fmt.Fprintf(out, "home: %s\n", home)
 	}
@@ -48,38 +48,70 @@ func printHarnessFor(out io.Writer, cwd, home, settings string) {
 	if res.Mode != "none" {
 		fmt.Fprintf(out, "dir: %s\n", res.Dir)
 		for _, name := range []string{"project.yaml", "MEMORY.md", "EPOCHAL.md", "RISKS.md"} {
-			state := "missing"
+			state := "ausente"
 			if isFile(filepath.Join(res.Dir, name)) {
-				state = "present"
+				state = "presente"
 			}
 			fmt.Fprintf(out, "%s: %s\n", name, state)
-			if name == "MEMORY.md" && state == "present" {
+			if name == "MEMORY.md" && state == "presente" {
 				printMemorySize(out, filepath.Join(res.Dir, name))
 			}
 		}
 	}
+	problems := printLegacyAndConventions(out, home, res)
 	name, registered := cfg.Projects[repo]
 	if res.Mode == "repo" {
 		if registered && harness.IsHarness(filepath.Join(home, "projects", name)) {
-			fmt.Fprintf(out, "warning: both %s and %s exist: the internal one wins\n",
+			fmt.Fprintf(out, "aviso: %s e %s existem os dois: vale o interno\n",
 				res.Dir, filepath.Join(home, "projects", name))
 		}
 		if !registered {
-			fmt.Fprintf(out, "warning: %s is not registered in %s: not shown in the dashboard until dh link\n",
+			fmt.Fprintf(out, "aviso: %s não está registrado em %s: não aparece no dashboard até o dh link\n",
 				repo, filepath.Join(home, "config.yaml"))
 		}
 		if isFile(filepath.Join(res.Dir, "local.yaml")) && notIgnored(repo, ".harness/local.yaml") {
-			fmt.Fprintln(out, "warning: .harness/local.yaml is not ignored by git")
+			fmt.Fprintln(out, "aviso: .harness/local.yaml não está ignorado pelo git")
 		}
 	}
 	if res.Mode == "none" {
-		fmt.Fprintln(out, "hint: no harness for this directory: run /dh:setup (or dh link)")
+		fmt.Fprintln(out, "dica: não há harness para este diretório: rode /dh:setup (ou dh link)")
 	}
 	if home != "" && !within(repo, home) {
 		if msg := settingsHint(settings, home); msg != "" {
 			fmt.Fprintln(out, msg)
 		}
 	}
+	return problems
+}
+
+// printLegacyAndConventions warns about the legacy `language:` line (config.yaml in home and project.yaml in the harness dir: read, ignored, never rewritten, exit unchanged)
+// and fails an invalid `conventions.code_language`. It returns how many problems fail.
+func printLegacyAndConventions(out io.Writer, home string, res harness.Resolved) int {
+	legacyHint := func(file string) {
+		fmt.Fprintf(out, "aviso: `language` não existe mais e é ignorada (o kit é só pt-BR); pode apagar a linha de %s\n", file)
+	}
+	if home != "" {
+		path := filepath.Join(home, "config.yaml")
+		if data, err := os.ReadFile(path); err == nil && harness.HasLegacyLanguage(string(data)) {
+			legacyHint(path)
+		}
+	}
+	if res.Dir == "" {
+		return 0
+	}
+	path := filepath.Join(res.Dir, "project.yaml")
+	check, err := harness.ReadProjectCheck(path)
+	if err != nil {
+		fmt.Fprintf(out, "aviso: não foi possível ler %s: %v\n", path, err)
+		return 0
+	}
+	if check.LegacyLanguage {
+		legacyHint(path)
+	}
+	for _, problem := range check.Problems {
+		fmt.Fprintf(out, "erro: %s em %s\n", problem, path)
+	}
+	return len(check.Problems)
 }
 
 // memoryBudget is the MEMORY.md file budget in bytes (PRD-032 R7, R8).
@@ -88,12 +120,12 @@ const memoryBudget = 40000
 func printMemorySize(out io.Writer, path string) {
 	fi, err := os.Stat(path)
 	if err != nil {
-		fmt.Fprintf(out, "warning: cannot read MEMORY.md size: %v\n", err)
+		fmt.Fprintf(out, "aviso: não foi possível ler o tamanho do MEMORY.md: %v\n", err)
 		return
 	}
-	fmt.Fprintf(out, "MEMORY.md size: %d bytes\n", fi.Size())
+	fmt.Fprintf(out, "tamanho do MEMORY.md: %d bytes\n", fi.Size())
 	if fi.Size() > memoryBudget {
-		fmt.Fprintf(out, "warning: MEMORY.md has %d bytes, over the %d budget: run /dh:consolidate-memory\n", fi.Size(), memoryBudget)
+		fmt.Fprintf(out, "aviso: o MEMORY.md tem %d bytes, acima do orçamento de %d: rode /dh:consolidate-memory\n", fi.Size(), memoryBudget)
 	}
 }
 
@@ -121,9 +153,9 @@ func settingsHint(settings, home string) string {
 		suggest = home // custom DH_HOME
 	}
 	hint := func(why string) string {
-		return fmt.Sprintf("hint: ~/.claude/settings.json %s covering %s; add %q (dh never writes that file)", why, home, suggest)
+		return fmt.Sprintf("dica: ~/.claude/settings.json %s que cubra %s; acrescente %q (o dh nunca escreve esse arquivo)", why, home, suggest)
 	}
-	missing := hint("has no permissions.additionalDirectories entry")
+	missing := hint("não tem entrada em permissions.additionalDirectories")
 	data, err := os.ReadFile(settings)
 	if err != nil {
 		return missing
@@ -134,7 +166,7 @@ func settingsHint(settings, home string) string {
 		} `json:"permissions"`
 	}
 	if err := json.Unmarshal(data, &doc); err != nil {
-		return hint("could not be parsed, so no permissions.additionalDirectories entry was found")
+		return hint("não pôde ser lido, então não se achou entrada em permissions.additionalDirectories")
 	}
 	userHome, _ := os.UserHomeDir()
 	for _, e := range doc.Permissions.AdditionalDirectories {

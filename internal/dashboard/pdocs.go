@@ -58,11 +58,11 @@ func docsFlag(home, name string) (bool, string) {
 	case err != nil:
 		return false, ""
 	case fi.Mode()&os.ModeSymlink != 0:
-		return false, fmt.Sprintf("%s: pdocs/index.html is a symlink: no documentation link.", name)
+		return false, fmt.Sprintf("%s: pdocs/index.html é um symlink: sem link de documentação.", name)
 	case !fi.Mode().IsRegular():
-		return false, fmt.Sprintf("%s: pdocs/index.html is not a regular file: no documentation link.", name)
+		return false, fmt.Sprintf("%s: pdocs/index.html não é um arquivo comum: sem link de documentação.", name)
 	case fi.Size() > pdocsCap:
-		return false, fmt.Sprintf("%s: pdocs/index.html is over 8 MiB: no documentation link.", name)
+		return false, fmt.Sprintf("%s: pdocs/index.html passa de 8 MiB: sem link de documentação.", name)
 	}
 	return true, ""
 }

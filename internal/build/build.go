@@ -19,7 +19,7 @@ import (
 	"github.com/danielmalka/dev-harness/internal/kit"
 )
 
-const defaultVersion = "0.41.0"
+const defaultVersion = "0.42.0"
 
 type Target struct {
 	OS   string
@@ -108,7 +108,7 @@ func Build(root string, options Options, out io.Writer) error {
 		return err
 	}
 	if !sourceReport.Passed() {
-		return fmt.Errorf("source validation failed: %s", strings.Join(sourceReport.Errors, "; "))
+		return fmt.Errorf("a validação das fontes falhou: %s", strings.Join(sourceReport.Errors, "; "))
 	}
 
 	parent := filepath.Dir(options.Output)
@@ -221,15 +221,15 @@ func Build(root string, options Options, out io.Writer) error {
 		{source: "profiles", destination: "profiles"},
 	} {
 		if err := compareTrees(filepath.Join(root, pair.source), filepath.Join(pkg, pair.destination)); err != nil {
-			return fmt.Errorf("copy mismatch: %s -> %s: %w", pair.source, pair.destination, err)
+			return fmt.Errorf("cópia divergente: %s -> %s: %w", pair.source, pair.destination, err)
 		}
 	}
 	if err := compareCopiedTree(pluginSource, pkg); err != nil {
-		return fmt.Errorf("copy mismatch: adapters/claude-code/plugin -> package: %w", err)
+		return fmt.Errorf("cópia divergente: adapters/claude-code/plugin -> pacote: %w", err)
 	}
 	if isDir(evalsSource) {
 		if err := compareTreesSkipping(evalsSource, filepath.Join(pkg, "evals"), evalsSkip); err != nil {
-			return fmt.Errorf("copy mismatch: evals -> evals: %w", err)
+			return fmt.Errorf("cópia divergente: evals -> evals: %w", err)
 		}
 	}
 
@@ -238,7 +238,7 @@ func Build(root string, options Options, out io.Writer) error {
 		return err
 	}
 	if !packageReport.Passed() {
-		return fmt.Errorf("package validation failed: %s", strings.Join(packageReport.Errors, "; "))
+		return fmt.Errorf("a validação do pacote falhou: %s", strings.Join(packageReport.Errors, "; "))
 	}
 
 	if options.UpdateRootManifest {
@@ -253,14 +253,14 @@ func Build(root string, options Options, out io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "manifest     version %s\n", version)
-	fmt.Fprintf(out, "agents       %d files\n", len(manifestData.Inventory.Agents))
-	fmt.Fprintf(out, "commands     %d files\n", len(manifestData.Inventory.Commands))
-	fmt.Fprintf(out, "skills       %d files\n", len(manifestData.Inventory.Skills))
-	fmt.Fprintf(out, "profiles     %d files\n", len(manifestData.Inventory.Profiles))
-	fmt.Fprintf(out, "templates    %d files\n", len(manifestData.Inventory.Templates))
-	fmt.Fprintf(out, "binaries     %d\n", len(manifestData.Binaries))
-	fmt.Fprintf(out, "wrote        %s\n", options.Output)
+	fmt.Fprintf(out, "manifesto     versão %s\n", version)
+	fmt.Fprintf(out, "agentes       %d arquivos\n", len(manifestData.Inventory.Agents))
+	fmt.Fprintf(out, "comandos      %d arquivos\n", len(manifestData.Inventory.Commands))
+	fmt.Fprintf(out, "skills        %d arquivos\n", len(manifestData.Inventory.Skills))
+	fmt.Fprintf(out, "perfis        %d arquivos\n", len(manifestData.Inventory.Profiles))
+	fmt.Fprintf(out, "templates     %d arquivos\n", len(manifestData.Inventory.Templates))
+	fmt.Fprintf(out, "binários      %d\n", len(manifestData.Binaries))
+	fmt.Fprintf(out, "gravado       %s\n", options.Output)
 	return nil
 }
 
@@ -268,17 +268,17 @@ func validateTargets(targets []Target) error {
 	seen := make(map[string]bool, len(targets))
 	for _, target := range targets {
 		if target.OS != "linux" && target.OS != "darwin" && target.OS != "windows" {
-			return fmt.Errorf("unsupported target OS: %s", target.OS)
+			return fmt.Errorf("sistema operacional do alvo não suportado: %s", target.OS)
 		}
 		if target.Arch != "amd64" && target.Arch != "arm64" {
-			return fmt.Errorf("unsupported target architecture: %s", target.Arch)
+			return fmt.Errorf("arquitetura do alvo não suportada: %s", target.Arch)
 		}
 		if target.OS == "windows" && target.Arch != "amd64" {
-			return fmt.Errorf("unsupported Windows target: %s/%s", target.OS, target.Arch)
+			return fmt.Errorf("alvo Windows não suportado: %s/%s", target.OS, target.Arch)
 		}
 		key := target.OS + "/" + target.Arch
 		if seen[key] {
-			return fmt.Errorf("duplicate target: %s", key)
+			return fmt.Errorf("alvo duplicado: %s", key)
 		}
 		seen[key] = true
 	}
@@ -306,7 +306,7 @@ func buildBinary(root, pkg string, target Target) error {
 	if err != nil {
 		message := strings.TrimSpace(string(outputBytes))
 		if errors.Is(err, exec.ErrNotFound) {
-			return errors.New("go is required to build binaries")
+			return errors.New("é preciso ter o go para gerar os binários")
 		}
 		if message != "" {
 			return fmt.Errorf("build %s/%s: %w: %s", target.OS, target.Arch, err, message)
@@ -435,7 +435,7 @@ func copyTreeSkipping(source, destination string, skip func(relative string, isD
 			return os.MkdirAll(target, info.Mode().Perm())
 		}
 		if entry.Type()&os.ModeSymlink != 0 {
-			return fmt.Errorf("symlink not supported: %s", path)
+			return fmt.Errorf("symlink não suportado: %s", path)
 		}
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -459,7 +459,7 @@ func compareTreesSkipping(source, destination string, skip func(relative string,
 	right := treeFilesSkipping(destination, skip)
 	for relative := range left {
 		if !right[relative] {
-			return fmt.Errorf("missing %s", relative)
+			return fmt.Errorf("ausente %s", relative)
 		}
 		leftData, err := os.ReadFile(filepath.Join(source, relative))
 		if err != nil {
@@ -470,12 +470,12 @@ func compareTreesSkipping(source, destination string, skip func(relative string,
 			return err
 		}
 		if string(leftData) != string(rightData) {
-			return fmt.Errorf("differs %s", relative)
+			return fmt.Errorf("difere %s", relative)
 		}
 	}
 	for relative := range right {
 		if !left[relative] {
-			return fmt.Errorf("extra %s", relative)
+			return fmt.Errorf("sobra %s", relative)
 		}
 	}
 	return nil
@@ -489,10 +489,10 @@ func compareCopiedTree(source, destination string) error {
 		}
 		rightData, err := os.ReadFile(filepath.Join(destination, relative))
 		if err != nil {
-			return fmt.Errorf("missing %s", relative)
+			return fmt.Errorf("ausente %s", relative)
 		}
 		if string(leftData) != string(rightData) {
-			return fmt.Errorf("differs %s", relative)
+			return fmt.Errorf("difere %s", relative)
 		}
 	}
 	return nil

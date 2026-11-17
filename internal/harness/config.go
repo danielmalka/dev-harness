@@ -11,9 +11,8 @@ import (
 	"sync"
 )
 
-// Config is the modeled part of <home>/config.yaml. Every other line is preserved on save.
+// Config is the modeled part of <home>/config.yaml. Every other line is preserved on save, including a legacy `language:` line (the option no longer exists: ADR-011).
 type Config struct {
-	Language     string
 	Mode         string            // default setup mode: "repo" or "global"
 	Sprites      string            // dashboard.sprites
 	Worktree     string            // "always" or "on-request"; not checked on load
@@ -35,7 +34,7 @@ type seg struct {
 }
 
 func cfgErr(line int, format string, a ...any) error {
-	return fmt.Errorf("config.yaml line %d: %s", line, fmt.Sprintf(format, a...))
+	return fmt.Errorf("config.yaml linha %d: %s", line, fmt.Sprintf(format, a...))
 }
 
 func eol(s string) string { return strings.TrimRight(s, "\r\n") }
@@ -61,19 +60,19 @@ func split(data string) ([]*seg, error) {
 		case isBlank(c):
 		case c[0] == ' ' || c[0] == '\t':
 			if strings.Contains(c[:len(c)-len(strings.TrimLeft(c, " \t"))], "\t") {
-				return nil, cfgErr(n, "tab indentation is not supported")
+				return nil, cfgErr(n, "indentação com tab não é suportada")
 			}
 			if cur == nil || cur.key == "" {
-				return nil, cfgErr(n, "indented line outside a block")
+				return nil, cfgErr(n, "linha indentada fora de um bloco")
 			}
 		default:
 			idx := strings.Index(c, ":")
 			if idx < 0 || !keyRe().MatchString(c[:idx]) {
-				return nil, cfgErr(n, "expected 'key:' at the top level")
+				return nil, cfgErr(n, "esperado 'chave:' no nível de topo")
 			}
 			key := c[:idx]
 			if seen[key] {
-				return nil, cfgErr(n, "duplicate key %q", key)
+				return nil, cfgErr(n, "chave duplicada %q", key)
 			}
 			seen[key] = true
 			cur = &seg{key: key, val: strings.TrimSpace(c[idx+1:]), line: n}
@@ -98,34 +97,34 @@ func scalar(s string, n int) (string, error) {
 	case '"':
 		end := closeDouble(s)
 		if end < 0 {
-			return "", cfgErr(n, "unterminated double quote")
+			return "", cfgErr(n, "aspas duplas sem fechar")
 		}
 		v, err := strconv.Unquote(s[:end+1])
 		if err != nil {
-			return "", cfgErr(n, "invalid double-quoted value")
+			return "", cfgErr(n, "valor entre aspas duplas inválido")
 		}
 		return v, restOK(s[end+1:], n)
 	case '\'':
 		end := strings.Index(s[1:], "'")
 		if end < 0 {
-			return "", cfgErr(n, "unterminated single quote")
+			return "", cfgErr(n, "aspas simples sem fechar")
 		}
 		return s[1 : end+1], restOK(s[end+2:], n)
 	case '{', '[', '|', '>', '&', '*', '!':
-		return "", cfgErr(n, "unsupported value syntax %q", s[:1])
+		return "", cfgErr(n, "sintaxe de valor não suportada %q", s[:1])
 	}
 	if i := strings.Index(s, " #"); i >= 0 {
 		s = strings.TrimSpace(s[:i])
 	}
 	if strings.Contains(s, ":") {
-		return "", cfgErr(n, "value contains ':' - put it in quotes")
+		return "", cfgErr(n, "o valor contém ':': ponha entre aspas")
 	}
 	return s, nil
 }
 
 func restOK(rest string, n int) error {
 	if !isBlank(rest) {
-		return cfgErr(n, "unexpected text after the quoted value")
+		return cfgErr(n, "texto inesperado depois do valor entre aspas")
 	}
 	return nil
 }
@@ -151,30 +150,30 @@ func entry(line string, n int) (path, name string, err error) {
 	case strings.HasPrefix(s, `"`):
 		end := closeDouble(s)
 		if end < 0 {
-			return "", "", cfgErr(n, "unterminated double quote")
+			return "", "", cfgErr(n, "aspas duplas sem fechar")
 		}
 		if path, err = strconv.Unquote(s[:end+1]); err != nil {
-			return "", "", cfgErr(n, "invalid double-quoted path")
+			return "", "", cfgErr(n, "caminho entre aspas duplas inválido")
 		}
 		rest = s[end+1:]
 	case strings.HasPrefix(s, "'"):
 		end := strings.Index(s[1:], "'")
 		if end < 0 {
-			return "", "", cfgErr(n, "unterminated single quote")
+			return "", "", cfgErr(n, "aspas simples sem fechar")
 		}
 		path, rest = s[1:end+1], s[end+2:]
 	default:
-		return "", "", cfgErr(n, "project paths must be quoted")
+		return "", "", cfgErr(n, "os caminhos de projeto devem estar entre aspas")
 	}
 	rest = strings.TrimLeft(rest, " ")
 	if !strings.HasPrefix(rest, ":") {
-		return "", "", cfgErr(n, "expected ':' after the project path")
+		return "", "", cfgErr(n, "esperado ':' depois do caminho do projeto")
 	}
 	if name, err = scalar(rest[1:], n); err != nil {
 		return "", "", err
 	}
 	if path == "" || name == "" {
-		return "", "", cfgErr(n, "project entry needs a path and a name")
+		return "", "", cfgErr(n, "a entrada de projeto precisa de caminho e nome")
 	}
 	return path, name, nil
 }
@@ -191,26 +190,23 @@ func parseConfig(data string) (Config, []*seg, error) {
 			continue
 		}
 		switch s.key {
-		case "language", "mode", "worktree":
+		case "mode", "worktree":
 			v, err := scalar(s.val, s.line)
 			if err != nil {
 				return c, nil, err
 			}
 			for i, l := range body {
 				if !isBlank(l) {
-					return c, nil, cfgErr(s.line+1+i, "%s takes a single value", s.key)
+					return c, nil, cfgErr(s.line+1+i, "%s aceita um valor só", s.key)
 				}
 			}
 			if s.key == "mode" && v != "" && v != "repo" && v != "global" {
-				return c, nil, cfgErr(s.line, "mode must be repo or global")
+				return c, nil, cfgErr(s.line, "mode deve ser repo ou global")
 			}
-			switch s.key {
-			case "mode":
+			if s.key == "mode" {
 				c.Mode = v
-			case "worktree":
+			} else {
 				c.Worktree = v
-			default:
-				c.Language = v
 			}
 		case "dashboard":
 			for i, l := range body {
@@ -219,7 +215,7 @@ func parseConfig(data string) (Config, []*seg, error) {
 					continue
 				}
 				if c.Sprites != "" {
-					return c, nil, cfgErr(s.line+1+i, "duplicate key \"sprites\"")
+					return c, nil, cfgErr(s.line+1+i, "chave duplicada \"sprites\"")
 				}
 				v, err := scalar(strings.TrimPrefix(t, "sprites:"), s.line+1+i)
 				if err != nil {
@@ -235,7 +231,7 @@ func parseConfig(data string) (Config, []*seg, error) {
 		case "projects":
 			c.Projects = map[string]string{}
 			if !isBlank(s.val) && s.val != "{}" {
-				return c, nil, cfgErr(s.line, "projects must be a block of \"path\": name lines")
+				return c, nil, cfgErr(s.line, "projects deve ser um bloco de linhas \"caminho\": nome")
 			}
 			for i, l := range body {
 				if isBlank(l) {
@@ -246,7 +242,7 @@ func parseConfig(data string) (Config, []*seg, error) {
 					return c, nil, err
 				}
 				if _, dup := c.Projects[p]; dup {
-					return c, nil, cfgErr(s.line+1+i, "duplicate project path %q", p)
+					return c, nil, cfgErr(s.line+1+i, "caminho de projeto duplicado %q", p)
 				}
 				c.Projects[p] = name
 			}
@@ -265,7 +261,7 @@ func readConfig(home string) (string, error) {
 		return "", err
 	}
 	if !fi.Mode().IsRegular() || fi.Size() > maxConfigBytes {
-		return "", fmt.Errorf("%s is not a regular file under %d bytes", p, maxConfigBytes)
+		return "", fmt.Errorf("%s não é um arquivo comum de até %d bytes", p, maxConfigBytes)
 	}
 	b, err := os.ReadFile(p)
 	return string(b), err

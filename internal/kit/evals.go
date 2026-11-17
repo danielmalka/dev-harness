@@ -36,7 +36,7 @@ func checkAntiDelegationClause(dirs map[string]string, errors *[]string) {
 	}
 	if !sameTrimmedLines(coordinatorBlock, skillBlock) {
 		*errors = append(*errors, fmt.Sprintf(
-			"anti-delegation clause differs between %s and %s",
+			"a cláusula anti-delegação difere entre %s e %s",
 			rootRelative(dirs["root"], coordinatorPath), rootRelative(dirs["root"], skillPath),
 		))
 	}
@@ -107,7 +107,7 @@ func checkEvalReferences(dirs map[string]string, errors *[]string) {
 		caseDir := filepath.Join(casesRoot, entry.Name())
 		if symlinkedSubdir(caseDir, "fixtures") {
 			*errors = append(*errors, fmt.Sprintf(
-				"%s: fixtures is a symbolic link; a case directory holds its own files",
+				"%s: fixtures é um link simbólico; a pasta de um caso guarda os próprios arquivos",
 				rootRelative(dirs["root"], filepath.Join(caseDir, "fixtures")),
 			))
 		}
@@ -137,7 +137,7 @@ func checkCaseYAML(caseDir string, errors *[]string) {
 func checkCaseGraders(caseDir string, errors *[]string) {
 	if symlinkedSubdir(caseDir, "graders") {
 		*errors = append(*errors, fmt.Sprintf(
-			"%s: graders is a symbolic link; a case directory holds its own files",
+			"%s: graders é um link simbólico; a pasta de um caso guarda os próprios arquivos",
 			filepath.Join(caseDir, "graders"),
 		))
 		return
@@ -175,15 +175,15 @@ func checkFieldPath(referencingPath, caseDir, field, value string, errors *[]str
 	caseDirClean := filepath.Clean(caseDir)
 	resolved := filepath.Clean(filepath.Join(caseDirClean, value))
 	if resolved != caseDirClean && !strings.HasPrefix(resolved, caseDirClean+string(filepath.Separator)) {
-		*errors = append(*errors, fmt.Sprintf("%s: %s escapes case directory: %s", referencingPath, field, value))
+		*errors = append(*errors, fmt.Sprintf("%s: %s sai da pasta do caso: %s", referencingPath, field, value))
 		return
 	}
 	if hasSymlinkComponent(caseDirClean, resolved) {
-		*errors = append(*errors, fmt.Sprintf("%s: %s is or passes through a symlink: %s", referencingPath, field, value))
+		*errors = append(*errors, fmt.Sprintf("%s: %s é ou passa por um link simbólico: %s", referencingPath, field, value))
 		return
 	}
 	if !isFileOrDir(resolved) {
-		*errors = append(*errors, fmt.Sprintf("%s: %s unresolved: %s", referencingPath, field, value))
+		*errors = append(*errors, fmt.Sprintf("%s: %s não resolvido: %s", referencingPath, field, value))
 	}
 }
 
@@ -323,19 +323,19 @@ func checkEvalsCoverage(sourceDirs map[string]string, packageRoot string, errors
 	}
 	sourceFiles := relativeFilesSkipping(source, evalsExcluded)
 	if !isDir(dest) {
-		*errors = append(*errors, "package missing "+dest)
+		*errors = append(*errors, "pacote sem "+dest)
 		return
 	}
 	destFiles := relativeFilesSkipping(dest, evalsExcluded)
 	for rel := range difference(sourceFiles, destFiles) {
-		*errors = append(*errors, fmt.Sprintf("package missing evals/%s", filepath.ToSlash(rel)))
+		*errors = append(*errors, fmt.Sprintf("pacote sem evals/%s", filepath.ToSlash(rel)))
 	}
 	for rel := range difference(destFiles, sourceFiles) {
-		*errors = append(*errors, fmt.Sprintf("package extra evals/%s", filepath.ToSlash(rel)))
+		*errors = append(*errors, fmt.Sprintf("pacote com sobra evals/%s", filepath.ToSlash(rel)))
 	}
 	for rel := range intersection(sourceFiles, destFiles) {
 		if !sameFileHash(filepath.Join(source, rel), filepath.Join(dest, rel)) {
-			*errors = append(*errors, fmt.Sprintf("package differs evals/%s", filepath.ToSlash(rel)))
+			*errors = append(*errors, fmt.Sprintf("pacote difere em evals/%s", filepath.ToSlash(rel)))
 		}
 	}
 }

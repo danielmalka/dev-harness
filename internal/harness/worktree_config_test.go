@@ -38,21 +38,21 @@ func TestR3_UnsetWorktreeKeepsCommentAndBlank(t *testing.T) {
 	}
 }
 
-// R3 regression: the same guard (scalarKeep) covers language and mode.
-func TestR3_UnsetLanguageAndModeKeepComments(t *testing.T) {
+// R3 regression: the same guard (scalarKeep) covers mode, and a legacy `language` line (option removed, ADR-011) stays intact with its comment.
+func TestR3_UnsetModeAndWorktreeKeepCommentsAndLegacyLanguage(t *testing.T) {
 	body := "language: en\n# keep lang\nmode: repo\n# keep mode\n\nworktree: always\nprojects:\n"
 	home, p := cfgHome(t, body)
-	if err := SetConfigValue(home, "language", "", true); err != nil {
-		t.Fatal(err)
-	}
-	if got := readCfg(t, p); got != "# keep lang\nmode: repo\n# keep mode\n\nworktree: always\nprojects:\n" {
-		t.Errorf("unset language: %q", got)
-	}
 	if err := SetConfigValue(home, "mode", "", true); err != nil {
 		t.Fatal(err)
 	}
-	if got := readCfg(t, p); got != "# keep lang\n# keep mode\n\nworktree: always\nprojects:\n" {
+	if got := readCfg(t, p); got != "language: en\n# keep lang\n# keep mode\n\nworktree: always\nprojects:\n" {
 		t.Errorf("unset mode: %q", got)
+	}
+	if err := SetConfigValue(home, "worktree", "", true); err != nil {
+		t.Fatal(err)
+	}
+	if got := readCfg(t, p); got != "language: en\n# keep lang\n# keep mode\n\nprojects:\n" {
+		t.Errorf("unset worktree: %q", got)
 	}
 }
 
@@ -115,9 +115,13 @@ func TestR8_LoadAcceptsAnyScalarRejectsColon(t *testing.T) {
 		if _, err := LoadConfig(home); err == nil {
 			t.Errorf("worktree: %s should abort the parse", v)
 		}
-		home, _ = cfgHome(t, "language: "+v+"\n")
+		home, _ = cfgHome(t, "mode: "+v+"\n")
 		if _, err := LoadConfig(home); err == nil {
-			t.Errorf("language: %s should abort the parse (control)", v)
+			t.Errorf("mode: %s should abort the parse (control)", v)
+		}
+		home, _ = cfgHome(t, "language: "+v+"\n") // the option was removed: the value of a legacy line is not even read
+		if _, err := LoadConfig(home); err != nil {
+			t.Errorf("language: %s é uma linha antiga e deve ser ignorada: %v", v, err)
 		}
 	}
 }

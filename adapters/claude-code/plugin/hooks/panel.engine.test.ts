@@ -61,7 +61,7 @@ test('1 AI mention in commit is denied by the panel; clean commit is not', async
   await clean($)
   const bad = await bash($, `git commit -m "x\n\n${AI}"`)
   expect(text(bad)).toContain('dev-harness')
-  expect(text(bad)).toContain('mentions AI')
+  expect(text(bad)).toContain('menciona IA')
   const ok = await bash($, 'git commit -m "feat: x"')
   expect(ok.deny).toBe(undefined)
   expect(text(ok)).not.toContain('dev-harness')
@@ -73,10 +73,10 @@ test('2 edit then commit is denied naming gate commands; green gate re-allows', 
   await $.tool.call({ tool: 'Edit', file_path: 'src/a.go' } as any)
   const d = await bash($, 'git commit -m "feat: x"')
   expect(text(d)).toContain('go test ./...')
-  expect(text(d)).toContain('after the last green gate')
+  expect(text(d)).toContain('último gate verde')
   await bash($, 'go test ./...')
   const ok = await bash($, 'git commit -m "feat: x"')
-  expect(text(ok)).not.toContain('green gate')
+  expect(text(ok)).not.toContain('último gate verde')
 })
 
 for (const tool of ['Edit', 'Write']) {
@@ -86,7 +86,7 @@ for (const tool of ['Edit', 'Write']) {
     await $.tool.call({ tool, file_path: '.harness/tasks/X/TASK.md', content: 'x' } as any)
     await $.tool.call({ tool, file_path: '/proj/.harness/tasks/X/TASK.md', content: 'x' } as any)
     const r = await bash($, 'git commit -m "feat: x"')
-    expect(text(r)).not.toContain('green gate')
+    expect(text(r)).not.toContain('último gate verde')
   })
 }
 
@@ -94,31 +94,40 @@ test('4a failed Edit does not dirty the gate', async ($, on) => {
   world(on, { editFails: true })
   await clean($)
   await $.tool.call({ tool: 'Edit', file_path: 'src/a.go' } as any)
-  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('green gate')
+  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('último gate verde')
 })
 
 test('4b Edit denied by runtime-guard (subagent on MEMORY.md) does not dirty the gate', async ($, on) => {
   world(on)
   await clean($)
   const d: any = await $.tool.call({ tool: 'Edit', file_path: '.harness/MEMORY.md', agentId: 'sub' } as any)
-  expect(text(d)).toContain('written only by the Coordinator')
-  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('green gate')
+  expect(text(d)).toContain('só é escrito pelo Coordinator')
+  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('último gate verde')
 })
 
-test('5 D2 deny text follows project.yaml language', async ($, on) => {
-  world(on, { yaml: 'language: pt-br\n' })
-  await clean($)
-  const pt = await bash($, `git commit -m "x\n\n${AI}"`)
-  expect(text(pt)).toContain('menciona IA')
-})
-test('5 D2 deny text is English without language', async ($, on) => {
+test('5 D2 deny text is pt-BR without a language line in project.yaml (ADR-011)', async ($, on) => {
   world(on, { yaml: 'name: x\n' })
   await clean($)
-  const en = await bash($, `git commit -m "x\n\n${AI}"`)
-  expect(text(en)).toContain('mentions AI')
+  const msg = await bash($, `git commit -m "x\n\n${AI}"`)
+  expect(text(msg)).toContain('menciona IA')
+  expect(text(msg)).not.toContain('mentions AI')
 })
-test('5 D2 gate deny is Portuguese with pt-br', async ($, on) => {
+test('5 D2 deny text is pt-BR with a legacy language: en line in project.yaml (ADR-011)', async ($, on) => {
+  world(on, { yaml: 'language: en\n' })
+  await clean($)
+  const msg = await bash($, `git commit -m "x\n\n${AI}"`)
+  expect(text(msg)).toContain('menciona IA')
+  expect(text(msg)).not.toContain('mentions AI')
+})
+test('5 D2 deny text is pt-BR with a legacy language: pt-br line in project.yaml (ADR-011)', async ($, on) => {
   world(on, { yaml: 'language: pt-br\n' })
+  await clean($)
+  const msg = await bash($, `git commit -m "x\n\n${AI}"`)
+  expect(text(msg)).toContain('menciona IA')
+  expect(text(msg)).not.toContain('mentions AI')
+})
+test('5 D2 gate deny is pt-BR even when project.yaml still says language: en', async ($, on) => {
+  world(on, { yaml: 'language: en\n' })
   await clean($)
   await $.tool.call({ tool: 'Write', file_path: 'src/a.go', content: 'x' } as any)
   expect(text(await bash($, 'git commit -m "feat: x"'))).toContain('último gate verde')
@@ -127,7 +136,7 @@ test('5 D2 gate deny is Portuguese with pt-br', async ($, on) => {
 test('7 runtime-guard via composed module: spawn from subagent denied, main-session write allowed', async ($, on) => {
   world(on)
   const d: any = await $.agent.spawn({ prompt: 'x', parentAgentId: 'a1' } as any)
-  expect(text(d)).toContain('only the Coordinator dispatches agents')
+  expect(text(d)).toContain('só o Coordinator despacha agentes')
   const w: any = await $.tool.call({ tool: 'Write', file_path: '.harness/MEMORY.md', content: 'x' } as any)
   expect(w.deny).toBe(undefined)
   expect(text(w)).not.toContain('Coordinator')
@@ -149,8 +158,8 @@ test('9a edit here, commit in another repo (cd) is not gated', async ($, on) => 
   world(on)
   await clean($)
   await $.tool.call({ tool: 'Edit', file_path: 'src/a.go' } as any)
-  expect(text(await bash($, 'cd /other && git add -A && git commit -m "docs: x"'))).not.toContain('green gate')
-  expect(text(await bash($, 'git commit -m "feat: x"'))).toContain('green gate')
+  expect(text(await bash($, 'cd /other && git add -A && git commit -m "docs: x"'))).not.toContain('último gate verde')
+  expect(text(await bash($, 'git commit -m "feat: x"'))).toContain('último gate verde')
   await clean($)
 })
 
@@ -158,8 +167,8 @@ test('9b git -C: other repo passes, edited repo is gated', async ($, on) => {
   world(on)
   await clean($)
   await $.tool.call({ tool: 'Edit', file_path: 'src/a.go' } as any)
-  expect(text(await bash($, 'git -C /other commit -m "docs: x"'))).not.toContain('green gate')
-  expect(text(await bash($, 'git -C /proj commit -m "feat: x"'))).toContain('green gate')
+  expect(text(await bash($, 'git -C /other commit -m "docs: x"'))).not.toContain('último gate verde')
+  expect(text(await bash($, 'git -C /proj commit -m "feat: x"'))).toContain('último gate verde')
   await clean($)
 })
 
@@ -167,19 +176,19 @@ test('9c edit in another repo gates only that repo; its own gate clears it', asy
   world(on)
   await clean($)
   await $.tool.call({ tool: 'Write', file_path: '/other/x.go', content: 'x' } as any)
-  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('green gate')
-  expect(text(await bash($, 'cd /other && git commit -m "feat: x"'))).toContain('green gate')
+  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('último gate verde')
+  expect(text(await bash($, 'cd /other && git commit -m "feat: x"'))).toContain('último gate verde')
   await bash($, 'go test ./...')
-  expect(text(await bash($, 'cd /other && git commit -m "feat: x"'))).toContain('green gate')
+  expect(text(await bash($, 'cd /other && git commit -m "feat: x"'))).toContain('último gate verde')
   await bash($, 'cd /other && go test ./...')
-  expect(text(await bash($, 'cd /other && git commit -m "feat: x"'))).not.toContain('green gate')
+  expect(text(await bash($, 'cd /other && git commit -m "feat: x"'))).not.toContain('último gate verde')
 })
 
 test('9d commit from a subdirectory resolves the repo root through git', async ($, on) => {
   world(on, { roots: { '/proj/sub': '/proj', '/proj': '/proj' } })
   await clean($)
   await $.tool.call({ tool: 'Edit', file_path: '/proj/a.go' } as any)
-  expect(text(await bash($, 'cd sub && git commit -m "feat: x"'))).toContain('green gate')
+  expect(text(await bash($, 'cd sub && git commit -m "feat: x"'))).toContain('último gate verde')
   await clean($)
 })
 
@@ -188,7 +197,7 @@ test('9e a gate followed by cd clears the gate\'s repo, not the later one', asyn
   await clean($)
   await $.tool.call({ tool: 'Edit', file_path: 'src/a.go' } as any)
   await bash($, 'go test ./... && cd /other')
-  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('green gate')
+  expect(text(await bash($, 'git commit -m "feat: x"'))).not.toContain('último gate verde')
 })
 
 // PRD-014 R20: prompt.compose adds one session section naming the resolved harness.
@@ -203,17 +212,17 @@ test('R20 repo mode: section names the mode and dir, after the engine sections',
   world(on, { cwd: '/r1', harness: { '/r1': hp('repo', '/r1/.harness') } })
   const s = await compose($)
   expect(s[0]!.id).toBe('intro')
-  expect(s[s.length - 1]).toEqual({ id: 'dh:harness', scope: 'session', text: 'Dev Harness: mode repo; harness dir "/r1/.harness". Records (MEMORY.md, EPOCHAL.md, RISKS.md, project.yaml, tasks/, prd/) live there.' })
+  expect(s[s.length - 1]).toEqual({ id: 'dh:harness', scope: 'session', text: 'Dev Harness: mode repo; harness dir "/r1/.harness". Os registros (MEMORY.md, EPOCHAL.md, RISKS.md, project.yaml, tasks/, prd/) ficam lá.' })
 })
 
 test('R20 global mode: section names the global dir', async ($, on) => {
   world(on, { cwd: '/g1', harness: { '/g1': hp('global', '/h/projects/g1') } })
-  expect(mine(await compose($))[0]!.text).toBe('Dev Harness: mode global; harness dir "/h/projects/g1". Records (MEMORY.md, EPOCHAL.md, RISKS.md, project.yaml, tasks/, prd/) live there.')
+  expect(mine(await compose($))[0]!.text).toBe('Dev Harness: mode global; harness dir "/h/projects/g1". Os registros (MEMORY.md, EPOCHAL.md, RISKS.md, project.yaml, tasks/, prd/) ficam lá.')
 })
 
 test('R20 none mode points at /dh:setup', async ($, on) => {
   world(on, { cwd: '/n1', harness: { '/n1': hp('none') } })
-  expect(mine(await compose($))[0]!.text).toBe('Dev Harness: no harness for this project (mode none). Run /dh:setup to create one, or dh link if it already exists.')
+  expect(mine(await compose($))[0]!.text).toBe('Dev Harness: nenhum harness para este projeto (mode none). Rode /dh:setup para criar um, ou dh link se ele já existir.')
 })
 
 test('R20 none re-resolves every compose; the switch to repo applies without a restart, then is cached', async ($, on) => {
@@ -272,9 +281,9 @@ for (const tool of ['Edit', 'Write']) {
     await bash($, 'go test ./...')
     await $.tool.call({ tool, file_path: '/h/projects/g/tasks/T-1/TASK.md', content: 'x' } as any)
     await $.tool.call({ tool, file_path: '/h/projects/g/MEMORY.md', content: 'x' } as any)
-    expect(text(await bash($, COMMIT))).not.toContain('green gate')
+    expect(text(await bash($, COMMIT))).not.toContain('último gate verde')
     await $.tool.call({ tool, file_path: '/h/notes.md', content: 'x' } as any)
-    expect(text(await bash($, COMMIT))).toContain('green gate')
+    expect(text(await bash($, COMMIT))).toContain('último gate verde')
     await bash($, 'go test ./...')
   })
 }
@@ -283,7 +292,7 @@ test('R8 via the composed module: subagent on <home>/projects/x/MEMORY.md is den
   world(on, { env: { DH_HOME: '/h' } })
   await clean($)
   const d: any = await $.tool.call({ tool: 'Write', file_path: '/h/projects/x/MEMORY.md', content: 'x', agentId: 'sub' } as any)
-  expect(text(d)).toContain('written only by the Coordinator')
+  expect(text(d)).toContain('só é escrito pelo Coordinator')
   const ok: any = await $.tool.call({ tool: 'Edit', file_path: '/h/projects/x/EPOCHAL.md' } as any)
   expect(ok.deny).toBe(undefined)
   const notes: any = await $.tool.call({ tool: 'Write', file_path: '/h/projects/x/notes/MEMORY.md', content: 'x', agentId: 'sub' } as any)
@@ -346,14 +355,14 @@ test('27a kit subagent (dh:qa-verifier) is denied a gh write; the reason has the
   await spawnAs($, 'dh:qa-verifier')
   const r = text(await bashAs($, GH, 'ag1'))
   expect(r).toContain('gh pr merge')
-  expect(r).toContain('Only release-manager or the main session')
-  expect(r).toContain('Do not retry and do not work around it')
-  expect(r).toContain('For a text search, use the Grep tool.')
+  expect(r).toContain('Só o release-manager ou a sessão principal')
+  expect(r).toContain('Não tente de novo nem contorne')
+  expect(r).toContain('use a ferramenta Grep')
   expect(r).not.toContain('/home/')
 })
 
-test('27a2 the reason is Portuguese with pt-br', async ($, on) => {
-  world(on, { yaml: 'language: pt-br\n' })
+test('27a2 the reason is pt-BR even when project.yaml still says language: en', async ($, on) => {
+  world(on, { yaml: 'language: en\n' })
   await spawnAs($, 'dh:qa-verifier')
   const r = text(await bashAs($, 'git push', 'ag1'))
   expect(r).toContain('git push')
@@ -413,7 +422,7 @@ test('27i PowerShell without a string command is denied as unreadable for a kit 
   world(on)
   await spawnAs($, 'dh:qa-verifier')
   for (const command of [undefined, 5]) {
-    expect(text(await $.tool.call({ tool: 'PowerShell', command, agentId: 'ag1' } as any))).toContain('unreadable command')
+    expect(text(await $.tool.call({ tool: 'PowerShell', command, agentId: 'ag1' } as any))).toContain('comando ilegível')
   }
   expect(((await $.tool.call({ tool: 'PowerShell', agentId: undefined } as any)) as any).deny).toBe(undefined)
   expect(((await $.tool.call({ tool: 'Monitor', agentId: 'ag1' } as any)) as any).deny).toBe(undefined)

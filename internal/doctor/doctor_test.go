@@ -32,7 +32,7 @@ func TestRunReportsRequiredSectionsAndMatchesValidator(t *testing.T) {
 			if status != wantStatus {
 				t.Fatalf("status = %d, want %d; output:\n%s", status, wantStatus, output.String())
 			}
-			for _, section := range []string{"## Mode", "## Kit", "## Environment", "## Harness", "## Limits"} {
+			for _, section := range []string{"## Modo", "## Kit", "## Ambiente", "## Harness", "## Limites"} {
 				if !strings.Contains(output.String(), section) {
 					t.Errorf("output missing %q", section)
 				}
@@ -47,7 +47,7 @@ func TestRunNotKitCheckoutIsNotAFailure(t *testing.T) {
 	if status := Run(t.TempDir(), &output); status != 0 {
 		t.Fatalf("status %d\n%s", status, output.String())
 	}
-	if !strings.Contains(output.String(), "kit validation: not applicable (not a kit checkout)") {
+	if !strings.Contains(output.String(), "validação do kit: não se aplica (não é um checkout do kit)") {
 		t.Errorf("missing not-applicable line:\n%s", output.String())
 	}
 }
