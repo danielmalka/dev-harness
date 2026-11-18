@@ -1,118 +1,120 @@
-# PRD-034 · A hash guard for MEMORY.md writes and the read-only `/dh:dream` command
+# PRD-034 · Uma trava de hash para as escritas de MEMORY.md e o comando somente leitura `/dh:dream`
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | approved on 2026-11-16 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-11-16 / 2026-11-16 |
-| Tickets | to be defined by the planner |
-| Origin | Owner decision 2026-11-16: tips 5 and 9 of the knowledge-base page on agent memory and "dreaming" (a conference talk, secondary source, not checked against the video) |
-| Depends on | PRD-032 (report files, Coordinator scope) and ADR-005 (guards by prose and mod); version base 0.40.0 |
-| Delivery | One pull request, version 0.41.0 |
+| Status | aprovado em 2026-11-16 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-11-16 / 2026-11-16 |
+| Tickets | a definir pelo planejador |
+| Origem | Decisão do dono em 2026-11-16: dicas 5 e 9 da página da base de conhecimento sobre memória de agente e "dreaming" (uma palestra de conferência, fonte secundária, não conferida com o vídeo) |
+| Depende de | PRD-032 (arquivos de relatório, escopo do Coordenador) e ADR-005 (travas por prosa e por mod); versão base 0.40.0 |
+| Entrega | Um pull request, versão 0.41.0 |
 
-## 1. Problem
+## 1. Problema
 
-Facts:
+Fatos:
 
-- `/dh:consolidate-memory` must start with the owner's statement that no other session writes the records (`.commands/consolidate-memory.md`, Prerequisites). The skill `context-handoff` says the same in its Archive and Verify steps. The check is a question, not a test: a session that forgets, or a second session started later, passes it.
-- Every other kit write of `MEMORY.md` (the Coordinator updates it after results, setup initializes it, handoff and resume fold state into it) has no check at all. Two sessions on one harness dir overwrite each other without a trace.
-- Review and QA reports pile up under the harness dir (`<task folder>/reports/`, `*.review.md`). The same finding comes back in many tasks and nothing turns it into a check. The Coordinator has one such rule today, for noise findings (`.agents/coordinator.md`, item 8: "the same pattern classified noise 3 times"), and it covers one case only.
-- The resolver and the lock already exist in Go (`internal/harness/resolve.go`, `lock.go`); the binary has no command that touches the records.
+- `/dh:consolidate-memory` deve começar com a declaração do dono de que nenhuma outra sessão escreve os registros (`.commands/consolidate-memory.md`, Pré-requisitos). A skill `context-handoff` diz o mesmo nos passos Arquive e Verifique. A checagem é uma pergunta, não um teste: uma sessão que esquece, ou uma segunda sessão iniciada depois, passa por ela.
+- Toda outra escrita de `MEMORY.md` feita pelo kit (o Coordenador a atualiza depois dos resultados, o setup a inicializa, o handoff e a retomada dobram estado nela) não tem nenhuma checagem. Duas sessões em um mesmo harness dir se sobrescrevem sem deixar rastro.
+- Os relatórios de revisão e de QA se acumulam sob o harness dir (`<task folder>/reports/`, `*.review.md`). O mesmo achado volta em muitas tarefas e nada o transforma em uma checagem. O Coordenador tem hoje uma regra assim, para achados de ruído (`.agents/coordinator.md`, item 8: "o mesmo padrão classificado como ruído 3 vezes"), e ela cobre um caso só.
+- O resolvedor e a trava já existem em Go (`internal/harness/resolve.go`, `lock.go`); o binário não tem nenhum comando que toque nos registros.
 
-## 2. Solution
+## 2. Solução
 
-Two small features, one delivery.
+Duas funcionalidades pequenas, uma entrega.
 
-A. **Hash guard.** The binary gains `dh memory hash` and `dh memory write`. `hash` prints the sha256 of `MEMORY.md`. `write` replaces the file only when its hash is still the one the caller read; if the hash changed, it writes nothing and says so. The kit prose makes this the way the kit writes `MEMORY.md`, and the owner question in `consolidate-memory` goes away.
+A. **Trava de hash.** O binário ganha `dh memory hash` e `dh memory write`. `hash` imprime o sha256 de `MEMORY.md`. `write` substitui o arquivo só quando o hash dele ainda é o que o chamador leu; se o hash mudou, não escreve nada e diz isso. A prosa do kit faz disso o jeito como o kit escreve `MEMORY.md`, e a pergunta ao dono em `consolidate-memory` some.
 
-B. **`/dh:dream`.** A new command, read-only, that reads the review and QA reports and `MEMORY.md`, finds findings that came back in at least N tasks (N is an argument, default 2) and writes one proposal file: "this repeated N times; make it an automatic check (skill, gate or rule)?", with examples and origin. It applies nothing.
+B. **`/dh:dream`.** Um comando novo, somente leitura, que lê os relatórios de revisão e de QA e o `MEMORY.md`, acha achados que voltaram em pelo menos N tarefas (N é um argumento, padrão 2) e escreve um arquivo de proposta: "isto se repetiu N vezes; transformar em checagem automática (skill, gate ou regra)?", com exemplos e origem. Não aplica nada.
 
-## 3. Rules
+## 3. Regras
 
-### Part A · Memory write guard
+### Parte A · Trava de escrita da memória
 
-- R1 `dh memory hash [dir]` resolves the harness dir like `dh harness-path [dir]` and prints the sha256 of `<harness dir>/MEMORY.md` as 64 lower-case hex digits, or `absent` when the file does not exist. It writes nothing. It exits 1 with a clear message when the mode is `none` (no harness dir).
-  - When `MEMORY.md` holds a known text, then the printed digest equals `sha256sum` of the file.
-  - When the file does not exist, then it prints `absent` and exits 0.
-  - When the folder resolves to mode `none`, then it exits 1 and names the cause.
-- R2 `dh memory write --expect <sha256|absent> [--from <file>] [dir]` is a compare-and-swap. It takes the lock `MEMORY.md.lock` in the harness dir, hashes the current file, and compares with `--expect`. Equal: it writes the new content to a temporary file in the same folder, flushes it, renames it over `MEMORY.md`, releases the lock and prints `written <new sha256>`. The content comes from `--from` or, without it, from standard input. `absent` is the expected value of a file that must not exist yet (the first write).
-  - When the hash is equal, then the file holds the new content and no temporary file or lock is left.
-  - When `--expect absent` and the file does not exist, then it is created.
-  - When the content is empty, then it exits 1 and writes nothing (an empty `MEMORY.md` is never the intent).
-  - When the lock cannot be taken within 5 seconds, then it exits 1 and writes nothing.
-- R3 When the current hash differs from `--expect`, `dh memory write` writes nothing, leaves the file as it is, exits 3, and prints one clear message on standard error: the file changed since it was read, someone wrote it in the middle, nothing was written, re-read `MEMORY.md` and redo the edit. The message names both hashes.
-  - When another process rewrote `MEMORY.md` after the caller read it, then the call exits 3 and the other process's content is intact.
-  - When `--expect absent` and the file exists, then it exits 3.
-- R4 Concurrent writers are tested. Several writers start with the same expected hash and different contents, in one process (goroutines) and in separate processes.
-  - When N writers race with the same expected hash, then exactly one succeeds, the other N−1 exit 3, and the final file equals the winner's content byte for byte.
-  - When the race ends, then no temporary file and no lock file remain.
-- R5 The kit prose uses the guard for every write of `MEMORY.md`. `.agents/coordinator.md` and the skill `context-handoff` carry one rule: take `dh memory hash` when you read `MEMORY.md`; edit a draft copy outside the harness dir; write with `dh memory write --expect <hash> --from <draft>`; keep the printed hash as the next expected one. On exit 3, do not retry the same content: read `MEMORY.md` again, redo the edit on it, and write once more; a second conflict goes to the owner. The first write of a new harness dir (setup, from the template) uses `--expect absent`.
-  - When the Coordinator updates `MEMORY.md` after a result, then the write is a `dh memory write` with the hash read at the start.
-  - When two sessions update the same `MEMORY.md`, then the second writer gets exit 3 instead of overwriting.
-- R6 `.commands/consolidate-memory.md` and the Archive, Verify and Consolidation steps of `context-handoff` drop the owner question "no other session is writing". They take `dh memory hash` before the archive, and the trim of `MEMORY.md` is a `dh memory write --expect <that hash>`. The append to `EPOCHAL.md` stays as it is (append-only, verified by reading it back). When the trim write exits 3, `MEMORY.md` stays intact, the command reports the operation as incomplete with the batch id already stored, and a new run starts a new batch from the current memory. `handoff.md`, `resume.md` and `setup.md` point to the guard in their Limits.
-  - When `/dh:consolidate-memory` runs, then it does not ask the owner whether another session writes.
-  - When `MEMORY.md` changes between the archive and the trim, then the trim is refused and `MEMORY.md` is intact.
-- R7 The limits are written, not hidden. The guard protects the callers of `dh memory write`. A writer that edits the file directly is detected only when its write lands before the compare; one that lands between the compare and the rename, inside the lock, is lost. The Claude Code mod does not force the use of the command (ADR-005: prose first). The guard covers `MEMORY.md` only, not `EPOCHAL.md` or `RISKS.md`.
+- R1 `dh memory hash [dir]` resolve o harness dir como `dh harness-path [dir]` e imprime o sha256 de `<harness dir>/MEMORY.md` como 64 dígitos hexadecimais em minúsculas, ou `absent` quando o arquivo não existe. Não escreve nada. Sai com 1 e uma mensagem clara quando o modo é `none` (sem harness dir).
+  - Quando `MEMORY.md` guarda um texto conhecido, então o resumo impresso é igual ao `sha256sum` do arquivo.
+  - Quando o arquivo não existe, então imprime `absent` e sai com 0.
+  - Quando a pasta resolve para o modo `none`, então sai com 1 e nomeia a causa.
+- R2 `dh memory write --expect <sha256|absent> [--from <file>] [dir]` é um `compare-and-swap`. Toma a trava `MEMORY.md.lock` no harness dir, calcula o hash do arquivo atual e compara com `--expect`. Se forem iguais: escreve o conteúdo novo em um arquivo temporário na mesma pasta, descarrega-o em disco, renomeia-o sobre `MEMORY.md`, solta a trava e imprime `written <new sha256>`. O conteúdo vem de `--from` ou, sem ele, da entrada padrão. `absent` é o valor esperado de um arquivo que ainda não pode existir (a primeira escrita).
+  - Quando o hash é igual, então o arquivo guarda o conteúdo novo e nenhum arquivo temporário nem trava é deixado.
+  - Quando `--expect absent` e o arquivo não existe, então ele é criado.
+  - Quando o conteúdo é vazio, então sai com 1 e não escreve nada (um `MEMORY.md` vazio nunca é a intenção).
+  - Quando a trava não pode ser tomada em 5 segundos, então sai com 1 e não escreve nada.
+- R3 Quando o hash atual difere de `--expect`, `dh memory write` não escreve nada, deixa o arquivo como está, sai com 3 e imprime uma mensagem clara na saída de erro padrão: o arquivo mudou desde que foi lido, alguém o escreveu no meio, nada foi escrito, leia `MEMORY.md` de novo e refaça a edição. A mensagem nomeia os dois hashes.
+  - Quando outro processo reescreveu `MEMORY.md` depois que o chamador o leu, então a chamada sai com 3 e o conteúdo do outro processo fica intacto.
+  - Quando `--expect absent` e o arquivo existe, então sai com 3.
+- R4 Escritores concorrentes são testados. Vários escritores começam com o mesmo hash esperado e conteúdos diferentes, em um processo (goroutines) e em processos separados.
+  - Quando N escritores disputam com o mesmo hash esperado, então exatamente um tem sucesso, os outros N−1 saem com 3, e o arquivo final é igual ao conteúdo do vencedor byte a byte.
+  - Quando a disputa termina, então nenhum arquivo temporário nem arquivo de trava permanece.
+- R5 A prosa do kit usa a trava em toda escrita de `MEMORY.md`. `.agents/coordinator.md` e a skill `context-handoff` trazem uma regra: tire o `dh memory hash` quando ler `MEMORY.md`; edite uma cópia de rascunho fora do harness dir; escreva com `dh memory write --expect <hash> --from <draft>`; guarde o hash impresso como o próximo esperado. Na saída 3, não tente de novo o mesmo conteúdo: leia `MEMORY.md` outra vez, refaça a edição sobre ele e escreva mais uma vez; um segundo conflito vai para o dono. A primeira escrita de um harness dir novo (o setup, a partir do template) usa `--expect absent`.
+  - Quando o Coordenador atualiza `MEMORY.md` depois de um resultado, então a escrita é um `dh memory write` com o hash lido no início.
+  - Quando duas sessões atualizam o mesmo `MEMORY.md`, então o segundo escritor recebe a saída 3 em vez de sobrescrever.
+- R6 `.commands/consolidate-memory.md` e os passos Arquive, Verifique e Consolidação de `context-handoff` abandonam a pergunta ao dono "nenhuma outra sessão está escrevendo". Eles tiram o `dh memory hash` antes do arquivamento, e a poda de `MEMORY.md` é um `dh memory write --expect <that hash>`. O acréscimo a `EPOCHAL.md` continua como está (só acréscimo, verificado relendo-o). Quando a escrita da poda sai com 3, `MEMORY.md` fica intacto, o comando reporta a operação como incompleta com o id do lote já gravado, e uma nova execução começa um lote novo a partir da memória atual. `handoff.md`, `resume.md` e `setup.md` apontam para a trava nos seus Limites.
+  - Quando `/dh:consolidate-memory` roda, então não pergunta ao dono se outra sessão escreve.
+  - Quando `MEMORY.md` muda entre o arquivamento e a poda, então a poda é recusada e `MEMORY.md` fica intacto.
+- R7 Os limites são escritos, não escondidos. A trava protege os chamadores de `dh memory write`. Um escritor que edita o arquivo diretamente só é detectado quando a escrita dele cai antes da comparação; uma que cai entre a comparação e a renomeação, dentro da trava, se perde. O mod do Claude Code não força o uso do comando (ADR-005: prosa primeiro). A trava cobre só `MEMORY.md`, não `EPOCHAL.md` nem `RISKS.md`.
 
-### Part B · `/dh:dream`
+### Parte B · `/dh:dream`
 
-- R8 `.commands/dream.md` exists, with the frontmatter of the other commands: `name: dream`, `argument-hint: "[N]"`, roles `coordinator`, `repo-scout` and `docs-guide`, `writes:` naming only the proposal file. `$ARGUMENTS` is N, an integer of 2 or more; empty means 2; anything else stops with a message and no work.
-  - When no argument is given, then N is 2.
-  - When the argument is `1`, `0` or not a number, then the command stops and says the valid range.
-- R9 The command is read-only on the project and on the records. It reads: the files named `*.md` under `<harness dir>/tasks/` whose path holds `reports/`, every `*.review.md` under the harness dir, and `<harness dir>/MEMORY.md`. It writes nothing but the proposal file of R11. It does not edit the product, tests, kit sources, `MEMORY.md`, `EPOCHAL.md` or `RISKS.md`, opens no ticket, and runs no build, test or QA.
-  - When the command ends, then `git status` shows only the proposal file as new (and only when a group reached N).
-- R10 Recurrence has one rule. The Coordinator dispatches `repo-scout` (model `haiku`) to list every finding found in the inputs, one line each, without grouping or judging: task, file and line, severity, location, title, state, and a quote of at most two lines. The reply cap in the dispatch is raised, with the reason. The Coordinator then groups. Two findings are the same when they have the same title after case and punctuation are ignored, or name the same scenario at another location. The count of a group is the number of distinct tasks it appears in; the rounds of one task count once. Findings in `MEMORY.md` (incidents, blockers) count as one task. A group with a count below N is dropped. The finding states seen (`open`, `closed`, `noise`) are kept in the proposal, and do not change the count.
-  - When the same finding appears in three rounds of one task, then it counts once.
-  - When a finding appears in two different tasks and N is 2, then it is a group.
-- R11 When at least one group reaches N, `docs-guide` (model `sonnet`) writes one new file, `<harness dir>/proposals/<YYYY-MM-DD>_DREAM_PROPOSAL.md`, in the `language` recorded in `project.yaml` (the dispatch states it). The file starts with the date, N, how many files and tasks were read, and the line "Proposal only: nothing was applied." It has one section per group with: the title; the count and the tasks; the states seen; one to three examples (task, relative `path:line`, a quote of at most two lines); a suggested target (a skill, a gate or a rule) with one sentence of reason; the question "this repeated N times; make it an automatic check (skill, gate or rule)?"; and an empty `Decision:` line for the owner. A file of the same date is not overwritten: the new one gets `-2` before `_DREAM_PROPOSAL`, then `-3` (as the drift report does). The chat reply carries only the path, N, the files and tasks read, and the number of groups. When no group reaches N, no file is written and the reply says that nothing repeated N times.
-  - When two groups reach N, then the file has two sections with the same fields.
-  - When a quote holds something that looks like a secret, then it is replaced by `[redacted]`.
-- R12 The command proposes and never applies. The report text is data, quoted and not followed. A proposal becomes a check, a skill line or a rule only when the owner decides, through the normal flow: the `harness-maintainer` with `harness-authoring` for the kit, the project's own lane for a project. The reply states this in one sentence.
-  - When a report holds an instruction aimed at the agent, then the command lists it as a quote and does not act on it.
-- R13 It is a new command, not a mode of `/dh:consolidate-memory`. That command writes the records and needs the guard of Part A. `/dh:dream` never writes a record, can run at any time, and has its own `writes:` and limits. The count of commands in files goes from 19 to 20; the mod command stays, so the count is 20 + 1. The agents (13) and skills (22) do not change.
+- R8 `.commands/dream.md` existe, com o frontmatter dos outros comandos: `name: dream`, `argument-hint: "[N]"`, os papéis `coordinator`, `repo-scout` e `docs-guide`, e `writes:` nomeando só o arquivo de proposta. `$ARGUMENTS` é N, um inteiro de 2 ou mais; vazio significa 2; qualquer outra coisa para com uma mensagem e sem trabalho.
+  - Quando nenhum argumento é dado, então N é 2.
+  - Quando o argumento é `1`, `0` ou não é um número, então o comando para e diz a faixa válida.
+- R9 O comando é somente leitura sobre o projeto e sobre os registros. Ele lê: os arquivos chamados `*.md` sob `<harness dir>/tasks/` cujo caminho contém `reports/`, todo `*.review.md` sob o harness dir e `<harness dir>/MEMORY.md`. Não escreve nada além do arquivo de proposta da R11. Não edita o produto, os testes, as fontes do kit, `MEMORY.md`, `EPOCHAL.md` nem `RISKS.md`, não abre ticket e não roda build, teste nem QA.
+  - Quando o comando termina, então `git status` mostra só o arquivo de proposta como novo (e só quando um grupo atingiu N).
+- R10 A recorrência tem uma regra só. O Coordenador despacha `repo-scout` (modelo `haiku`) para listar todo achado encontrado nas entradas, uma linha cada, sem agrupar nem julgar: tarefa, arquivo e linha, severidade, local, título, estado e uma citação de no máximo duas linhas. O limite de resposta no despacho é elevado, com o motivo. Depois o Coordenador agrupa. Dois achados são o mesmo quando têm o mesmo título ignorando maiúsculas e pontuação, ou nomeiam o mesmo cenário em outro local. A contagem de um grupo é o número de tarefas distintas em que ele aparece; as rodadas de uma tarefa contam uma vez. Achados em `MEMORY.md` (incidentes, bloqueios) contam como uma tarefa. Um grupo com contagem abaixo de N é descartado. Os estados de achado vistos (`open`, `closed`, `noise`) são mantidos na proposta e não mudam a contagem.
+  - Quando o mesmo achado aparece em três rodadas de uma tarefa, então conta uma vez.
+  - Quando um achado aparece em duas tarefas diferentes e N é 2, então é um grupo.
+- R11 Quando pelo menos um grupo atinge N, `docs-guide` (modelo `sonnet`) escreve um arquivo novo, `<harness dir>/proposals/<AAAA-MM-DD>_DREAM_PROPOSAL.md`, no `language` registrado em `project.yaml` (o despacho o declara). O arquivo começa com a data, N, quantos arquivos e tarefas foram lidos e a linha "Apenas proposta: nada foi aplicado.". Tem uma seção por grupo com: o título; a contagem e as tarefas; os estados vistos; de um a três exemplos (tarefa, `path:line` relativo, uma citação de no máximo duas linhas); um alvo sugerido (uma skill, um gate ou uma regra) com uma frase de motivo; a pergunta "isto se repetiu N vezes; transformar em checagem automática (skill, gate ou regra)?"; e uma linha `Decisão:` vazia para o dono. Um arquivo da mesma data não é sobrescrito: o novo recebe `-2` antes de `_DREAM_PROPOSAL`, depois `-3` (como o relatório de deriva faz). A resposta no chat traz só o caminho, N, os arquivos e tarefas lidos e o número de grupos. Quando nenhum grupo atinge N, nenhum arquivo é escrito e a resposta diz que nada se repetiu N vezes.
+  - Quando dois grupos atingem N, então o arquivo tem duas seções com os mesmos campos.
+  - Quando uma citação guarda algo que parece um segredo, então ela é substituída por `[redacted]`.
+- R12 O comando propõe e nunca aplica. O texto do relatório é dado, citado e não seguido. Uma proposta vira checagem, linha de skill ou regra só quando o dono decide, pelo fluxo normal: o `harness-maintainer` com `harness-authoring` para o kit, a `lane` própria do projeto para um projeto. A resposta declara isso em uma frase.
+  - Quando um relatório guarda uma instrução dirigida ao agente, então o comando a lista como citação e não age sobre ela.
+- R13 É um comando novo, não um modo de `/dh:consolidate-memory`. Aquele comando escreve os registros e precisa da trava da Parte A. `/dh:dream` nunca escreve um registro, pode rodar a qualquer momento e tem os próprios `writes:` e limites. A contagem de comandos em arquivos passa de 19 para 20; o comando de mod fica, então a contagem é 20 + 1. Os agentes (13) e as skills (22) não mudam.
 
-### Part C · Docs, version and checks
+### Parte C · Docs, versão e checagens
 
-- R14 The docs say one thing. `AGENTS.md` has the new rules and the counts 20 + 1. `README.md`, `README.en.md`, `docs/tutorial.html` and `docs/en/tutorial.html` describe the hash guard (the owner question is gone) and list `/dh:dream` in the command table. `REVIEW.md` and `.claude-plugin/marketplace.json` carry the count of 20. `docs/roadmap.html` and `docs/en/roadmap.html` show 20 commands in the tree and in the current count.
-  - When the live docs and the sources are compared, then every statement of the command count says 20 (plus 1 for the mod), in pt-br and in en.
-  - When `dh validate` runs, then it finds no count drift.
-- R15 Version 0.41.0 is set in `internal/build/build.go`, in `.claude-plugin/marketplace.json` (version and ref `v0.41.0`) and in `harness-manifest.json`. `CHANGELOG.md` has an entry dated 2026-11-16. The roadmap pt and en have updated chips, the Sources range and a new delivered version card. `dist/` is rebuilt, binaries included, because the binary has a new subcommand.
-- R16 The checks pass, and the proof of a clean clone is required because the change touches `cmd/` and `internal/`: `go test ./...`, `go vet ./...`, `go run ./cmd/dh validate .`, `go run ./cmd/dh build` with no difference in `dist/` (the `generated_at` line aside), the same sha256 for the five binaries built in a fresh `git clone`, and `claude plugin test dist/claude-code/dev-harness` unchanged. A file of this delivery holds nothing of the owner's private setup.
+- R14 Os docs dizem uma coisa só. `AGENTS.md` traz as regras novas e as contagens 20 + 1. `README.md`, `README.en.md`, `docs/tutorial.html` e `docs/en/tutorial.html` descrevem a trava de hash (a pergunta ao dono acabou) e listam `/dh:dream` na tabela de comandos. `REVIEW.md` e `.claude-plugin/marketplace.json` trazem a contagem de 20. `docs/roadmap.html` e `docs/en/roadmap.html` mostram 20 comandos na árvore e na contagem atual.
+  - Quando os docs vivos e as fontes são comparados, então toda afirmação da contagem de comandos diz 20 (mais 1 do mod), em pt-br e em en.
+  - Quando `dh validate` roda, então não acha deriva de contagem.
+- R15 A versão 0.41.0 é definida em `internal/build/build.go`, em `.claude-plugin/marketplace.json` (versão e ref `v0.41.0`) e em `harness-manifest.json`. `CHANGELOG.md` tem uma entrada datada de 2026-11-16. Os roadmaps pt e en têm chips atualizados, a faixa de fontes e um card novo de versão entregue. `dist/` é reconstruído, binários incluídos, porque o binário tem um subcomando novo.
+- R16 As checagens passam, e a prova de um clone limpo é obrigatória porque a mudança toca `cmd/` e `internal/`: `go test ./...`, `go vet ./...`, `go run ./cmd/dh validate .`, `go run ./cmd/dh build` sem diferença em `dist/` (a linha `generated_at` à parte), o mesmo sha256 para os cinco binários construídos em um `git clone` novo, e `claude plugin test dist/claude-code/dev-harness` inalterado. Um arquivo desta entrega não guarda nada da configuração privada do dono.
 
-Out of scope: running `/dh:dream` on a schedule; applying a proposal; reading session transcripts (the talk's dreaming reads them; this command reads reports and `MEMORY.md` only, as the owner asked); a mod rule that forces `dh memory write`; a guard for `EPOCHAL.md`, `RISKS.md` or other records; any new agent or skill.
+Fora de escopo: rodar `/dh:dream` em uma agenda; aplicar uma proposta; ler transcrições de sessão (o dreaming da palestra as lê; este comando lê só relatórios e `MEMORY.md`, como o dono pediu); uma regra de mod que force `dh memory write`; uma trava para `EPOCHAL.md`, `RISKS.md` ou outros registros; qualquer agente ou skill novo.
 
 ## 4. Docs
 
-- `.commands/dream.md` (new), `.commands/consolidate-memory.md`, `.commands/handoff.md`, `.commands/resume.md`, `.commands/setup.md`: the flows touched (R5, R6, R8 to R12).
-- `.agents/coordinator.md`, `.skills/context-handoff/SKILL.md`: the guard rule (R5, R6).
-- `AGENTS.md`, `README.md`, `README.en.md`, `REVIEW.md`, `docs/tutorial.html`, `docs/en/tutorial.html`, `.claude-plugin/marketplace.json`: counts and the new behavior (R14).
-- `CHANGELOG.md`, `docs/roadmap.html`, `docs/en/roadmap.html`: version 0.41.0 (R15).
-- `docs/adr/ADR-005-trava-de-runtime-por-mod.md` is not changed: the guard is prose plus a command, inside what the ADR already allows.
+- `.commands/dream.md` (novo), `.commands/consolidate-memory.md`, `.commands/handoff.md`, `.commands/resume.md`, `.commands/setup.md`: os fluxos tocados (R5, R6, R8 a R12).
+- `.agents/coordinator.md`, `.skills/context-handoff/SKILL.md`: a regra da trava (R5, R6).
+- `AGENTS.md`, `README.md`, `README.en.md`, `REVIEW.md`, `docs/tutorial.html`, `docs/en/tutorial.html`, `.claude-plugin/marketplace.json`: contagens e o comportamento novo (R14).
+- `CHANGELOG.md`, `docs/roadmap.html`, `docs/en/roadmap.html`: versão 0.41.0 (R15).
+- `docs/adr/ADR-005-trava-de-runtime-por-mod.md` não muda: a trava é prosa mais um comando, dentro do que o ADR já permite.
 
-## Appendix
+## Apêndice
 
-### Discarded alternatives
+### Alternativas descartadas
 
-| Alternative | Why not |
+| Alternativa | Por que não |
 |---|---|
-| Hash check by prose only ("compare the sha256 yourself") | The check and the write are two steps the model can skip or reorder. The command does both under one lock, and it can be tested. |
-| A mod rule that denies direct writes of `MEMORY.md` | It forces one runtime and would need its own review (ADR-005, ADR-006). The command works in every runtime that has the binary; the mod can come later. |
-| Guard `EPOCHAL.md` and `RISKS.md` too | The owner asked for `MEMORY.md`. `EPOCHAL.md` is append-only and verified by reading it back; `RISKS.md` has the same single writer and can use the command later. |
-| A mode `dream` of `/dh:consolidate-memory` | That command writes and needs the guard; a read-only mode inside it blurs `writes:` and the limits (R13). |
-| A Go scanner that counts the findings | Findings are free prose by many roles (code, document, QA). A parser would match the title strings only and miss the same defect worded two ways. The judgement stays with the Coordinator, the reading with `repo-scout`. |
-| `N` as a config key | An argument is enough for a command the owner runs by hand, and no `project.yaml` or `config.yaml` key is added. |
-| Read session transcripts as the talk does | The kit has no transcript store; reports and `MEMORY.md` are the durable record. |
+| Checagem de hash só por prosa ("compare o sha256 você mesmo") | A checagem e a escrita são dois passos que o modelo pode pular ou reordenar. O comando faz os dois sob uma trava só, e pode ser testado. |
+| Uma regra de mod que nega escritas diretas de `MEMORY.md` | Ela força um runtime só e precisaria de revisão própria (ADR-005, ADR-006). O comando funciona em todo runtime que tem o binário; o mod pode vir depois. |
+| Travar também `EPOCHAL.md` e `RISKS.md` | O dono pediu `MEMORY.md`. `EPOCHAL.md` é só de acréscimo e verificado relendo-o; `RISKS.md` tem o mesmo escritor único e pode usar o comando depois. |
+| Um modo `dream` de `/dh:consolidate-memory` | Aquele comando escreve e precisa da trava; um modo somente leitura dentro dele embaça os `writes:` e os limites (R13). |
+| Um varredor em Go que conta os achados | Os achados são prosa livre de muitos papéis (código, documento, QA). Um analisador casaria só as strings de título e perderia o mesmo defeito escrito de duas formas. O julgamento fica com o Coordenador, a leitura com o `repo-scout`. |
+| `N` como chave de configuração | Um argumento basta para um comando que o dono roda à mão, e nenhuma chave de `project.yaml` nem de `config.yaml` é acrescentada. |
+| Ler transcrições de sessão como a palestra faz | O kit não tem armazém de transcrições; os relatórios e o `MEMORY.md` são o registro durável. |
 
-### Risks and pending decisions
+### Riscos e decisões pendentes
 
-- Risk: the Coordinator keeps editing `MEMORY.md` directly and skips the command. Mitigation: R5 makes it the rule in the two places the Coordinator reads first, and R7 states that the mod does not force it. A mod rule is the follow-up.
-- Risk: a draft copy of a 40,000-byte `MEMORY.md` costs tokens. Mitigation: the draft is a file copy edited in place by small edits, not a rewrite; the cost is one copy and one write.
-- Risk: grouping by the model is uneven (two wordings of one defect, or two defects under one title). Mitigation: R10 fixes one rule, the proposal shows the examples with origin so the owner judges the group, and a wrong group costs a decision, not a change.
-- Risk: the proposal file holds a secret quoted from a report. Mitigation: R11 redacts and the quote is at most two lines.
+- Risco: o Coordenador continua editando `MEMORY.md` diretamente e pula o comando. Mitigação: a R5 faz disso a regra nos dois lugares que o Coordenador lê primeiro, e a R7 declara que o mod não o força. Uma regra de mod é o acompanhamento.
+- Risco: uma cópia de rascunho de um `MEMORY.md` de 40.000 bytes custa tokens. Mitigação: o rascunho é uma cópia de arquivo editada no lugar por edições pequenas, não uma reescrita; o custo é uma cópia e uma escrita.
+- Risco: o agrupamento pelo modelo é irregular (duas formulações de um defeito, ou dois defeitos sob um título). Mitigação: a R10 fixa uma regra, a proposta mostra os exemplos com a origem para o dono julgar o grupo, e um grupo errado custa uma decisão, não uma mudança.
+- Risco: o arquivo de proposta guarda um segredo citado de um relatório. Mitigação: a R11 o oculta e a citação tem no máximo duas linhas.
 
-### Decisions (closed 2026-11-16, owner)
+### Decisões (fechadas em 2026-11-16, dono)
 
-- D1 Tip 5 replaces the owner question of `/dh:consolidate-memory` with a hash check, and covers every kit write of `MEMORY.md`.
-- D2 Tip 9 is a read-only command `/dh:dream`; `N` is an argument, default 2.
-- D3 `/dh:dream` is a command, not a mode of `/dh:consolidate-memory` (R13).
-- D4 Minor version bump from 0.40.0 to 0.41.0: a command and a binary subcommand are added.
+- D1 A dica 5 troca a pergunta ao dono de `/dh:consolidate-memory` por uma checagem de hash, e cobre toda escrita de `MEMORY.md` feita pelo kit.
+- D2 A dica 9 é um comando somente leitura `/dh:dream`; `N` é um argumento, padrão 2.
+- D3 `/dh:dream` é um comando, não um modo de `/dh:consolidate-memory` (R13).
+- D4 Aumento de versão menor, de 0.40.0 para 0.41.0: um comando e um subcomando do binário são acrescentados.
