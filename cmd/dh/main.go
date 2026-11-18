@@ -55,6 +55,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runConfig(args[1:], stdout, stderr)
 	case "memory":
 		return runMemory(args[1:], stdin, stdout, stderr)
+	case "facts":
+		return runFacts(args[1:], stdout, stderr)
 	}
 	if args[0] == "build" {
 		return runBuild(args[1:], stdout, stderr)
@@ -176,26 +178,36 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
-// runMemory is the hash guard of MEMORY.md (PRD-034): `hash` prints the sha256 (or "absent"); `write` is a compare-and-swap.
+// runMemory is the hash guard of the records MEMORY.md and FACTS.md (PRD-034, PRD-035): `hash` prints the sha256 (or "absent"); `write` is a compare-and-swap.
+// --file picks the record from the closed list (MEMORY.md, the default, or FACTS.md); any other name exits 1 and lists both.
 // Exit codes: 0 ok, 1 usage or I/O error, 3 the file changed since it was read (nothing written).
 // The tokens `absent` and `written <hash>` are a contract the kit skills document, so they stay as they are; only the errors are in pt-BR.
 func runMemory(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	const memUsage = "uso: dh memory hash [pasta] | dh memory write --expect <sha256|absent> [--from <arquivo>] [pasta]"
+	const memUsage = "uso: dh memory hash [--file MEMORY.md|FACTS.md] [pasta] | dh memory write --expect <sha256|absent> [--file MEMORY.md|FACTS.md] [--from <arquivo>] [pasta]"
 	if len(args) == 0 {
 		printError(stderr, memUsage)
 		return 1
 	}
 	switch args[0] {
 	case "hash":
-		if len(args) > 2 {
-			printError(stderr, memUsage)
+		flags := flag.NewFlagSet("dh memory hash", flag.ContinueOnError)
+		flags.SetOutput(stderr)
+		file := flags.String("file", harness.MemoryFile, "registro: MEMORY.md (padrão) ou FACTS.md")
+		if err := flags.Parse(args[1:]); err != nil || flags.NArg() > 1 {
+			if err == nil {
+				printError(stderr, memUsage)
+			}
 			return 1
 		}
-		dir, ok := memoryDir(args[1:], stderr)
+		if err := harness.CheckRecordFile(*file); err != nil {
+			printError(stderr, err.Error())
+			return 1
+		}
+		dir, ok := memoryDir(flags.Args(), stderr)
 		if !ok {
 			return 1
 		}
-		sum, err := harness.MemoryHash(dir)
+		sum, err := harness.FileHash(dir, *file)
 		if err != nil {
 			printError(stderr, err.Error())
 			return 1
@@ -205,12 +217,17 @@ func runMemory(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	case "write":
 		flags := flag.NewFlagSet("dh memory write", flag.ContinueOnError)
 		flags.SetOutput(stderr)
-		expect := flags.String("expect", "", "sha256 do MEMORY.md como foi lido, ou absent")
+		expect := flags.String("expect", "", "sha256 do registro como foi lido, ou absent")
+		file := flags.String("file", harness.MemoryFile, "registro: MEMORY.md (padrão) ou FACTS.md")
 		from := flags.String("from", "", "arquivo com o novo conteúdo (padrão: entrada padrão)")
 		if err := flags.Parse(args[1:]); err != nil || *expect == "" || flags.NArg() > 1 {
 			if err == nil {
 				printError(stderr, memUsage)
 			}
+			return 1
+		}
+		if err := harness.CheckRecordFile(*file); err != nil {
+			printError(stderr, err.Error())
 			return 1
 		}
 		dir, ok := memoryDir(flags.Args(), stderr)
@@ -228,7 +245,7 @@ func runMemory(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			printError(stderr, err.Error())
 			return 1
 		}
-		sum, err := harness.WriteMemory(dir, *expect, content)
+		sum, err := harness.WriteFile(dir, *file, *expect, content)
 		if harness.IsMemoryChanged(err) {
 			printError(stderr, err.Error())
 			return 3
@@ -245,41 +262,105 @@ func runMemory(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 }
 
-// memoryDir resolves the harness dir of the optional project dir argument, like `dh harness-path`; mode none is an error.
-func memoryDir(pos []string, stderr io.Writer) (string, bool) {
-	dir := "."
-	if len(pos) == 1 {
-		dir = pos[0]
+// runFacts is `dh facts check [pasta]` (PRD-035 R27): it resolves the harness dir like `dh harness-path`, checks <harness dir>/FACTS.md against R3 to R6 and that
+// every evidence path exists under the project folder, and writes nothing. Exit codes: 0 the file is fine or absent, 1 a violation, mode none or an I/O error.
+// The tokens `ok` and `absent` on stdout are a contract the kit documents.
+func runFacts(args []string, stdout, stderr io.Writer) int {
+	const factsUsage = "uso: dh facts check [pasta]"
+	if len(args) == 0 || args[0] != "check" || len(args) > 2 {
+		printError(stderr, factsUsage)
+		return 1
 	}
-	repo, err := filepath.Abs(dir)
+	repo, dir, ok := projectHarness(args[1:], stderr)
+	if !ok {
+		return 1
+	}
+	content, err := os.ReadFile(filepath.Join(dir, harness.FactsFile))
+	if os.IsNotExist(err) {
+		fmt.Fprintln(stdout, "absent")
+		return 0
+	}
 	if err != nil {
 		printError(stderr, err.Error())
-		return "", false
+		return 1
+	}
+	rep := harness.CheckFacts(content, func(rel string) bool { return isRepoFile(repo, rel) })
+	if len(rep.Problems) > 0 {
+		for _, p := range rep.Problems {
+			if p.Line > 0 {
+				fmt.Fprintf(stderr, "%s:%d: %s\n", harness.FactsFile, p.Line, p.Msg)
+			} else {
+				fmt.Fprintf(stderr, "%s: %s\n", harness.FactsFile, p.Msg)
+			}
+		}
+		printError(stderr, fmt.Sprintf("%s reprovado: %d problema(s)", harness.FactsFile, len(rep.Problems)))
+		return 1
+	}
+	fmt.Fprintf(stdout, "ok %d fatos %d candidatos\n", rep.Facts, rep.Candidates)
+	return 0
+}
+
+// isRepoFile says whether rel (slash-separated, relative to repo) is a regular file inside the project folder. A folder is not evidence, and a symlink counts
+// only when what it points to is a file that is still inside the folder.
+func isRepoFile(repo, rel string) bool {
+	full := filepath.Join(repo, filepath.FromSlash(rel))
+	info, err := os.Stat(full)
+	if err != nil || !info.Mode().IsRegular() {
+		return false
+	}
+	real, err := filepath.EvalSymlinks(full)
+	if err != nil {
+		return false
+	}
+	root, err := filepath.EvalSymlinks(repo)
+	if err != nil {
+		return false
+	}
+	r, err := filepath.Rel(root, real)
+	return err == nil && r != ".." && !strings.HasPrefix(r, ".."+string(filepath.Separator))
+}
+
+// memoryDir resolves the harness dir of the optional project dir argument, like `dh harness-path`; mode none is an error.
+func memoryDir(pos []string, stderr io.Writer) (string, bool) {
+	_, dir, ok := projectHarness(pos, stderr)
+	return dir, ok
+}
+
+// projectHarness resolves the project folder (the optional argument, else the current one) and its harness dir; mode none is an error.
+func projectHarness(pos []string, stderr io.Writer) (repo, dir string, ok bool) {
+	arg := "."
+	if len(pos) == 1 {
+		arg = pos[0]
+	}
+	repo, err := filepath.Abs(arg)
+	if err != nil {
+		printError(stderr, err.Error())
+		return "", "", false
 	}
 	if st, err := os.Stat(repo); err != nil || !st.IsDir() {
 		printError(stderr, repo+" não é um diretório")
-		return "", false
+		return "", "", false
 	}
 	home, err := harness.EnsureHome()
 	if err != nil {
 		printError(stderr, err.Error())
-		return "", false
+		return "", "", false
 	}
 	c, err := harness.LoadConfig(home)
 	if err != nil {
 		printError(stderr, err.Error())
-		return "", false
+		return "", "", false
 	}
 	r := harness.Resolve(repo, c)
 	if r.Mode == "none" || r.Dir == "" {
 		printError(stderr, "não há harness dir para "+repo+" (mode none): rode /dh:setup antes")
-		return "", false
+		return "", "", false
 	}
-	return r.Dir, true
+	return repo, r.Dir, true
 }
 
 func usage() string {
-	return "uso: dh <memory <hash|write>|snapshot <event|subagents|statusline|prune>|validate [--source-only] [caminho]|build [--targets os/arch,...] [--no-binaries]|doctor [pasta-do-plugin-ou-raiz-do-kit]|dashboard [--port N] [--stale D] [--done-decay D] [--detach]|harness-path [pasta] [--json]|link [nome] [--off] [pasta] [--json]|projects [--json]|config [--json]|config set <chave> <valor>|config unset <chave>>"
+	return "uso: dh <memory <hash|write>|facts check [pasta]|snapshot <event|subagents|statusline|prune>|validate [--source-only] [caminho]|build [--targets os/arch,...] [--no-binaries]|doctor [pasta-do-plugin-ou-raiz-do-kit]|dashboard [--port N] [--stale D] [--done-decay D] [--detach]|harness-path [pasta] [--json]|link [nome] [--off] [pasta] [--json]|projects [--json]|config [--json]|config set <chave> <valor>|config unset <chave>>"
 }
 
 func pruneDays(args []string) (int, error) {

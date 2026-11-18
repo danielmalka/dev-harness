@@ -1,7 +1,7 @@
 import type { EngineInterface, Register } from 'claude-code'
 import { warnWrite } from './lib/warn.ts'
 
-const FILES = ['MEMORY.md', 'EPOCHAL.md', 'RISKS.md']
+const FILES = ['MEMORY.md', 'EPOCHAL.md', 'RISKS.md', 'FACTS.md']
 
 // Normalizes `p` against `base`: absolute result, no `.`/`..`/empty segments. A Windows drive path
 // (`C:\\x`, `c:/x`) is absolute too and reads as `/C:/x`, so git's `C:/repo` and the engine's `C:\\repo` meet.
@@ -21,6 +21,27 @@ export function resolvePath(base: string, p: string): string {
 export function homeFrom(dhHome: unknown, home: unknown, userProfile: unknown, cwd = '/'): string {
   const base = dhHome ? String(dhHome) : home ? `${home}/.harness` : userProfile ? `${userProfile}/.harness` : ''
   return base ? resolvePath(cwd, base) : ''
+}
+
+// PRD-035 R12/D7: the one subagent allowed to write FACTS.md is the curator, a `docs-guide` whose dispatch names FACTS.md in its write set.
+// ponytail: the write set is read from the dispatch text (a line `Arquivos permitidos:`, `Conjunto de escrita:` or `Write set:` that names FACTS.md), because the
+// engine gives the mod no structured write set; only the main session can spawn (denySpawn), so the text is the Coordinator's own. State is per mod load,
+// like the agentTypes map of panel.ts.
+const curators = new Set<string>()
+const WRITE_SET_LINE = /^[ \t>*-]*(?:arquivos permitidos|conjunto de escrita|write set)[ \t]*:[^\n]*(?<![\w.-])FACTS\.md(?![\w-]|\.\w)/im
+
+export function isCuratorSpawn(subagentType: unknown, prompt: unknown): boolean {
+  if (typeof subagentType !== 'string' || typeof prompt !== 'string') return false
+  return (subagentType === 'dh:docs-guide' || subagentType === 'docs-guide') && WRITE_SET_LINE.test(prompt)
+}
+
+// Called with the spawn event and the id the engine gave the new agent; remembers the curators of this session.
+export function noteSpawn(e: any, agentId: unknown): void {
+  try {
+    if (typeof agentId !== 'string' || !agentId) return
+    if (isCuratorSpawn(e?.subagentType, e?.prompt)) curators.add(agentId)
+    else curators.delete(agentId) // an id that is reused by a non-curator loses the exception
+  } catch {} // fail open
 }
 
 export function denySpawn($: any, e: any, next: any) {
@@ -55,6 +76,7 @@ export function protectedHit(home: string, filePath: unknown, cwd = '/', userHom
 export function guardFile(home: string, e: any, next: any, cwd = '/', userHome = '') {
   try {
     const hit = e.agentId ? protectedHit(home, e.file_path, cwd, userHome) : undefined
+    if (hit && /(^|\/)facts\.md$/i.test(hit) && curators.has(e.agentId)) return next(e) // PRD-035 R12: the curator may write FACTS.md
     if (hit) return { deny: `${hit} só é escrito pelo Coordinator (trava de runtime do dev-harness); devolva a atualização proposta.` }
   } catch {} // fail open
   return next(e)
@@ -85,7 +107,13 @@ const guard = async ($: EngineInterface, e: any, next: any) => {
 }
 
 export const register: Register = on => {
-  on('agent.spawn', denySpawn)
+  on('agent.spawn', ($, e, next) => denySpawn($, e, (x: any) => {
+    const r = next(x)
+    // sync result or promise, unchanged for the caller; the curator is noted when the engine answers with the new agent id
+    if (r && typeof (r as any).then === 'function') (r as any).then((v: any) => noteSpawn(x, v?.agentId), () => undefined)
+    else noteSpawn(x, (r as any)?.agentId)
+    return r
+  }))
   on('tool.call', { tool: 'Write' }, guard)
   on('tool.call', { tool: 'Edit' }, guard)
 }

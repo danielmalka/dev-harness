@@ -215,6 +215,46 @@ func TestHarnessMemorySize(t *testing.T) {
 	}
 }
 
+// PRD-035 R5: the doctor lists FACTS.md only when it exists, prints its size and warns past 150 lines or 12 KB, as it does for the 40000 bytes of MEMORY.md.
+func TestHarnessFactsSize(t *testing.T) {
+	lines := func(n int) string { return strings.Repeat("l\n", n) }
+	for _, tc := range []struct {
+		name         string
+		content      string
+		warnLines    bool
+		warnBytes    bool
+		sizeLineWant string
+	}{
+		{"150 lines", lines(150), false, false, "tamanho do FACTS.md: 150 linhas, 300 bytes"},
+		{"151 lines", lines(151), true, false, "tamanho do FACTS.md: 151 linhas, 302 bytes"},
+		{"12288 bytes", strings.Repeat("a", 12288), false, false, "tamanho do FACTS.md: 1 linhas, 12288 bytes"},
+		{"12289 bytes", strings.Repeat("a", 12289), false, true, "tamanho do FACTS.md: 1 linhas, 12289 bytes"},
+		{"both", lines(200) + strings.Repeat("a", 12300), true, true, ""},
+	} {
+		repo, home := t.TempDir(), t.TempDir()
+		mk(t, filepath.Join(repo, ".harness", "project.yaml"), "x\n")
+		mk(t, filepath.Join(repo, ".harness", "FACTS.md"), tc.content)
+		out := report(t, repo, home, "")
+		if !strings.Contains(out, "FACTS.md: presente") {
+			t.Errorf("%s: no presence line in:\n%s", tc.name, out)
+		}
+		if tc.sizeLineWant != "" && !strings.Contains(out, tc.sizeLineWant) {
+			t.Errorf("%s: want %q in:\n%s", tc.name, tc.sizeLineWant, out)
+		}
+		if got := strings.Contains(out, "acima do teto de 150: peça ao Coordenador a curadoria"); got != tc.warnLines {
+			t.Errorf("%s: lines warning=%v want %v in:\n%s", tc.name, got, tc.warnLines, out)
+		}
+		if got := strings.Contains(out, "acima do teto de 12288 (12 KB): peça ao Coordenador a curadoria"); got != tc.warnBytes {
+			t.Errorf("%s: bytes warning=%v want %v in:\n%s", tc.name, got, tc.warnBytes, out)
+		}
+	}
+	repo, home := t.TempDir(), t.TempDir()
+	mk(t, filepath.Join(repo, ".harness", "project.yaml"), "x\n")
+	if out := report(t, repo, home, ""); strings.Contains(out, "FACTS.md") {
+		t.Errorf("FACTS.md mentioned without the file:\n%s", out)
+	}
+}
+
 // ADR-011: the `language` option no longer exists. A legacy line in project.yaml or config.yaml is read, ignored, NEVER rewritten, and the doctor only warns (no failure).
 func TestLegacyLanguageWarnsWithoutFailingAndNeverRewritesTheFiles(t *testing.T) {
 	repo, home := t.TempDir(), t.TempDir()

@@ -1,5 +1,5 @@
 import type { EngineInterface, Register } from 'claude-code'
-import { denySpawn, guardFile, homeFrom, resolvePath, warnThenNext } from './runtime-guard.ts'
+import { denySpawn, guardFile, homeFrom, noteSpawn, resolvePath, warnThenNext } from './runtime-guard.ts'
 import { DASHBOARD_COMMAND, registerDashboard } from './dashboard-command.ts'
 import { applyEvent, iso, limitsFrom, type Ev, type Limits, type Snap } from './snapshot-writer.ts'
 import { driftMessage, findDrift, statusValue } from './status-drift.ts'
@@ -331,7 +331,7 @@ export const register: Register = on => {
 
   on('agent.spawn', ($, e, next) => denySpawn({}, e, async (x: typeof e) => {
     const r = await next(x)
-    if (r.agentId) { agentTypes.set(r.agentId, String(x.subagentType)); recordSpawn($, x.subagentType, r.agentId) }
+    if (r.agentId) { agentTypes.set(r.agentId, String(x.subagentType)); noteSpawn(x, r.agentId); recordSpawn($, x.subagentType, r.agentId) }
     return r
   })).catch(failOpen)
 

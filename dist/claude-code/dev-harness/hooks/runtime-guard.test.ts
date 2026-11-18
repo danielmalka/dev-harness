@@ -1,5 +1,5 @@
 import { test, expect } from 'claude-code/testing'
-import { guardFile, homeFrom, protectedHit, register, warnThenNext } from './runtime-guard.ts'
+import { guardFile, homeFrom, isCuratorSpawn, noteSpawn, protectedHit, register, warnThenNext } from './runtime-guard.ts'
 import { warnWrite } from './lib/warn.ts'
 
 // Capture the plugin's handlers with a fake `on`, so agentId / parentAgentId (which the
@@ -15,7 +15,7 @@ const spawn = (e: any) => handlers['agent.spawn'][0]({}, e, next)
 // A fake $ with env and cwd; `{}` (no env) is the fail-open case: only the suffix pattern holds.
 const fake = (env: Record<string, string> = {}, cwd = '/proj') => ({ env: { get: async (k: string) => env[k] }, session: { cwd: async () => cwd } })
 const file = (tool: string, e: any, $: any = {}) => Promise.all(handlers['tool.call'].map(h => h($, { tool, ...e }, next)))
-const FILES = ['MEMORY.md', 'EPOCHAL.md', 'RISKS.md']
+const FILES = ['MEMORY.md', 'EPOCHAL.md', 'RISKS.md', 'FACTS.md']
 
 test('registers agent.spawn and Write+Edit tool.call hooks', () => {
   expect(handlers['agent.spawn'].length).toBe(1)
@@ -227,4 +227,75 @@ test('R6 warn: through the registered handlers a warned main-session Edit still 
   const big = { file_path: 'src/a.ts', old_string: L(9), new_string: 'x' }
   for (const r of await file('Edit', big, $)) expect(r).toBe(NEXT)
   for (const r of await file('Edit', { file_path: '.harness/MEMORY.md', agentId: 's' }, $)) expect(r.deny).toContain('.harness/MEMORY.md')
+})
+
+// PRD-035 R12 (D7): FACTS.md is a protected record like the other three; the only subagent allowed to write it is the curator, a `docs-guide`
+// dispatched with FACTS.md in its write set. The matrices above already run FACTS.md through the repo and global patterns, both tools and every path style.
+const CURATOR_PROMPT = 'Objetivo: curar os fatos.\nArquivos permitidos: .harness/FACTS.md\nModelo: sonnet'
+
+test('R12 isCuratorSpawn: docs-guide with FACTS.md in the write set, and nothing else', () => {
+  expect(isCuratorSpawn('dh:docs-guide', CURATOR_PROMPT)).toBe(true)
+  expect(isCuratorSpawn('docs-guide', CURATOR_PROMPT)).toBe(true)
+  expect(isCuratorSpawn('dh:docs-guide', '- Conjunto de escrita: <harness dir>/FACTS.md')).toBe(true)
+  expect(isCuratorSpawn('dh:docs-guide', 'Write set: /h/projects/x/FACTS.md')).toBe(true)
+  expect(isCuratorSpawn('dh:docs-guide', '> arquivos permitidos : FACTS.md, .harness/MEMORY.md')).toBe(true)
+  // another role, even with the same text
+  for (const t of ['dh:builder', 'dh:qa-verifier', 'dh:repo-scout', 'dh:reviewer', 'builder', 'general-purpose', undefined, 7]) expect(isCuratorSpawn(t, CURATOR_PROMPT)).toBe(false)
+  // the docs-guide without FACTS.md in the write set, or with it only in other lines of the text
+  for (const p of ['Arquivos permitidos: .harness/MEMORY.md', 'Arquivos permitidos: docs/x.md\nLeia o FACTS.md antes', 'Resumo: atualizar FACTS.md', 'Arquivos permitidos: .harness/FACTS.md.bak', 'Arquivos permitidos: .harness/NOFACTS.md', '', undefined, null, 5]) expect(isCuratorSpawn('dh:docs-guide', p)).toBe(false)
+})
+
+for (const tool of ['Write', 'Edit']) {
+  test(`R12 ${tool}: the curator writes FACTS.md (repo and global), a plain docs-guide and a builder do not`, async () => {
+    noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }, 'cur-1')
+    noteSpawn({ subagentType: 'dh:docs-guide', prompt: 'Arquivos permitidos: docs/x.md' }, 'plain-1')
+    noteSpawn({ subagentType: 'dh:builder', prompt: CURATOR_PROMPT }, 'build-1')
+    for (const [path, env] of [['.harness/FACTS.md', {}], ['/proj/.harness/FACTS.md', {}], ['/h/projects/x/FACTS.md', { DH_HOME: '/h' }], ['~/.harness/projects/x/FACTS.md', { HOME: '/u' }]] as const) {
+      for (const r of await file(tool, { file_path: path, agentId: 'cur-1' }, fake(env as any))) expect(r).toBe(NEXT)
+      for (const id of ['plain-1', 'build-1', 'unknown-1'])
+        for (const r of await file(tool, { file_path: path, agentId: id }, fake(env as any))) expect(r.deny).toContain('só é escrito pelo Coordinator')
+    }
+  })
+  test(`R12 ${tool}: the curator exception covers FACTS.md only, not the other records`, async () => {
+    noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }, 'cur-2')
+    for (const f of ['MEMORY.md', 'EPOCHAL.md', 'RISKS.md'])
+      for (const r of await file(tool, { file_path: `.harness/${f}`, agentId: 'cur-2' })) expect(r.deny).toContain(`.harness/${f}`)
+    for (const r of await file(tool, { file_path: '/h/projects/x/MEMORY.md', agentId: 'cur-2' }, fake({ DH_HOME: '/h' }))) expect(r.deny).toContain('/h/projects/x/MEMORY.md')
+  })
+}
+
+test('R12 an id reused by a non-curator loses the exception; malformed spawn input is ignored', async () => {
+  noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }, 'cur-3')
+  for (const r of await file('Write', { file_path: '.harness/FACTS.md', agentId: 'cur-3' })) expect(r).toBe(NEXT)
+  noteSpawn({ subagentType: 'dh:builder', prompt: 'x' }, 'cur-3')
+  for (const r of await file('Write', { file_path: '.harness/FACTS.md', agentId: 'cur-3' })) expect(r.deny).toContain('.harness/FACTS.md')
+  for (const bad of [[undefined, undefined], [{}, undefined], [{}, ''], [{}, 7], [null, 'x'], [{ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }, null]] as const) noteSpawn(bad[0] as any, bad[1] as any)
+})
+
+test('R12 through the registered spawn handler: the engine answer carries the agent id, sync or promise, and the result is returned unchanged', async () => {
+  const spawnAs = (e: any, answer: any) => handlers['agent.spawn'][0]({}, e, () => answer)
+  const ev = { subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }
+  const sync = { agentId: 'cur-4', model: 'm' }
+  expect(spawnAs(ev, sync)).toBe(sync)
+  for (const r of await file('Edit', { file_path: '.harness/FACTS.md', agentId: 'cur-4' })) expect(r).toBe(NEXT)
+  const pending = Promise.resolve({ agentId: 'cur-5' })
+  expect(spawnAs(ev, pending)).toBe(pending)
+  await pending
+  for (const r of await file('Edit', { file_path: '.harness/FACTS.md', agentId: 'cur-5' })) expect(r).toBe(NEXT)
+  // a denied spawn (from a subagent) never reaches the engine and notes nothing
+  expect(spawnAs({ ...ev, parentAgentId: 'a1' }, { agentId: 'cur-6' }).deny).toContain('só o Coordinator despacha')
+  for (const r of await file('Edit', { file_path: '.harness/FACTS.md', agentId: 'cur-6' })) expect(r.deny).toContain('.harness/FACTS.md')
+  // a rejected promise is not an unhandled rejection
+  const rejected = Promise.reject(new Error('boom'))
+  rejected.catch(() => undefined)
+  expect(spawnAs(ev, rejected)).toBe(rejected)
+})
+
+// Through the engine, composed with the panel: the main session writes FACTS.md, a subagent is denied, and a subagent spawned as the curator is not.
+test('engine: Write on .harness/FACTS.md with agentId is denied end to end', async ($, on) => {
+  on('tool.call', { tool: 'Write' }, () => ({ result: 'ok' }) as any)
+  const r: any = await $.tool.call({ tool: 'Write', file_path: '.harness/FACTS.md', agentId: 'sub-f' } as any)
+  expect(r.text ?? r.deny).toContain('.harness/FACTS.md só é escrito pelo Coordinator')
+  const m: any = await $.tool.call({ tool: 'Write', file_path: '.harness/FACTS.md', content: 'x' } as any)
+  expect(m.deny).toBe(undefined)
 })

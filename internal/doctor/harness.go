@@ -57,6 +57,10 @@ func printHarnessFor(out io.Writer, cwd, home, settings string) int {
 				printMemorySize(out, filepath.Join(res.Dir, name))
 			}
 		}
+		if isFile(filepath.Join(res.Dir, harness.FactsFile)) {
+			fmt.Fprintf(out, "%s: presente\n", harness.FactsFile)
+			printFactsSize(out, filepath.Join(res.Dir, harness.FactsFile))
+		}
 	}
 	problems := printLegacyAndConventions(out, home, res)
 	name, registered := cfg.Projects[repo]
@@ -126,6 +130,27 @@ func printMemorySize(out io.Writer, path string) {
 	fmt.Fprintf(out, "tamanho do MEMORY.md: %d bytes\n", fi.Size())
 	if fi.Size() > memoryBudget {
 		fmt.Fprintf(out, "aviso: o MEMORY.md tem %d bytes, acima do orçamento de %d: rode /dh:consolidate-memory\n", fi.Size(), memoryBudget)
+	}
+}
+
+// printFactsSize reports the size of FACTS.md and warns when it passes the ceilings of PRD-035 R5 (150 lines, 12 KB), like printMemorySize does for MEMORY.md.
+// The file is listed only when it exists: a project that does not use it yet gets no line.
+func printFactsSize(out io.Writer, path string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Fprintf(out, "aviso: não foi possível ler o tamanho do %s: %v\n", harness.FactsFile, err)
+		return
+	}
+	lines := 0
+	if len(data) > 0 {
+		lines = strings.Count(strings.TrimSuffix(string(data), "\n"), "\n") + 1
+	}
+	fmt.Fprintf(out, "tamanho do %s: %d linhas, %d bytes\n", harness.FactsFile, lines, len(data))
+	if lines > harness.FactsMaxLines {
+		fmt.Fprintf(out, "aviso: o %s tem %d linhas, acima do teto de %d: peça ao Coordenador a curadoria do arquivo\n", harness.FactsFile, lines, harness.FactsMaxLines)
+	}
+	if len(data) > harness.FactsMaxBytes {
+		fmt.Fprintf(out, "aviso: o %s tem %d bytes, acima do teto de %d (12 KB): peça ao Coordenador a curadoria do arquivo\n", harness.FactsFile, len(data), harness.FactsMaxBytes)
 	}
 }
 
