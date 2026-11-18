@@ -30,6 +30,7 @@ O `FACTS.md` do harness dir acumula fatos curtos sobre o sistema, cada um com ev
 - O sha curto do `HEAD`, que o Coordenador obteve de `dh facts check`. Você o copia e não roda git.
 - A data de hoje (`AAAA-MM-DD`) e o id da tarefa, para o `Visto:` e para o registro da rodada.
 - A raiz do repositório, para ler as evidências.
+- As linhas de contradição de `## Mudanças` ainda abertas (formato abaixo): um leitor viu o código dizer outra coisa que um fato, e o Coordenador a registrou.
 
 ## Regras da rodada
 
@@ -47,7 +48,7 @@ O `FACTS.md` do harness dir acumula fatos curtos sobre o sistema, cada um com ev
    - a evidência não existe ou diz o contrário: remova o fato e registre o id, o motivo e a evidência (passo 9);
    - a leitura não basta para confirmar (a linha existe, mas não prova a frase): o estado vira `hipótese`, e o fato fica em `## Candidatos` para uma rodada futura. Escreva no registro o que faltou.
 3. **Classifique cada fato confirmado numa das 11 categorias**, na ordem do arquivo: estilo de escrita, arquitetura, design system, dependências, ferramentas complementares, particularidades de código, testes, dados e esquema, build e CI, armadilhas, fronteiras. Em dúvida entre duas, escolha a que diz o que o próximo agente erraria. Mantenha os títulos `## <Categoria>` como estão no arquivo.
-4. **Reconfira até 10 fatos confirmados.** Pegue os de `Visto:` mais antigo (você não roda git e não ordena shas; em empate, o menor id). Aplique o mesmo teste do passo 2: se continuam valendo, atualize `sha:` e `Visto:`; se o código diz outra coisa ou a evidência sumiu, o fato sai (R7); se a leitura deixou de bastar, ele volta para `## Candidatos` como `hipótese`.
+4. **Reconfira até 10 fatos confirmados.** Antes, confira os contraditos: uma linha `· contradito · F-<n>, <caminho:linha> ·` de `## Mudanças` está aberta quando nenhuma linha posterior diz `F-<n> saiu` ou `F-<n> mantido`; leia o `caminho:linha` citado e aplique o teste do passo 2. Se o código desmente o fato, ele sai; se ele continua valendo, fica, com `sha:` e `Visto:` atualizados, e o registro diz `F-<n> mantido: <motivo>; evidência: <caminho:linha>`; se a leitura não basta, ele volta para `## Candidatos` como `hipótese`. Os contraditos não contam para o limite de 10. Pegue os de `Visto:` mais antigo (você não roda git e não ordena shas; em empate, o menor id). Aplique o mesmo teste do passo 2: se continuam valendo, atualize `sha:` e `Visto:`; se o código diz outra coisa ou a evidência sumiu, o fato sai (R7); se a leitura deixou de bastar, ele volta para `## Candidatos` como `hipótese`.
 5. **Funda os duplicados.** Dois fatos que dizem a mesma coisa viram um: fica o menor id, com a frase mais precisa e até 3 evidências (as mais fortes). Registre `F-<b> fundido em F-<a>`.
 6. **Remova o que o arquivo não pode ter.** O fato que repete o que o `README.md`, o `AGENTS.md`, o `CLAUDE.md` ou o `REPO-MAP.md` já dizem, e o que traz decisão do dono, estado de tarefa, conteúdo de `.env`, nome de cliente ou dado pessoal sem relação com o código.
 7. **Redija segredos e dados pessoais.** Troque o valor por `[redigido]` onde quer que ele esteja (fato, cabeçalho ou `## Mudanças`) e mantenha o fato só se ele ainda faz sentido sem o valor; senão remova-o. Avise o Coordenador na resposta, com o id e o tipo (chave, token, senha, e-mail, CPF...), nunca com o valor.
@@ -64,6 +65,7 @@ Uma linha da rodada e, abaixo dela, uma linha por fato que saiu ou foi fundido. 
   - F-<n> saiu: <motivo>; evidência: <caminho:linha>
   - F-<n> fundido em F-<m>
   - F-<n>, F-<n>, F-<n> removidos por teto: <motivo>
+  - F-<n> mantido: <motivo>; evidência: <caminho:linha>
 ```
 
 `entraram` conta os candidatos que viraram `confirmado` na rodada; `saíram`, os fatos removidos (contradição, evidência ausente, repetição das fontes, teto, segredo sem o valor); `fundidos`, os que se juntaram a outro.
