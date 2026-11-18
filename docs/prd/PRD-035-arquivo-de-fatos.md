@@ -254,6 +254,16 @@ O revisor da F1 aceitou estas cinco escolhas, que o PRD não fechava, e pediu o 
 
 Na mesma revisão, a evidência passou a exigir um arquivo regular do repositório: uma pasta não vale (R3, R27).
 
+### Escolhas da implementação da F2 (registradas em 2026-11-18, origem: a implementação da F2)
+
+A F2 completou o que o PRD não fechava assim. Cada escolha está também na regra que ela completa, e o teste de contrato `internal/kit/facts_contract_test.go` fixa os textos.
+
+- E6 O especialista escreve o candidato com o id `F-000` e, sem o sha do despacho, com `sha: ?`; o Coordenador troca o id pelo próximo id livre de 3 dígitos (nunca reaproveitado) e o `?` pelo sha do `HEAD` obtido de um `qa-verifier` (R3, R8 a R10). Um `sha: ?` que sobrar reprova no `dh facts check`.
+- E7 Nenhum template novo: a contagem de templates continua 8. O formato da linha vive na skill `repository-mapping` (seção "Fatos candidatos"), repetido igual no `builder` e no `qa-verifier`, e o esqueleto do arquivo vive no `coordinator`, que cria o arquivo na primeira gravação, com `--expect absent`, só quando o modo não é `none` (R1, R2).
+- E8 O esqueleto tem o cabeçalho `# Fatos do sistema`, a linha `Última curadoria: nenhuma`, as 11 categorias vazias na ordem de R4, `## Candidatos` e `## Mudanças`. Um candidato fica em `## Candidatos` sem categoria; quem o classifica é o curador (F3).
+- E9 O `bootstrap` devolve no máximo 5 convenções como candidatos, como o `repo-scout` (R8); a parte 6 do `REPO-MAP.md` é só a linha `Convenções: ver FACTS.md` (R26).
+- E10 A linha de referência do setup é escrita por um `builder` (`lane` `infra`), com o arquivo de instruções como único conjunto de escrita; "já existe" é uma linha que começa com `Fatos do sistema:`, qualquer que seja o texto dela, e o setup não cria o `FACTS.md` (R22, R23).
+
 ### Decisões (fechadas em 2026-11-18, dono)
 
 - D1 Arquivo separado, `<harness dir>/FACTS.md`, ao lado do `REPO-MAP.md`; a parte 6 do mapa aponta para ele.
