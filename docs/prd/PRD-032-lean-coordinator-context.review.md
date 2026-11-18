@@ -1,194 +1,196 @@
 # Review: PRD-032
 
-## Round 1
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
 
-| Field | Value |
+## Rodada 1
+
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-032-lean-coordinator-context.md |
-| Source | tasks/PRD-032/SOURCE.md (harness dir) |
-| Round | 1 of 2 |
-| Verdict | changes required |
-| Updated | 2026-10-30 |
+| Documento | docs/prd/PRD-032-lean-coordinator-context.md |
+| Fonte | tasks/PRD-032/SOURCE.md (harness dir) |
+| Rodada | 1 de 2 |
+| Veredito | changes required |
+| Atualizado | 2026-10-30 |
 
-Reviewer: cli:agy/gemini-3.8-flash-high (document stage). Blocking findings: 4. Raw reply: `tasks/PRD-032/evidence/document-r1/agy-reply.txt` (harness dir).
+Revisor: cli:agy/gemini-3.8-flash-high (etapa de documento). Achados bloqueantes: 4. Resposta bruta: `tasks/PRD-032/evidence/document-r1/agy-reply.txt` (harness dir).
 
-Note (Coordinator): the reviewer reported running `go run ./cmd/dh validate .` and `wc -c`, against the anti-delegation clause; the tree was unchanged and the verdict was kept by the Coordinator. The reviewer's own reply names its report as `docs/prd/PRD-032-lean-coordinator-context.md.review.md`; this file is the path the Coordinator set.
+Nota (Coordenador): o revisor reportou ter rodado `go run ./cmd/dh validate .` e `wc -c`, contra a cláusula anti-delegação; a árvore ficou inalterada e o Coordenador manteve o veredito. A própria resposta do revisor dá ao seu relatório o nome `docs/prd/PRD-032-lean-coordinator-context.md.review.md`; este arquivo é o caminho que o Coordenador definiu.
 
-## Comprehension
-- What the document proposes: PRD-032 proposes making the Coordinator session leaner during long tasks by adopting patterns inspired by Google's Elephant-Goldfish Model. Specialist agents write reports exceeding 40 lines to files in the task folder, returning only a compact summary and verdict within a 200-word cap. When multiple reviewers evaluate a change in a stage, docs-guide synthesizes their report files into a single merged artifact rather than sending raw reports into the Coordinator chat. Single-command guidance sections move out of coordinator.md into their respective command files, chained command inlining in /dh:auto is replaced by a targeted section-reading table, and MEMORY.md is governed by entry and file size limits with doctor warnings. Finally, an opt-in repository bootstrap phase is added to /dh:setup to generate a concise, reusable REPO-MAP.md without adding new commands or agents.
-- How the current system works, as the document states it: The Coordinator currently loads large instruction and state files into its context on every execution, including coordinator.md and MEMORY.md, and /dh:auto inlines six full chained command files across the entire run. Specialist dispatches lack numeric reply caps, allowing full reports such as extensive code reviews to return directly into the main conversation. The Coordinator itself merges review findings in chat when multiple reviewers report, and it reads reports in full even when changes are approved without blocking issues. MEMORY.md lacks a byte ceiling and can expand to thousands of lines, while consolidation happens only on explicit owner command. Furthermore, the kit does not persist a repository map, leaving subsequent planning and scouting runs to repeatedly rediscover layout and architecture from scratch.
-- Sections not paraphrased: none
+## Compreensão
+- O que o documento propõe: o PRD-032 propõe deixar a sessão do Coordenador mais enxuta durante tarefas longas, adotando padrões inspirados no Elephant-Goldfish Model do Google. Os agentes especialistas escrevem relatórios com mais de 40 linhas em arquivos na pasta da tarefa e devolvem só um resumo compacto e o veredito, dentro de um limite de 200 palavras. Quando vários revisores avaliam uma mudança em uma etapa, o docs-guide sintetiza os arquivos de relatório deles em um único artefato mesclado, em vez de enviar os relatórios brutos ao chat do Coordenador. As seções de orientação de um só comando saem do coordinator.md para os arquivos dos respectivos comandos, a incorporação de comandos encadeados no /dh:auto é substituída por uma tabela de leitura de seções específicas, e o MEMORY.md passa a ser regido por limites de tamanho de entrada e de arquivo, com avisos do doctor. Por fim, uma fase opcional de bootstrap do repositório é acrescentada ao /dh:setup para gerar um REPO-MAP.md conciso e reutilizável, sem acrescentar comandos nem agentes.
+- Como o sistema atual funciona, segundo o documento: o Coordenador hoje carrega no seu contexto, a cada execução, arquivos grandes de instruções e de estado, entre eles o coordinator.md e o MEMORY.md, e o /dh:auto incorpora seis arquivos de comandos encadeados completos ao longo de toda a execução. Os despachos aos especialistas não têm limites numéricos de resposta, o que permite que relatórios completos, como revisões de código extensas, voltem direto para a conversa principal. O próprio Coordenador mescla os achados de revisão no chat quando vários revisores reportam, e lê os relatórios por inteiro mesmo quando as mudanças são aprovadas sem problemas bloqueantes. O MEMORY.md não tem teto em bytes e pode crescer até milhares de linhas, e a consolidação só acontece por comando explícito do dono. Além disso, o kit não persiste um mapa do repositório, e as execuções seguintes de planejamento e de reconhecimento redescobrem do zero a estrutura e a arquitetura.
+- Seções não parafraseadas: nenhuma
 
-## Findings
+## Achados
 
-- **P1** [pending] [conflict] `repo-scout` report-to-file instruction in R1 conflicts with no-write toolset in R2
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (line 46) and R2 (line 50)
-  - Evidence: R1 asserts in its verifiable criteria that `repo-scout.md` states the report file rule in its Output format ("builder.md, reviewer.md, qa-verifier.md, docs-guide.md, and repo-scout.md each state the same rule in their Output format", where the rule is "A specialist writes its full report to `<task folder>/reports/<role>-<n>.md` when the report is longer than 40 lines"). However, R2 explicitly contradicts this for `repo-scout`: "`repo-scout` has no Write tool. Its reply stays within the cap and lists paths, not file bodies. When a scout map is longer, the Coordinator dispatches `docs-guide` to write it (R10)."
-  - Suggestion: Remove `repo-scout.md` from the list of agents stating the report-to-file rule in R1. Update R1 to specify that `repo-scout`'s Output format enforces only the reply cap, delegating any report file writing to `docs-guide` per R2 and R10.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P2** [pending] [ambiguity] Review-specific fields mandated for non-review specialist replies in R1
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (line 46)
-  - Evidence: R1 dictates: "A specialist writes its full report to `<task folder>/reports/<role>-<n>.md` when the report is longer than 40 lines. Its reply then holds the verdict, the report path, the counts by severity, at most 5 blocking findings as `location · title`, and a summary within the cap. ... builder.md, reviewer.md, qa-verifier.md, docs-guide.md, and repo-scout.md each state the same rule in their Output format." Non-review specialists (`builder`, `qa-verifier`, `docs-guide`, `debugger`) do not produce verdicts, severity counts, or blocking findings.
-  - Suggestion: Disambiguate R1 by distinguishing review specialist replies from non-review specialist replies: state that reviewer replies include verdict, report path, severity counts, and top 5 blocking findings, whereas non-review specialists (builder, qa-verifier, docs-guide, debugger) include the report path and a role-appropriate status summary (e.g., delivered slices, check results, or updated docs) within the 200-word cap.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P3** [pending] [ambiguity] Unspecified execution source for `git rev-parse HEAD` in R10 and R12
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R10 (lines 78, 84) and R12 (line 86)
-  - Evidence: R10 requires `REPO-MAP.md` to include "1. Header: date, `git rev-parse HEAD`, and the command that produced it" while simultaneously stating "The writer reads the repository and does not run project code or scripts", and `.agents/docs-guide.md` lacks a shell tool ("its stamp script needs a shell, which this role does not have"). Similarly, R12 states "When the header sha differs from the current `HEAD`, `repo-scout` reports the map as stale", but `.agents/repo-scout.md` has no shell tool ("Product read-only. No Write, Edit, or shell"). Neither rule defines who executes `git rev-parse HEAD` or how the current commit sha reaches `docs-guide` and `repo-scout`.
-  - Suggestion: Explicitly state in R10 and R12 that the Coordinator (or a dispatched `qa-verifier` in lane `infra`) resolves the current `git rev-parse HEAD` sha and passes it in the dispatch payload to `docs-guide` during setup/bootstrap and to `repo-scout` during reuse.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P4** [pending] [gap] `.skills/security-review/SKILL.md` omitted from documentation update scope in Section 4
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 4, Docs (line 124)
-  - Evidence: Section 4 lists `.skills/code-review/SKILL.md`, but omits `.skills/security-review/SKILL.md`. Under R2, R4, and `coordinator.md`, the artifact-first report file rule, the 200-word reply cap, and the synthesizer merge apply to both `code` and `security` review stages. The kit reviewer executes mode `security` using `.skills/security-review/SKILL.md`.
-  - Suggestion: Add `.skills/security-review/SKILL.md` to the document list in Section 4.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P5** [pending] [organization] `debugger.md` listed in R2 and Section 4 but omitted from R1 verifiable output format list
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (line 46) and R2 (line 48)
-  - Evidence: R2 includes `debugger` ("builder, qa-verifier, docs-guide, and debugger write their own report file") and Section 4 lists `.agents/debugger.md` for update. However, R1's verifiable condition omits `debugger.md` ("builder.md, reviewer.md, qa-verifier.md, docs-guide.md, and repo-scout.md each state the same rule in their Output format").
-  - Suggestion: Add `debugger.md` to R1's list of specialist definitions updated with the report-to-file rule.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P6** [pending] [organization] Procedural and descriptive sentence length violations against PRD writing rules (ASD-STE100)
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R4 (line 54) and R5 (line 64)
-  - Evidence: R4 sentence 1 ("When a review stage has more than one reviewer entry in the dispatch, a docs-guide run (model sonnet) merges the reviewer report files into one file <task folder>/reports/<stage>-merged-<round>.md.") has 30 words (limit: 20 procedural / 25 descriptive). R5 sentence 3 ("auto.md carries a table with one row for each chained stage (discover, plan, build, secure, review, release): the file, the sections to read, and the byte count budget.") has 29 words (limit: 25 words).
-  - Suggestion: Break these sentences into shorter statements of at most 20 words each, following the kit's PRD writing rules (ASD-STE100).
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P7** [pending] [ambiguity] Threshold precedence between 40-line report file trigger and 200-word reply cap
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (line 46)
-  - Evidence: R1 specifies that "The default cap is 200 words" and "A specialist writes its full report to `<task folder>/reports/<role>-<n>.md` when the report is longer than 40 lines. ... A report of 40 lines or fewer stays in the reply." A report with 30 lines but 300 words satisfies the condition to stay in the reply while violating the 200-word reply cap.
-  - Suggestion: Reconcile the line and word thresholds in R1, for example: "A specialist writes its full report to the file when the report exceeds 40 lines or exceeds the reply cap; a report meeting both limits stays in the reply."
-  - Reported by: cli:agy/gemini-3.8-flash-high
+- **P1** [pending] [conflict] A instrução de relatório em arquivo do `repo-scout` na R1 conflita com o conjunto de ferramentas sem escrita na R2
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linha 46) e R2 (linha 50)
+  - Evidência: a R1 afirma nos seus critérios verificáveis que o `repo-scout.md` declara a regra do arquivo de relatório no seu Formato de saída ("builder.md, reviewer.md, qa-verifier.md, docs-guide.md e repo-scout.md declaram cada um a mesma regra no seu Formato de saída"), onde a regra é "Um especialista escreve o seu relatório completo em `<task folder>/reports/<role>-<n>.md` quando o relatório tem mais de 40 linhas". Porém a R2 contradiz isso de forma explícita para o `repo-scout`: "O `repo-scout` não tem a ferramenta Write. A sua resposta fica dentro do limite e lista caminhos, não corpos de arquivo. Quando um mapa do scout é mais longo, o Coordenador despacha o `docs-guide` para escrevê-lo (R10)."
+  - Sugestão: remover o `repo-scout.md` da lista de agentes que declaram a regra de relatório em arquivo na R1. Atualizar a R1 para especificar que o Formato de saída do `repo-scout` impõe só o limite de resposta, delegando ao `docs-guide` toda escrita de arquivo de relatório, conforme a R2 e a R10.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P2** [pending] [ambiguity] Campos específicos de revisão exigidos na R1 para respostas de especialistas que não revisam
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linha 46)
+  - Evidência: a R1 dita: "Um especialista escreve o seu relatório completo em `<task folder>/reports/<role>-<n>.md` quando o relatório tem mais de 40 linhas. A sua resposta então traz o veredito, o caminho do relatório, as contagens por severidade, no máximo 5 achados bloqueantes como `location · title` e um resumo dentro do limite. ... builder.md, reviewer.md, qa-verifier.md, docs-guide.md e repo-scout.md declaram cada um a mesma regra no seu Formato de saída." Os especialistas que não revisam (`builder`, `qa-verifier`, `docs-guide`, `debugger`) não produzem vereditos, contagens por severidade nem achados bloqueantes.
+  - Sugestão: desfazer a ambiguidade da R1 distinguindo as respostas dos especialistas de revisão das dos especialistas que não revisam: declarar que as respostas do revisor incluem o veredito, o caminho do relatório, as contagens por severidade e os 5 principais achados bloqueantes, enquanto os especialistas que não revisam (builder, qa-verifier, docs-guide, debugger) incluem o caminho do relatório e um resumo de status adequado ao papel (por exemplo, fatias entregues, resultados das checagens ou docs atualizados) dentro do limite de 200 palavras.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P3** [pending] [ambiguity] Origem de execução não especificada para `git rev-parse HEAD` na R10 e na R12
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R10 (linhas 78, 84) e R12 (linha 86)
+  - Evidência: a R10 exige que o `REPO-MAP.md` inclua "1. Cabeçalho: data, `git rev-parse HEAD` e o comando que o produziu" e ao mesmo tempo declara "O escritor lê o repositório e não roda código nem scripts do projeto", e o `.agents/docs-guide.md` não tem ferramenta de shell ("o script de carimbo precisa de um shell, que este papel não tem"). Do mesmo modo, a R12 declara "Quando o sha do cabeçalho difere do `HEAD` atual, o `repo-scout` reporta o mapa como desatualizado", mas o `.agents/repo-scout.md` não tem ferramenta de shell ("Somente leitura do produto. Sem Write, Edit nem shell"). Nenhuma das duas regras define quem executa o `git rev-parse HEAD` nem como o sha do commit atual chega ao `docs-guide` e ao `repo-scout`.
+  - Sugestão: declarar de forma explícita na R10 e na R12 que o Coordenador (ou um `qa-verifier` despachado na `lane` `infra`) resolve o sha atual do `git rev-parse HEAD` e o passa na carga do despacho ao `docs-guide` durante o setup/bootstrap e ao `repo-scout` durante a reutilização.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P4** [pending] [gap] `.skills/security-review/SKILL.md` omitido do escopo de atualização da documentação na Seção 4
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 4, Docs (linha 124)
+  - Evidência: a Seção 4 lista `.skills/code-review/SKILL.md`, mas omite `.skills/security-review/SKILL.md`. Pela R2, pela R4 e pelo `coordinator.md`, a regra de relatório em arquivo primeiro, o limite de resposta de 200 palavras e a mescla do sintetizador valem para as etapas de revisão `code` e `security`. O revisor do kit executa o modo `security` usando `.skills/security-review/SKILL.md`.
+  - Sugestão: acrescentar `.skills/security-review/SKILL.md` à lista de documentos da Seção 4.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P5** [pending] [organization] `debugger.md` listado na R2 e na Seção 4, mas omitido da lista verificável de formato de saída da R1
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linha 46) e R2 (linha 48)
+  - Evidência: a R2 inclui o `debugger` ("builder, qa-verifier, docs-guide e debugger escrevem o próprio arquivo de relatório") e a Seção 4 lista `.agents/debugger.md` para atualização. Porém a condição verificável da R1 omite o `debugger.md` ("builder.md, reviewer.md, qa-verifier.md, docs-guide.md e repo-scout.md declaram cada um a mesma regra no seu Formato de saída").
+  - Sugestão: acrescentar o `debugger.md` à lista da R1 de definições de especialistas atualizadas com a regra de relatório em arquivo.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P6** [pending] [organization] Violações de tamanho de frase, procedurais e descritivas, contra as regras de escrita de PRD (ASD-STE100)
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R4 (linha 54) e R5 (linha 64)
+  - Evidência: a frase 1 da R4 ("Quando uma etapa de revisão tem mais de uma entrada de revisor no despacho, uma execução do docs-guide (modelo sonnet) mescla os arquivos de relatório dos revisores em um arquivo <task folder>/reports/<stage>-merged-<round>.md.") tem 30 palavras (limite: 20 procedurais / 25 descritivas). A frase 3 da R5 ("O auto.md traz uma tabela com uma linha para cada etapa encadeada (discover, plan, build, secure, review, release): o arquivo, as seções a ler e o orçamento em bytes.") tem 29 palavras (limite: 25 palavras).
+  - Sugestão: quebrar essas frases em declarações de no máximo 20 palavras cada, seguindo as regras de escrita de PRD do kit (ASD-STE100).
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P7** [pending] [ambiguity] Precedência entre o gatilho de 40 linhas do arquivo de relatório e o limite de resposta de 200 palavras
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linha 46)
+  - Evidência: a R1 especifica que "O limite padrão é 200 palavras" e "Um especialista escreve o seu relatório completo em `<task folder>/reports/<role>-<n>.md` quando o relatório tem mais de 40 linhas. ... Um relatório de 40 linhas ou menos fica na resposta." Um relatório com 30 linhas mas 300 palavras satisfaz a condição de ficar na resposta e viola o limite de resposta de 200 palavras.
+  - Sugestão: conciliar na R1 os limites de linhas e de palavras, por exemplo: "Um especialista escreve o seu relatório completo no arquivo quando o relatório passa de 40 linhas ou passa do limite de resposta; um relatório que cumpre os dois limites fica na resposta."
+  - Reportado por: cli:agy/gemini-3.8-flash-high
 
-## Not raised
-- Lean Coordinator context motivation: Owner request for reduced Coordinator context load in long tasks is directly addressed across R1-R8.
-- Elephant-Goldfish Model alignment: Goldfish read-only subagents, reports written to disk, and deduplicated synthesis (EGM findings in SOURCE.md) map cleanly to R1, R2, R3, and R4.
-- Repository bootstrap mechanism: Extending `/dh:setup` via an opt-in second phase preserving the fixed 19 + 1 command count maps cleanly to R9-R12 without altering documented command limits.
-- Chained command inlining reduction: R5 correctly replaces inlining of full command files in `/dh:auto` with a six-row table targeting only `Routing`, `Prerequisites`, and `Limits`.
-- Coordinator single-command section reduction: R6 moves four candidate sections ("Worktree", "Consolidation on explicit request", "External CLI planners", "Drift report") to their respective commands and targets a verified >= 5500 byte reduction.
-- Memory budget and consolidation: R7 establishes concrete entry (<= 1200 chars) and file (<= 40000 bytes) limits, and R8 provides observable `dh doctor` size checks without violating owner-triggered consolidation.
-- PRD-031 dependency and timing: Header, Section 1, R6, R15, and Section 4 correctly state and respect the dependency on the merged state of PRD-031.
-- Documented counts integrity: R13 preserves 13 agents, 22 skills, 19+1 commands, 7 profiles, 14 templates, and prohibits new `project.yaml` keys.
-- Safeguards preservation: R14 retains not-run honesty, memory ownership, independent review, Coordinator conversation exclusion, the anti-delegation clause, authorization limits, and tree immutability for CLI reviewers.
-- Measurement discipline: R15 defines byte baselines and results in the Executed summary without relying on paid evaluations or token-counting tools.
-- Cleanup and reproducibility: R16 mandates clean diff in `dist/` after build and clean-clone proof for changes touching Go code in `internal/`.
-- Out-of-scope boundaries: Appendix accurately rejects EGM hooks, six-lens brainstorm, README trees, model modifications, and automated memory rewriting.
+## Não levantado
+- Motivação do contexto enxuto do Coordenador: o pedido do dono de reduzir a carga de contexto do Coordenador em tarefas longas é tratado diretamente da R1 à R8.
+- Alinhamento com o Elephant-Goldfish Model: os subagentes peixes-dourados somente leitura, os relatórios escritos em disco e a síntese deduplicada (achados do EGM no SOURCE.md) correspondem com clareza à R1, à R2, à R3 e à R4.
+- Mecanismo de bootstrap do repositório: estender o `/dh:setup` por uma segunda fase opcional, preservando a contagem fixa de 19 + 1 comandos, corresponde com clareza à R9 até a R12, sem alterar os limites documentados de comandos.
+- Redução da incorporação de comandos encadeados: a R5 substitui corretamente a incorporação dos arquivos de comando completos no `/dh:auto` por uma tabela de seis linhas que mira só `Roteamento`, `Pré-requisitos` e `Limites`.
+- Redução das seções de um só comando do Coordenador: a R6 move quatro seções candidatas ("Worktree", "Consolidação a pedido explícito", "Planejadores de CLI externos", "Relatório de deriva") para os respectivos comandos e mira uma redução verificada de >= 5500 bytes.
+- Orçamento da memória e consolidação: a R7 estabelece limites concretos de entrada (<= 1200 caracteres) e de arquivo (<= 40000 bytes), e a R8 dá checagens de tamanho observáveis no `dh doctor` sem violar a consolidação disparada pelo dono.
+- Dependência e momento do PRD-031: o cabeçalho, a Seção 1, a R6, a R15 e a Seção 4 declaram e respeitam corretamente a dependência do estado mesclado do PRD-031.
+- Integridade das contagens documentadas: a R13 preserva 13 agentes, 22 skills, 19+1 comandos, 7 perfis, 14 templates e proíbe novas chaves em `project.yaml`.
+- Preservação das salvaguardas: a R14 mantém a honestidade do not-run, a posse da memória, a revisão independente, a exclusão da conversa do Coordenador, a cláusula anti-delegação, os limites de autorização e a imutabilidade da árvore para revisores de CLI.
+- Disciplina de medição: a R15 define linhas de base em bytes e resultados no Resumo executado, sem depender de avaliações pagas nem de ferramentas de contagem de tokens.
+- Limpeza e reprodutibilidade: a R16 exige diff limpo em `dist/` após o build e prova em clone limpo para mudanças que tocam código Go em `internal/`.
+- Limites fora do escopo: o Apêndice rejeita com precisão os hooks do EGM, o brainstorm de seis lentes, as árvores de README, as modificações de modelo e a reescrita automática da memória.
 
-## Round 2
+## Rodada 2
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-032-lean-coordinator-context.md |
-| Source | tasks/PRD-032/SOURCE.md (harness dir) |
-| Round | 2 of 2 |
-| Verdict | approved |
-| Updated | 2026-10-31 |
+| Documento | docs/prd/PRD-032-lean-coordinator-context.md |
+| Fonte | tasks/PRD-032/SOURCE.md (harness dir) |
+| Rodada | 2 de 2 |
+| Veredito | approved |
+| Atualizado | 2026-10-31 |
 
-Reviewer: cli:agy/gemini-3.8-flash-high (document stage). Blocking findings: 0. Raw reply: `tasks/PRD-032/evidence/document-r2/agy-reply.txt` (harness dir). The document was corrected between the rounds; the round-2 review is on the corrected document.
+Revisor: cli:agy/gemini-3.8-flash-high (etapa de documento). Achados bloqueantes: 0. Resposta bruta: `tasks/PRD-032/evidence/document-r2/agy-reply.txt` (harness dir). O documento foi corrigido entre as rodadas; a revisão da rodada 2 é sobre o documento corrigido.
 
-## Comprehension
-- What the document proposes: PRD-032 proposes making the Coordinator session leaner during long tasks by adopting patterns inspired by Google's Elephant-Goldfish Model. Specialist agents write reports exceeding 40 lines to files in the task folder, returning only a compact, role-tailored summary within a 200-word cap. When multiple reviewers evaluate a change in a stage, docs-guide synthesizes their report files into a single merged artifact rather than sending raw reports into the Coordinator chat. Single-command guidance sections move out of coordinator.md into their respective command files, chained command inlining in /dh:auto is replaced by a targeted section-reading table, and MEMORY.md is governed by entry and file size limits with doctor warnings. Finally, an opt-in repository bootstrap phase is added to /dh:setup to generate a concise, reusable REPO-MAP.md without adding new commands or agents.
-- How the current system works, as the document states it: The Coordinator currently loads large instruction and state files into its context on every execution, including coordinator.md and MEMORY.md, and /dh:auto inlines six full chained command files across the entire run. Specialist dispatches lack numeric reply caps, allowing full reports such as extensive code reviews to return directly into the main conversation. The Coordinator itself merges review findings in chat when multiple reviewers report, and it reads reports in full even when changes are approved without blocking issues. MEMORY.md lacks a byte ceiling and can expand to thousands of lines, while consolidation happens only on explicit owner command. Furthermore, the kit does not persist a repository map, leaving subsequent planning and scouting runs to repeatedly rediscover layout and architecture from scratch.
-- Sections not paraphrased: none
+## Compreensão
+- O que o documento propõe: o PRD-032 propõe deixar a sessão do Coordenador mais enxuta durante tarefas longas, adotando padrões inspirados no Elephant-Goldfish Model do Google. Os agentes especialistas escrevem relatórios com mais de 40 linhas em arquivos na pasta da tarefa e devolvem só um resumo compacto, sob medida para o papel, dentro de um limite de 200 palavras. Quando vários revisores avaliam uma mudança em uma etapa, o docs-guide sintetiza os arquivos de relatório deles em um único artefato mesclado, em vez de enviar os relatórios brutos ao chat do Coordenador. As seções de orientação de um só comando saem do coordinator.md para os arquivos dos respectivos comandos, a incorporação de comandos encadeados no /dh:auto é substituída por uma tabela de leitura de seções específicas, e o MEMORY.md passa a ser regido por limites de tamanho de entrada e de arquivo, com avisos do doctor. Por fim, uma fase opcional de bootstrap do repositório é acrescentada ao /dh:setup para gerar um REPO-MAP.md conciso e reutilizável, sem acrescentar comandos nem agentes.
+- Como o sistema atual funciona, segundo o documento: o Coordenador hoje carrega no seu contexto, a cada execução, arquivos grandes de instruções e de estado, entre eles o coordinator.md e o MEMORY.md, e o /dh:auto incorpora seis arquivos de comandos encadeados completos ao longo de toda a execução. Os despachos aos especialistas não têm limites numéricos de resposta, o que permite que relatórios completos, como revisões de código extensas, voltem direto para a conversa principal. O próprio Coordenador mescla os achados de revisão no chat quando vários revisores reportam, e lê os relatórios por inteiro mesmo quando as mudanças são aprovadas sem problemas bloqueantes. O MEMORY.md não tem teto em bytes e pode crescer até milhares de linhas, e a consolidação só acontece por comando explícito do dono. Além disso, o kit não persiste um mapa do repositório, e as execuções seguintes de planejamento e de reconhecimento redescobrem do zero a estrutura e a arquitetura.
+- Seções não parafraseadas: nenhuma
 
-## Findings
+## Achados
 
-- **P1** [applied] [conflict] `repo-scout` report-to-file instruction in R1 conflicts with no-write toolset in R2
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (lines 52-53) and R2 (line 57)
-  - Resolution: R1 now explicitly specifies that `repo-scout` has no Write tool and always returns inline within the cap, while R2 and R10 delegate any report file writing to `docs-guide`.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P2** [applied] [ambiguity] Review-specific fields mandated for non-review specialist replies in R1
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (lines 47-52)
-  - Resolution: R1 now specifies distinct, role-appropriate reply formats for `reviewer`, `qa-verifier`, `builder`, `docs-guide`, `debugger`, and `repo-scout`.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P3** [applied] [ambiguity] Unspecified execution source for `git rev-parse HEAD` in R10 and R12
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R10 (line 86) and R12 (line 94)
-  - Resolution: R10 and R12 now explicitly designate `qa-verifier` to resolve `git rev-parse HEAD` and state that the Coordinator passes the resulting sha in the dispatch to `docs-guide` and `repo-scout`.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P4** [applied] [gap] `.skills/security-review/SKILL.md` omitted from documentation update scope in Section 4
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 4, Docs (line 133)
-  - Resolution: `.skills/security-review/SKILL.md` is now included in the Section 4 documentation update list.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P5** [applied] [organization] `debugger.md` listed in R2 and Section 4 but omitted from R1 verifiable output format list
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (line 53)
-  - Resolution: `debugger.md` is now explicitly included in the verifiable criteria of R1 alongside the other specialists.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P6** [applied] [organization] Procedural and descriptive sentence length violations against PRD writing rules (ASD-STE100)
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R4 (line 61) and R5 (line 72)
-  - Resolution: Long sentences in R4 and R5 were split into concise statements satisfying the ASD-STE100 length limits (<= 20 words for procedural, <= 25 words for descriptive).
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P7** [applied] [ambiguity] Threshold precedence between 40-line report file trigger and 200-word reply cap
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (line 46)
-  - Resolution: R1 clarifies that the 200-word cap strictly bounds every reply, ensuring that reports staying within the reply must satisfy both the line and word thresholds.
-  - Reported by: cli:agy/gemini-3.8-flash-high
+- **P1** [applied] [conflict] A instrução de relatório em arquivo do `repo-scout` na R1 conflita com o conjunto de ferramentas sem escrita na R2
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linhas 52-53) e R2 (linha 57)
+  - Resolução: a R1 agora especifica de forma explícita que o `repo-scout` não tem a ferramenta Write e sempre devolve a resposta no próprio texto dentro do limite, enquanto a R2 e a R10 delegam ao `docs-guide` toda escrita de arquivo de relatório.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P2** [applied] [ambiguity] Campos específicos de revisão exigidos na R1 para respostas de especialistas que não revisam
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linhas 47-52)
+  - Resolução: a R1 agora especifica formatos de resposta distintos e adequados ao papel para `reviewer`, `qa-verifier`, `builder`, `docs-guide`, `debugger` e `repo-scout`.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P3** [applied] [ambiguity] Origem de execução não especificada para `git rev-parse HEAD` na R10 e na R12
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R10 (linha 86) e R12 (linha 94)
+  - Resolução: a R10 e a R12 agora designam de forma explícita o `qa-verifier` para resolver o `git rev-parse HEAD` e declaram que o Coordenador passa o sha resultante no despacho ao `docs-guide` e ao `repo-scout`.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P4** [applied] [gap] `.skills/security-review/SKILL.md` omitido do escopo de atualização da documentação na Seção 4
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 4, Docs (linha 133)
+  - Resolução: `.skills/security-review/SKILL.md` agora está incluído na lista de atualização da documentação da Seção 4.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P5** [applied] [organization] `debugger.md` listado na R2 e na Seção 4, mas omitido da lista verificável de formato de saída da R1
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linha 53)
+  - Resolução: o `debugger.md` agora está incluído de forma explícita nos critérios verificáveis da R1, junto com os outros especialistas.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P6** [applied] [organization] Violações de tamanho de frase, procedurais e descritivas, contra as regras de escrita de PRD (ASD-STE100)
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R4 (linha 61) e R5 (linha 72)
+  - Resolução: as frases longas da R4 e da R5 foram divididas em declarações concisas que respeitam os limites de tamanho do ASD-STE100 (<= 20 palavras para procedurais, <= 25 palavras para descritivas).
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P7** [applied] [ambiguity] Precedência entre o gatilho de 40 linhas do arquivo de relatório e o limite de resposta de 200 palavras
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linha 46)
+  - Resolução: a R1 esclarece que o limite de 200 palavras restringe estritamente toda resposta, de modo que os relatórios que ficam na resposta precisam cumprir os dois limites, o de linhas e o de palavras.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
 
-## Not raised
+## Não levantado
 
-- Gaps: Checked all points from SOURCE.md (EGM goldfish pattern, file reports, synthesis, repo analysis/bootstrap, context levers, MEMORY.md growth, PRD-031 baseline dependency). All source requirements are fully mapped to R1-R16.
-- Ambiguities: Checked role-specific reply shapes (R1), write permissions (R2), coordinator reading discipline (R3), synthesizer rules (R4), `/dh:auto` table usage (R5), section moves (R6), memory limits (R7), doctor warnings (R8), and git sha resolution via qa-verifier for REPO-MAP.md (R10, R12). Every rule has unambiguous operational semantics.
-- Conflicts: Checked internal consistency and alignment with AGENTS.md rules. Toolsets match write sets (R2, R10), review immutability is preserved (R2, R14), command counts remain fixed at 19+1 (R9, R13), and memory ownership stays strictly with the Coordinator.
-- Excesses: Checked requirement boundaries against SOURCE.md and out-of-scope declarations. No extra commands, skills, agents, or templates were introduced, and discarded EGM features (six-lens brainstorm, README trees, hooks) are explicitly excluded.
-- Weak criteria: Checked verifiable criteria across all rules (R1-R16). Every condition relies on deterministic checks (exact strings, numbers, line limits, byte reduction targets, and `dh validate` assertions) rather than subjective expectations.
-- Organization: Checked document structure, continuous rule numbering (R1-R16), balanced Solution-to-Rules mapping (Parts A-D), ASD-STE100 sentence lengths, and paired documentation updates in Section 4.
-- PRD writing rules (ASD-STE100): Procedural and descriptive statements follow active voice, present tense, and length constraints (<= 20 words for procedural, <= 25 words for descriptive).
+- Lacunas: conferidos todos os pontos do SOURCE.md (padrão peixe-dourado do EGM, relatórios em arquivo, síntese, análise e bootstrap do repositório, alavancas de contexto, crescimento do MEMORY.md, dependência da linha de base do PRD-031). Todos os requisitos da fonte estão totalmente mapeados na R1 até a R16.
+- Ambiguidades: conferidos os formatos de resposta por papel (R1), as permissões de escrita (R2), a disciplina de leitura do Coordenador (R3), as regras do sintetizador (R4), o uso da tabela do `/dh:auto` (R5), as movimentações de seções (R6), os limites de memória (R7), os avisos do doctor (R8) e a resolução do sha do git pelo qa-verifier para o REPO-MAP.md (R10, R12). Toda regra tem semântica operacional sem ambiguidade.
+- Conflitos: conferidas a consistência interna e o alinhamento com as regras do AGENTS.md. Os conjuntos de ferramentas casam com os conjuntos de escrita (R2, R10), a imutabilidade da revisão é preservada (R2, R14), as contagens de comandos continuam fixas em 19+1 (R9, R13) e a posse da memória continua estritamente com o Coordenador.
+- Excessos: conferidos os limites dos requisitos contra o SOURCE.md e as declarações de fora do escopo. Nenhum comando, skill, agente ou template extra foi introduzido, e os recursos descartados do EGM (brainstorm de seis lentes, árvores de README, hooks) estão explicitamente excluídos.
+- Critérios fracos: conferidos os critérios verificáveis de todas as regras (R1-R16). Toda condição se apoia em checagens determinísticas (strings exatas, números, limites de linhas, metas de redução em bytes e asserções do `dh validate`) e não em expectativas subjetivas.
+- Organização: conferidos a estrutura do documento, a numeração contínua das regras (R1-R16), o mapeamento equilibrado de Solução para Regras (Partes A-D), os tamanhos de frase do ASD-STE100 e as atualizações pareadas de documentação na Seção 4.
+- Regras de escrita de PRD (ASD-STE100): as declarações procedurais e descritivas seguem voz ativa, tempo presente e as restrições de tamanho (<= 20 palavras para procedurais, <= 25 palavras para descritivas).
 
-## Round 3 (amendment revalidation)
+## Rodada 3 (revalidação da emenda)
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-032-lean-coordinator-context.md |
-| Source | tasks/PRD-032/SOURCE.md (harness dir) |
-| Round | 3 of 3 (amendment revalidation) |
-| Verdict | approved |
-| Updated | 2026-10-31 |
+| Documento | docs/prd/PRD-032-lean-coordinator-context.md |
+| Fonte | tasks/PRD-032/SOURCE.md (harness dir) |
+| Rodada | 3 de 3 (revalidação da emenda) |
+| Veredito | approved |
+| Atualizado | 2026-10-31 |
 
-Reviewer: cli:agy/gemini-3.8-flash-high (document stage). Blocking findings: 0. Raw reply: `tasks/PRD-032/evidence/document-r3/agy-reply.txt` (harness dir).
+Revisor: cli:agy/gemini-3.8-flash-high (etapa de documento). Achados bloqueantes: 0. Resposta bruta: `tasks/PRD-032/evidence/document-r3/agy-reply.txt` (harness dir).
 
-Amendment reviewed: D1-D8 closed on the Coordinator's recommendations (owner, 2026-10-31), new rule R17 (PRD-031 carry-over fixes), R6 target from the merged 0.36.0 size.
+Emenda revisada: D1-D8 fechadas conforme as recomendações do Coordenador (dono, 2026-10-31), nova regra R17 (correções herdadas do PRD-031), meta da R6 a partir do tamanho mesclado da 0.36.0.
 
-Note (docs-guide): the raw reply file ends with a truncated trailing fragment after its Evidence section, a duplicate report body cut off mid-word and followed by "error: interrupted". The verdict and the sections above it are complete; the fragment is not reproduced here.
+Nota (docs-guide): o arquivo de resposta bruta termina com um fragmento final truncado depois da sua seção de Evidência, um corpo de relatório duplicado cortado no meio de uma palavra e seguido de "error: interrupted". O veredito e as seções acima dele estão completos; o fragmento não é reproduzido aqui.
 
-## Comprehension
-- What the document proposes: PRD-032 establishes a leaner execution profile for the Coordinator during long tasks by adopting file-based artifact reporting and synthesizer deduplication inspired by the Elephant-Goldfish Model. Dispatched specialists must adhere to a 200-word reply cap and output reports longer than 40 lines to dedicated task-folder files rather than returning verbose text into the main conversation. Chained command inlining in `/dh:auto` is replaced by a structured table reading only stage-essential sections, single-command guidance sections move out of `coordinator.md` to achieve a 5500-byte reduction, and `MEMORY.md` is constrained by strict entry and file budgets with doctor warnings. An opt-in repository bootstrap phase is integrated into `/dh:setup` to generate and maintain a compact, reusable `REPO-MAP.md` without increasing the fixed agent or command counts. In addition to formalizing closed decisions D1 through D8, the amendment introduces rule R17 to resolve four carried-over documentation defects from PRD-031 delivery.
-- How the current system works, as the document states it: The Coordinator presently loads substantial static instruction and state files into its context across all sessions, most notably `coordinator.md` and `MEMORY.md`. Execution of `/dh:auto` inlines all six chained command files across the entire run, maintaining unnecessary instructions in the primary conversation. Specialist agent dispatches lack numeric reply limits, permitting extensive review and build reports to return directly into chat and triggering full Coordinator re-reads even when work is approved. Unconstrained record accumulation allows `MEMORY.md` to exceed tens of thousands of bytes without automated size monitoring, leaving consolidation entirely dependent on manual owner initiation. Finally, the harness persists no baseline architectural layout or repository map, forcing subsequent scouting and planning passes to repeatedly re-examine code structure from scratch.
-- Sections not paraphrased: none
+## Compreensão
+- O que o documento propõe: o PRD-032 estabelece um perfil de execução mais enxuto para o Coordenador durante tarefas longas, adotando relatórios de artefato em arquivo e deduplicação por sintetizador inspirados no Elephant-Goldfish Model. Os especialistas despachados devem respeitar um limite de resposta de 200 palavras e gravar relatórios com mais de 40 linhas em arquivos dedicados da pasta da tarefa, em vez de devolver texto extenso à conversa principal. A incorporação de comandos encadeados no `/dh:auto` é substituída por uma tabela estruturada que lê só as seções essenciais da etapa, as seções de orientação de um só comando saem do `coordinator.md` para obter uma redução de 5500 bytes, e o `MEMORY.md` fica restrito por orçamentos rígidos de entrada e de arquivo, com avisos do doctor. Uma fase opcional de bootstrap do repositório é integrada ao `/dh:setup` para gerar e manter um `REPO-MAP.md` compacto e reutilizável, sem aumentar as contagens fixas de agentes ou de comandos. Além de formalizar as decisões fechadas D1 a D8, a emenda introduz a regra R17 para resolver quatro defeitos de documentação herdados da entrega do PRD-031.
+- Como o sistema atual funciona, segundo o documento: o Coordenador hoje carrega no seu contexto, em todas as sessões, arquivos estáticos substanciais de instruções e de estado, em especial o `coordinator.md` e o `MEMORY.md`. A execução do `/dh:auto` incorpora os seis arquivos de comandos encadeados ao longo de toda a execução e mantém instruções desnecessárias na conversa principal. Os despachos aos agentes especialistas não têm limites numéricos de resposta, o que permite que relatórios extensos de revisão e de build voltem direto para o chat e dispara uma releitura completa pelo Coordenador mesmo quando o trabalho é aprovado. O acúmulo irrestrito de registros permite que o `MEMORY.md` passe de dezenas de milhares de bytes sem monitoramento automático de tamanho, e a consolidação depende por inteiro de o dono iniciá-la à mão. Por fim, o harness não persiste nenhum layout arquitetural de base nem mapa do repositório, e as passagens seguintes de reconhecimento e de planejamento precisam reexaminar do zero a estrutura do código.
+- Seções não parafraseadas: nenhuma
 
-## Findings
+## Achados
 
-No new findings. P1-P7 from round 2 are applied, as the reply reports:
+Nenhum achado novo. P1-P7 da rodada 2 estão aplicados, como a resposta reporta:
 
-- **P1** [applied] [conflict] `repo-scout` report-to-file instruction in R1 conflicts with no-write toolset in R2
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (lines 52-53) and R2 (line 57)
-  - Resolution: R1 now explicitly specifies that `repo-scout` has no Write tool and always returns inline within the cap, while R2 and R10 delegate any report file writing to `docs-guide`.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P2** [applied] [ambiguity] Review-specific fields mandated for non-review specialist replies in R1
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (lines 47-52)
-  - Resolution: R1 now specifies distinct, role-appropriate reply formats for `reviewer`, `qa-verifier`, `builder`, `docs-guide`, `debugger`, and `repo-scout`.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P3** [applied] [ambiguity] Unspecified execution source for `git rev-parse HEAD` in R10 and R12
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R10 (line 86) and R12 (line 94)
-  - Resolution: R10 and R12 now explicitly designate `qa-verifier` to resolve `git rev-parse HEAD` and state that the Coordinator passes the resulting sha in the dispatch to `docs-guide` and `repo-scout`.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P4** [applied] [gap] `.skills/security-review/SKILL.md` omitted from documentation update scope in Section 4
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 4, Docs (line 133)
-  - Resolution: `.skills/security-review/SKILL.md` is now included in the Section 4 documentation update list.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P5** [applied] [organization] `debugger.md` listed in R2 and Section 4 but omitted from R1 verifiable output format list
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (line 53)
-  - Resolution: `debugger.md` is now explicitly included in the verifiable criteria of R1 alongside the other specialists.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P6** [applied] [organization] Procedural and descriptive sentence length violations against PRD writing rules (ASD-STE100)
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R4 (line 61) and R5 (line 72)
-  - Resolution: Long sentences in R4 and R5 were split into concise statements satisfying the ASD-STE100 length limits (<= 20 words for procedural, <= 25 words for descriptive).
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P7** [applied] [ambiguity] Threshold precedence between 40-line report file trigger and 200-word reply cap
-  - Location: docs/prd/PRD-032-lean-coordinator-context.md section 3, R1 (line 46)
-  - Resolution: R1 clarifies that the 200-word cap strictly bounds every reply, ensuring that reports staying within the reply must satisfy both the line and word thresholds.
-  - Reported by: cli:agy/gemini-3.8-flash-high
+- **P1** [applied] [conflict] A instrução de relatório em arquivo do `repo-scout` na R1 conflita com o conjunto de ferramentas sem escrita na R2
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linhas 52-53) e R2 (linha 57)
+  - Resolução: a R1 agora especifica de forma explícita que o `repo-scout` não tem a ferramenta Write e sempre devolve a resposta no próprio texto dentro do limite, enquanto a R2 e a R10 delegam ao `docs-guide` toda escrita de arquivo de relatório.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P2** [applied] [ambiguity] Campos específicos de revisão exigidos na R1 para respostas de especialistas que não revisam
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linhas 47-52)
+  - Resolução: a R1 agora especifica formatos de resposta distintos e adequados ao papel para `reviewer`, `qa-verifier`, `builder`, `docs-guide`, `debugger` e `repo-scout`.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P3** [applied] [ambiguity] Origem de execução não especificada para `git rev-parse HEAD` na R10 e na R12
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R10 (linha 86) e R12 (linha 94)
+  - Resolução: a R10 e a R12 agora designam de forma explícita o `qa-verifier` para resolver o `git rev-parse HEAD` e declaram que o Coordenador passa o sha resultante no despacho ao `docs-guide` e ao `repo-scout`.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P4** [applied] [gap] `.skills/security-review/SKILL.md` omitido do escopo de atualização da documentação na Seção 4
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 4, Docs (linha 133)
+  - Resolução: `.skills/security-review/SKILL.md` agora está incluído na lista de atualização da documentação da Seção 4.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P5** [applied] [organization] `debugger.md` listado na R2 e na Seção 4, mas omitido da lista verificável de formato de saída da R1
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linha 53)
+  - Resolução: o `debugger.md` agora está incluído de forma explícita nos critérios verificáveis da R1, junto com os outros especialistas.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P6** [applied] [organization] Violações de tamanho de frase, procedurais e descritivas, contra as regras de escrita de PRD (ASD-STE100)
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R4 (linha 61) e R5 (linha 72)
+  - Resolução: as frases longas da R4 e da R5 foram divididas em declarações concisas que respeitam os limites de tamanho do ASD-STE100 (<= 20 palavras para procedurais, <= 25 palavras para descritivas).
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P7** [applied] [ambiguity] Precedência entre o gatilho de 40 linhas do arquivo de relatório e o limite de resposta de 200 palavras
+  - Local: docs/prd/PRD-032-lean-coordinator-context.md seção 3, R1 (linha 46)
+  - Resolução: a R1 esclarece que o limite de 200 palavras restringe estritamente toda resposta, de modo que os relatórios que ficam na resposta precisam cumprir os dois limites, o de linhas e o de palavras.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
 
-## Not raised
+## Não levantado
 
-- Gaps: Checked all points from `SOURCE.md` (EGM goldfish pattern, offloaded file reports, synthesis, repo analysis/bootstrap, context levers, `MEMORY.md` growth, PRD-031 baseline dependency), owner words (closing decisions D1-D8, noting separate bootstrap command in memory), and PRD-031 Executed summary (all four carried-over defects). All source points are completely mapped to R1-R17 and D1-D8.
-- Ambiguities: Checked role-specific reply shapes (R1), write permissions (R2), coordinator reading discipline (R3), synthesizer rules (R4), `/dh:auto` table usage (R5), section moves (R6), memory limits (R7), doctor warnings (R8), git sha resolution via qa-verifier for `REPO-MAP.md` (R10, R12), and the four specific defect repairs in R17. Every rule and verifiable check provides unambiguous operational semantics.
-- Conflicts: Checked internal consistency and alignment with `AGENTS.md` rules. Toolsets match write sets (R2, R10), review immutability is preserved (R2, R14), command counts remain fixed at 19+1 (R9, R13, D6), and memory ownership stays strictly with the Coordinator. The updated R6 target (`<= 26342` bytes) matches the baseline calculation (`31842 - 5500`) exactly.
-- Excesses: Checked requirement boundaries against `SOURCE.md`, owner instructions, and out-of-scope declarations. No unrequested commands, skills, agents, or templates were introduced, and discarded EGM features (six-lens brainstorm, README trees, hooks) remain explicitly excluded.
-- Weak criteria: Checked verifiable criteria across all rules (R1-R17). Every condition relies on deterministic checks (exact string occurrences, character/byte limits, line caps, doctor unit tests in `internal/`, clean diffs, and exact grep commands) rather than subjective expectations.
-- Organization: Checked document structure, continuous rule numbering (R1-R17), balanced Solution-to-Rules mapping (Parts A-D), closed decisions D1-D8, and paired documentation updates in Section 4.
-- PRD writing rules (ASD-STE100): Procedural and descriptive statements follow active voice, present tense, and length constraints (<= 20 words for procedural, <= 25 words for descriptive).
+- Lacunas: conferidos todos os pontos do `SOURCE.md` (padrão peixe-dourado do EGM, relatórios descarregados em arquivo, síntese, análise e bootstrap do repositório, alavancas de contexto, crescimento do `MEMORY.md`, dependência da linha de base do PRD-031), as palavras do dono (fechamento das decisões D1-D8, com a nota de comando de bootstrap separado na memória) e o Resumo executado do PRD-031 (os quatro defeitos herdados). Todos os pontos da fonte estão completamente mapeados na R1 até a R17 e na D1 até a D8.
+- Ambiguidades: conferidos os formatos de resposta por papel (R1), as permissões de escrita (R2), a disciplina de leitura do Coordenador (R3), as regras do sintetizador (R4), o uso da tabela do `/dh:auto` (R5), as movimentações de seções (R6), os limites de memória (R7), os avisos do doctor (R8), a resolução do sha do git pelo qa-verifier para o `REPO-MAP.md` (R10, R12) e os quatro reparos de defeito específicos da R17. Toda regra e toda checagem verificável dão semântica operacional sem ambiguidade.
+- Conflitos: conferidas a consistência interna e o alinhamento com as regras do `AGENTS.md`. Os conjuntos de ferramentas casam com os conjuntos de escrita (R2, R10), a imutabilidade da revisão é preservada (R2, R14), as contagens de comandos continuam fixas em 19+1 (R9, R13, D6) e a posse da memória continua estritamente com o Coordenador. A meta atualizada da R6 (`<= 26342` bytes) casa exatamente com o cálculo da linha de base (`31842 - 5500`).
+- Excessos: conferidos os limites dos requisitos contra o `SOURCE.md`, as instruções do dono e as declarações de fora do escopo. Nenhum comando, skill, agente ou template não pedido foi introduzido, e os recursos descartados do EGM (brainstorm de seis lentes, árvores de README, hooks) continuam explicitamente excluídos.
+- Critérios fracos: conferidos os critérios verificáveis de todas as regras (R1-R17). Toda condição se apoia em checagens determinísticas (ocorrências exatas de string, limites de caracteres e de bytes, limites de linhas, testes unitários do doctor em `internal/`, diffs limpos e comandos grep exatos) e não em expectativas subjetivas.
+- Organização: conferidos a estrutura do documento, a numeração contínua das regras (R1-R17), o mapeamento equilibrado de Solução para Regras (Partes A-D), as decisões fechadas D1-D8 e as atualizações pareadas de documentação na Seção 4.
+- Regras de escrita de PRD (ASD-STE100): as declarações procedurais e descritivas seguem voz ativa, tempo presente e as restrições de tamanho (<= 20 palavras para procedurais, <= 25 palavras para descritivas).
