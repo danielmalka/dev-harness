@@ -1,70 +1,72 @@
 # PRD-013 · Validação
 
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
 Documento: `docs/prd/PRD-013-extensao-vscode.md`. Validador: `document-validator` (opus), skill `document-review`.
 
 ## Rodada 1 de 2 (2026-10-07)
 
-- Review status: changes required
-- Blocking findings: 4
+- Status da revisão: `changes required`
+- Achados bloqueantes: 4
 
-## Findings
+## Achados
 
-### BLOCKING: P1 [conflict] R3 fixes the `127.0.0.1:<port>` origin while H2/R7 rely on `asExternalUri`/Remote WSL forwarding, which can yield another origin
-- Location: §3 R3; Appendix H2; risk Remote WSL; §1
-- Reported by: claude
-- Problem: R3 forbids any origin but `127.0.0.1:<port>`; `asExternalUri` may return `localhost:<other port>` or a forwarded host. The dashboard Host guard (`internal/dashboard/server.go:104-111`) checks only the hostname, so forwarded localhost ports pass, but a non-loopback forwarded host gets 403. The webview CSP `frame-src` is not named.
-- Suggested fix: embedded URL from `asExternalUri(http://127.0.0.1:<port>)` built in one place; webview CSP `frame-src` lists only that origin; extension-side requests (probe, status, proxy) go to `http://127.0.0.1:<port>`; H2 "Como cairia" names the 403 path to R7.
+### BLOCKING: P1 [conflict] R3 fixa a origem `127.0.0.1:<port>` enquanto H2/R7 dependem de `asExternalUri`/do encaminhamento do Remote WSL, que pode render outra origem
+- Local: §3 R3; Apêndice H2; risco Remote WSL; §1
+- Reportado por: claude
+- Problema: R3 proíbe qualquer origem que não seja `127.0.0.1:<port>`; `asExternalUri` pode devolver `localhost:<other port>` ou um host encaminhado. A trava de `Host` do dashboard (`internal/dashboard/server.go:104-111`) confere só o hostname, então portas localhost encaminhadas passam, mas um host encaminhado que não seja loopback recebe 403. O `frame-src` do CSP do webview não é nomeado.
+- Correção sugerida: a URL embutida vem de `asExternalUri(http://127.0.0.1:<port>)`, construída num lugar só; o `frame-src` do CSP do webview lista só essa origem; as requisições do lado da extensão (sonda, status, proxy) vão para `http://127.0.0.1:<port>`; o "Como cairia" de H2 nomeia o caminho do 403 até R7.
 
-### BLOCKING: P2 [gap] Where the extension runs under Remote WSL is unstated; R4, R5, R8, R12 depend on it
-- Location: §3 R4, R5, R8, R12; §1
-- Reported by: claude
-- Problem: `dh`, `claude` and the plugin live on the WSL side; a UI extension (Windows side) would look in the Windows home, start the wrong dashboard and open a Windows terminal.
-- Suggested fix: rule declaring `extensionKind: ["workspace"]`; lookup, probe, status and terminal run on the remote side; verified in `package.json` and in the probe ticket.
+### BLOCKING: P2 [gap] Não está dito onde a extensão roda sob Remote WSL; R4, R5, R8, R12 dependem disso
+- Local: §3 R4, R5, R8, R12; §1
+- Reportado por: claude
+- Problema: `dh`, `claude` e o plugin ficam no lado WSL; uma extensão de UI (lado Windows) procuraria no home do Windows, iniciaria o dashboard errado e abriria um terminal do Windows.
+- Correção sugerida: regra que declare `extensionKind: ["workspace"]`; localização, sonda, status e terminal rodam no lado remoto; verificado no `package.json` e no ticket da sonda.
 
-### BLOCKING: P3 [conflict] R9 forbids reading snapshots; AGENTS.md says the extension reads them; §4 does not drop that clause
-- Location: §3 R9, R14; §4; pending decision 1
-- Reported by: claude
-- Problem: R9 is written as settled while decision 1 is open; the AGENTS.md update does not remove "Lê snapshots".
-- Suggested fix: make R9 conditional on decision 1 (recommendation assumed) and have §4 say the AGENTS.md rule drops the snapshot clause.
+### BLOCKING: P3 [conflict] R9 proíbe ler instantâneos; o AGENTS.md diz que a extensão os lê; §4 não remove essa cláusula
+- Local: §3 R9, R14; §4; decisão pendente 1
+- Reportado por: claude
+- Problema: R9 está escrita como assentada enquanto a decisão 1 está em aberto; a atualização do AGENTS.md não remove "Lê snapshots".
+- Correção sugerida: tornar R9 condicional à decisão 1 (recomendação assumida) e fazer §4 dizer que a regra do AGENTS.md perde a cláusula dos instantâneos.
 
-### BLOCKING: P4 [ambiguity] R12 does not decide whether Enter is pressed
-- Location: §3 R12; H4; pending decision 5
-- Reported by: claude
-- Problem: `Terminal.sendText` adds a newline by default; the exact sequence (and how `claude` starts) is undefined, so the check cannot be written.
-- Suggested fix: exact sequence: `createTerminal({cwd})`, `claude` + Enter, then after the H4 mechanism `/dh:<nome>` with `addNewLine: false` (decision 5 recommendation; `true` if the owner picks auto-Enter); mock records both calls.
+### BLOCKING: P4 [ambiguity] R12 não decide se o Enter é pressionado
+- Local: §3 R12; H4; decisão pendente 5
+- Reportado por: claude
+- Problema: `Terminal.sendText` acrescenta uma quebra de linha por padrão; a sequência exata (e como o `claude` inicia) está indefinida, então a checagem não pode ser escrita.
+- Correção sugerida: sequência exata: `createTerminal({cwd})`, `claude` + Enter, depois, após o mecanismo de H4, `/dh:<nome>` com `addNewLine: false` (recomendação da decisão 5; `true` se o dono escolher Enter automático); o mock registra as duas chamadas.
 
-### NON-BLOCKING: P5 [factual error] §1 describes the Host guard as port-bound
-- Reported by: claude
-- Suggested fix: "valida o hostname do `Host` (`127.0.0.1` ou `localhost`, qualquer porta; `[::1]` recusado)".
+### NON-BLOCKING: P5 [factual error] §1 descreve a trava de `Host` como presa à porta
+- Reportado por: claude
+- Correção sugerida: "valida o hostname do `Host` (`127.0.0.1` ou `localhost`, qualquer porta; `[::1]` recusado)".
 
-### NON-BLOCKING: P6 [ambiguity] R8 does not map `/api/state` values to display text
-- Reported by: claude
-- Suggested fix: table of the six `avatar.state` values to text, integer rounding, language, whether limit age is shown.
+### NON-BLOCKING: P6 [ambiguity] R8 não mapeia os valores de `/api/state` para texto de exibição
+- Reportado por: claude
+- Correção sugerida: tabela dos seis valores de `avatar.state` para texto, arredondamento para inteiro, idioma, se a idade do limite é mostrada.
 
-### NON-BLOCKING: P7 [weak criterion] R1/R2 checks name actors who cannot run them
-- Reported by: claude
-- Suggested fix: manual check by the owner in VS Code Linux and Remote WSL (screenshots in the probe ticket); automated `@vscode/test-electron` under `xvfb-run` for view registration and iframe URL.
+### NON-BLOCKING: P7 [weak criterion] As checagens de R1/R2 nomeiam atores que não conseguem rodá-las
+- Reportado por: claude
+- Correção sugerida: checagem manual pelo dono no VS Code Linux e no Remote WSL (capturas de tela no ticket da sonda); `@vscode/test-electron` automatizado sob `xvfb-run` para o registro da view e a URL do iframe.
 
-### NON-BLOCKING: P8 [organization] Pending decisions 4 and 6 block R11, written as decided
-- Reported by: claude
-- Suggested fix: mark R11 "decisões pendentes 4 e 6; recomendação assumida" and add the no-workspace/no-roots case as an R11 check.
+### NON-BLOCKING: P8 [organization] As decisões pendentes 4 e 6 bloqueiam R11, escrita como decidida
+- Reportado por: claude
+- Correção sugerida: marcar R11 "decisões pendentes 4 e 6; recomendação assumida" e acrescentar o caso sem workspace/sem raízes como checagem de R11.
 
 ## Rodada 2 de 2 (2026-10-07)
 
-- Review status: changes required
-- Blocking findings: 1 (P9, new); P1–P8 resolved. Cap reached.
+- Status da revisão: `changes required`
+- Achados bloqueantes: 1 (P9, novo); P1–P8 resolvidos. Limite atingido.
 
-## Findings
+## Achados
 
-### BLOCKING: P9 [conflict] R8 maps English keys, but `/api/state` returns `avatar.state` as jevmon ids in Portuguese
-- Location: §3 R8
-- Reported by: claude
-- Problem: `avatar.state` carries `esperando`, `erro`, `trabalhando`, `concluido`, `atencao`, `parado` (`internal/dashboard/sessions.go:73-81`; page table `AVLABEL`, `internal/dashboard/web/index.html:46`). English keys are the session `activity` values. Round-1 P6 caused it.
-- Suggested fix: map the jevmon ids (as `AVLABEL`); unknown value shows the raw id; the test uses a real `/api/state` response captured from `dh dashboard` as fixture.
+### BLOCKING: P9 [conflict] R8 mapeia chaves em inglês, mas `/api/state` devolve `avatar.state` como ids do jevmon em português
+- Local: §3 R8
+- Reportado por: claude
+- Problema: `avatar.state` traz `esperando`, `erro`, `trabalhando`, `concluido`, `atencao`, `parado` (`internal/dashboard/sessions.go:73-81`; tabela da página `AVLABEL`, `internal/dashboard/web/index.html:46`). As chaves em inglês são os valores de `activity` da sessão. P6 da rodada 1 causou isso.
+- Correção sugerida: mapear os ids do jevmon (como `AVLABEL`); valor desconhecido mostra o id cru; o teste usa como fixture uma resposta real de `/api/state` capturada de `dh dashboard`.
 
-### NON-BLOCKING: P10 [ambiguity] R12 and H4 place the shell-integration wait differently
-- Reported by: claude
-- Suggested fix: wait for shell integration (or ~1 s without it), `sendText("claude", true)`, fixed 3 s wait (H4), `sendText("/dh:<nome>", false)`.
+### NON-BLOCKING: P10 [ambiguity] R12 e H4 posicionam a espera pela integração de shell de forma diferente
+- Reportado por: claude
+- Correção sugerida: esperar a integração de shell (ou ~1 s sem ela), `sendText("claude", true)`, espera fixa de 3 s (H4), `sendText("/dh:<nome>", false)`.
 
 ## Disposição do Coordenador (2026-10-07)
 

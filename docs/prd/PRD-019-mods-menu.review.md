@@ -1,61 +1,63 @@
-# Review — PRD-019 / T-1901
+# Revisão — PRD-019 / T-1901
 
-## Round 1 (2026-10-12)
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
 
-- Review status: request changes
-- Reviewers: claude (document-validator, opus). Default proportional review: 1 reviewer, first entry of `reviewers.document`.
+## Rodada 1 (2026-10-12)
 
-## Findings
+- Status da revisão: `request changes`
+- Revisores: claude (document-validator, opus). Revisão proporcional padrão: 1 revisor, primeira entrada de `reviewers.document`.
 
-### BLOCKING: P1 THIRD_PARTY_NOTICES.md is an unrequested new doc file credited to the owner
-- Reported by: claude
-- Location: PRD R1, section 4, section 6; T-1901 R1, section 5, Autorização.
-- Resolution: owner decision 2026-10-12 — no notices file and no origin comment in code. Remove from R1, docs, write set, and section 6.
+## Achados
 
-### BLOCKING: P2 R5 "byte a byte" vs the original's JSON.parse/stringify writer
-- Reported by: claude
-- Resolution (coordinator default, recorded as assumption): semantic equality — other keys parsed and deep-equal, formatting normalized to 2-space JSON, as the original does.
+### BLOCKING: P1 `THIRD_PARTY_NOTICES.md` é um arquivo de documentação novo, não pedido, creditado ao dono
+- Reportado por: claude
+- Local: PRD R1, seção 4, seção 6; T-1901 R1, seção 5, Autorização.
+- Resolução: decisão do dono em 2026-10-12 — nada de arquivo de notices e nada de comentário de origem no código. Remover de R1, de docs, do conjunto de escrita e da seção 6.
 
-### BLOCKING: P3 Mode's model and effort controls have no acceptance
-- Reported by: claude
-- Resolution: add criterion — Mode page lists models, effort levels and new-session modes; effort applied on `turn.step`; model switched through `/model`; proven by porting the two engine tests of the original.
+### BLOCKING: P2 R5 "byte a byte" versus o gravador `JSON.parse`/`stringify` do original
+- Reportado por: claude
+- Resolução (padrão do Coordenador, registrado como premissa): igualdade semântica — as outras chaves lidas e iguais em profundidade, formatação normalizada para JSON com 2 espaços, como faz o original.
 
-### MINOR: P4 Backup file name and location not stated
-- Reported by: claude
-- Resolution: `~/.claude/settings.json.dh.bak`, written once if absent; restore source is the store key, as in the original.
+### BLOCKING: P3 Os controles de modelo e de esforço do Mode não têm aceite
+- Reportado por: claude
+- Resolução: acrescentar critério — a página Mode lista modelos, níveis de esforço e modos de nova sessão; o esforço é aplicado em `turn.step`; o modelo é trocado por `/model`; provado com a portagem dos dois testes do motor do original.
 
-### MINOR: P5 Segment text in R4 reads like translated output
-- Reported by: claude
-- Resolution: quote the current `dhProgress` text untranslated (`… (k blocked)`).
+### MINOR: P4 Nome e local do arquivo de backup não declarados
+- Reportado por: claude
+- Resolução: `~/.claude/settings.json.dh.bak`, gravado uma vez se ausente; a origem da restauração é a chave do store, como no original.
 
-### MINOR: P6 R5 asks atomic write beyond the original
-- Reported by: claude
-- Resolution: drop "atômica"; keep "invalid/unreadable file is an error and never overwritten" (boundary validation).
+### MINOR: P5 O texto do segmento em R4 parece saída traduzida
+- Reportado por: claude
+- Resolução: citar o texto atual de `dhProgress` sem traduzir (`… (k blocked)`).
 
-## Round 2 (2026-10-12)
+### MINOR: P6 R5 pede escrita atômica além do original
+- Reportado por: claude
+- Resolução: remover "atômica"; manter "arquivo inválido/ilegível é erro e nunca é sobrescrito" (validação na fronteira).
 
-- Review status: request changes
-- Reviewers: claude (document-validator, opus). Round cap reached (2 of 2); open points go to the owner.
-- Settled: P1, P2, P4, P5, P6 resolved; P3 model part resolved, effort part open.
+## Rodada 2 (2026-10-12)
 
-## Findings
+- Status da revisão: `request changes`
+- Revisores: claude (document-validator, opus). Limite de rodadas atingido (2 de 2); os pontos em aberto vão para o dono.
+- Assentados: P1, P2, P4, P5, P6 resolvidos; P3 com a parte do modelo resolvida e a parte do esforço em aberto.
 
-### BLOCKING: P3 (carried over) Effort applied on `turn.step` has no test that can fail
-- Reported by: claude
-- Suggestion: R9 adds "after choosing `effort-high`, a `turn.step` with `effort` set goes to `next` with `effort: 'high'`".
+## Achados
 
-### BLOCKING: P7 R1's "no notices file" check cannot fail
-- Reported by: claude
-- Suggestion: replace `git diff --stat THIRD_PARTY_NOTICES.md` with `test ! -e THIRD_PARTY_NOTICES.md`.
+### BLOCKING: P3 (herdado) O esforço aplicado em `turn.step` não tem teste que possa falhar
+- Reportado por: claude
+- Sugestão: R9 acrescenta "depois de escolher `effort-high`, um `turn.step` com `effort` definido vai para `next` com `effort: 'high'`".
 
-### MINOR: P8 R3 still points to R1's origin comments
-- Reported by: claude
-- Suggestion: `grep -rn "extra-mods\|/tools" adapters/claude-code/plugin/hooks` empty.
+### BLOCKING: P7 A checagem "nada de arquivo de notices" de R1 não pode falhar
+- Reportado por: claude
+- Sugestão: trocar `git diff --stat THIRD_PARTY_NOTICES.md` por `test ! -e THIRD_PARTY_NOTICES.md`.
 
-### MINOR: P9 Whether Mode writes the `.dh.bak` backup is unclear
-- Reported by: claude
-- Suggestion: add "(the same `.dh.bak`, if absent)" after the Mode clause.
+### MINOR: P8 R3 ainda aponta para os comentários de origem de R1
+- Reportado por: claude
+- Sugestão: `grep -rn "extra-mods\|/tools" adapters/claude-code/plugin/hooks` vazio.
 
-## Owner disposition (2026-10-12)
+### MINOR: P9 Não está claro se o Mode grava o backup `.dh.bak`
+- Reportado por: claude
+- Sugestão: acrescentar "(o mesmo `.dh.bak`, se ausente)" depois da cláusula do Mode.
 
-- Owner accepted applying the round-2 suggestions (P3, P7, P8, P9) verbatim without a third round. Execution of T-1901 may start.
+## Disposição do dono (2026-10-12)
+
+- O dono aceitou aplicar literalmente as sugestões da rodada 2 (P3, P7, P8, P9) sem uma terceira rodada. A execução de T-1901 pode começar.
