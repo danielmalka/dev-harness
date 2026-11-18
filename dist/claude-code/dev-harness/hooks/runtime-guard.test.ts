@@ -299,3 +299,23 @@ test('engine: Write on .harness/FACTS.md with agentId is denied end to end', asy
   const m: any = await $.tool.call({ tool: 'Write', file_path: '.harness/FACTS.md', content: 'x' } as any)
   expect(m.deny).toBe(undefined)
 })
+
+// PRD-035 F3 contract with the Coordinator: the dispatch line that .agents/coordinator.md tells the Coordinator to write is the line this mod recognizes. A hooks
+// module may import nothing but its own files and "claude-code", so this test cannot read coordinator.md; the Go test internal/kit/facts_curation_contract_test.go
+// closes the chain: it checks that coordinator.md and THIS file both spell CURATOR_DISPATCH_LINE exactly, and this test checks that the mod accepts it.
+const CURATOR_DISPATCH_LINE = 'Arquivos permitidos: <harness dir>/FACTS.md'
+
+test('R12 F3 the curator dispatch line of coordinator.md is the one the mod recognizes', async () => {
+  const line = CURATOR_DISPATCH_LINE.replace('<harness dir>', '/h/projects/proj')
+  const dispatch = `Objetivo: curar o FACTS.md.\nsha do HEAD: 4fc0ac3\n${line}\nModelo: sonnet`
+  expect(isCuratorSpawn('dh:docs-guide', dispatch)).toBe(true)
+  expect(isCuratorSpawn('dh:docs-guide', CURATOR_DISPATCH_LINE)).toBe(true) // the placeholder form, as written in the agent file
+  // the same line from any other role is not a curator
+  for (const type of ['dh:builder', 'dh:qa-verifier', 'dh:repo-scout', 'dh:reviewer', 'dh:coordinator']) expect(isCuratorSpawn(type, dispatch)).toBe(false)
+  // and the writing really flows: the id the engine answers with may write FACTS.md and nothing else
+  noteSpawn({ subagentType: 'dh:docs-guide', prompt: dispatch }, 'cur-f3')
+  for (const r of await file('Write', { file_path: '/h/projects/proj/FACTS.md', agentId: 'cur-f3' }, fake({ DH_HOME: '/h' }))) expect(r).toBe(NEXT)
+  for (const r of await file('Write', { file_path: '/h/projects/proj/MEMORY.md', agentId: 'cur-f3' }, fake({ DH_HOME: '/h' }))) expect(r.deny).toContain('/h/projects/proj/MEMORY.md')
+  // without the line the same docs-guide is not a curator
+  expect(isCuratorSpawn('dh:docs-guide', dispatch.replace(line, 'Arquivos permitidos: docs/x.md'))).toBe(false)
+})
