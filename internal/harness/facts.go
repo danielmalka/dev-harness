@@ -3,6 +3,7 @@ package harness
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -44,13 +45,13 @@ type FactsReport struct {
 }
 
 // A fact is one line (PRD-035 R3): "- F-001 · <frase> · Evidência: <caminho:linha>[, <caminho:linha>...] · Visto: <AAAA-MM-DD>, <papel>, <tarefa> · sha: <sha curto> · Estado: <estado>".
-// The separator is " · " (space, middle dot, space). `sha` also accepts the form without the colon.
+// The separator is " · " (space, middle dot, space). `sha` also accepts the form without the colon. A line of evidence is `caminho:N` or a range `caminho:N-M` (N >= 1, M >= N).
 var (
 	factLine   = regexp.MustCompile(`^- (F-[0-9A-Za-z]*)\b`)
 	factID     = regexp.MustCompile(`^F-[0-9]{3}$`)
 	factSHA    = regexp.MustCompile(`^[0-9a-f]{7,40}$`)
 	shaLabel   = regexp.MustCompile(`^sha:?\s+(.*)$`)
-	evidenceRe = regexp.MustCompile(`^(.+):([0-9]+)$`)
+	evidenceRe = regexp.MustCompile(`^(.+):([0-9]+)(?:-([0-9]+))?$`) // caminho:N or caminho:N-M (a range of lines, M >= N)
 )
 
 const factSep = " · "
@@ -279,8 +280,8 @@ func checkEvidence(evidence string, n int, id string, exists func(string) bool, 
 	for _, it := range items {
 		it = strings.TrimSpace(it)
 		m := evidenceRe.FindStringSubmatch(it)
-		if m == nil || m[2] == "0" || strings.TrimLeft(m[2], "0") == "" {
-			add(n, "campo Evidência: %q não é caminho:linha com linha maior que zero (%s)", it, id)
+		if m == nil || !validLines(m[2], m[3]) {
+			add(n, "campo Evidência: %q não é caminho:linha (linha maior que zero) nem caminho:N-M (N maior que zero e M maior ou igual a N) (%s)", it, id)
 			continue
 		}
 		path := m[1]
@@ -292,6 +293,19 @@ func checkEvidence(evidence string, n int, id string, exists func(string) bool, 
 			add(n, "campo Evidência: o caminho %q não é um arquivo do repositório (não existe ou é uma pasta) (%s)", path, id)
 		}
 	}
+}
+
+// validLines checks the line part of an evidence: one line number >= 1, or a range N-M with N >= 1 and M >= N. last is "" for a single line.
+func validLines(first, last string) bool {
+	n, err := strconv.Atoi(first)
+	if err != nil || n < 1 {
+		return false
+	}
+	if last == "" {
+		return true
+	}
+	m, err := strconv.Atoi(last)
+	return err == nil && m >= n
 }
 
 func hasDotDot(p string) bool {

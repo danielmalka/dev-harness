@@ -6,7 +6,7 @@ argument-hint: "[diretório de destino ou notas de setup | bootstrap]"
 metadata:
   roles: [coordinator, repo-scout]
   skills: [project-onboarding]
-  writes: project.yaml e os registros ausentes no harness dir; REPO-MAP.md no harness dir quando o dono aceita; REVIEW.md na raiz do repositório quando ausente; a linha `.worktrees/` no `.gitignore` do projeto quando não está ignorada
+  writes: project.yaml e os registros ausentes no harness dir; REPO-MAP.md no harness dir quando o dono aceita; REVIEW.md na raiz do repositório quando ausente; a linha `.worktrees/` no `.gitignore` do projeto quando não está ignorada; a linha `Fatos do sistema:` no `AGENTS.md` (ou no `CLAUDE.md`, ou num `AGENTS.md` mínimo novo) só com o sim do dono
 disable-model-invocation: true
 ---
 ## Papel
@@ -21,7 +21,9 @@ Ignore do worktree, em um repositório git: os worktrees de desenvolvimento do k
 
 Projeto só de documentação (sem código): uma pasta que não é repositório git é aceita; registre os campos de `commands` como null; `REVIEW.md` lista apenas os documentos ou caminhos críticos; o formato do `project.yaml` vem de `profiles/examples/project.yaml`.
 
-Bootstrap do repositório (opcional, skill `project-onboarding`): depois do perfil, ofereça escrever o mapa do repositório `<harness dir>/REPO-MAP.md`; o dono aceita ou recusa. Com `bootstrap` nos argumentos, pule o perfil e atualize só o mapa. Obtenha o sha de `HEAD` de uma execução de `qa-verifier` (`git rev-parse HEAD`) e despache `docs-guide` (modelo `sonnet`, skills `repository-mapping` e `project-onboarding`) com ele e os achados do `repo-scout`; quando ele reportar mais de 15 diretórios de primeiro nível, peça ao dono que nomeie o escopo. No modo `repo` o arquivo é versionado.
+Linha de referência do arquivo de fatos (skill `project-onboarding`, seção "Linha de referência do arquivo de fatos"), nos dois modos: pergunte ao dono, uma vez, se acrescenta ao `AGENTS.md` do projeto (senão ao `CLAUDE.md`; sem nenhum dos dois, pergunte se cria um `AGENTS.md` mínimo só com a linha) a linha `Fatos do sistema: .harness/FACTS.md (dica com evidência; o código vence).` no modo `repo`, ou, no modo `global`, `Fatos do sistema: mantidos pelo dev-harness fora deste repositório; caminho em "dh harness-path --json" (campo harness) mais FACTS.md.` Sem o sim do dono, não toque em arquivo nenhum. Quando o arquivo já tem uma linha que começa com `Fatos do sistema:`, não acrescente outra. Despache um especialista (`builder`, `lane` `infra`) para a escrita, com o arquivo de instruções como único conjunto de escrita, e reporte em Criado ou Deixado intacto. Nunca inclua o `FACTS.md` por `@import` e não escreva o bloco `<!-- dh:facts:inicio -->` do modo `global`. O setup não cria o `FACTS.md`.
+
+Bootstrap do repositório (opcional, skill `project-onboarding`): depois do perfil, ofereça escrever o mapa do repositório `<harness dir>/REPO-MAP.md`; o dono aceita ou recusa. Com `bootstrap` nos argumentos, pule o perfil e atualize só o mapa. Obtenha o sha de `HEAD` de uma execução de `qa-verifier` (`git rev-parse HEAD`) e despache `docs-guide` (modelo `sonnet`, skills `repository-mapping` e `project-onboarding`) com ele e os achados do `repo-scout`; quando ele reportar mais de 15 diretórios de primeiro nível, peça ao dono que nomeie o escopo. No modo `repo` o arquivo é versionado. A parte `## 6. Convenções` do mapa (título exato, `project-onboarding`) é só a linha `Convenções: ver FACTS.md`; o `docs-guide` devolve as convenções que observou no bloco `## Fatos candidatos` (no máximo 5), e você as grava no `FACTS.md` pela regra "Arquivo de fatos" do `coordinator` (`dh memory write --file FACTS.md`, `--expect absent` quando o arquivo ainda não existe, e nunca o `docs-guide`).
 
 ## Pré-requisitos
 Uma raiz de projeto legível e as instruções de projeto existentes, que prevalecem sobre qualquer coisa que o kit proponha. Escrever exige escopo autorizado: sem ele, proponha o perfil na resposta e não escreva. Pergunte ao dono só quando um conflito entre as instruções do projeto e a proposta mudar o que é registrado.
@@ -32,9 +34,9 @@ O relatório de `project-onboarding` com o modo, o registro, o perfil proposto e
 ## Limites
 - Nunca sobrescreva nem edite um registro existente no harness dir; um arquivo existente é deixado intacto e reportado. A única exceção é `REPO-MAP.md`, dado derivado que uma atualização pode sobrescrever.
 - Quando nenhum perfil distribuído corresponde, o perfil é `none, custom`; deixe sem valor os campos sem suporte em vez de adivinhar um comando.
-- Nunca instale, atualize nem configure ferramentas, e nunca modifique os arquivos de instruções do próprio projeto.
+- Nunca instale, atualize nem configure ferramentas, e nunca modifique os arquivos de instruções do próprio projeto, exceto para acrescentar a única linha `Fatos do sistema:` com o sim do dono (Roteamento).
 - Nunca edite o `.gitignore`, exceto para acrescentar a única linha `.worktrees/` quando não está ignorada (Roteamento); só o `local.yaml` (escrito depois, na primeira chamada de revisor de CLI) deve continuar ignorado.
-- Só o Coordenador escreve `MEMORY.md`, `EPOCHAL.md` e `RISKS.md`, e o primeiro `MEMORY.md` com `dh memory write --expect absent` (`context-handoff`, trava de escrita da memória).
+- Só o Coordenador escreve `MEMORY.md`, `EPOCHAL.md` e `RISKS.md`, e o primeiro `MEMORY.md` com `dh memory write --expect absent` (`context-handoff`, trava de escrita da memória). O `FACTS.md` só o Coordenador grava (candidatos do bootstrap), com `dh memory write --file FACTS.md`.
 
 ## Próximo
 `/dh:understand` para mapear a primeira área, ou `/dh:discover` quando o pedido ainda é uma ideia.

@@ -78,6 +78,7 @@ Leia primeiro o `REPO-MAP.md` do harness dir, quando existir, como uma dica a ve
 ## Limites
 
 - Produto somente leitura. Sem `Write`, `Edit` nem shell. Responda no próprio texto, dentro do limite de resposta, como uma lista de caminhos com uma linha cada.
+- Você propõe fatos e nunca escreve o `FACTS.md` do harness dir: o bloco `Fatos candidatos` da resposta é o único canal, e só o Coordenador o grava (PRD-035). Mais de 5 fatos no bloco não adiantam: o Coordenador grava os 5 primeiros e descarta o resto.
 - Nunca exija um servidor de grafo externo nem MCP.
 - Não invente caminhos de arquivo. Se um caminho não foi observado, diga isso.
 
@@ -87,7 +88,7 @@ Carregue `repository-mapping` para o procedimento de inventário. Contribua com 
 
 ## Formato de saída
 
-O relatório do Formato de saída de `repository-mapping`, devolvido ao Coordenador, mais a linha `Map: fresh | stale | none`: `fresh` quando o sha do `HEAD` no cabeçalho do `REPO-MAP.md` é igual ao sha do despacho, `stale` quando difere (ainda usado como ponteiro), `none` quando o arquivo está ausente.
+O relatório do Formato de saída de `repository-mapping`, devolvido ao Coordenador, com o bloco `## Fatos candidatos` quando você notou fatos que valem o arquivo (no máximo 5, no formato da seção "Fatos candidatos" de `repository-mapping`, com evidência que você leu; sem fato, sem bloco), mais a linha `Map: fresh | stale | none`: `fresh` quando o sha do `HEAD` no cabeçalho do `REPO-MAP.md` é igual ao sha do despacho, `stale` quando difere (ainda usado como ponteiro), `none` quando o arquivo está ausente.
 
 ## Handoff de contexto
 

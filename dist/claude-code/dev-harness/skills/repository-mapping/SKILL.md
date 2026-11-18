@@ -101,6 +101,34 @@ A descoberta é `confirmed` só quando o arquivo ou script foi lido. A execuçã
 - <caminho relativo>:<linha>, <o que mostra>
 
 ## Primeiros arquivos a tocar
+
+## Fatos candidatos
+<opcional, até 5 linhas; veja a seção "Fatos candidatos">
+```
+
+## Fatos candidatos
+
+Ao mapear, você pode notar uma prática do sistema que foge do padrão e que um agente futuro erraria sem saber (um estilo de escrita, uma dependência fixada, uma particularidade de código, uma armadilha de teste, uma fronteira). Devolva-a ao Coordenador como candidato a fato do `FACTS.md` do projeto (PRD-035); você não escreve o arquivo. Quem grava é o Coordenador; a confirmação é uma etapa à parte, do curador, e não é sua.
+
+- Quantos: no máximo 5 num mapa do `repo-scout`, e no máximo 2 numa resposta do `builder` ou do `qa-verifier`. Se não há nenhum fato que valha a pena, não devolva o bloco; nunca complete a cota.
+- Onde: no fim da resposta, sob o título `## Fatos candidatos`, uma linha por fato, neste formato exato (separador ` · `: espaço, ponto médio, espaço):
+
+```
+- F-000 · <frase> · Evidência: <caminho:linha>[, <caminho:linha>...] · Visto: <AAAA-MM-DD>, <papel>, <tarefa> · sha: <sha curto> · Estado: candidato
+```
+
+- O id é sempre `F-000`: o Coordenador o troca pelo próximo id livre. `Visto:` leva a data de hoje, o seu papel (`repo-scout`, `builder` ou `qa-verifier`) e o id da tarefa do despacho. O `sha` é o sha curto do `HEAD` que o despacho trouxe; sem ele, escreva `sha: ?`, e o Coordenador o completa. O `Estado:` é sempre `candidato`.
+- `Evidência:` tem de 1 a 3 caminhos `caminho:linha`, relativos ao repositório, de arquivos que você leu (não de uma pasta, nem de um caminho que só apareceu num grep). A `linha` é um número (`src/log.go:5`) ou um intervalo `N-M` (`src/log.go:5-6`, com `N` maior que zero e `M` maior ou igual a `N`); escreva o intervalo quando o fato precisa de mais de uma linha, e nunca outro formato (`5:6`, `5..6`, `5-`). Um fato sem evidência lida não é fato: ponha-o em palpites.
+- Cada linha de fato tem no máximo 300 caracteres, com todos os campos.
+- Não repita o que `README.md`, `AGENTS.md`, `CLAUDE.md` ou `REPO-MAP.md` já dizem. Não inclua decisão do dono, estado de tarefa, valor de segredo, conteúdo de `.env`, token, nome de cliente nem dado pessoal; o `dh facts check` reprova esses padrões.
+- Os fatos são classificados depois, pelo curador, nas categorias do arquivo (estilo de escrita, arquitetura, design system, dependências, ferramentas complementares, particularidades de código, testes, dados e esquema, build e CI, armadilhas, fronteiras); você não escolhe a categoria.
+
+Exemplo:
+
+```
+## Fatos candidatos
+- F-000 · Os componentes de tela usam o `Button` do design system e nunca um `<button>` cru · Evidência: src/ui/Button.tsx:8-12, src/screens/Login.tsx:31 · Visto: 2026-11-18, repo-scout, T-12 · sha: 4fc0ac3 · Estado: candidato
+- F-000 · O teste de resgate de convite é instável e só passa rodado sozinho · Evidência: tests/invite_redeem.test.ts:14 · Visto: 2026-11-18, repo-scout, T-12 · sha: 4fc0ac3 · Estado: candidato
 ```
 
 ## Referência rápida

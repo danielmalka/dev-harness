@@ -67,7 +67,7 @@ Dois movimentos, um procedimento: descobrir o que esta máquina e este projeto r
    - Guia de revisão, em `repo` e em `global`: quando o projeto não tem arquivo de guia de revisão, um especialista despachado (não o Coordenador) cria `REVIEW.md` na raiz do repositório a partir de `templates/REVIEW.md` e `review_guide: REVIEW.md` (um caminho relativo ao repositório, nunca absoluto nem com `..`) é escrito no `project.yaml`. O arquivo é escrito em pt-BR (ADR-011). Arquivo presente e chave ausente: registre a chave, deixe o arquivo intacto. Chave apontando para um arquivo existente: não mude nada. Nunca sobrescreva.
    - Crie `project.yaml` só se ele estiver ausente. Se estiver presente, compare e reporte cada divergência; atualizar um perfil existente é uma edição delimitada à parte, não inicialização de onboarding.
    - Só o Coordenador da sessão principal pode inicializar `MEMORY.md`, `EPOCHAL.md` e `RISKS.md` no harness dir a partir de `templates/`, dentro do escopo de configuração autorizado e só quando ausentes. Os outros papéis reportam registros ausentes ao Coordenador. Nunca sobrescreva, reformate nem trunque um registro existente.
-   - Nunca escreva dentro de arquivos de instruções de projeto existentes (`AGENTS.md`, `CLAUDE.md`). Conflitos são reportados, não mesclados.
+   - Nunca escreva dentro de arquivos de instruções de projeto existentes (`AGENTS.md`, `CLAUDE.md`). Conflitos são reportados, não mesclados. A única exceção é a linha de referência do `FACTS.md`, só com o sim do dono (seção "Linha de referência do arquivo de fatos").
    - Mantenha as preferências específicas da máquina em um arquivo local separado que o projeto ignora. Caminhos absolutos, diretórios pessoais e segredos nunca entram no `project.yaml`.
    - `local.yaml` no harness dir (binários de revisor CLI e slugs de modelo específicos da máquina, veja `external-clis`) é escrito pelo Coordenador na primeira invocação de revisor CLI, nunca por este procedimento; este procedimento nunca o cria e nunca edita o `.gitignore`.
 
@@ -83,14 +83,36 @@ Segunda fase opcional de `/dh:setup`, rodada só quando o dono aceita ou passa `
 - Parada: mais de 15 diretórios de nível superior. Não escreva nada e devolva a contagem ao Coordenador, que pede ao dono para nomear o escopo.
 - Idioma: `conventions.code_language` no `project.yaml` quando definido. No máximo 200 linhas.
 - Toda afirmação cita um caminho relativo. Uma afirmação não verificada é marcada `hypothesis`.
-- Partes, em ordem:
+- Partes, em ordem. O título de cada parte é fixo e leva o número desta lista, para não variar de um mapa para outro: o cabeçalho (parte 1) é só o título do arquivo mais a linha de data e sha, sem `##`, e as partes 2 a 6 têm exatamente os títulos `## 2. Estrutura de nível superior`, `## 3. Pontos de entrada e comandos`, `## 4. Arquitetura`, `## 5. Áreas de risco` e `## 6. Convenções`.
   1. Cabeçalho: data e o sha do `HEAD` vindo do despacho.
-  2. Estrutura de nível superior: uma linha por diretório.
-  3. Pontos de entrada e como rodar, testar, lintar e compilar, com a origem de cada comando.
-  4. Arquitetura em no máximo 15 linhas: principais componentes e como se conectam.
-  5. Áreas de risco: caminhos onde uma mudança exige cuidado extra, com o motivo.
-  6. Convenções que o código mostra, cada uma com um caminho de exemplo.
+  2. `## 2. Estrutura de nível superior`: uma linha por diretório.
+  3. `## 3. Pontos de entrada e comandos`: como rodar, testar, lintar e compilar, com a origem de cada comando.
+  4. `## 4. Arquitetura`, em no máximo 15 linhas: principais componentes e como se conectam.
+  5. `## 5. Áreas de risco`: caminhos onde uma mudança exige cuidado extra, com o motivo.
+  6. `## 6. Convenções`, com a linha `Convenções: ver FACTS.md`, e nada mais: as convenções que o código mostra não ficam no mapa. O redator as devolve ao Coordenador como candidatos a fato (bloco `## Fatos candidatos` da resposta, no máximo 5, no formato da seção "Fatos candidatos" de `repository-mapping`, cada um com evidência `caminho:linha` que ele leu), e o Coordenador os grava no `FACTS.md` com `dh memory write --file FACTS.md` (PRD-035, R26). O redator nunca escreve o `FACTS.md`.
 - Uma atualização (`bootstrap` nos argumentos) sobrescreve o arquivo. Este é o único registro que `/dh:setup` pode sobrescrever, porque o mapa é dado derivado. No modo `repo`, o arquivo é versionado junto com os outros registros internos.
+
+## Linha de referência do arquivo de fatos
+
+Parte de `/dh:setup`, depois do perfil e nos dois modos do harness dir (PRD-035, R22 a R25). O Coordenador pergunta ao dono, uma vez, se acrescenta ao arquivo de instruções do projeto uma linha que aponta para o `FACTS.md`. Sem o sim explícito do dono, o setup não toca o arquivo, e um não ou o silêncio não são um sim.
+
+- A linha, no modo `repo` (o caminho é relativo, o arquivo é versionado com o projeto):
+
+```
+Fatos do sistema: .harness/FACTS.md (dica com evidência; o código vence).
+```
+
+- A linha, no modo `global` (sem caminho: o arquivo fica fora do repositório):
+
+```
+Fatos do sistema: mantidos pelo dev-harness fora deste repositório; caminho em "dh harness-path --json" (campo harness) mais FACTS.md.
+```
+
+- Onde ela vai: no `AGENTS.md`, quando o projeto o tem; senão no `CLAUDE.md`, quando o projeto o tem; quando não há nenhum dos dois, o Coordenador pergunta se cria um `AGENTS.md` mínimo só com essa linha, e sem o sim do dono o setup não cria arquivo nenhum. Acrescente a linha ao fim do arquivo, sem reescrever nenhuma outra linha.
+- Idempotência: quando o arquivo já tem uma linha que começa com `Fatos do sistema:`, não acrescente outra, seja qual for o texto dela; reporte em "Deixado intacto". A escrita é de um especialista despachado (`builder`, `lane` `infra`), não do Coordenador, e ele relê o arquivo depois de escrever.
+- Nunca inclua o `FACTS.md` por `@import` em arquivo de instruções nenhum: ele não deve ser carregado em toda sessão.
+- No modo `global`, o bloco gerado `<!-- dh:facts:inicio -->` a `<!-- dh:facts:fim -->` com as armadilhas fica desligado: o setup não o escreve. Um PRD próprio pode ligá-lo depois.
+- Não crie o `FACTS.md` no setup: o arquivo nasce na primeira gravação de candidatos pelo Coordenador. No modo `none` não há harness dir, então não há arquivo nem linha.
 
 ## Formato de saída
 
@@ -125,7 +147,7 @@ diagnóstico | diagnóstico + configuração (escopo autorizado: <caminhos>)
 ## Instruções existentes
 - Arquivos encontrados: <caminhos relativos> ou "nenhum encontrado"
 - Conflitos com a proposta: <campo>. O projeto diz X, a proposta dizia Y. Não resolvido.
-- Nada nesses arquivos foi modificado.
+- Nada nesses arquivos foi modificado, exceto a linha de referência do `FACTS.md` que o dono aceitou (ou "nenhuma linha acrescentada").
 
 ## Alterações aplicadas
 - Criado: <caminho relativo> (estava ausente), relido e verificado; inclui `REVIEW.md` quando estava ausente

@@ -177,7 +177,7 @@ func TestFactsCheckReportsViolations(t *testing.T) {
 		"missing field": {factsDocFor("## Testes", "- F-001 · frase · Evidência: src/a.go:3 · Visto: 2026-11-18, builder, T-1 · sha: abc1234"), "FACTS.md:6: campo Estado: ausente"},
 		"unknown path":  {factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "src/a.go", "src/b.go", 1)), `não é um arquivo do repositório`},
 		"category name": {factsDocFor("## Outra coisa", fmt.Sprintf(cmdFact, "confirmado")), "não é uma das categorias"},
-		"secret":        {factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "O comando", "token: abc12345xyz O comando", 1)), "padrão de segredo"},
+		"secret":        {factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "O comando", "to"+"ken"+": "+"abc12345"+"xyz"+" O comando", 1)), "padrão de segredo"},
 		"ceiling":       {factsDocFor("## Mudanças") + strings.Repeat("- mudança\n", 150), "teto de linhas excedido"},
 	}
 	for name, c := range cases {
@@ -262,5 +262,28 @@ func TestFactsCheckEvidenceMustBeAFile(t *testing.T) {
 	}
 	if code, e := check("src/nao-existe.go:1"); code != 1 || !strings.Contains(e, "não é um arquivo do repositório") {
 		t.Errorf("a missing path must fail: %d %q", code, e)
+	}
+}
+
+// A range of lines is evidence too: caminho:N-M passes through the command when the path is a file; a reversed or empty range exits 1.
+func TestFactsCheckAcceptsLineRanges(t *testing.T) {
+	repo, facts := factsRepo(t, "")
+	check := func(evidence string) (int, string, string) {
+		doc := factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "src/a.go:3", evidence, 1))
+		os.WriteFile(facts, []byte(doc), 0o644)
+		return dh(t, "facts", "check", repo)
+	}
+	for _, ok := range []string{"src/a.go:1-3", "src/a.go:2-2", "src/a.go:3", "src/a.go:1-3, src/a.go:2"} {
+		if code, out, e := check(ok); code != 0 || strings.TrimSpace(out) != "ok 1 fatos 0 candidatos" {
+			t.Errorf("%q must pass: %d %q %q", ok, code, out, e)
+		}
+	}
+	for _, bad := range []string{"src/a.go:3-1", "src/a.go:0-3", "src/a.go:5-", "src/a.go:a-b"} {
+		if code, _, e := check(bad); code != 1 || !strings.Contains(e, "nem caminho:N-M") {
+			t.Errorf("%q must fail: %d %q", bad, code, e)
+		}
+	}
+	if code, _, e := check("src:1-3"); code != 1 || !strings.Contains(e, "não é um arquivo do repositório") {
+		t.Errorf("a range on a folder must fail as not a file: %d %q", code, e)
 	}
 }

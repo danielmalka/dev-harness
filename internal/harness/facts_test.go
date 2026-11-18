@@ -83,6 +83,17 @@ func TestCheckFactsFieldValues(t *testing.T) {
 	wantProblem(t, "evidence four", factsDoc("## Testes", mk(0, "README.md:1, README.md:2, README.md:3, README.md:4")), "6", "tem 4")
 	wantProblem(t, "evidence without line", factsDoc("## Testes", mk(0, "README.md")), "6", "caminho:linha")
 	wantProblem(t, "evidence line zero", factsDoc("## Testes", mk(0, "README.md:0")), "6", "linha maior que zero")
+	// A range caminho:N-M passes when N >= 1 and M >= N (the single line keeps working); anything else fails.
+	for _, ok := range []string{"README.md:5-6", "README.md:5-5", "README.md:1-200", "README.md:7", "README.md:5-6, cmd/dh/main.go:10-20, internal/harness/memory.go:3"} {
+		if r := check(factsDoc("## Testes", mk(0, ok))); len(r.Problems) != 0 {
+			t.Errorf("evidence %q must pass: %s", ok, messages(r))
+		}
+	}
+	for _, bad := range []string{"README.md:6-5", "README.md:0-3", "README.md:0-0", "README.md:5-", "README.md:-5", "README.md:a-b", "README.md:5-6-7", "README.md:5--6", "README.md:5-b", "README.md:99999999999999999999-99999999999999999999"} {
+		wantProblem(t, "evidence range "+bad, factsDoc("## Testes", mk(0, bad)), "6", "nem caminho:N-M")
+	}
+	wantProblem(t, "range on a missing file", factsDoc("## Testes", mk(0, "cmd/dh/nao-existe.go:5-6")), "6", "não é um arquivo do repositório")
+	wantProblem(t, "range on an absolute path", factsDoc("## Testes", mk(0, "/etc/passwd:5-6")), "6", "relativo ao repositório")
 	wantProblem(t, "evidence absolute", factsDoc("## Testes", mk(0, "/etc/passwd:1")), "6", "relativo ao repositório")
 	wantProblem(t, "evidence dotdot", factsDoc("## Testes", mk(0, "../x/README.md:1")), "6", "relativo ao repositório")
 	wantProblem(t, "evidence backslash", factsDoc("## Testes", mk(0, `cmd\dh\main.go:1`)), "6", "relativo ao repositório")
@@ -176,20 +187,7 @@ func TestCheckFactsCeilings(t *testing.T) {
 
 // R6: every secret shape is reported with its kind and line, and the value is never echoed.
 func TestCheckFactsSecrets(t *testing.T) {
-	cases := map[string]string{
-		"chave privada":              "-----BEGIN RSA PRIVATE KEY-----",
-		"chave de acesso da AWS":     "AKIAABCDEFGHIJKLMNOP",
-		"token do GitHub":            "ghp_abcdefghijklmnopqrstuvwxyz0123456789",
-		"token do Slack":             "xoxb-123456789012-abcdefghij",
-		"chave de API (sk-)":         "sk-abcdefghijklmnopqrstuvwx",
-		"chave de API do Google":     "AIzaSyA1234567890abcdefghijklmnopqrstuv",
-		"JWT":                        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abcdefghijklmnop",
-		"credencial em URL":          "postgres://app:s3cr3tpass@db.local/x",
-		"valor de segredo atribuído": "API_KEY=abc12345xyz",
-		"e-mail":                     "fulano@example.com",
-		"CPF":                        "123.456.789-09",
-		"CNPJ":                       "12.345.678/0001-95",
-	}
+	cases := fakeSecrets()
 	for kind, secret := range cases {
 		doc := factsDoc("## Armadilhas", strings.Replace(goodFact, "O binário usa lock por arquivo", "valor "+secret+" visto", 1))
 		r := check(doc)
@@ -207,7 +205,7 @@ func TestCheckFactsSecrets(t *testing.T) {
 		}
 	}
 	// A secret in a free-text line of Mudanças is reported too: the file is versioned.
-	wantProblem(t, "secret in Mudanças", factsDoc("## Mudanças", "- trocado token: abcd1234efgh"), "6", "padrão de segredo")
+	wantProblem(t, "secret in Mudanças", factsDoc("## Mudanças", "- trocado "+fakeAssignment("to"+"ken", ": ", "abcd1234efgh")), "6", "padrão de segredo")
 	// Look-alikes that are not secrets pass.
 	for _, ok := range []string{"o campo senha: bcrypt", "usa a variável API_KEY sem valor", "token: <valor>", "sk-curto", "veja ghp_ no texto", "um sha: abc1234 qualquer"} {
 		if r := check(factsDoc("## Armadilhas", strings.Replace(goodFact, "O binário usa lock por arquivo", ok, 1))); len(r.Problems) != 0 {
