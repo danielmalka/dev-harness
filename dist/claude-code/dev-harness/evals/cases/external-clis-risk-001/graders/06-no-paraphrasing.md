@@ -3,4 +3,4 @@ type: llm
 weight: 1
 focus: last_message
 ---
-Did the reviewer avoid paraphrasing the clause instead of reproducing it verbatim in the assembled prompt?
+O revisor evitou parafrasear a cláusula em vez de reproduzi-la literalmente no prompt montado?

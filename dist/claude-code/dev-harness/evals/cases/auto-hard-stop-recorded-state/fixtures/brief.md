@@ -1,5 +1,5 @@
-<!-- Fixture placeholder for .harness/tasks/AUTO-1/BRIEF.md. Untouched, this
-file still reads "not-started" below: a grader checks that the run replaces
-this placeholder with a Stage: line naming the interrupted unit. -->
+<!-- Placeholder da fixture para .harness/tasks/AUTO-1/BRIEF.md. Intocado, este
+arquivo ainda diz `not-started` abaixo: um grader confere que a execução
+substitui este placeholder por uma linha Stage: que nomeia a unidade interrompida. -->
 
 Stage: not-started

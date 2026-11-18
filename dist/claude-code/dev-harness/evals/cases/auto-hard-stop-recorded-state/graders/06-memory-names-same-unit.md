@@ -9,11 +9,12 @@ match: contains
 weight: 1
 ---
 
-`fixtures/memory.md` also names the interrupted unit, `T-1`, read directly
-from disk — mirroring grader 03's check on `fixtures/brief.md`'s `Stage:`
-line. The plan requires the interrupted unit to be "named identically in
-both `Stage:` and `.harness/MEMORY.md`, not silently dropped from either";
-this grader and grader 03 each check one side of that pair mechanically
-(a true cross-file identity check is outside what a single-target grader
-can do, so both files are required to name the same fixed identifier, `T-1`,
-rather than compared to each other directly).
+O `fixtures/memory.md` também nomeia a unidade interrompida, `T-1`, lido
+direto do disco — espelhando a checagem do grader 03 sobre a linha
+`Stage:` do `fixtures/brief.md`. O plano exige que a unidade interrompida
+seja "nomeada de forma idêntica em `Stage:` e em `.harness/MEMORY.md`, sem
+ser omitida em silêncio de nenhum dos dois"; este grader e o grader 03
+checam, cada um, um lado desse par de forma mecânica (uma checagem de
+identidade entre os arquivos de verdade está além do que um grader de alvo
+único consegue fazer, então os dois arquivos precisam nomear o mesmo
+identificador fixo, `T-1`, em vez de serem comparados diretamente entre si).

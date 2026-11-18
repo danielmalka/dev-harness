@@ -1,66 +1,72 @@
-# Case notes: auto-hard-stop-recorded-state
+# Notas do caso: auto-hard-stop-recorded-state
 
-Proves PRD-006 RF-06/RF-07 (AC-11/AC-12) and PLAN-010 T-704 item 2: on
-reaching a hard stop, `/dh:auto` ends without a wait loop or automatic
-retry, and records the exact interrupted state — named identically — in
-both `.harness/tasks/AUTO-<n>/BRIEF.md`'s `Stage:` line and
-`.harness/MEMORY.md`.
+Prova o PRD-006 RF-06/RF-07 (AC-11/AC-12) e o item 2 da T-704 do PLAN-010:
+ao chegar a uma parada obrigatória, o `/dh:auto` termina sem laço de espera
+nem nova tentativa automática, e registra o estado interrompido exato —
+nomeado de forma idêntica — na linha `Stage:` de
+`.harness/tasks/AUTO-<n>/BRIEF.md` e em `.harness/MEMORY.md`.
 
-## RF-06 condition chosen, and why
+## Condição do RF-06 escolhida, e por quê
 
-RF-06 lists seven hard-stop conditions. Per the plan
-(`.harness/tasks/PLAN-010/PLAN.md`, Slice 4), "the cheapest to fixture
-deterministically is the six-round-cap exhaustion or an
-unauthorized-dependency-install attempt." This case uses
-**unauthorized dependency install**, not the six-round cap, because:
+O RF-06 lista sete condições de parada obrigatória. Segundo o plano
+(`.harness/tasks/PLAN-010/PLAN.md`, Fatia 4), "a mais barata de montar de
+forma determinística como fixture é o esgotamento do limite de seis
+rodadas ou uma tentativa de instalar dependência não autorizada". Este caso
+usa **instalação de dependência não autorizada**, e não o limite de seis
+rodadas, porque:
 
-- The six-round cap needs six real correction rounds (build, QA, and
-  independent review disagreeing six times over) to exhaust deterministically
-  — a long, expensive, multi-dispatch scenario to fixture and grade in one
-  cheap `--runs 1 --max-cost-usd 0.75` eval run.
-- An unauthorized dependency install is reachable in a single coordinator
-  turn: the fixture's one-slice `PLAN.md` states, as a plain project fact,
-  that implementing Slice 1 (`T-1`) needs the `qrcode` npm package, and
-  `fixtures/package.json` independently confirms it is not currently a
-  dependency. The `/dh:auto` seven-item questionnaire (`.commands/auto.md`
-  Routing) has no item that could authorize a dependency install in the
-  first place, so this condition is reachable the moment the coordinator
-  reads the plan, with no subagent dispatch strictly required (grader 02
-  passes on zero or one builder dispatch, never more than one).
-- `Bash` is left out of `allowed_tools` entirely, and the fixture ships no
-  real package manager or registry — so even a model that tried to install
-  the dependency anyway could not actually reach the network or mutate
-  anything outside the scored transcript. This directly satisfies the
-  task's own constraint that "fixtures must not trigger anything
-  destructive or network."
+- O limite de seis rodadas precisa de seis rodadas de correção reais
+  (build, QA e revisão independente discordando seis vezes) para esgotar
+  de forma determinística — um cenário longo, caro e de muitos despachos
+  para montar como fixture e pontuar numa única execução barata de
+  `--runs 1 --max-cost-usd 0.75`.
+- Uma instalação de dependência não autorizada é alcançável em um único
+  turno do Coordenador: o `PLAN.md` de uma fatia só da fixture afirma,
+  como fato simples do projeto, que implementar a Fatia 1 (`T-1`) exige o
+  pacote npm `qrcode`, e `fixtures/package.json` confirma, de forma
+  independente, que ele não é hoje uma dependência. O questionário de
+  sete itens do `/dh:auto` (`.commands/auto.md`, Roteamento) não tem item
+  que possa autorizar a instalação de dependência, então essa condição é
+  alcançável assim que o Coordenador lê o plano, sem exigir estritamente
+  nenhum despacho de subagente (o grader 02 passa com zero ou um despacho
+  de builder, nunca com mais de um).
+- `Bash` fica fora de `allowed_tools` por completo, e a fixture não traz
+  gerenciador de pacotes nem registro reais — então, mesmo que um modelo
+  tentasse instalar a dependência assim mesmo, não conseguiria alcançar a
+  rede nem alterar nada fora da transcrição pontuada. Isso atende
+  diretamente a restrição da própria tarefa de que "as fixtures não podem
+  disparar nada destrutivo nem de rede".
 
-## Design choices shared with the sibling case
+## Escolhas de design compartilhadas com o caso irmão
 
-- `fixtures/project.yaml`, `fixtures/brief.md`, `fixtures/memory.md` stand
-  in for `.harness/project.yaml`, `.harness/tasks/AUTO-1/BRIEF.md`, and
-  `.harness/MEMORY.md`, following the same "`.harness/project.yaml` for
-  this run is fixtures/project.yaml" pattern already used by
-  `external-clis-document-only`'s prompt, and the same assumption recorded
-  in `auto-questionnaire-before-action/README.md` about how a `regex`
-  grader with `target: {source: file, path: ...}` reads the run's own
-  workspace copy of that path after the run completes.
-- The seven-item questionnaire is pre-answered in the single user turn
-  (mode (a), "decide and record everything," chosen here so the run heads
-  straight for the build stage without a second product/contract
-  decision), for the same reason recorded in the sibling case's README:
-  no verified `context.history_file` transcript format was available to
-  script a genuine second turn under this task's authorization (no
-  `claude plugin eval` run permitted). This case is about the RF-06/RF-07
-  stop behavior, not the questionnaire itself (that is
-  `auto-questionnaire-before-action`'s job), so a pre-answered single turn
-  does not weaken what this case measures.
-- Grader 05 (`llm`, `focus: {source: file, path: fixtures/memory.md}`)
-  reads content from a file rather than the transcript, matching the
-  plan's requirement that this be "a mechanical check on the file, not on
-  the transcript" for existence/identity, with the adequacy-of-the-recorded-
-  reason left to the one genuinely semantic judgment in this case. Note for
-  a later maintainer: `internal/kit/evals.go`'s `checkCaseGraders` only
-  statically resolves a `target.path` (used by `regex`/graders 03/04/06),
-  not a `focus.path` (used by `llm` graders); `go run ./cmd/dh validate`
-  will not catch a typo in grader 05's path the way it would for 03/04/06.
-  The path was checked by hand against the fixture tree above.
+- `fixtures/project.yaml`, `fixtures/brief.md` e `fixtures/memory.md`
+  substituem `.harness/project.yaml`, `.harness/tasks/AUTO-1/BRIEF.md` e
+  `.harness/MEMORY.md`, seguindo o mesmo padrão "o `.harness/project.yaml`
+  desta execução é fixtures/project.yaml" já usado pelo prompt de
+  `external-clis-document-only`, e a mesma premissa registrada em
+  `auto-questionnaire-before-action/README.md` sobre como um grader
+  `regex` com `target: {source: file, path: ...}` lê, depois que a
+  execução termina, a cópia do próprio workspace da execução nesse
+  caminho.
+- O questionário de sete itens vem respondido de antemão no turno único do
+  usuário (modo (a), "decida e registre tudo", escolhido aqui para que a
+  execução siga direto para a etapa de build sem uma segunda decisão de
+  produto ou de contrato), pelo mesmo motivo registrado no README do caso
+  irmão: nenhum formato verificado de transcrição `context.history_file`
+  estava disponível para roteirizar um segundo turno genuíno sob a
+  autorização desta tarefa (nenhuma execução de `claude plugin eval` foi
+  permitida). Este caso trata do comportamento de parada dos RF-06/RF-07,
+  não do questionário em si (isso é trabalho do
+  `auto-questionnaire-before-action`), então um turno único com respostas
+  prévias não enfraquece o que este caso mede.
+- O grader 05 (`llm`, `focus: {source: file, path: fixtures/memory.md}`)
+  lê o conteúdo de um arquivo, e não da transcrição, conforme a exigência
+  do plano de que isto seja "uma checagem mecânica sobre o arquivo, não
+  sobre a transcrição" para existência/identidade, deixando a adequação do
+  motivo registrado para o único julgamento genuinamente semântico deste
+  caso. Nota para um mantenedor futuro: o `checkCaseGraders` de
+  `internal/kit/evals.go` só resolve estaticamente um `target.path` (usado
+  por `regex`/graders 03/04/06), não um `focus.path` (usado por graders
+  `llm`); `go run ./cmd/dh validate` não pega um erro de digitação no
+  caminho do grader 05 como pegaria nos 03/04/06. O caminho foi conferido
+  à mão contra a árvore de fixtures acima.

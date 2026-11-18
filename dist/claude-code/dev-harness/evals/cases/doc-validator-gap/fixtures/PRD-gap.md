@@ -1,64 +1,64 @@
-# PRD-902 · Invite-only signup
+# PRD-902 · Cadastro somente por convite
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Status | in review |
-| Owner | workspace owner |
-| Created / updated | 2026-09-20 / 2026-09-20 |
-| Stories | ST-901, ST-902 |
+| Status | em revisão |
+| Dono | dono do workspace |
+| Criado / atualizado | 2026-09-20 / 2026-09-20 |
+| Histórias | ST-901, ST-902 |
 
-## 1. Problem
+## 1. Problema
 
-Signup is open, so anyone who finds the URL creates an account in a workspace they were never meant to join. The workspace owner currently removes those accounts by hand after the fact.
+O cadastro é aberto, então qualquer pessoa que descubra a URL cria uma conta num workspace em que nunca deveria entrar. Hoje o dono do workspace remove essas contas à mão, depois do fato.
 
-## 2. Expected outcome
+## 2. Resultado esperado
 
-- Signal 1: accounts created without an invite · today: unbounded · target: 0.
-- Signal 2: pending invites that expire unnoticed · today: no baseline · target: measured after the first month.
+- Sinal 1: contas criadas sem convite · hoje: sem limite · meta: 0.
+- Sinal 2: convites pendentes que expiram sem ninguém notar · hoje: sem linha de base · meta: medida depois do primeiro mês.
 
-## 3. Users and scenarios
+## 3. Usuários e cenários
 
-| User | Scenario | Today | After |
+| Usuário | Cenário | Hoje | Depois |
 |---|---|---|---|
-| Admin | Brings a colleague into the workspace | Sends them the signup URL | Creates an invite bound to their email |
-| Invited person | Creates an account | Signs up directly | Redeems the invite code |
+| Admin | Traz um colega para o workspace | Envia a ele a URL de cadastro | Cria um convite vinculado ao e-mail da pessoa |
+| Pessoa convidada | Cria uma conta | Cadastra-se diretamente | Resgata o código de convite |
 
-## 4. Scope
+## 4. Escopo
 
-**In scope**
-- RF-01 A person creates an account only by redeeming a valid invite code; a signup attempt without a code is refused.
-- RF-02 Only a workspace admin creates an invite, and the invite is bound to exactly one email address.
-- RF-03 An invite expires 7 days after creation and can no longer be redeemed.
-- RF-04 The invite email is sent once on creation, and the admin resends it at most 3 times per invite.
+**Dentro do escopo**
+- RF-01 Uma pessoa cria uma conta somente ao resgatar um código de convite válido; uma tentativa de cadastro sem código é recusada.
+- RF-02 Somente um admin do workspace cria um convite, e o convite é vinculado a exatamente um endereço de e-mail.
+- RF-03 Um convite expira 7 dias depois de criado e não pode mais ser resgatado.
+- RF-04 O e-mail do convite é enviado uma vez na criação, e o admin o reenvia no máximo 3 vezes por convite.
 
-**Out of scope**
-- Pricing and seat limits.
-- Single sign-on.
-- Referral rewards.
+**Fora do escopo**
+- Preços e limites de assentos.
+- Login único (SSO).
+- Recompensas por indicação.
 
-## 5. Acceptance criteria
+## 5. Critérios de aceite
 
-- AC-01 (RF-01) When a person submits the signup form with no invite code, then the account is not created and the response states that an invite is required.
-- AC-02 (RF-02) When a member who is not an admin submits an invite, then the invite is not created and the response states that only admins may invite. When an admin submits an invite for an email address, then the invite is bound to that address and no other address can redeem it.
-- AC-03 (RF-03) When an invite is redeemed more than 7 days after its creation timestamp, then the redemption is refused and the response states that the invite expired.
-- AC-04 (RF-04) When the admin uses the invite form, then the form must be fast.
+- AC-01 (RF-01) Quando uma pessoa envia o formulário de cadastro sem código de convite, então a conta não é criada e a resposta informa que um convite é obrigatório.
+- AC-02 (RF-02) Quando um membro que não é admin envia um convite, então o convite não é criado e a resposta informa que somente admins podem convidar. Quando um admin envia um convite para um endereço de e-mail, então o convite é vinculado a esse endereço e nenhum outro endereço pode resgatá-lo.
+- AC-03 (RF-03) Quando um convite é resgatado mais de 7 dias depois do seu carimbo de criação, então o resgate é recusado e a resposta informa que o convite expirou.
+- AC-04 (RF-04) Quando o admin usa o formulário de convite, então o formulário deve ser rápido.
 
-## 6. Constraints and technical impact
+## 6. Restrições e impacto técnico
 
-- Data: new invite record with email, code, creation timestamp, state and resend count.
-- Contracts: the signup endpoint gains a required invite code field.
-- Security: the invite code is single use and bound to one email address.
+- Dados: novo registro de convite com e-mail, código, carimbo de criação, estado e contagem de reenvios.
+- Contratos: o endpoint de cadastro ganha um campo obrigatório de código de convite.
+- Segurança: o código de convite é de uso único e vinculado a um endereço de e-mail.
 
-## 7. Discarded alternatives
+## 7. Alternativas descartadas
 
-| Alternative | Why not |
+| Alternativa | Por que não |
 |---|---|
-| Shared workspace password | Cannot be bound to one person or revoked individually |
+| Senha compartilhada do workspace | Não pode ser vinculada a uma pessoa nem revogada individualmente |
 
-## 8. Risks and pending decisions
+## 8. Riscos e decisões pendentes
 
-- Risk: an admin revokes the wrong invite · mitigation: the revoked invite is shown in the invite list with its state.
+- Risco: um admin revoga o convite errado · mitigação: o convite revogado aparece na lista de convites com o seu estado.
 
-## 9. References
+## 9. Referências
 
 - discovery-notes.md

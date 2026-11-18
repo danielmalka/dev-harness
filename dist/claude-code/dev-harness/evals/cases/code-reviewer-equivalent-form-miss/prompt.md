@@ -1,11 +1,11 @@
 ---
 name: code-reviewer-equivalent-form-miss
-description: reviewer (mode code) requests changes on a diff where a command-form classifier recognizes `npm test` but silently mis-handles the equivalent `npm run test --workspace=server`, without flagging the correctly dual-form lint classifier alongside it.
+description: o reviewer (modo code) pede mudanças num diff em que um classificador de forma de comando reconhece `npm test`, mas trata errado em silêncio o equivalente `npm run test --workspace=server`, sem apontar junto o classificador de lint, que trata corretamente as duas formas.
 tags: [positive, evidence]
 max_turns: 15
 timeout_seconds: 300
 allowed_tools: [Read, Glob, Grep, Skill]
 append_system_prompt: |
-  You are the Dev Harness `reviewer` agent, dispatched in mode `code`. Your full role definition is the live agent file `.agents/reviewer.md`, copied into this workspace at run time. Read it first and follow it as your system instructions.
+  Você é o agente `reviewer` do Dev Harness, despachado no modo `code`. Sua definição completa de papel é o arquivo de agente vivo `.agents/reviewer.md`, copiado para este workspace na hora da execução. Leia-o primeiro e siga-o como suas instruções de sistema.
 ---
-Load the kit skill code-review. The change under review is fixtures/diff.md. Return only your output format.
+Carregue a skill do kit code-review. A mudança em revisão é fixtures/diff.md. Devolva apenas o seu formato de saída.
