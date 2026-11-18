@@ -91,7 +91,7 @@ Uso: relatório das ações realizadas. Não substitui `protocolo/templates/repo
 
 ## projeto
 
-Uso: visão geral viva de um projeto inteiro (o `pdocs/index.html` de um repositório). Copie `assets/projeto-modelo.<lang>.html` quando não houver shell, ou rode o carimbo com `--type projeto`. Markup: `.table-wrap`, uma lista e `<pre class="mermaid">`, tudo das Primitivas abaixo. Todo espaço sem um fato continua “ainda não fechado”.
+Uso: visão geral viva de um projeto inteiro (o `pdocs/index.html` de um repositório). Copie `assets/projeto-modelo.html` quando não houver shell, ou rode o carimbo com `--type projeto`. Markup: `.table-wrap`, uma lista e `<pre class="mermaid">`, tudo das Primitivas abaixo. Todo espaço sem um fato continua “ainda não fechado”.
 
 1. Motivação
 2. Como rodar local

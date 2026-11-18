@@ -126,7 +126,7 @@ Um `.html` autônomo no caminho combinado. No chat: esse caminho relativo à rai
 | Trocar a paleta, usar Inter, acrescentar emoji | Os tokens derivam e o doc deixa de parecer saída do kit | Mantenha a paleta declarada e as três fontes |
 | Três cards “feature” quase idênticos | Enchimento parece conteúdo e esconde o que ainda está em aberto | Um card por assunto real; uma lacuna continua “ainda não fechado” |
 | Deixar CSS ou JS externo, ou apontar para a pasta da skill | O arquivo deixa de abrir sozinho a partir de `file://` | O carimbo embute os dois; o HTML gerado nunca referencia a pasta da skill |
-| Sobrescrever `assets/modelo.html`, `assets/catalogo-preview.html` ou `assets/projeto-modelo.<lang>.html` | Os exemplos canônicos da skill se perdem | Escreva em outro lugar; `--force` só quando o dono pediu |
+| Sobrescrever `assets/modelo.html`, `assets/catalogo-preview.html` ou `assets/projeto-modelo.html` | Os exemplos canônicos da skill se perdem | Escreva em outro lugar; `--force` só quando o dono pediu |
 
 ## Relacionado
 
