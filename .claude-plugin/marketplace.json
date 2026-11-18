@@ -5,13 +5,13 @@
     "url": "https://github.com/danielmalka"
   },
   "metadata": {
-    "description": "Kit portátil de desenvolvimento assistido por IA para o Claude Code: coordenador, 12 agentes especialistas, 22 skills, 20 comandos de trabalho."
+    "description": "Kit portátil de desenvolvimento assistido por IA para o Claude Code: coordenador, 12 agentes especialistas, 23 skills, 20 comandos de trabalho."
   },
   "plugins": [
     {
       "name": "dh",
       "description": "Coordenador mais agentes especialistas, skills e comandos de trabalho, com entrega autorizada pelo dono.",
-      "version": "0.48.0",
+      "version": "0.49.0",
       "author": { "name": "malka" },
       "homepage": "https://github.com/danielmalka/dev-harness",
       "repository": "https://github.com/danielmalka/dev-harness",
@@ -21,7 +21,7 @@
         "source": "git-subdir",
         "url": "https://github.com/danielmalka/dev-harness.git",
         "path": "dist/claude-code/dev-harness",
-        "ref": "v0.48.0"
+        "ref": "v0.49.0"
       }
     }
   ]

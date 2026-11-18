@@ -661,7 +661,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-11-18</b></span>
-          <span class="chip">status <b>0.48.0 · vivo</b></span>
+          <span class="chip">status <b>0.49.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -672,7 +672,7 @@ footer.doc-foot {
   cmd/                    ponto de entrada do binário Go dh (cmd/dh)
   internal/               pacotes do binário: snapshot, validate, build, doctor
   .agents/                13 papéis — fonte canônica
-  .skills/                22 skills — fonte canônica
+  .skills/                23 skills — fonte canônica
   .commands/              20 comandos — fonte canônica
   templates/              8 templates em pt-BR, numa pasta só — fonte canônica
   profiles/               7 perfis de stack — fonte canônica
@@ -681,7 +681,7 @@ footer.doc-foot {
   evals/                  cases, baselines, rubrics, fixtures de avaliação
   adapters/               guias de uso manual por outras IAs (generic) e o pacote Claude Code (claude-code)</code></pre>
       </div>
-      <p>Contagem atual (<code>harness-manifest.json</code>): 13 agentes, 20 comandos, 22 skills, 7 perfis, 8 templates
+      <p>Contagem atual (<code>harness-manifest.json</code>): 13 agentes, 20 comandos, 23 skills, 7 perfis, 8 templates
         (numa pasta só), 5 binários pré-compilados (linux amd64/arm64, darwin amd64/arm64, windows amd64).</p>
       <pre class="mermaid">
 flowchart LR
@@ -698,6 +698,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.49.0 · Arquivo de fatos do sistema, fatia F3: a curadoria (PRD-035)</h3>
+        <p><strong>Status:</strong> concluído (terceira de quatro fatias do PRD-035; a leitura pelos especialistas vem na F4, e o recurso só é declarado pronto depois da eval paga da F5).</p>
+        <p><strong>Resumo:</strong> PRD-035 F3. A skill nova <code>facts-curation</code> (23 skills) é a rodada do curador, um <code>docs-guide</code>: confere cada candidato lendo o <code>caminho:linha</code> no código de hoje, confirma (<code>confirmado</code>), deixa como <code>hipótese</code> ou remove o contradito, classifica nas 11 categorias, reconfere até 10 confirmados, funde os repetidos, remove o que repete o README, o <code>AGENTS.md</code>, o <code>CLAUDE.md</code> e o <code>REPO-MAP.md</code>, troca segredo por <code>[redigido]</code>, aplica os tetos e registra a rodada em <code>## Mudanças</code>, sem rodar código e sem shell. O Coordenador despacha o curador no fim de um fluxo com 5 ou mais candidatos, com o arquivo acima de 150 linhas ou 12 KB, ou a pedido do dono, com o sha do <code>HEAD</code> de um <code>qa-verifier</code> e a linha <code>Arquivos permitidos: &lt;harness dir&gt;/FACTS.md</code>, que o mod exige para liberar a escrita; depois da rodada roda <code>dh facts check</code> até passar. Nenhum comando nem agente novo, e nenhum código Go ou TypeScript de produção mudou.</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.49.0; <code>docs/prd/PRD-035-arquivo-de-fatos.md</code> (escolhas E11 a E16); <code>.skills/facts-curation/SKILL.md</code>; <code>.agents/docs-guide.md</code>, <code>.agents/coordinator.md</code>; <code>internal/kit/facts_curation_contract_test.go</code>; <code>adapters/claude-code/plugin/hooks/runtime-guard.test.ts</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> (o contrato da skill, dos gatilhos e da linha do despacho, e o exemplo da skill passando pelo <code>dh facts check</code>), testes dos mods (289 passam; eram 288), <code>go vet ./...</code>, <code>dh validate .</code> e <code>go run ./cmd/dh build</code> sem diferença em <code>dist/</code>; <code>gitleaks detect --no-git</code> com 0 achados; prova de clone limpo (os binários mudam pela versão); a sessão real do Claude Code (curadoria pelo gatilho, classificação, fusão, remoção de um fato contradito e segredo redigido) fica para o Verificador; sem eval nova (a eval paga é a F5).</p>
+      </div>
 
       <div class="card">
         <h3>0.48.0 · Arquivo de fatos do sistema, fatia F2: a escrita dos candidatos (PRD-035)</h3>
@@ -1771,7 +1779,7 @@ profiles/"] --> B["dh build"]
           e o <code>qa-verifier</code> propõem; o Coordenador grava os candidatos com a trava de hash; o <code>docs-guide</code>, com a
           skill nova <code>facts-curation</code>, confere e poda; os especialistas leem as categorias da sua função no despacho.</p>
         <p><strong>Critérios de aceite:</strong> R1 a R37 do PRD-035, inclusive a eval paga da F5 (3 casos, 2 braços, 3 repetições, teto de US$ 80).</p>
-        <p><strong>Status:</strong> em andamento: F1 (trava, mod e <code>dh facts check</code>) entregue na 0.47.0 e F2 (escrita dos candidatos) na 0.48.0; F3 e F4 nas versões 0.49.0 e 0.50.0; a F5 é a prova, com a eval paga.</p>
+        <p><strong>Status:</strong> em andamento: F1 (trava, mod e <code>dh facts check</code>) entregue na 0.47.0 e F2 (escrita dos candidatos) na 0.48.0 e F3 (curadoria) na 0.49.0; F4 na versão 0.50.0; a F5 é a prova, com a eval paga.</p>
         <p><strong>Relações:</strong> <code>docs/prd/PRD-035-arquivo-de-fatos.md</code>; PRD-032; PRD-034; ADR-005; ADR-007.</p>
       </div>
 
@@ -1968,7 +1976,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.48.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.49.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
