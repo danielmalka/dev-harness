@@ -391,7 +391,8 @@ test('F3 denyCuratorShell: Bash, PowerShell and Monitor are denied to the curato
   for (const tool of ['Bash', 'PowerShell', 'Monitor']) {
     for (const r of await file(tool, { command: 'cat -n src/log.go', agentId: 'cur-sh1' })) {
       expect(r.deny).toContain('não roda comandos')
-      expect(r.deny).toContain('Read e Grep')
+      expect(r.deny).toContain('use Read (e Glob ou Grep, se estiverem disponíveis)')
+      expect(r.deny).toContain('ler com Read a linha do caminho:linha basta')
     }
     for (const id of ['plain-sh1', 'build-sh1', 'unknown-sh1']) for (const r of await file(tool, { command: 'cat -n src/log.go', agentId: id })) expect(r).toBe(NEXT)
     for (const r of await file(tool, { command: 'git status' })) expect(r).toBe(NEXT) // the main session has no agentId
@@ -400,7 +401,7 @@ test('F3 denyCuratorShell: Bash, PowerShell and Monitor are denied to the curato
   for (const tool of ['Read', 'Grep', 'Glob', 'Skill']) expect((await file(tool, { file_path: 'src/log.go', agentId: 'cur-sh1' })).length).toBe(0)
   // the curator still writes FACTS.md
   for (const r of await file('Write', { file_path: '.harness/FACTS.md', agentId: 'cur-sh1' })) expect(r).toBe(NEXT)
-  expect(denyCuratorShell({ agentId: 'cur-sh1' })?.deny).toContain('Read e Grep')
+  expect(denyCuratorShell({ agentId: 'cur-sh1' })?.deny).toContain('use Read (e Glob ou Grep, se estiverem disponíveis)')
   for (const bad of [undefined, null, {}, 7, { agentId: 7 }]) expect(denyCuratorShell(bad as any)).toBe(undefined)
   // a reused id loses it
   noteSpawn({ subagentType: 'dh:builder', prompt: 'x' }, 'cur-sh1')
