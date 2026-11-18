@@ -75,10 +75,11 @@ func TestSyntheticKitMutations(t *testing.T) {
 			want: "template ausente templates/NOPE.md",
 		},
 		{
-			name: "reference with the old language folder checks the file in templates/",
+			name: "reference with the old language folder is rejected since 0.46.0",
 			mutate: func(t *testing.T, root string) {
 				writeFixture(t, filepath.Join(root, ".agents", "alpha.md"), agentFixture("alpha")+"Use templates/<lang>/TASK.md e templates/en/TASK.md e templates/pt-br/TASK.md.\n")
 			},
+			want: "marcador do formato antigo em inglês",
 		},
 		{
 			name: "reference with the old language folder to a missing file",

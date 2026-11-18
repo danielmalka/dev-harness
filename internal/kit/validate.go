@@ -88,6 +88,7 @@ func Validate(target string, options Options) (Report, error) {
 	}
 	checkLinks(dirs["root"], &report.Errors)
 	checkTemplateRefs(dirs, &report.Errors)
+	checkLegacyMarkers(dirs, &report.Errors)
 	checkDocumentedCounts(dirs["root"], report.Inventory, &report.Errors)
 	checkRoadmaps(dirs["root"], &report.Errors)
 	checkStatusDrift(dirs["root"], &report.Errors)
