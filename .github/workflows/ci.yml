@@ -28,7 +28,7 @@ jobs:
         working-directory: evals/fixtures/slice-01
         run: |
           if python3 -m unittest test_greet.py > "$RUNNER_TEMP/fixture.log" 2>&1; then
-            echo "::error::the fixture passes; it must start red"
+            echo "::error::a fixture passou; ela deve começar vermelha"
             exit 1
           fi
           tail -3 "$RUNNER_TEMP/fixture.log"

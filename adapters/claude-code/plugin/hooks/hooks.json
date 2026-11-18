@@ -1,4 +1,4 @@
 {
-  "description": "Dev Harness session snapshots and dashboard, written by the mod; local files only, no network",
+  "description": "Instantâneos de sessão e dashboard do Dev Harness, gravados pelo mod; só arquivos locais, sem rede",
   "modules": ["./panel.ts"]
 }

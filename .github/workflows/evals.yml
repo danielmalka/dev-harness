@@ -19,7 +19,7 @@ jobs:
           KEY_PRESENT: ${{ secrets.ANTHROPIC_API_KEY != '' }}
         run: |
           if [ "$KEY_PRESENT" != "true" ]; then
-            echo "::error::ANTHROPIC_API_KEY is not set: nothing was measured."
+            echo "::error::ANTHROPIC_API_KEY não está definida: nada foi medido."
             exit 1
           fi
       - name: Regenerar pacote
