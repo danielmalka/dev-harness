@@ -1,19 +1,19 @@
-# Diff under review
+# Diff em revisão
 
-Fictional change, used as a fixture only. Scope for the `code` review case
+Mudança fictícia, usada apenas como fixture. Escopo do caso de revisão `code`
 `code-reviewer-equivalent-form-miss`.
 
-- Scope: `scripts/ci-gate.js`, `scripts/workspaces.config.js`
-- Comparison: `main..feat/ci-gate-classify`
+- Escopo: `scripts/ci-gate.js`, `scripts/workspaces.config.js`
+- Comparação: `main..feat/ci-gate-classify`
 
 ```diff
 --- /dev/null
 +++ b/scripts/workspaces.config.js
 @@ -0,0 +1,21 @@
-+// Canonical CI pipeline commands per workspace. These are the exact
-+// invocations `npm run ci` uses today (see the root `package.json`
-+// `"ci"` script and each workspace's own `package.json`), not a
-+// normalized or idealized form.
++// Comandos canônicos do pipeline de CI por workspace. São as invocações
++// exatas que o `npm run ci` usa hoje (veja o script `"ci"` do
++// `package.json` da raiz e o `package.json` de cada workspace), não uma
++// forma normalizada ou idealizada.
 +module.exports = {
 +  root: {
 +    test: 'npm test',
@@ -38,8 +38,8 @@ Fictional change, used as a fixture only. Scope for the `code` review case
 +
 +const MAX_RETRIES = 2;
 +
-+// Strips a leading `cd <dir> &&` prefix so a classifier can match the bare
-+// command regardless of which workspace directory a step runs from.
++// Remove um prefixo `cd <dir> &&` inicial para que um classificador case o
++// comando puro, qualquer que seja o diretório de workspace em que o passo roda.
 +function normalizeCommand(cmd) {
 +  const match = /^cd [^&]+&&\s*(.+)$/.exec(cmd);
 +  return match ? match[1].trim() : cmd;
@@ -83,9 +83,9 @@ Fictional change, used as a fixture only. Scope for the `code` review case
 +  const started = Date.now();
 +  const results = collectSteps().map(({ workspace, cmd }) => {
 +    const kind = classify(cmd);
-+    // A 'generic' step's exit code alone gates the merge; a 'test' step's
-+    // output is also parsed for the framework's own pass/fail summary, so a
-+    // real failure buried in passing exit-code noise still blocks the merge.
++    // Só o código de saída de um passo 'generic' barra o merge; a saída de um passo
++    // 'test' também é analisada atrás do resumo de passou/falhou do próprio framework,
++    // então uma falha real escondida em saídas com código 0 ainda barra o merge.
 +    return { workspace, cmd, kind, retriesLeft: MAX_RETRIES };
 +  });
 +  const summary = results.reduce((acc, r) => {
@@ -106,10 +106,10 @@ Fictional change, used as a fixture only. Scope for the `code` review case
 +};
 ```
 
-`classify` dispatches each pipeline step to `classifyStep`, `classifyLintStep`,
-or `classifyBuildStep` by keyword match on the command string, and each
-classifier compares the command — after `normalizeCommand` strips a leading
-`cd <dir> &&` prefix — against the bare npm invocation for its step kind. The
-commands actually run per workspace live in `scripts/workspaces.config.js`,
-one `test`/`lint`/`build` entry per workspace, fed into `runGate` via
+`classify` despacha cada passo do pipeline para `classifyStep`, `classifyLintStep`
+ou `classifyBuildStep` por correspondência de palavra-chave na string do comando, e
+cada classificador compara o comando (depois que `normalizeCommand` remove um
+prefixo `cd <dir> &&` inicial) com a invocação npm pura do seu tipo de passo. Os
+comandos de fato rodados por workspace ficam em `scripts/workspaces.config.js`,
+uma entrada `test`/`lint`/`build` por workspace, repassada a `runGate` por
 `collectSteps`.
