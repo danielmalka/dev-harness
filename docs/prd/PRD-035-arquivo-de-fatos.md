@@ -114,7 +114,7 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
 
 ### Parte D · Leitura
 
-- R17 Com `FACTS.md` presente, o Coordenador põe o caminho e as categorias do papel em `sources`, como nesta tabela. O Coordenador não deve ler o arquivo.
+- R17 Com `FACTS.md` presente, o Coordenador põe o caminho e as categorias do papel em `sources`, como nesta tabela (a linha exata é a de E22). O Coordenador não deve ler o arquivo.
 
 | Papel | Categorias |
 |---|---|
@@ -128,8 +128,8 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
 
 - R18 Os leitores só usam fatos `confirmado`. Um leitor não deve tratar `candidato` nem `hipótese` como fato.
 - R19 O `reviewer` não deve abrir achado só porque o código desvia de um fato. O achado deve citar evidência no código.
-- R20 Quando o código contradiz um fato, o leitor devolve na resposta a linha `Fato contradito: F-<n>, <caminho:linha>`. O Coordenador grava a linha como candidato de remoção, e o curador decide na rodada seguinte.
-- R21 O bundle da etapa de documento continua com 5 itens. `FACTS.md` não deve entrar nele.
+- R20 Quando o código contradiz um fato, o leitor devolve na resposta a linha `Fato contradito: F-<n>, <caminho:linha>`. O Coordenador grava a linha como candidato de remoção (E23), e o curador decide na rodada seguinte.
+- R21 O bundle da etapa de documento continua com 5 itens (4, desde o ADR-011: E24). `FACTS.md` não deve entrar nele.
 
 ### Parte E · Referência no arquivo de instruções do projeto
 
@@ -285,6 +285,17 @@ O Verificador rodou sessões reais com o mecanismo da F3 e viu três regras escr
 - E19 O curador não tem shell. O mod nega `Bash`, `PowerShell` e `Monitor` ao agente reconhecido como curador, enquanto ele vive, com uma mensagem que manda usar `Read` (e `Glob` ou `Grep`, se estiverem disponíveis; na rodada 2 da verificação a ferramenta `Grep` não existia na sessão, e ler com `Read` a linha da evidência basta para conferir o `caminho:linha`) (3 das 6 rodadas reais usaram `cat`, `grep` e `wc`). As leituras e a escrita do `FACTS.md` seguem livres, e um `docs-guide` sem a linha do `FACTS.md` mantém o `Bash`.
 - E20 O registro em `## Mudanças` aceita uma linha agrupada para a remoção por teto, `F-<n>, F-<n> removidos por teto: <motivo>`, e o `saíram` da linha da rodada conta cada id da lista (E16, R15 passo 9). O `dh facts check` não lê `## Mudanças`, então nada muda no verificador.
 - E21 (origem: rodada 2 da verificação da F3, 2026-11-18, decisão do dono) O Coordenador ainda rodou `git rev-parse --short HEAD` uma vez, no mesmo comando do `dh facts check`, nas duas sessões da rodada 2. Fica aceito como resíduo conhecido: é uma leitura e não faz mal. A regra está no `coordinator` (nunca rodar `git rev-parse`), o sha vem de `dh facts check` (E17), e o mod não impede o Coordenador de chamar `git`; não há trava para isso, e o Verificador não deve reprovar a F3 por essa chamada (R15).
+
+### Escolhas da implementação da F4 (registradas em 2026-11-18, origem: a implementação da F4)
+
+A F4 completou o que o PRD não fechava assim. Cada escolha vale na regra que ela completa, e o teste de contrato `internal/kit/facts_reading_contract_test.go` fixa os textos e confere que a tabela do `coordinator` é a de R17, linha a linha.
+
+- E22 O despacho leva a leitura numa linha só em `sources`: `Fatos: <harness dir>/FACTS.md · categorias: <lista> · só confirmado` (com o caminho resolvido e a lista da linha do papel na tabela de R17; no `reviewer` em modo `code`, mais ` · rótulo: dica, não regra`). O Coordenador sabe que o arquivo existe pela saída de `dh facts check` (`ok …`, não `absent`) e não o lê para montar a linha. Os 7 papéis da tabela repetem o mesmo item em `## Entradas mínimas`: a linha é opcional, só vale o que ela nomeia, e só `Estado: confirmado` é fato (R17, R18). Papel fora da tabela, `reviewer` em modo `security`, o pacote de uma etapa de documento e o de um revisor `cli:` não levam a linha.
+- E23 A contradição de R20 fica registrada em `## Mudanças`, a seção de texto livre para o `dh facts check`, com a linha `- <AAAA-MM-DD> · contradito · F-<n>, <caminho:linha> · <papel>, <tarefa>`, gravada pelo Coordenador pela trava de hash, sem repetir uma contradição já aberta e sem inventar um id. O estado do fato não muda até a rodada seguinte. O curador confere primeiro os contraditos abertos (uma linha `contradito` sem `F-<n> saiu` nem `F-<n> mantido` depois dela), além das 10 reconferências, e registra `F-<n> saiu: …` ou `F-<n> mantido: <motivo>; evidência: <caminho:linha>`; se a leitura não basta, o fato volta a `## Candidatos` como `hipótese`. Um contradito não é um gatilho novo (R14): ele espera a próxima rodada.
+- E24 O pacote da etapa de documento tem 4 itens, não 5, desde o ADR-011 (a opção de idioma saiu, 0.42.0): R21 ("continua com 5 itens") herdou o número de antes. A regra de R21, `FACTS.md` fora do pacote, vale como está, e o texto do `coordinator` e dos validadores de documento não muda de número.
+- E25 O `reviewer` repete R19 em `## Limites`: o fato diz, no máximo, onde olhar; o achado cita local e cenário no código; o código que contradiz o fato vira a linha `Fato contradito`, nunca um achado.
+- E26 O card do PRD no `docs/roadmap.html` fica "em andamento" na F4, apesar da linha "F4 move o card para Entregue" de "Linhas que cada fatia muda": R31 e a linha da F5 dizem que o recurso só é declarado pronto depois da eval paga, e a regra mais específica e mais nova vence. O card da 0.50.0 entra como release concluído, e o card do PRD passa a "F1 a F4 entregues; falta a prova da F5".
+- E27 (origem: verificação da F4, 2026-11-18, decisão do dono) Na sessão real, o Coordenador abriu o `FACTS.md` com `cat` na primeira exploração para montar a linha `Fatos:` de E22, embora R17 diga para montá-la sem ler o arquivo. A linha não depende do conteúdo do arquivo, então a leitura só custa contexto. Fica aceito como resíduo conhecido, como o E21: o Coordenador pode ainda ler o `FACTS.md` ao montar a linha; R17 continua valendo como regra; não há trava para isso, e o Verificador não reprova a F4 por essa leitura. A eval paga da F5 mede o efeito no custo (R31 a R37).
 
 ### Decisões (fechadas em 2026-11-18, dono)
 

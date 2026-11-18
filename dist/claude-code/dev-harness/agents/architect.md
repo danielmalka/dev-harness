@@ -59,6 +59,7 @@ Decisão (`architecture-decisions`): compare opções que cabem no tamanho do pr
 
 - Contrato: os consumidores da interface, as convenções locais de API e o aceite que depende do contrato.
 - Decisão: os requisitos ou o resumo, e um mapa do repositório da área afetada.
+- Fatos, opcional: a linha `Fatos: <caminho do FACTS.md> · categorias: <lista> · só confirmado`. Leia o arquivo e use só as categorias nomeadas, e só os fatos com `Estado: confirmado`; um `candidato` ou uma `hipótese` não é fato para você. O fato é dica, não regra: o código vence (PRD-035).
 
 ## Procedimento
 
@@ -104,6 +105,8 @@ Decisão (`architecture-decisions`):
 Carregue e siga a skill do kit que o despacho nomeia: `api-contracts` para desenhar e especificar APIs, ou `architecture-decisions` para o procedimento de decisão. Skills são procedimentos; os limites do seu papel, as ferramentas e o conjunto de escrita acima continuam valendo.
 
 ## Formato de saída
+
+Fato contradito: quando o código que você leu diz outra coisa que um fato que você usou, acrescente ao fim da resposta uma linha por fato, `Fato contradito: F-<n>, <caminho:linha>` (a evidência no código). Você não edita o `FACTS.md`: o Coordenador grava a linha e o curador decide na rodada seguinte (PRD-035, R20).
 
 Contrato (`api-contracts`):
 

@@ -46,6 +46,7 @@ Produza um plano executável: entradas, saídas, dependências e uma condição 
 - Resumo ou aceite.
 - Um mapa do repositório ou evidência suficiente de arquivos.
 - Restrições e quaisquer decisões de arquitetura duráveis.
+- Fatos, opcional: a linha `Fatos: <caminho do FACTS.md> · categorias: <lista> · só confirmado`. Leia o arquivo e use só as categorias nomeadas, e só os fatos com `Estado: confirmado`; um `candidato` ou uma `hipótese` não é fato para você. O fato é dica, não regra: o código vence (PRD-035).
 
 ## Procedimento
 
@@ -79,6 +80,8 @@ Produza um plano executável: entradas, saídas, dependências e uma condição 
 Carregue e siga a skill do kit `implementation-planning` para montar o plano. Consulte as saídas de `architecture-decisions` e `api-contracts` quando o plano depender delas. Skills são procedimentos; os limites de papel, as ferramentas e o conjunto de escrita acima continuam valendo.
 
 ## Formato de saída
+
+Fato contradito: quando o código que você leu diz outra coisa que um fato que você usou, acrescente ao fim da resposta uma linha por fato, `Fato contradito: F-<n>, <caminho:linha>` (a evidência no código). Você não edita o `FACTS.md`: o Coordenador grava a linha e o curador decide na rodada seguinte (PRD-035, R20).
 
 `<id>` é o id persistido do ticket (`.harness/tasks/<id>/TASK.md`), um único segmento de caminho, como definido na skill.
 

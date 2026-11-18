@@ -48,12 +48,15 @@ No modo global, a pasta `~/.harness/` (`DH_HOME` muda o lugar) é única por má
 | `~/.harness/config.yaml` | registro de projetos e padrões (`mode`, `worktree`, `dashboard.sprites`) | só o `dh` (`dh config`, `dh link`) |
 | `~/.harness/projects/<nome>/` | modo global: os mesmos registros do `.harness/` | Coordenador e comandos `/dh:` |
 | `<repositório>/REVIEW.md` | guia de revisão do projeto, criado pelo `/dh:setup` quando falta, nos dois modos; em modo global é, com a linha `.worktrees/` do `.gitignore`, tudo o que o setup grava na árvore; nunca sobrescreve | `/dh:setup` (via especialista) |
+| `<pasta do harness>/FACTS.md` | fatos curtos do sistema, cada um com evidência `caminho:linha` no código (até 150 linhas, 12 KB): é dica, o código vence | candidatos: Coordenador (trava de hash); confirma: o curador (`docs-guide`); lê: os especialistas, só os `confirmado` |
 | `~/.harness/sessions/` | snapshot por sessão do Claude Code (`dh snapshot prune` apaga os com mais de 7 dias) | mod do plugin |
 | `~/.harness/dashboard/` | token de parada do dashboard, por porta | dashboard |
 | `~/.harness/projects/<nome>/pdocs/` | documentação HTML do projeto (`/dh:document pdocs`) | docs-guide |
 | `127.0.0.1:4747` | dashboard local, só nesta máquina, quando você o inicia com `/dashboard` | binário `dh` |
 
 Com `worktree` em `always` (ou quando você pede), `/dh:build` e `/dh:auto` trabalham num worktree em `.worktrees/<id>`, dentro do checkout e ignorado pelo git (o `/dh:setup` acrescenta a linha `.worktrees/` ao `.gitignore`). Quando o `/dh:plan` deixa decisões em aberto, ele gera uma página HTML de aprovação em `pdocs`. Detalhes na seção "Configuração" do [tutorial](docs/tutorial.html).
+
+O `FACTS.md` nasce dos candidatos que o `repo-scout`, o `builder` e o `qa-verifier` propõem e que só o Coordenador grava (`dh memory write --file FACTS.md`); o `docs-guide`, na skill `facts-curation`, confere cada evidência no código e confirma, funde ou remove (no fim de um fluxo com 5 ou mais candidatos, acima de 150 linhas ou 12 KB, ou a seu pedido); e cada especialista recebe no despacho só as categorias da sua função, e só os fatos confirmados. Quando o código contradiz um fato, o especialista devolve `Fato contradito: F-<n>, <caminho:linha>` e o curador decide na rodada seguinte. `dh facts check` confere o formato e os tetos. O `/dh:setup` pergunta se acrescenta ao `AGENTS.md` do projeto uma linha que aponta para o arquivo.
 
 O Coordenador grava o `MEMORY.md` por uma trava de hash (`dh memory hash` ao ler, `dh memory write --expect <hash>` ao gravar): se outra sessão escreveu no meio, a gravação é recusada e ele relê e refaz a edição; o `/dh:consolidate-memory` não pergunta mais se outra sessão escreve. O `/dh:dream [N]` só lê as revisões, o QA e o `MEMORY.md` e propõe, num arquivo novo, checagens automáticas para o que se repete em N tarefas (padrão 2); não aplica nada.
 

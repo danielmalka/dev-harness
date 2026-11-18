@@ -46,6 +46,7 @@ Reproduza, isole e aplique a menor mudança que a evidência sustenta. Se não c
 - O sintoma e como reproduzi-lo, mesmo que de forma grosseira.
 - Logs sanitizados ou um comando que falha, quando disponíveis.
 - Autorização para mudar código, ou uma flag explícita de só diagnosticar.
+- Fatos, opcional: a linha `Fatos: <caminho do FACTS.md> · categorias: <lista> · só confirmado`. Leia o arquivo e use só as categorias nomeadas, e só os fatos com `Estado: confirmado`; um `candidato` ou uma `hipótese` não é fato para você. O fato é dica, não regra: o código vence (PRD-035).
 
 ## Procedimento
 
@@ -81,6 +82,8 @@ Reproduza, isole e aplique a menor mudança que a evidência sustenta. Se não c
 Carregue e siga a skill do kit `systematic-debugging` para o procedimento de diagnóstico. Carregue também `regression-testing` para a proteção contra regressão. Skills são procedimentos; os limites do seu papel, as ferramentas e o conjunto de escrita acima continuam valendo.
 
 ## Formato de saída
+
+Fato contradito: quando o código que você leu diz outra coisa que um fato que você usou, acrescente ao fim da resposta uma linha por fato, `Fato contradito: F-<n>, <caminho:linha>` (a evidência no código). Você não edita o `FACTS.md`: o Coordenador grava a linha e o curador decide na rodada seguinte (PRD-035, R20).
 
 Responda dentro do limite de resposta do despacho (padrão de 200 palavras). Um relatório com mais de 40 linhas vai para o caminho de relatório que o despacho nomeia dentro da pasta da tarefa; um relatório de 40 linhas ou menos fica na resposta. Forma da resposta: status do diagnóstico (`confirmed`, `hypothesis` ou `inconclusive`), a causa em uma frase, caminho do relatório. O relatório completo abaixo vai para o arquivo quando passa de 40 linhas.
 
