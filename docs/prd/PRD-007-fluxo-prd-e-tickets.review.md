@@ -1,59 +1,61 @@
-# Review · PRD-007 · round 1
+# Revisão · PRD-007 · rodada 1
 
-- Reviewer: document-validator (claude, model opus requested; effective model unverified)
-- Date: 2026-09-29
-- Source: docs/novo-fluxo-prd.md; CLAUDE.md (owner decisions 1a–4a of 2026-09-29, lean review, docs inside the PR); current kit text; docs/prd/PRD-006-comando-autonomo.md
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
 
-## Verdict
-- changes required
-- Blocking findings: 8
+- Revisor: document-validator (claude, modelo opus solicitado; modelo efetivo não verificado)
+- Data: 2026-09-29
+- Fonte: docs/novo-fluxo-prd.md; CLAUDE.md (decisões do dono 1a–4a de 2026-09-29, revisão enxuta, docs dentro do PR); texto atual do kit; docs/prd/PRD-006-comando-autonomo.md
 
-## Findings
-- P1 · conflict · blocking · §4 RF-16 / AC-32 vs RF-03. Proposal guardrail 4 gives rule amendments to the PRD creator; RF-03 agrees, RF-16 gives the mid-execution amendment to the Coordinator. Suggestion: the Coordinator re-dispatches `product-discovery` to amend (Docs or Regras), then `document-validator` runs one revalidation round. Reported by: claude
-- P2 · gap · blocking · §4 RF-05 / §5 AC-07. The proposal's ticket has a "Pronto quando" block (guardrail 20 depends on it); RF-05/AC-07 omit it while RF-08/AC-14 reference it. Suggestion: add Pronto quando with the proposal's minimum content (flow happens, each copied R<n> has evidence, relevant tests green, listed docs updated). Reported by: claude
-- P3 · conflict · blocking · §4 RF-05 / §6 Dados. Decision 1a says the new format replaces PRD/STORY/TASK; RF-05 keeps every current TASK section and adds STORY fields, leaving two acceptance sources (Fluxo vs §7 AC-xx). Suggestion: RF-05 names the closed list of ticket sections, states which current TASK/STORY sections are removed, and makes Fluxo + Pronto quando the only acceptance source; keeping technical sections beyond 1a goes to §8 as an owner decision. Reported by: claude
-- P4 · conflict · blocking · §4 RF-17, §5 AC-33, §8 second risk. (a) Wrong citation: the per-slice code-review assumption lives in PRD-006 RF-09, RF-12 and AC-14 and in `.commands/auto.md` line 19, not in PRD-006 RF-01. (b) Editing an approved contract changes the shape of delivery (CLAUDE.md "perguntar antes de escolher"; 1a "PRDs antigos ficam como estão"). Suggestion: fix the citation; move to §8 as a pending owner decision: (1) amend PRD-006, or (2) leave PRD-006 untouched with a supersession note in PRD-007 plus the auto.md edit; recommend one. Reported by: claude
-- P5 · conflict · blocking · §4 RF-12 / AC-23. PRD-006 RF-12 and auto.md run `/dh:secure` per slice; PRD-007 places it in the final review while claiming "do mesmo jeito". Suggestion: state trigger = `.commands/secure.md`, position = once in the final feature review (or per ticket), and list the change in RF-17. Reported by: claude
-- P6 · conflict · blocking · §4 RF-10 / AC-19; §7 row "Nova lane kit/harness". Routing kit-source work to `harness-maintainer` under lane `backend` breaks the proposal's lane→specialist rule, is an author decision presented as requirement, and puts kit-specific checks into the generic flow. Suggestion: move to §8 as an owner decision: (a) builder override scoped to this repository; (b) routing note in dev-harness CLAUDE.md only. Keep AC-18 as the only lane→builder rule meanwhile. Reported by: claude
-- P7 · conflict · blocking · §4 RF-12, §6 Stack, AC-24. Decision 4a names Playwright headless; the PRD downgrades to "any headless browser", and ui-verification marks rows not-run without a browser, so guardrail 18 degrades silently. Suggestion: state Playwright headless and that its absence makes the feature verdict partial/blocked, never approved; or record tool-agnostic as an owner decision. Reported by: claude
-- P8 · gap · blocking · §6 Contratos; RF-05/RF-06 claims. Omitted files: `.agents/coordinator.md` (Procedure 7 QA then code review; Flows Feature; STORY template mention), `.commands/document.md` (STORY), `.commands/discover.md` frontmatter `writes: .harness/stories/`, `.skills/implementation-planning/SKILL.md` (step 5 folds tests into the slice; step 10 does not check R<n>→test coverage), `templates/*/PRD.md` in Contratos. Suggestion: list them with the passage each must change; rephrase RF-06 as a new self-review pass in step 10. Reported by: claude
-- P9 · excess · non-blocking · RF-01 / AC-01. Keeping the header table is an author decision (grounded in PRD-006 RF-02); list in §8 for the owner to confirm. Reported by: claude
-- P10 · conflict · non-blocking · RF-14. The kit rule is "only the Coordinator writes the three records", not "the Coordinator writes only them". Suggestion: "O Coordenador grava a seção Resumo executado no PRD; nenhum outro trecho do PRD é escrito pelo Coordenador." Reported by: claude
-- P11 · ambiguity · non-blocking · RF-14 / AC-29. No marker for "PRD entregue"; name it (e.g. `Status` → `entregue em <data>` only when no rule is Não honrada without owner decision). Reported by: claude
-- P12 · excess · non-blocking · RF-01 relocation of alternatives/risks to tickets and RISKS.md does not trace; drop it and let §8 carry the appendix decision. Reported by: claude
-- P13 · organization · non-blocking · §4 "Não entra" bullet 5: "named" → "nomeia". Reported by: claude
+## Veredito
+- `changes required`
+- Achados bloqueantes: 8
 
-## Not raised
-- Decisions 1a (no migration), 2a, 3a, 4a (product-discovery judges only), lean review for rejection, one-round revalidation, 6-round per-ticket cap: traced.
-- Guardrail 9 resolved by deferring closure (RF-07, AC-11/12): grounded; uses existing `em revisão` status; does not break implementation-planning step 6.
-- Guardrails 1–20 mapped; 1, 6, 16 covered by existing kit rules.
-- RF-15/AC-30 deterministic literal-copy check correctly a suggestion; validate.go scope claim matches.
-- Decomposable into tickets once P2, P3, P6 are resolved; RF/AC ids unique and cross-referenced.
+## Achados
+- P1 · `conflict` · `blocking` · §4 RF-16 / AC-32 contra o RF-03. A salvaguarda 4 da proposta dá as emendas de regra ao criador do PRD; o RF-03 concorda, o RF-16 dá ao Coordenador a emenda no meio da execução. Sugestão: o Coordenador redespacha o `product-discovery` para emendar (Docs ou Regras), depois o `document-validator` roda uma rodada de revalidação. Reportado por: claude
+- P2 · `gap` · `blocking` · §4 RF-05 / §5 AC-07. O ticket da proposta tem um bloco "Pronto quando" (a salvaguarda 20 depende dele); o RF-05/AC-07 o omitem, enquanto o RF-08/AC-14 o referenciam. Sugestão: acrescentar Pronto quando com o conteúdo mínimo da proposta (o fluxo acontece, cada R<n> copiado tem evidência, os testes relevantes estão verdes, os docs listados estão atualizados). Reportado por: claude
+- P3 · `conflict` · `blocking` · §4 RF-05 / §6 Dados. A decisão 1a diz que o novo formato substitui PRD/STORY/TASK; o RF-05 mantém toda seção atual do TASK e acrescenta campos do STORY, deixando duas fontes de aceite (Fluxo contra os AC-xx da §7). Sugestão: o RF-05 nomeia a lista fechada de seções do ticket, declara quais seções atuais do TASK/STORY são removidas e faz de Fluxo + Pronto quando a única fonte de aceite; manter seções técnicas além da 1a vai para a §8 como decisão do dono. Reportado por: claude
+- P4 · `conflict` · `blocking` · §4 RF-17, §5 AC-33, §8 segundo risco. (a) Citação errada: a premissa de code review por fatia mora no RF-09, no RF-12 e no AC-14 do PRD-006 e na linha 19 do `.commands/auto.md`, não no RF-01 do PRD-006. (b) Editar um contrato aprovado muda a forma da entrega (CLAUDE.md "perguntar antes de escolher"; 1a "PRDs antigos ficam como estão"). Sugestão: corrigir a citação; mover para a §8 como decisão pendente do dono: (1) emendar o PRD-006, ou (2) deixar o PRD-006 intocado, com uma nota de substituição no PRD-007 mais a edição do auto.md; recomendar uma. Reportado por: claude
+- P5 · `conflict` · `blocking` · §4 RF-12 / AC-23. O RF-12 do PRD-006 e o auto.md rodam o `/dh:secure` por fatia; o PRD-007 o coloca na revisão final alegando "do mesmo jeito". Sugestão: declarar gatilho = `.commands/secure.md`, posição = uma vez na revisão final da feature (ou por ticket), e listar a mudança no RF-17. Reportado por: claude
+- P6 · `conflict` · `blocking` · §4 RF-10 / AC-19; §7 linha "Nova lane kit/harness". Rotear o trabalho no código-fonte do kit ao `harness-maintainer` sob a lane `backend` quebra a regra lane→especialista da proposta, é uma decisão do autor apresentada como requisito e põe checagens específicas do kit no fluxo genérico. Sugestão: mover para a §8 como decisão do dono: (a) sobreposição do builder restrita a este repositório; (b) nota de roteamento só no CLAUDE.md do dev-harness. Manter o AC-18 como a única regra lane→builder enquanto isso. Reportado por: claude
+- P7 · `conflict` · `blocking` · §4 RF-12, §6 Stack, AC-24. A decisão 4a nomeia Playwright headless; o PRD rebaixa para "qualquer navegador headless", e a ui-verification marca linhas como `not-run` sem navegador, então a salvaguarda 18 se degrada em silêncio. Sugestão: declarar Playwright headless e que a ausência dele torna o veredito da feature `partial`/`blocked`, nunca `approved`; ou registrar o agnosticismo de ferramenta como decisão do dono. Reportado por: claude
+- P8 · `gap` · `blocking` · §6 Contratos; afirmações do RF-05/RF-06. Arquivos omitidos: `.agents/coordinator.md` (Procedimento 7 QA e depois code review; Fluxos Feature; menção ao template STORY), `.commands/document.md` (STORY), o frontmatter de `.commands/discover.md` `writes: .harness/stories/`, `.skills/implementation-planning/SKILL.md` (o passo 5 dobra os testes na fatia; o passo 10 não checa a cobertura R<n>→teste), `templates/*/PRD.md` em Contratos. Sugestão: listá-los com o trecho que cada um deve mudar; reformular o RF-06 como uma nova passada de autorrevisão no passo 10. Reportado por: claude
+- P9 · `excess` · `non-blocking` · RF-01 / AC-01. Manter a tabela de cabeçalho é uma decisão do autor (fundamentada no RF-02 do PRD-006); listar na §8 para o dono confirmar. Reportado por: claude
+- P10 · `conflict` · `non-blocking` · RF-14. A regra do kit é "só o Coordenador grava os três registros", não "o Coordenador grava só eles". Sugestão: "O Coordenador grava a seção Resumo executado no PRD; nenhum outro trecho do PRD é escrito pelo Coordenador." Reportado por: claude
+- P11 · `ambiguity` · `non-blocking` · RF-14 / AC-29. Não há marcador para "PRD entregue"; nomeie-o (por exemplo `Status` → `entregue em <data>` só quando nenhuma regra estiver Não honrada sem decisão do dono). Reportado por: claude
+- P12 · `excess` · `non-blocking` · RF-01: a realocação de alternativas/riscos para os tickets e o RISKS.md não tem rastro; retirá-la e deixar a §8 carregar a decisão do apêndice. Reportado por: claude
+- P13 · `organization` · `non-blocking` · §4 "Não entra" item 5: `"named"` → `"nomeia"`. Reportado por: claude
 
-## Evidence
-- Read: PRD-007; docs/novo-fluxo-prd.md (English mirror not read); CLAUDE.md; .agents/coordinator.md; .agents/product-discovery.md (head); .commands/build.md, discover.md, plan.md, review.md, document.md, auto.md (grep); PRD-006 lines 30–49, AC-03, AC-14; templates/pt-br/TASK.md; .skills/ui-verification/SKILL.md (grep); .skills/implementation-planning/SKILL.md steps 1–11; internal/kit/validate.go checkTemplateRefs.
-- Not checked: whether validate.go's templatePattern matches the bare "STORY.md" in document.md; bodies of qa-verifier.md and harness-maintainer.md.
-- No scripts run, no files edited.
+## Não levantado
+- Decisões 1a (sem migração), 2a, 3a, 4a (só o product-discovery julga), revisão enxuta para rejeição, revalidação de uma rodada, limite de 6 rodadas por ticket: rastreadas.
+- Salvaguarda 9 resolvida adiando o fechamento (RF-07, AC-11/12): fundamentada; usa o status existente `em revisão`; não quebra o passo 6 do implementation-planning.
+- Salvaguardas 1–20 mapeadas; 1, 6, 16 cobertas por regras existentes do kit.
+- A checagem determinística de cópia literal do RF-15/AC-30 está corretamente como sugestão; a afirmação de escopo do validate.go confere.
+- Decomponível em tickets quando P2, P3, P6 estiverem resolvidos; ids RF/AC únicos e com referência cruzada.
+
+## Evidência
+- Lido: PRD-007; docs/novo-fluxo-prd.md (espelho em inglês não lido); CLAUDE.md; .agents/coordinator.md; .agents/product-discovery.md (início); .commands/build.md, discover.md, plan.md, review.md, document.md, auto.md (grep); PRD-006 linhas 30–49, AC-03, AC-14; templates/pt-br/TASK.md; .skills/ui-verification/SKILL.md (grep); .skills/implementation-planning/SKILL.md passos 1–11; internal/kit/validate.go checkTemplateRefs.
+- Não verificado: se o templatePattern do validate.go casa o "STORY.md" solto em document.md; corpos de qa-verifier.md e harness-maintainer.md.
+- Nenhum script rodado, nenhum arquivo editado.
 
 ---
 
-# Review · PRD-007 · round 2 (final)
+# Revisão · PRD-007 · rodada 2 (final)
 
-- Reviewer: document-validator (claude, opus requested; effective model unverified). Date: 2026-09-29.
+- Revisor: document-validator (claude, opus solicitado; modelo efetivo não verificado). Data: 2026-09-29.
 
-## Verdict
-- changes required
-- Blocking findings: 2 (both new; P1–P13 of round 1 all applied)
-- Round cap reached (2 of 2): the document goes to the owner with P14 and P15 open.
+## Veredito
+- `changes required`
+- Achados bloqueantes: 2 (ambos novos; P1–P13 da rodada 1 todos aplicados)
+- Limite de rodadas atingido (2 de 2): o documento vai ao dono com P14 e P15 em aberto.
 
-## Settlement of round 1
-- P1–P13: applied. P5 judged consistent: /dh:secure stays per ticket after the qa-verifier gate, matching PRD-006 RF-12 and `.commands/auto.md` line 19. Observation, not a finding: a security issue that exists only once tickets integrate is seen by no security reviewer.
+## Assentamento da rodada 1
+- P1–P13: aplicados. P5 julgado consistente: o /dh:secure continua por ticket depois do gate do qa-verifier, em linha com o RF-12 do PRD-006 e a linha 19 do `.commands/auto.md`. Observação, não um achado: um problema de segurança que só existe quando os tickets se integram não é visto por nenhum revisor de segurança.
 
-## New findings
-- P14 · conflict · blocking · §5 AC-07 "contendo exatamente a lista fechada" presupposes the answer to the open §8 decision on TASK technical sections; `.commands/build.md` line 21 needs a place for status/results. Suggestion: closed list plus only the technical sections the owner keeps in §8; no separate acceptance section; Fluxo + Pronto quando the only acceptance source. Reported by: claude
-- P15 · ambiguity · blocking · §6 Contratos, `.agents/coordinator.md` bullet: "fluxo de slice legado" is undefined. Reading A: per-unit code review survives only outside a ticketed feature (/dh:fix, /dh:refactor, harness instruction changes), build.md loses it entirely. Reading B: build.md keeps a per-slice branch for pre-PRD-007 plans, contradicting AC-15. Suggestion: state Reading A explicitly (or amend AC-15 for B). Reported by: claude
-- P16 · organization · non-blocking · RF-17 quote attributed to PRD-006 RF-09 is actually AC-14 (line 77). Reported by: claude
-- P17 · gap · non-blocking · no file in §6 carries the Playwright client-pass rule; §9 still calls ui-verification tool-agnostic. Suggestion: list `.commands/review.md` or `.skills/ui-verification/SKILL.md` with "Playwright headless; ausência → not-run, veredito parcial/bloqueado". Reported by: claude
+## Novos achados
+- P14 · `conflict` · `blocking` · §5 AC-07 "contendo exatamente a lista fechada" pressupõe a resposta da decisão aberta da §8 sobre as seções técnicas do TASK; a linha 21 do `.commands/build.md` precisa de um lugar para status/resultados. Sugestão: lista fechada mais só as seções técnicas que o dono mantiver na §8; nenhuma seção de aceite separada; Fluxo + Pronto quando a única fonte de aceite. Reportado por: claude
+- P15 · `ambiguity` · `blocking` · §6 Contratos, item de `.agents/coordinator.md`: "fluxo de slice legado" não está definido. Leitura A: a revisão de código por unidade sobrevive só fora de uma feature com tickets (/dh:fix, /dh:refactor, mudanças de instrução do harness), e o build.md a perde por inteiro. Leitura B: o build.md mantém uma branch por fatia para planos anteriores ao PRD-007, contradizendo o AC-15. Sugestão: declarar a Leitura A explicitamente (ou emendar o AC-15 para B). Reportado por: claude
+- P16 · `organization` · `non-blocking` · A citação do RF-17 atribuída ao RF-09 do PRD-006 é na verdade o AC-14 (linha 77). Reportado por: claude
+- P17 · `gap` · `non-blocking` · Nenhum arquivo da §6 carrega a regra da passada de cliente com Playwright; a §9 ainda chama a ui-verification de agnóstica de ferramenta. Sugestão: listar `.commands/review.md` ou `.skills/ui-verification/SKILL.md` com "Playwright headless; ausência → not-run, veredito parcial/bloqueado". Reportado por: claude
 
-## Evidence
-- Read: corrected PRD-007; round-1 report; grep of `.commands/` for TASK/BUG-/2B; PRD-006 RF-09, RF-12, AC-14. Not checked: bodies of qa-verifier.md and harness-maintainer.md; plan-loop.md judged covered by the implementation-planning edit. No scripts, edits or dispatches.
+## Evidência
+- Lido: PRD-007 corrigido; relatório da rodada 1; grep de `.commands/` por TASK/BUG-/2B; RF-09, RF-12, AC-14 do PRD-006. Não verificado: corpos de qa-verifier.md e harness-maintainer.md; plan-loop.md julgado coberto pela edição do implementation-planning. Nenhum script, edição ou despacho.
