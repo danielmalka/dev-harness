@@ -1749,6 +1749,17 @@ profiles/"] --> B["dh build"]
       <p>Itens com PRD ou decisão fixada, sem release ainda.</p>
 
       <div class="card">
+        <h3>Arquivo de fatos do sistema (<code>FACTS.md</code>) nos projetos consumidores</h3>
+        <p><strong>Descrição:</strong> cada projeto que o kit administra ganha <code>&lt;harness dir&gt;/FACTS.md</code>, ao lado do
+          <code>REPO-MAP.md</code>, com fatos curtos e evidência <code>caminho:linha</code>. O <code>repo-scout</code>, o <code>builder</code>
+          e o <code>qa-verifier</code> propõem; o Coordenador grava os candidatos com a trava de hash; o <code>docs-guide</code>, com a
+          skill nova <code>facts-curation</code>, confere e poda; os especialistas leem as categorias da sua função no despacho.</p>
+        <p><strong>Critérios de aceite:</strong> R1 a R30 do PRD-035.</p>
+        <p><strong>Status:</strong> planejado, PRD aprovado em 2026-11-18; fatias F1 a F4 nas versões 0.47.0 a 0.50.0.</p>
+        <p><strong>Relações:</strong> <code>docs/prd/PRD-035-arquivo-de-fatos.md</code>; PRD-032; PRD-034; ADR-005; ADR-007.</p>
+      </div>
+
+      <div class="card">
         <h3>Sonda H3 do <code>agy</code> (cwd do processo)</h3>
         <p><strong>Descrição:</strong> o <code>agy</code> segue na árvore viva, só como revisor e nunca planejando,
           até uma sonda datada mostrar que ele opera no cwd do processo. Depois dessa sonda, ele pode rodar no clone
