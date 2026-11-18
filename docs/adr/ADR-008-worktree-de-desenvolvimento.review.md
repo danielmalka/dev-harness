@@ -1,66 +1,68 @@
-# Review: ADR-008
+# Revisão: ADR-008
 
-## Round 1
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
 
-| Field | Value |
+## Rodada 1
+
+| Campo | Valor |
 |---|---|
-| Document | docs/adr/ADR-008-worktree-de-desenvolvimento.md |
-| Source | docs/prd/PRD-028-worktree-and-approval-page.md |
-| Round | 1 of 2 |
-| Verdict | changes required |
-| Updated | 2026-10-28 |
+| Documento | docs/adr/ADR-008-worktree-de-desenvolvimento.md |
+| Fonte | docs/prd/PRD-028-worktree-and-approval-page.md |
+| Rodada | 1 de 2 |
+| Veredito | `changes required` |
+| Atualizado | 2026-10-28 |
 
-Corrections in round 1: the ADR by the architect; PRD-028 rules R30, R61, R26 and R27 by product-discovery. The categories of P1 to P5 are assigned from the one-line descriptions in the Coordinator's record.
+Correções na rodada 1: o ADR pelo arquiteto; as regras R30, R61, R26 e R27 do PRD-028 pelo product-discovery. As categorias de P1 a P5 foram atribuídas a partir das descrições de uma linha no registro do Coordenador.
 
-## Findings
+## Achados
 
-- **P1** [applied] [conflict] (blocking) The ADR said `mode` is not validated on read, but the code validates it.
-  - Location: ADR-008, rule on reading `mode`
-  - Evidence: `cmd/dh/config.go` validates `mode`.
-  - Resolution: ADR corrected by the architect, round 1.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P2** [applied] [conflict] (blocking) R30 and D4 listed trust paths that do not exist in a normal checkout.
-  - Location: ADR-008 D4; PRD-028 R30
-  - Resolution: ADR and PRD corrected, round 1.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P3** [applied] [ambiguity] (blocking) The condition of clone step 1 was ambiguous between a `.git` directory and a gitfile.
-  - Location: ADR-008, clone step 1
-  - Resolution: ADR corrected by the architect, round 1.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P4** [applied] [ambiguity] (blocking) `linked_worktree.gitdir` was undefined; it means the administrative directory `<C>/worktrees/<name>`.
-  - Location: ADR-008, `linked_worktree` definition
-  - Resolution: ADR corrected by the architect, round 1.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P5** [applied] [ambiguity] (blocking) The ADR did not say that a relative back-pointer resolves against the administrative directory.
-  - Location: ADR-008, back-pointer resolution
-  - Resolution: ADR corrected by the architect, round 1.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- One non-blocking finding was raised in round 1. Its text is not in the Coordinator's record, so it is not reproduced here. Recorded as corrected in round 1.
+- **P1** [applied] [conflict] (blocking) O ADR dizia que `mode` não é validado na leitura, mas o código o valida.
+  - Local: ADR-008, regra sobre a leitura de `mode`
+  - Evidência: `cmd/dh/config.go` valida `mode`.
+  - Resolução: ADR corrigido pelo arquiteto, rodada 1.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P2** [applied] [conflict] (blocking) R30 e D4 listavam caminhos de confiança que não existem num checkout normal.
+  - Local: ADR-008 D4; PRD-028 R30
+  - Resolução: ADR e PRD corrigidos, rodada 1.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P3** [applied] [ambiguity] (blocking) A condição do passo 1 do clone era ambígua entre um diretório `.git` e um gitfile.
+  - Local: ADR-008, passo 1 do clone
+  - Resolução: ADR corrigido pelo arquiteto, rodada 1.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P4** [applied] [ambiguity] (blocking) `linked_worktree.gitdir` não estava definido; significa o diretório administrativo `<C>/worktrees/<name>`.
+  - Local: ADR-008, definição de `linked_worktree`
+  - Resolução: ADR corrigido pelo arquiteto, rodada 1.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P5** [applied] [ambiguity] (blocking) O ADR não dizia que um ponteiro de volta relativo é resolvido a partir do diretório administrativo.
+  - Local: ADR-008, resolução do ponteiro de volta
+  - Resolução: ADR corrigido pelo arquiteto, rodada 1.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- Um achado não bloqueante foi levantado na rodada 1. Seu texto não está no registro do Coordenador, por isso não é reproduzido aqui. Registrado como corrigido na rodada 1.
 
-## Not raised
+## Não levantado
 
-- Round 1 checks recorded by the Coordinator: the freeze was clean and `dh validate` reported 0 errors. The reviewer ran as a qa-verifier on the live tree.
+- Checagens da rodada 1 registradas pelo Coordenador: o congelamento ficou limpo e `dh validate` reportou 0 erros. O revisor rodou como `qa-verifier` na árvore viva.
 
-## Round 2
+## Rodada 2
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Document | docs/adr/ADR-008-worktree-de-desenvolvimento.md |
-| Source | docs/prd/PRD-028-worktree-and-approval-page.md |
-| Round | 2 of 2 (cap reached) |
-| Verdict | approved |
-| Updated | 2026-10-28 |
+| Documento | docs/adr/ADR-008-worktree-de-desenvolvimento.md |
+| Fonte | docs/prd/PRD-028-worktree-and-approval-page.md |
+| Rodada | 2 de 2 (limite atingido) |
+| Veredito | `approved` |
+| Atualizado | 2026-10-28 |
 
-## Findings
+## Achados
 
-- P1 to P5 carried forward from round 1, all `applied`; closed in round 2.
-- **P6** [applied] [gap] (non-blocking) R61 did not name the fields of `linked_worktree`.
-  - Location: PRD-028 R61
-  - Resolution: fixed by the Coordinator in one line, round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
+- P1 a P5 trazidos da rodada 1, todos `applied`; fechados na rodada 2.
+- **P6** [applied] [gap] (non-blocking) R61 não nomeava os campos de `linked_worktree`.
+  - Local: PRD-028 R61
+  - Resolução: corrigido pelo Coordenador em uma linha, rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
 
-## Not raised
+## Não levantado
 
-- Round 2 checks recorded by the Coordinator: the freeze was clean, no agy or CodeGraph process was left running after the round, and `dh validate` reported 0 errors.
-- No blocking finding is open.
-- The ADR status was set to `aceito` after round 2 (Coordinator record).
+- Checagens da rodada 2 registradas pelo Coordenador: o congelamento ficou limpo, nenhum processo do agy ou do CodeGraph ficou rodando depois da rodada e `dh validate` reportou 0 erros.
+- Nenhum achado bloqueante está em aberto.
+- O status do ADR foi definido como `aceito` depois da rodada 2 (registro do Coordenador).

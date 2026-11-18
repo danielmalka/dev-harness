@@ -1,34 +1,36 @@
-# ADR-002 — review
+# ADR-002 — revisão
 
-Document: `docs/adr/ADR-002-cli-planejadora.md`. Source: PRD-005 (RF-03/04/05/13, AC-05/06/15, §6), GRILL G6/G15/G18–G23, PLAN-011 slice 1 and T-801, RISK-001, CLAUDE.md (AA1; exception of 2026-09-28), `.skills/external-clis/SKILL.md`, `.agents/coordinator.md`, `internal/kit/evals.go`.
-Depth: lean rule — one Claude validator (`document-validator`, opus requested, effective unverified), two rounds.
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
 
-## Round 1 (2026-09-28)
-- Verdict: changes required — 1 blocking, 4 non-blocking.
-- A1 — conflict — blocking — §5, line 55. The failure signal "the two clauses differ in anything beyond review → planning" fires on the correct text fixed in T-801 (lines 38-51), which says "this planning task" and wraps the first lines differently. Fix: the signal becomes "the planning clause differs from the text fixed in T-801 / PLAN-011 slice 1; compared with each other, they differ in anything beyond 'this review' → 'this planning task' (ignoring line wrapping)".
-- A2 — ambiguity — non-blocking — §4 lines 48-49 and §5 line 54. "the second pair" suggests a copy of the clause in coordinator.md, but T-801 publishes the planning clause only in external-clis "The planning call". Fix: say it is published once, coordinator.md only references it, and the manual sync is review × planning.
-- A3 — ambiguity — non-blocking — §3 bullet 3 (line 41). "referenced" can be read as applying to the prompt, while AC-05 requires the "Reading is allowed" block verbatim in the prompt. Fix: copied verbatim into the prompt; referenced, not rewritten, in the skill.
-- A4 — organization — non-blocking — §3 bullet 5 (line 43) and §7. Missing citations: RF-03, RF-05/G19, RF-13/AC-15; RF-13 is absent from §7.
-- A5 — ambiguity — non-blocking — §4 line 47. "the same signals as the CLI reviewer" contradicts §3 bullet 4 (the verdict table does not apply). Fix: the same freeze record (`clean`/`reverted`) and the same not-run classes.
-- Not raised: scope, header, template shape, the §1 quotes, G6/AA1/RISK-001, the §3 rationale and bullets 1, 2 and 4, the description of `checkAntiDelegationClause`, and the present-tense claims (all verified).
+Documento: `docs/adr/ADR-002-cli-planejadora.md`. Fontes: PRD-005 (RF-03/04/05/13, AC-05/06/15, §6), GRILL G6/G15/G18–G23, PLAN-011 fatia 1 e T-801, RISK-001, CLAUDE.md (AA1; exceção de 2026-09-28), `.skills/external-clis/SKILL.md`, `.agents/coordinator.md`, `internal/kit/evals.go`.
+Profundidade: regra enxuta — um validador Claude (`document-validator`, opus solicitado, efetivo não verificado), duas rodadas.
 
-### Coordinator dispositions
-- A1–A5 accepted; correction 1 of 2 returned to the author (solution-architect).
+## Rodada 1 (2026-09-28)
+- Veredito: `changes required` — 1 `blocking`, 4 `non-blocking`.
+- A1 — `conflict` — `blocking` — §5, linha 55. O sinal de falha "as duas cláusulas diferem em algo além de revisão → planejamento" dispara no texto correto fixado em T-801 (linhas 38-51), que diz "esta tarefa de planejamento" e quebra as primeiras linhas de outro modo. Correção: o sinal passa a ser "a cláusula de planejamento difere do texto fixado em T-801 / PLAN-011 fatia 1; comparadas entre si, diferem em algo além de 'esta revisão' → 'esta tarefa de planejamento' (ignorando a quebra de linha)".
+- A2 — `ambiguity` — `non-blocking` — §4 linhas 48-49 e §5 linha 54. "o segundo par" sugere uma cópia da cláusula em coordinator.md, mas T-801 publica a cláusula de planejamento só em external-clis "A chamada de planejamento". Correção: dizer que ela é publicada uma única vez, que coordinator.md só a referencia, e que a sincronização manual é revisão × planejamento.
+- A3 — `ambiguity` — `non-blocking` — §3 item 3 (linha 41). "referenciado" pode ser lido como valendo para o prompt, enquanto AC-05 exige o bloco "Ler é permitido" literalmente no prompt. Correção: copiado literalmente no prompt; referenciado, não reescrito, na skill.
+- A4 — `organization` — `non-blocking` — §3 item 5 (linha 43) e §7. Faltam citações: RF-03, RF-05/G19, RF-13/AC-15; RF-13 está ausente do §7.
+- A5 — `ambiguity` — `non-blocking` — §4 linha 47. "os mesmos sinais do revisor de CLI" contradiz o §3 item 4 (a tabela de veredito não se aplica). Correção: o mesmo registro de congelamento (`clean`/`reverted`) e as mesmas classes de não rodado.
+- Não levantado: escopo, cabeçalho, forma do template, as citações do §1, G6/AA1/RISK-001, a justificativa do §3 e os itens 1, 2 e 4, a descrição de `checkAntiDelegationClause` e as afirmações no presente (todos verificados).
 
-## Round 2 (2026-09-28) — final
-- Verdict: approved — 0 blocking.
-- A1 applied: the §5 signal was checked against T-801:38-51 and SKILL.md:72-82; a correct implementation passes and real drift is flagged. A2–A5 applied.
-- No regression: only §3 bullets 3 and 5, §4:47-49, §5:55 and §7:63/65 changed. No new findings.
-- Validator note, not raised: §5:54 ("outside and after" the first fenced block of the reviewers section) is met automatically, since coordinator.md holds no copy of the clause.
+### Disposições do Coordenador
+- A1–A5 aceitos; correção 1 de 2 devolvida ao autor (solution-architect).
+
+## Rodada 2 (2026-09-28) — final
+- Veredito: `approved` — 0 `blocking`.
+- A1 aplicado: o sinal do §5 foi conferido com T-801:38-51 e SKILL.md:72-82; uma implementação correta passa e a deriva real é sinalizada. A2–A5 aplicados.
+- Sem regressão: só os §3 itens 3 e 5, §4:47-49, §5:55 e §7:63/65 mudaram. Nenhum achado novo.
+- Nota do validador, não levantada: §5:54 ("fora e depois" do primeiro bloco cercado da seção de revisores) é atendido automaticamente, pois coordinator.md não tem cópia da cláusula.
 
 ---
 
-# Review · Amendment 2026-09-29 (T-1002, PRD-008)
+# Revisão · Emenda 2026-09-29 (T-1002, PRD-008)
 
-## Round 1
-- Reviewer: document-validator (claude; opus requested, effective unverified). One Claude validator (Coordinator decision on the owner's behalf: the amendment reproduces decisions of PRD-008, already validated by the full panel).
-- Verdict: changes required — P1 (blocking) residual list omitted `refs/` as files while claiming to be PRD-008's list; P2 §7 did not cite RISK-002; P3 agy probe wording ambiguous; P4 (annex) RISK-002 proposal opened with "mitigado". Reported by: claude.
-- Coordinator applied all four.
+## Rodada 1
+- Revisor: document-validator (claude; opus solicitado, efetivo não verificado). Um validador Claude (decisão do Coordenador em nome do dono: a emenda reproduz decisões do PRD-008, já validado pelo painel completo).
+- Veredito: `changes required` — P1 (`blocking`) a lista residual omitia `refs/` como arquivos ao mesmo tempo em que afirmava ser a lista do PRD-008; P2 o §7 não citava o RISK-002; P3 a redação da sonda do agy era ambígua; P4 (anexo) a proposta do RISK-002 abria com "mitigado". Reportado por: claude.
+- O Coordenador aplicou os quatro.
 
-## Round 2
-- Verdict: approved — P1–P4 applied; no new blocking problem. Reported by: claude.
+## Rodada 2
+- Veredito: `approved` — P1–P4 aplicados; nenhum problema bloqueante novo. Reportado por: claude.
