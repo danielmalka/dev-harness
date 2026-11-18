@@ -142,6 +142,20 @@ test('7 runtime-guard via composed module: spawn from subagent denied, main-sess
   expect(text(w)).not.toContain('Coordinator')
 })
 
+// PRD-035 R12 (D7): through the composed module, a docs-guide spawned with FACTS.md in its write set (the curator) may write FACTS.md; the other records and
+// any other subagent stay denied.
+test('7b curator: a docs-guide spawned with FACTS.md in the write set writes FACTS.md, not the other records; a plain subagent is denied', async ($, on) => {
+  world(on)
+  await $.agent.spawn({ prompt: 'Arquivos permitidos: .harness/FACTS.md', description: 'curadoria', subagentType: 'dh:docs-guide' } as any) // the world answers agentId ag1
+  const ok: any = await $.tool.call({ tool: 'Write', file_path: '.harness/FACTS.md', content: 'x', agentId: 'ag1' } as any)
+  expect(text(ok)).not.toContain('Coordinator')
+  const mem: any = await $.tool.call({ tool: 'Write', file_path: '.harness/MEMORY.md', content: 'x', agentId: 'ag1' } as any)
+  expect(text(mem)).toContain('só é escrito pelo Coordinator')
+  await $.agent.spawn({ prompt: 'Arquivos permitidos: src/a.go', description: 'outro', subagentType: 'dh:builder' } as any) // same id, no longer a curator
+  const denied: any = await $.tool.call({ tool: 'Write', file_path: '.harness/FACTS.md', content: 'x', agentId: 'ag1' } as any)
+  expect(text(denied)).toContain('.harness/FACTS.md só é escrito pelo Coordinator')
+})
+
 test('8 fail-open: fs read failure does not block a commit or Bash', async ($, on) => {
   world(on, { fsFails: true })
   await $.tool.call({ tool: 'Edit', file_path: 'src/a.go' } as any)
