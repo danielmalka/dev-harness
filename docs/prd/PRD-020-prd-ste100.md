@@ -1,141 +1,143 @@
-# PRD-020 · PRD in English with ASD-STE100 writing rules, and `language` as the owner conversation language
+# PRD-020 · PRD em inglês com regras de redação ASD-STE100, e `language` como idioma de conversa com o dono
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | delivered on 2026-10-13 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-10-13 / 2026-10-13 |
+| Status | entregue em 2026-10-13 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-10-13 / 2026-10-13 |
 | Tickets | T-2001 |
-| Origin | Owner chat, 2026-10-13 (the owner delegated: "follow your recommendations"; decision 1 changed the same day) |
-| Depends on | PRD-007 (PRD and ticket flow), PRD-019 (version and `ref` pattern) |
-| Enables | nothing |
+| Origem | Chat com o dono, 2026-10-13 (o dono delegou: "siga suas recomendações"; a decisão 1 mudou no mesmo dia) |
+| Depende de | PRD-007 (fluxo de PRD e tickets), PRD-019 (padrão de versão e `ref`) |
+| Habilita | nada |
 
-## 1. Problem
+## 1. Problema
 
-Facts verified on 2026-10-13:
+Fatos verificados em 2026-10-13:
 
-- The PRD is the contract of the kit. `product-discovery` writes it from `templates/<lang>/PRD.md`.
-- The template and the skill `requirements-discovery` give no writing style. Long sentences and variable terms make a rule ambiguous. Two builders then build different software.
-- `document-review` blocks an ambiguity only when the two readings give different software. It cites no writing rules.
-- ASD-STE100 (Simplified Technical English) is an English standard. The official approved-word dictionary is copyrighted by ASD.
-- Today `language` in `.harness/project.yaml` picks the PRD language. `.agents/coordinator.md` (Language section) tells the Coordinator to reply in the language the owner writes in. `.skills/project-onboarding/SKILL.md` (line 66) sets `language` from the owner language that setup detects.
-- The owner said: write the PRD always in English with the standard. The configuration must remind the agent which language to use between the orchestrator and the operator.
+- O PRD é o contrato do kit. O `product-discovery` o escreve a partir de `templates/<lang>/PRD.md`.
+- O template e a skill `requirements-discovery` não dão nenhum estilo de redação. Frases longas e termos variáveis tornam uma regra ambígua. Dois `builder` então constroem softwares diferentes.
+- O `document-review` bloqueia uma ambiguidade só quando as duas leituras dão softwares diferentes. Ele não cita nenhuma regra de redação.
+- O ASD-STE100 (Simplified Technical English) é um padrão do inglês. O dicionário oficial de palavras aprovadas tem direitos autorais da ASD.
+- Hoje `language` em `.harness/project.yaml` escolhe o idioma do PRD. `.agents/coordinator.md` (seção `Idioma`) manda o Coordenador responder no idioma em que o dono escreve. `.skills/project-onboarding/SKILL.md` (linha 66) define `language` a partir do idioma do dono que o setup detecta.
+- O dono disse: escreva o PRD sempre em inglês, com o padrão. A configuração deve lembrar o agente de qual idioma usar entre o orquestrador e o operador.
 
-## 2. Solution
+## 2. Solução
 
-- Every PRD that the kit writes is in English. It follows short STE100-inspired writing rules, whatever the project `language`.
-- One short rules block holds the rules. It lives in the skill `requirements-discovery`. The PRD template and the skill `document-review` point to it. They do not repeat it.
-- `document-validator` checks the style. A violation that makes a rule or an acceptance ambiguous blocks. A style deviation that keeps the meaning is Minor.
-- The kit does not copy the ASD dictionary. It summarizes the rules in its own words and cites the standard by name.
-- `templates/pt-br/PRD.md` stays as a byte-identical copy of `templates/en/PRD.md`. The template count stays 14. No Go change is needed for the template.
-- `dh validate` and the status-drift mod accept both `entregue em` and `delivered on`.
-- The PRD header, its section names and its "Executed summary" always use the English forms: `delivered on <date>`, Delivered, Rules, Tickets, Docs, Out of scope.
-- The skill, the Coordinator and `product-discovery` stop saying "the project language picks the form" for the PRD.
-- `language` in `.harness/project.yaml` is the language of the conversation between the Coordinator and the owner. The Coordinator reads it at execution start and replies to the owner in that language. Specialist replies and dispatches stay in English. The Coordinator translates.
-- The owner switches `language` by explicit request. That request is the authorization: the Coordinator edits `language` in `<harness dir>/project.yaml` and switches, with no second confirmation. `dh config set language` only sets the machine default for new projects. The Coordinator mentions it only if the owner asks for a default. No new config key exists.
-- `language` still picks `templates/<lang>/` for the other records (MEMORY, EPOCHAL, RISKS, TASK, ADR, RFC). Tickets keep following `language`.
+- Todo PRD que o kit escreve é em inglês. Ele segue regras curtas de redação inspiradas no STE100, seja qual for o `language` do projeto.
+- Um bloco curto de regras guarda as regras. Ele fica na skill `requirements-discovery`. O template do PRD e a skill `document-review` apontam para ele. Eles não o repetem.
+- O `document-validator` confere o estilo. Uma violação que torna uma regra ou um aceite ambíguo bloqueia. Um desvio de estilo que mantém o sentido é Minor.
+- O kit não copia o dicionário da ASD. Ele resume as regras com as próprias palavras e cita o padrão pelo nome.
+- `templates/pt-br/PRD.md` continua como cópia idêntica byte a byte de `templates/en/PRD.md`. A contagem de templates continua 14. Nenhuma mudança em Go é necessária para o template.
+- O `dh validate` e o mod status-drift aceitam `entregue em` e `delivered on`.
+- O cabeçalho do PRD, os nomes de suas seções e o seu `Executed summary` usam sempre as formas em inglês: `delivered on <date>`, `Delivered`, `Rules`, `Tickets`, `Docs`, `Out of scope`.
+- A skill, o Coordenador e o `product-discovery` deixam de dizer "o idioma do projeto escolhe a forma" para o PRD.
+- `language` em `.harness/project.yaml` é o idioma da conversa entre o Coordenador e o dono. O Coordenador o lê no início da execução e responde ao dono nesse idioma. As respostas e os despachos dos especialistas continuam em inglês. O Coordenador traduz.
+- O dono troca `language` por pedido explícito. Esse pedido é a autorização: o Coordenador edita `language` em `<harness dir>/project.yaml` e troca, sem segunda confirmação. `dh config set language` só define o padrão da máquina para projetos novos. O Coordenador só o menciona se o dono perguntar por um padrão. Nenhuma chave nova de configuração existe.
+- `language` continua escolhendo `templates/<lang>/` para os outros registros (MEMORY, EPOCHAL, RISKS, TASK, ADR, RFC). Os tickets continuam seguindo `language`.
 
-## 3. Rules
+## 3. Regras
 
-- R1 The skill `.skills/requirements-discovery/SKILL.md` has one rules block of at most 20 lines for PRD writing. The block states these rules:
-  - Procedural sentences have at most 20 words. Descriptive sentences have at most 25.
-  - One instruction per sentence. Active voice.
-  - One term per concept. No synonyms.
-  - Simple tenses. Verbs with one sense. Articles kept.
-  - No idiom or phrasal verb when one plain verb exists.
-  - Lists for sequences. Short paragraphs.
+- R1 A skill `.skills/requirements-discovery/SKILL.md` tem um bloco de regras de no máximo 20 linhas para a redação do PRD. O bloco declara estas regras:
+  - Frases de procedimento têm no máximo 20 palavras. Frases descritivas têm no máximo 25.
+  - Uma instrução por frase. Voz ativa.
+  - Um termo por conceito. Nenhum sinônimo.
+  - Tempos verbais simples. Verbos com um só sentido. Artigos mantidos.
+  - Nenhuma expressão idiomática nem phrasal verb quando existe um verbo simples.
+  - Listas para sequências. Parágrafos curtos.
 
-  Verifiable: `grep -n "20 words" .skills/requirements-discovery/SKILL.md` and `grep -n "25 words" ...` each find one line; the block has at most 20 lines.
-- R2 The block says that ASD-STE100 is an English standard. It says that the block is a summary in the kit's own words. It says that every PRD is in English whatever the `language`. The block has no pt-br adaptation. Verifiable: `grep -n "ASD-STE100" .skills/requirements-discovery/SKILL.md` finds the line; `grep -rn -i "estilo STE\|pt-br adaptation" .skills .agents templates` is empty.
-- R3 The kit does not copy the approved-word dictionary or text of the standard. The block cites the standard by name, with no issue. Verifiable: `grep -rn -i "approved word\|approved-word\|dictionary" .skills/requirements-discovery/SKILL.md` finds only the sentence that says the dictionary is not copied; no list of approved words exists in `.skills/`, `templates/` or `.agents/`.
-- R4 `templates/pt-br/PRD.md` is a byte-identical copy of `templates/en/PRD.md`. `templates/en/PRD.md` has one comment line that points to the block of R1 and does not repeat the rules. Verifiable: `cmp templates/en/PRD.md templates/pt-br/PRD.md` is silent; `grep -c "requirements-discovery" templates/en/PRD.md` = 1; `grep -c "20 words" templates/en/PRD.md` = 0.
-- R5 `.skills/document-review/SKILL.md` has a criterion that points to the block of R1 when the document is a PRD. A violation that makes a rule or an acceptance ambiguous blocks. A style deviation that keeps the meaning is Minor and does not block. The skill repeats no numeric limit. Verifiable: `grep -n "requirements-discovery" .skills/document-review/SKILL.md` finds the criterion; `grep -c "20 words\|25 words" .skills/document-review/SKILL.md` = 0.
-- R6 The PRD is always English in the sources.
-  - `.skills/requirements-discovery/SKILL.md` says the brief becomes the PRD from `templates/en/PRD.md`.
-  - `.agents/coordinator.md` (Executed summary), `.agents/product-discovery.md` (amendment branch and shared contract), `.agents/docs-guide.md` (line 59) and `.commands/document.md` (line 18) use the English forms for the PRD.
-  - These files no longer say that the project language picks the form or the template folder.
-  - `.agents/product-discovery.md` (line 53) and `.commands/review.md` (line 19) name the section "Solution", not "Solução".
-  - `AGENTS.md` ("Idioma em execução") says that the Coordinator replies in the language recorded in `language`.
+  Verificável: `grep -n "20 words" .skills/requirements-discovery/SKILL.md` e `grep -n "25 words" ...` encontram cada um uma linha; o bloco tem no máximo 20 linhas.
+- R2 O bloco diz que o ASD-STE100 é um padrão do inglês. Diz que o bloco é um resumo com as palavras do próprio kit. Diz que todo PRD é em inglês, seja qual for o `language`. O bloco não tem nenhuma adaptação para pt-br. Verificável: `grep -n "ASD-STE100" .skills/requirements-discovery/SKILL.md` encontra a linha; `grep -rn -i "estilo STE\|pt-br adaptation" .skills .agents templates` é vazio.
+- R3 O kit não copia o dicionário de palavras aprovadas nem texto do padrão. O bloco cita o padrão pelo nome, sem a edição. Verificável: `grep -rn -i "approved word\|approved-word\|dictionary" .skills/requirements-discovery/SKILL.md` encontra só a frase que diz que o dicionário não é copiado; nenhuma lista de palavras aprovadas existe em `.skills/`, `templates/` ou `.agents/`.
+- R4 `templates/pt-br/PRD.md` é uma cópia idêntica byte a byte de `templates/en/PRD.md`. `templates/en/PRD.md` tem uma linha de comentário que aponta para o bloco da R1 e não repete as regras. Verificável: `cmp templates/en/PRD.md templates/pt-br/PRD.md` é silencioso; `grep -c "requirements-discovery" templates/en/PRD.md` = 1; `grep -c "20 words" templates/en/PRD.md` = 0.
+- R5 `.skills/document-review/SKILL.md` tem um critério que aponta para o bloco da R1 quando o documento é um PRD. Uma violação que torna uma regra ou um aceite ambíguo bloqueia. Um desvio de estilo que mantém o sentido é Minor e não bloqueia. A skill não repete nenhum limite numérico. Verificável: `grep -n "requirements-discovery" .skills/document-review/SKILL.md` encontra o critério; `grep -c "20 words\|25 words" .skills/document-review/SKILL.md` = 0.
+- R6 O PRD é sempre em inglês nas fontes.
+  - `.skills/requirements-discovery/SKILL.md` diz que o resumo vira o PRD a partir de `templates/en/PRD.md`.
+  - `.agents/coordinator.md` (Resumo executado), `.agents/product-discovery.md` (ramo de emenda e contrato compartilhado), `.agents/docs-guide.md` (linha 59) e `.commands/document.md` (linha 18) usam as formas em inglês para o PRD.
+  - Esses arquivos deixam de dizer que o idioma do projeto escolhe a forma ou a pasta de templates.
+  - `.agents/product-discovery.md` (linha 53) e `.commands/review.md` (linha 19) nomeiam a seção `Solution`, não `Solução`.
+  - `AGENTS.md` ("Idioma em execução") diz que o Coordenador responde no idioma registrado em `language`.
 
-  Verifiable: `grep -rn "templates/<lang>/PRD" .skills .agents .commands` is empty; `grep -n "project .language. picks the form" .agents/coordinator.md` is empty; `grep -n "Solução" .agents/product-discovery.md .commands/review.md` is empty; the amendment branch names the section "Docs or Rules" only; `grep -n "idioma do dono" AGENTS.md` is empty.
-- R7 `language` is the owner conversation language.
-  - `.agents/coordinator.md` (Language section) says that the Coordinator reads `language` at execution start.
-  - It says that the Coordinator replies to the owner in that language and keeps dispatches and specialist replies in English.
-  - It says that, on an explicit owner request to switch, the Coordinator edits `language` in `<harness dir>/project.yaml` with no second confirmation. That request is the authorization.
-  - `.skills/project-onboarding/SKILL.md` (line 66) and `.commands/setup.md` describe `language` as the owner conversation language and as the template choice for the other records.
+  Verificável: `grep -rn "templates/<lang>/PRD" .skills .agents .commands` é vazio; `grep -n "project .language. picks the form" .agents/coordinator.md` é vazio; `grep -n "Solução" .agents/product-discovery.md .commands/review.md` é vazio; o ramo de emenda nomeia só a seção `Docs or Rules`; `grep -n "idioma do dono" AGENTS.md` é vazio.
+- R7 `language` é o idioma de conversa com o dono.
+  - `.agents/coordinator.md` (seção `Idioma`) diz que o Coordenador lê `language` no início da execução.
+  - Diz que o Coordenador responde ao dono nesse idioma e mantém os despachos e as respostas dos especialistas em inglês.
+  - Diz que, num pedido explícito do dono para trocar, o Coordenador edita `language` em `<harness dir>/project.yaml` sem segunda confirmação. Esse pedido é a autorização.
+  - `.skills/project-onboarding/SKILL.md` (linha 66) e `.commands/setup.md` descrevem `language` como o idioma de conversa com o dono e como a escolha de template para os outros registros.
 
-  Verifiable: `grep -n "conversation language" .agents/coordinator.md .skills/project-onboarding/SKILL.md .commands/setup.md` finds all three; `grep -n "the language the owner writes in" .agents/coordinator.md` is empty; `grep -n "switch only after agreement" .agents/coordinator.md` is empty.
-- R8 The template count and the mirror rule stay true. The count stays 14. `AGENTS.md` keeps "every new template enters in both" and adds that the PRD template is English in both folders. Verifiable: `dh validate` green; `cmp templates/en/PRD.md templates/pt-br/PRD.md` is silent; `ls templates/*/ | wc` is unchanged.
-- R9 Scope. The TASK, ADR and RFC templates do not change. The existing PRDs in `docs/prd/` are not rewritten. The dashboard code does not change: it already parses `delivered on`. Verifiable: `git diff --name-only main...HEAD` lists no `templates/*/TASK.md`, `ADR.md`, `RFC.md`, no old PRD and no `internal/dashboard/` file.
-- R10 Go changes are limited to three items.
-  - The `defaultVersion` line in `internal/build/build.go`.
-  - `internal/kit/status_drift.go` accepts both `entregue em` and `delivered on`, as `internal/dashboard/metrics.go` (line 91) already does. A Go test covers `delivered on`.
-  - The mod `adapters/claude-code/plugin/hooks/status-drift.ts` accepts both forms. A test in `status-drift.test.ts` covers it.
+  Verificável: `grep -n "conversation language" .agents/coordinator.md .skills/project-onboarding/SKILL.md .commands/setup.md` encontra os três; `grep -n "the language the owner writes in" .agents/coordinator.md` é vazio; `grep -n "switch only after agreement" .agents/coordinator.md` é vazio.
+- R8 A contagem de templates e a regra de espelho continuam verdadeiras. A contagem continua 14. O `AGENTS.md` mantém `every new template enters in both` e acrescenta que o template do PRD é em inglês nas duas pastas. Verificável: `dh validate` verde; `cmp templates/en/PRD.md templates/pt-br/PRD.md` é silencioso; `ls templates/*/ | wc` não muda.
+- R9 Escopo. Os templates TASK, ADR e RFC não mudam. Os PRDs existentes em `docs/prd/` não são reescritos. O código do dashboard não muda: ele já lê `delivered on`. Verificável: `git diff --name-only main...HEAD` não lista nenhum `templates/*/TASK.md`, `ADR.md`, `RFC.md`, nenhum PRD antigo e nenhum arquivo de `internal/dashboard/`.
+- R10 As mudanças em Go se limitam a três itens.
+  - A linha `defaultVersion` em `internal/build/build.go`.
+  - `internal/kit/status_drift.go` aceita `entregue em` e `delivered on`, como `internal/dashboard/metrics.go` (linha 91) já faz. Um teste em Go cobre `delivered on`.
+  - O mod `adapters/claude-code/plugin/hooks/status-drift.ts` aceita as duas formas. Um teste em `status-drift.test.ts` cobre isso.
 
-  Reason: a PRD closed as `delivered on <date>` fails both status-drift checks today. `dh validate` gets no style check, and `go.mod` stays unchanged. Verifiable: `git diff main -- '*.go'` shows only `build.go`, `status_drift.go` and its test; `git diff go.mod` is empty; `go test ./...` is green; `claude plugin test` is green in `dist/claude-code/dev-harness`.
-- R11 This PRD follows its own rules. Rule lines that carry a `Verifiable:` command are exempt from the length limit. Verifiable: the validator finds no other sentence above 20 words (procedure) or 25 words (description).
-- R12 Version 0.27.0. `defaultVersion` in `internal/build/build.go`, `version` in `.claude-plugin/marketplace.json` and the source `ref` (`v0.27.0`) in the same file change together. A forgotten `ref` is a delivery failure. Verifiable: `grep` of the three values shows `0.27.0` or `v0.27.0` in one commit; `go run ./cmd/dh build` shows no `dist/` difference except the expected one.
-- R13 Clean-clone proof applies, because the PR touches `internal/` and `dist/*/bin`. Verifiable: `git clone . <tmp>`, `go run ./cmd/dh build` there, and equal `sha256sum` of the binaries.
-- R14 `CHANGELOG.md` has a 0.27.0 entry. `docs/roadmap.html` and `docs/en/roadmap.html` reflect it. Verifiable: `dh validate` green.
+  Motivo: um PRD fechado como `delivered on <date>` falha hoje nas duas checagens de status-drift. O `dh validate` não ganha nenhuma checagem de estilo, e o `go.mod` não muda. Verificável: `git diff main -- '*.go'` mostra só `build.go`, `status_drift.go` e o seu teste; `git diff go.mod` é vazio; `go test ./...` verde; `claude plugin test` verde em `dist/claude-code/dev-harness`.
+- R11 Este PRD segue as próprias regras. As linhas de regra que carregam um comando `Verifiable:` ficam isentas do limite de tamanho. Verificável: o validador não encontra nenhuma outra frase acima de 20 palavras (procedimento) ou 25 palavras (descrição).
+- R12 Versão 0.27.0. `defaultVersion` em `internal/build/build.go`, `version` em `.claude-plugin/marketplace.json` e o `ref` da fonte (`v0.27.0`) no mesmo arquivo mudam juntos. Um `ref` esquecido é uma falha de entrega. Verificável: o `grep` dos três valores mostra `0.27.0` ou `v0.27.0` em um só commit; `go run ./cmd/dh build` não mostra nenhuma diferença em `dist/`, exceto a esperada.
+- R13 A prova de clone limpo vale, porque o PR toca `internal/` e `dist/*/bin`. Verificável: `git clone . <tmp>`, `go run ./cmd/dh build` ali, e `sha256sum` igual dos binários.
+- R14 O `CHANGELOG.md` tem uma entrada 0.27.0. `docs/roadmap.html` e `docs/en/roadmap.html` a refletem. Verificável: `dh validate` verde.
 
 ## 4. Docs
 
-Checked with `grep` on 2026-10-13. Only files that describe PRD writing, templates or `language` are listed.
+Conferidos com `grep` em 2026-10-13. Só entram os arquivos que descrevem a redação do PRD, os templates ou `language`.
 
-- `AGENTS.md`, with three edits:
-  - the mirror rule: the PRD template is English in both folders;
-  - the "Idioma em execução" bullet: the Coordinator replies in the `language` language;
-  - one short bullet for the STE block
-- `README.md`, `README.en.md` (line "Templates de trabalho", the `language` bullet on lines 69-70, the version line 0.27.0)
-- `docs/tutorial.html`, `docs/en/tutorial.html` (step `/dh:discover`; `language` description, line 823; the `/dh:setup` description, line 740)
-- `docs/tutoriais/templates.html`, `docs/en/tutorials/templates.html` and their `templates.md` (PRD section and template list)
-- `docs/roadmap.html`, `docs/en/roadmap.html` (line 678: reword "mirrored per language" only if it is false for the PRD; 0.27.0 entry)
+- `AGENTS.md`, com três edições:
+  - a regra de espelho: o template do PRD é em inglês nas duas pastas;
+  - o item "Idioma em execução": o Coordenador responde no idioma de `language`;
+  - um item curto para o bloco STE
+- `README.md`, `README.en.md` (linha "Templates de trabalho", o item de `language` nas linhas 69-70, a linha de versão 0.27.0)
+- `docs/tutorial.html`, `docs/en/tutorial.html` (passo `/dh:discover`; descrição de `language`, linha 823; descrição do `/dh:setup`, linha 740)
+- `docs/tutoriais/templates.html`, `docs/en/tutorials/templates.html` e os seus `templates.md` (seção do PRD e lista de templates)
+- `docs/roadmap.html`, `docs/en/roadmap.html` (linha 678: reescreva "espelhado por idioma" só se for falso para o PRD; entrada 0.27.0)
 - `CHANGELOG.md` (0.27.0)
-- `.claude-plugin/marketplace.json` (`version` and `ref`)
+- `.claude-plugin/marketplace.json` (`version` e `ref`)
 
-## 5. Out of scope
+## 5. Fora de escopo
 
-- A change to binary distribution. ADR-001 stays and the binaries stay committed.
-- A Go check or `dh validate` check for PRD style.
-- Other templates: TASK, ADR, RFC, story.
-- A rewrite of the existing PRDs in `docs/prd/`.
-- A copy of the ASD dictionary or of any text of the standard.
-- A new config key for the conversation language.
+- Uma mudança na distribuição dos binários. A ADR-001 continua e os binários continuam commitados.
+- Uma checagem em Go ou no `dh validate` para o estilo do PRD.
+- Outros templates: TASK, ADR, RFC, story.
+- Uma reescrita dos PRDs existentes em `docs/prd/`.
+- Uma cópia do dicionário da ASD ou de qualquer texto do padrão.
+- Uma chave nova de configuração para o idioma de conversa.
 
-## 6. Owner decisions
+## 6. Decisões do dono
 
-- Owner, 2026-10-13: the PRD is always English and follows the standard. The configuration must remind the agent which language to use between the orchestrator and the operator. This replaces the first decision (pt-br adaptation).
-- Verification is prose only. `document-validator` with `document-review` checks the style. An ambiguity blocks. A style-only deviation is Minor. No new style check exists.
-- Coordinator decision, 2026-10-13, under the owner's delegation: the status-drift check in Go and in the mod accepts `delivered on`, because every PRD is English. This is a fix to an existing check, not a style check.
-- Scope: PRD only. One rules block, in `requirements-discovery`. Copyright: own words, standard cited by name, no dictionary.
-- Version 0.27.0 with clean-clone proof. Binaries stay committed.
-- Coordinator decision, 2026-10-13: `templates/pt-br/PRD.md` stays as a byte-identical copy of the English template. This avoids a Go change in `checkTemplateRefs`.
-- Coordinator decision, 2026-10-13: an explicit owner request to switch `language` is the authorization to edit `project.yaml`.
-- Analyst assumptions, not owner decisions:
-  - (a) The block lives in the skill, because template comments are deleted when the PRD is final.
-  - (b) The length limits apply to running text. `Verifiable:` lines are exempt.
-  - (c) The Coordinator does not use `dh config set language` for a project switch.
-  - (d) The old pt-br PRDs keep their Portuguese headers.
-- Pending decisions: none.
+- Dono, 2026-10-13: o PRD é sempre em inglês e segue o padrão. A configuração deve lembrar o agente de qual idioma usar entre o orquestrador e o operador. Isto substitui a primeira decisão (adaptação para pt-br).
+- A verificação é só em prosa. O `document-validator` com o `document-review` confere o estilo. Uma ambiguidade bloqueia. Um desvio só de estilo é Minor. Nenhuma checagem nova de estilo existe.
+- Decisão do Coordenador, 2026-10-13, sob a delegação do dono: a checagem de status-drift em Go e no mod aceita `delivered on`, porque todo PRD é em inglês. Isto é uma correção de uma checagem existente, não uma checagem de estilo.
+- Escopo: só o PRD. Um bloco de regras, em `requirements-discovery`. Direitos autorais: palavras próprias, padrão citado pelo nome, nenhum dicionário.
+- Versão 0.27.0 com prova de clone limpo. Os binários continuam commitados.
+- Decisão do Coordenador, 2026-10-13: `templates/pt-br/PRD.md` continua como cópia idêntica byte a byte do template em inglês. Isso evita uma mudança em Go no `checkTemplateRefs`.
+- Decisão do Coordenador, 2026-10-13: um pedido explícito do dono para trocar `language` é a autorização para editar o `project.yaml`.
+- Premissas do analista, não decisões do dono:
+  - (a) O bloco fica na skill, porque os comentários do template são apagados quando o PRD fica final.
+  - (b) Os limites de tamanho valem para o texto corrido. As linhas `Verifiable:` ficam isentas.
+  - (c) O Coordenador não usa `dh config set language` para uma troca de projeto.
+  - (d) Os PRDs antigos em pt-br mantêm os cabeçalhos em português.
+- Decisões pendentes: nenhuma.
 
-## Executed summary
+## Resumo executado
 
-- **Delivered:** every PRD the kit writes is English with the STE writing-rules block, and `language` is the owner conversation language.
-- **Rules:**
-  - R1 Honored: block in `.skills/requirements-discovery/SKILL.md` lines 100-111, 20/25-word limits on line 102.
-  - R2 Honored: ASD-STE100 named as an English standard on line 101; "estilo STE" grep empty.
-  - R3 Honored: the only dictionary mention says the dictionary is not copied.
-  - R4 Honored: `cmp templates/en/PRD.md templates/pt-br/PRD.md` silent; one pointer line.
-  - R5 Honored: `document-review` line 55; no numeric limit repeated.
-  - R6 Honored: `templates/<lang>/PRD` and `Solução` greps empty; `idioma do dono` grep empty in `AGENTS.md`.
-  - R7 Honored: "conversation language" in coordinator, onboarding and setup; `coordinator.md` line 74.
-  - R8 Honored: `dh validate` green, 14 templates.
-  - R9 Honored: no TASK/ADR/RFC template, old PRD or dashboard file in the diff.
-  - R10 Honored: Go diff is `build.go`, `status_drift.go` and its test; `go test ./...` and `claude plugin test` (254) green.
-  - R11 Honored: QA found long sentences; the PRD was amended and revalidated.
-  - R12 Honored: `defaultVersion`, marketplace `version` and `ref` are 0.27.0 / v0.27.0.
-  - R13 Honored: clean-clone build gives equal sha256 for all binaries; only `generated_at` differs in the manifests.
-  - R14 Honored: CHANGELOG 0.27.0 and both roadmaps; `dh validate` green.
-- **Tickets:** T-2001, backend, approved (QA matrix; code review `claude` then `cli:codex/gpt-5.6-luna` approve; final review FEATURE APROVADA).
+- **Entregue:** todo PRD que o kit escreve é em inglês com o bloco de regras de redação STE, e `language` é o idioma de conversa com o dono.
+- **Regras:**
+  - R1 Honrada: bloco em `.skills/requirements-discovery/SKILL.md` linhas 100-111, limites de 20/25 palavras na linha 102.
+  - R2 Honrada: ASD-STE100 nomeado como padrão do inglês na linha 101; `grep` de "estilo STE" vazio.
+  - R3 Honrada: a única menção ao dicionário diz que o dicionário não é copiado.
+  - R4 Honrada: `cmp templates/en/PRD.md templates/pt-br/PRD.md` silencioso; uma linha de apontador.
+  - R5 Honrada: `document-review` linha 55; nenhum limite numérico repetido.
+  - R6 Honrada: os `grep` de `templates/<lang>/PRD` e `Solução` vazios; o `grep` de `idioma do dono` vazio em `AGENTS.md`.
+  - R7 Honrada: "conversation language" no coordinator, no onboarding e no setup; `coordinator.md` linha 74.
+  - R8 Honrada: `dh validate` verde, 14 templates.
+  - R9 Honrada: nenhum template TASK/ADR/RFC, PRD antigo ou arquivo do dashboard no diff.
+  - R10 Honrada: o diff em Go é `build.go`, `status_drift.go` e o seu teste; `go test ./...` e `claude plugin test` (254) verdes.
+  - R11 Honrada: o QA achou frases longas; o PRD foi emendado e revalidado.
+  - R12 Honrada: `defaultVersion`, `version` do marketplace e `ref` são 0.27.0 / v0.27.0.
+  - R13 Honrada: o build em clone limpo dá sha256 igual para todos os binários; só `generated_at` difere nos manifestos.
+  - R14 Honrada: CHANGELOG 0.27.0 e os dois roadmaps; `dh validate` verde.
+- **Tickets:** T-2001, backend, aprovado (matriz de QA; revisão de código `claude` e depois `cli:codex/gpt-5.6-luna` com `approve`; revisão final FEATURE APROVADA).
 - **Docs:** `AGENTS.md`, `README.md`, `README.en.md`, `docs/tutorial.html`, `docs/en/tutorial.html`, `docs/tutoriais/templates.html`, `docs/tutoriais/templates.md`, `docs/en/tutorials/templates.html`, `docs/en/tutorials/templates.md`, `docs/roadmap.html`, `docs/en/roadmap.html`, `CHANGELOG.md`.
-- **Out of scope:** binary distribution (ADR-001 stays), a `dh validate` style check, other templates, a rewrite of old PRDs.
+- **Fora de escopo:** distribuição dos binários (a ADR-001 continua), uma checagem de estilo no `dh validate`, outros templates, uma reescrita dos PRDs antigos.
