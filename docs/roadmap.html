@@ -661,7 +661,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-11-17</b></span>
-          <span class="chip">status <b>0.45.0 · vivo</b></span>
+          <span class="chip">status <b>0.46.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -698,6 +698,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.46.0 · Trava contra o inglês e histórico completo em pt-BR (ADR-011, fatia S5)</h3>
+        <p><strong>Status:</strong> concluído (quinta e última fatia: a migração para o kit só pt-BR termina aqui).</p>
+        <p><strong>Resumo:</strong> ADR-011. O <code>dh validate</code> ganha a trava: uma lista fixa de marcadores do formato antigo em inglês (<code>Use when</code>, <code>Do not use when</code>, <code>templates/en</code>, <code>templates/pt-br</code>, <code>templates/&lt;lang&gt;</code>, <code>docs/en</code>, <code>README.en</code>, <code>language: en</code> e <code>language: pt-br</code>, e os títulos e rótulos antigos de plano e de relatório) é reprovada, com arquivo e linha, em <code>.agents/</code>, <code>.commands/</code>, <code>.skills/</code>, <code>templates/</code>, <code>profiles/</code> e <code>evals/cases/</code>; sem heurística de idioma. A leitura dupla dos rótulos (pt-BR e inglês), que valia desde a 0.43.0, termina: <code>/dh:plan</code>, <code>/dh:review</code>, <code>/dh:plan-loop</code>, o <code>coordinator</code> e a <code>external-clis</code> leem só pt-BR, e o <code>rotulos_test.go</code> passa a exigir a ausência da forma em inglês. Lote H4 do histórico: as 25 revisões <code>.review.md</code> que estavam em inglês (28.013 palavras no original) traduzidas, mais as citações em inglês que restavam em 28 arquivos de PRDs, ADRs, revisões já em pt-BR e <code>docs/discovery/renova.md</code>; o bloco da 0.1.0 do <code>CHANGELOG.md</code>, o caderno <code>.claude/napkin.md</code> e os nomes dos passos dos workflows também em pt-BR. O regex do grader do caso <code>code-reviewer-equivalent-form-miss</code> casa o veredito <code>request changes</code> com ou sem marcador de lista e com ou sem negrito, como a descrição dele diz.</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.46.0; <code>docs/adr/ADR-011-kit-so-ptbr.md</code>; <code>internal/kit/legacy_markers.go</code>; <code>internal/kit/rotulos_test.go</code>; <code>docs/glossario.md</code> seção 7; <code>docs/prd/*.review.md</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> (inclui um caso por marcador, em cada tipo de fonte, com e sem o marcador), testes dos mods, <code>go vet ./...</code>, <code>dh validate .</code> e <code>go run ./cmd/dh build</code> sem diferença em <code>dist/</code>; prova de clone limpo (os binários mudaram: <code>legacy_markers.go</code> e a versão); varredura de trechos em inglês no repositório inteiro e conferência estrutural dos 25 relatórios contra o original (títulos, linhas de tabela, itens e números); o regex do grader testado com 11 formas aceitas e 9 recusadas; as evals não rodaram (são pagas).</p>
+      </div>
 
       <div class="card">
         <h3>0.45.0 · Docs, evals e histórico em pt-BR; fim do espelho em inglês (ADR-011, fatia S4)</h3>
@@ -1693,7 +1701,7 @@ profiles/"] --> B["dh build"]
           os binários sejam idênticos entre a máquina do mantenedor e a CI.</p>
         <p><strong>Relações:</strong> corrige uma regressão de 0.2.0 encontrada pela própria CI; origem da regra do
           repositório "reproduzir o que a CI faz num clone limpo antes de commitar <code>dist/</code>".</p>
-        <p><strong>Testado?</strong> Mesmo step de CI "Package matches committed sources and binaries" reproduz o
+        <p><strong>Testado?</strong> Mesmo step de CI "Pacote igual às fontes e aos binários versionados" reproduz o
           build e compara os arquivos de <code>dist/</code> — execução registrada em CI a cada push/PR.</p>
       </div>
 
@@ -1935,7 +1943,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.45.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.46.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
