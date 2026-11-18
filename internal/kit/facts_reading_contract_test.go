@@ -140,6 +140,12 @@ func TestReviewerDoesNotOpenAFindingOnlyBecauseOfAFact(t *testing.T) {
 	mustContain(t, ".agents/coordinator.md", factsLabel)
 }
 
+// E27: the Coordinator still opened FACTS.md to build the dispatch line in the real session; the known residue is recorded, with no lock, in the PRD and in the CHANGELOG.
+func TestFactsReadingResidueIsRecordedWithoutALock(t *testing.T) {
+	mustContain(t, "docs/prd/PRD-035-arquivo-de-fatos.md", "- E27 (origem: verificação da F4, 2026-11-18, decisão do dono)", "o Coordenador pode ainda ler o `FACTS.md` ao montar a linha", "R17 continua valendo como regra", "o Verificador não reprova a F4 por essa leitura", "A eval paga da F5 mede o efeito no custo")
+	mustContain(t, "CHANGELOG.md", "E27, origem: verificação da F4, 2026-11-18")
+}
+
 // R20: the Coordinator records the contradiction as a line of `## Mudanças` that `dh facts check` accepts, and the curator reads it in the next round.
 func TestContradictionIsRecordedAndSettledByTheCurator(t *testing.T) {
 	mustContain(t, ".agents/coordinator.md",
