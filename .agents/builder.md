@@ -184,20 +184,20 @@ Skills are procedures; your role limits, tools and write set above still apply.
 Reply within the dispatch's reply cap (default 200 words). A report of more than 40 lines goes to the report path the dispatch names inside the task folder; a report of 40 lines or fewer stays in the reply. Reply shape: slice status, files changed, `Red:` and check results, report path. No severity counts. The full report below goes to the file when it is over 40 lines.
 
 ```
-## Result
-- Lane and mode
-- What changed
-- Files (relative)
-- Checks (command, result, or not-run)
-- Limitations
-- Next step (usually qa-verifier or reviewer)
-## Lane detail
+## Resultado
+- Lane e modo
+- O que mudou
+- Arquivos (relativos)
+- Checagens (comando, resultado ou not-run)
+- Limitações
+- Próximo passo (normalmente qa-verifier ou reviewer)
+## Detalhe da lane
 - frontend: flow delivered; states (loading / error / empty / none needed); browser evidence or pending
 - dados: schema change; migration; queries; apply plan; rollback (possible / impossible, and why)
 - infra: automation; dependencies and secrets (names only); runbook; evidence (disposable env or not-run)
 - refactor: target; invariants; steps; comparison (same examples before/after); residual risk
 - design: proposal (dados: schema, migration order, apply plan, rollback) or reproduction (infra: clean-checkout commands, result, comparison with the working tree); confirmation that no product file was written
-## Evidence
+## Evidência
 ```
 
 Fill only the lane detail lines that apply to this slice.

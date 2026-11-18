@@ -248,3 +248,25 @@ Outras skills, agentes e avaliações os casam literalmente; só mudam junto com
 ## 6. Idioma de commit e de comentário de código
 
 Vale o que o projeto define (`AGENTS.md`, `CLAUDE.md`, `README.md`, depois `conventions.code_language` do `project.yaml`); sem definição, inglês (ADR-011). Este glossário não muda essa regra.
+
+## 7. Rótulos lidos por outros arquivos: escrita em pt-BR, leitura nas duas formas até a 0.46.0
+
+Os rótulos e títulos abaixo são escritos em pt-BR pelas skills e pelos agentes que produzem o formato. Quem **lê** um deles (comandos, o `coordinator`, a `external-clis`) aceita também a forma em inglês, para não quebrar `PLAN.md` e relatórios escritos antes da 0.43.0. A leitura nas duas formas vale até a 0.46.0 (fatia S5, que trava o inglês); depois dela, só pt-BR.
+
+| pt-BR (escrita) | Inglês (também lido) | Quem lê | Quem escreve |
+|---|---|---|---|
+| `## Decisões necessárias` | `## Decisions needed` | `.commands/plan.md` (página de aprovação) | `implementation-planning`, `implementation-planner` |
+| `### Fatia <n> (<id>)` | `### Slice <n> (<id>)` | `.commands/review.md` | `implementation-planning`, `implementation-planner` |
+| `## Plano` | `## Plan` | `external-clis` (teste de falha de transporte do planejador) | `implementation-planning`, `implementation-planner` |
+| `Status da revisão:` | `Review status:` | `coordinator`, `external-clis` | `code-review`, `reviewer` |
+| `## Achados` | `## Findings` | `coordinator`, `external-clis` | `code-review`, `security-review`, `document-review`, `reviewer`, `document-validator` |
+| `### <SEVERIDADE>: <título>` | `### <SEVERITY>: <title>` | `coordinator`, `external-clis` | `security-review`, `reviewer` |
+| `Reportado por:` | `Reported by:` | `coordinator` | `code-review`, `security-review`, `document-review` |
+| `## Compreensão` | `## Comprehension` | `coordinator` | `document-review`, `document-validator` |
+| `## Não levantado` | `## Not raised` | `coordinator` | `document-review`, `document-validator` |
+| `Regra do guia:` | `Guide rule:` | `.commands/review.md` | `code-review`, `reviewer` |
+| `cobertura incompleta: <eixo>` | `coverage incomplete: <axis>` | `coordinator` | `code-review`, `security-review`, `document-review`, `reviewer`, `document-validator` |
+
+O pacote de contexto da etapa de documento tem **quatro** itens (documento, material-fonte, relatório anterior, harness dir). O `coordinator` e o `document-validator` não citam mais o item "idioma do projeto".
+
+O contrato desta tabela é conferido por `internal/kit/rotulos_test.go`.
