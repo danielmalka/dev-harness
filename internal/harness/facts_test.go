@@ -176,20 +176,7 @@ func TestCheckFactsCeilings(t *testing.T) {
 
 // R6: every secret shape is reported with its kind and line, and the value is never echoed.
 func TestCheckFactsSecrets(t *testing.T) {
-	cases := map[string]string{
-		"chave privada":              "-----BEGIN RSA PRIVATE KEY-----",
-		"chave de acesso da AWS":     "AKIAABCDEFGHIJKLMNOP",
-		"token do GitHub":            "ghp_abcdefghijklmnopqrstuvwxyz0123456789",
-		"token do Slack":             "xoxb-123456789012-abcdefghij",
-		"chave de API (sk-)":         "sk-abcdefghijklmnopqrstuvwx",
-		"chave de API do Google":     "AIzaSyA1234567890abcdefghijklmnopqrstuv",
-		"JWT":                        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abcdefghijklmnop",
-		"credencial em URL":          "postgres://app:s3cr3tpass@db.local/x",
-		"valor de segredo atribuído": "API_KEY=abc12345xyz",
-		"e-mail":                     "fulano@example.com",
-		"CPF":                        "123.456.789-09",
-		"CNPJ":                       "12.345.678/0001-95",
-	}
+	cases := fakeSecrets()
 	for kind, secret := range cases {
 		doc := factsDoc("## Armadilhas", strings.Replace(goodFact, "O binário usa lock por arquivo", "valor "+secret+" visto", 1))
 		r := check(doc)
@@ -207,7 +194,7 @@ func TestCheckFactsSecrets(t *testing.T) {
 		}
 	}
 	// A secret in a free-text line of Mudanças is reported too: the file is versioned.
-	wantProblem(t, "secret in Mudanças", factsDoc("## Mudanças", "- trocado token: abcd1234efgh"), "6", "padrão de segredo")
+	wantProblem(t, "secret in Mudanças", factsDoc("## Mudanças", "- trocado "+fakeAssignment("to"+"ken", ": ", "abcd1234efgh")), "6", "padrão de segredo")
 	// Look-alikes that are not secrets pass.
 	for _, ok := range []string{"o campo senha: bcrypt", "usa a variável API_KEY sem valor", "token: <valor>", "sk-curto", "veja ghp_ no texto", "um sha: abc1234 qualquer"} {
 		if r := check(factsDoc("## Armadilhas", strings.Replace(goodFact, "O binário usa lock por arquivo", ok, 1))); len(r.Problems) != 0 {

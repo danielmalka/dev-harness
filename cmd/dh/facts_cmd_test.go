@@ -177,7 +177,7 @@ func TestFactsCheckReportsViolations(t *testing.T) {
 		"missing field": {factsDocFor("## Testes", "- F-001 · frase · Evidência: src/a.go:3 · Visto: 2026-11-18, builder, T-1 · sha: abc1234"), "FACTS.md:6: campo Estado: ausente"},
 		"unknown path":  {factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "src/a.go", "src/b.go", 1)), `não é um arquivo do repositório`},
 		"category name": {factsDocFor("## Outra coisa", fmt.Sprintf(cmdFact, "confirmado")), "não é uma das categorias"},
-		"secret":        {factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "O comando", "token: abc12345xyz O comando", 1)), "padrão de segredo"},
+		"secret":        {factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "O comando", "to"+"ken"+": "+"abc12345"+"xyz"+" O comando", 1)), "padrão de segredo"},
 		"ceiling":       {factsDocFor("## Mudanças") + strings.Repeat("- mudança\n", 150), "teto de linhas excedido"},
 	}
 	for name, c := range cases {
