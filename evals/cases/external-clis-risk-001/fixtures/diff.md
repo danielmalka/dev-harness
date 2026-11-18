@@ -1,9 +1,9 @@
-# Diff under review
+# Diff em revisão
 
-Fictional change, used as a fixture only. Scope for the `code` review stage in every `external-clis-*` case.
+Mudança fictícia, usada só como fixture. Escopo da etapa de revisão `code` em todo caso `external-clis-*`.
 
-- Scope: `internal/service/retry.go`
-- Comparison: `main..fix/retry-backoff`
+- Escopo: `internal/service/retry.go`
+- Comparação: `main..fix/retry-backoff`
 
 ```diff
 --- a/internal/service/retry.go
@@ -25,4 +25,4 @@ Fictional change, used as a fixture only. Scope for the `code` review stage in e
  }
 ```
 
-The loop now exits through the `for` condition instead of an explicit break, and the trailing `time.Sleep(backoff(attempt))` no longer runs before the function returns on the last attempt.
+O laço agora sai pela condição do `for` em vez de um break explícito, e o `time.Sleep(backoff(attempt))` final deixa de rodar antes de a função retornar na última tentativa.
