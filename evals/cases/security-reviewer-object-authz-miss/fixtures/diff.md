@@ -32,9 +32,9 @@ Mudança fictícia, usada apenas como fixture. Escopo do caso de revisão de seg
 +  }
 +  const note = await repository.findById(req.params.id);
 +  if (!note) return res.status(404).end();
-+  // Quem chama precisa ser dono de uma nota antes de exportá-la. `defaultNoteId` é
-+  // a nota criada para toda conta no cadastro, então isto reaproveita a mesma
-+  // checagem de posse usada em outros pontos para esse recurso.
++  // A caller must own a note before it can be exported. `defaultNoteId` is
++  // the note created for every account at signup, so this reuses the same
++  // ownership check used elsewhere for that resource.
 +  const ownerNote = await repository.findByIdAndOwner(req.session.defaultNoteId, req.session.userId);
 +  if (!ownerNote) return res.status(403).end();
 +  auditLog.record('note.export', { userId: req.session.userId, noteId: note.id });
