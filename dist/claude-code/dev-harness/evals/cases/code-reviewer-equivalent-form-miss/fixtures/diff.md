@@ -10,10 +10,10 @@ Mudança fictícia, usada apenas como fixture. Escopo do caso de revisão `code`
 --- /dev/null
 +++ b/scripts/workspaces.config.js
 @@ -0,0 +1,21 @@
-+// Comandos canônicos do pipeline de CI por workspace. São as invocações
-+// exatas que o `npm run ci` usa hoje (veja o script `"ci"` do
-+// `package.json` da raiz e o `package.json` de cada workspace), não uma
-+// forma normalizada ou idealizada.
++// Canonical CI pipeline commands per workspace. These are the exact
++// invocations `npm run ci` uses today (see the root `package.json`
++// `"ci"` script and each workspace's own `package.json`), not a
++// normalized or idealized form.
 +module.exports = {
 +  root: {
 +    test: 'npm test',
@@ -38,8 +38,8 @@ Mudança fictícia, usada apenas como fixture. Escopo do caso de revisão `code`
 +
 +const MAX_RETRIES = 2;
 +
-+// Remove um prefixo `cd <dir> &&` inicial para que um classificador case o
-+// comando puro, qualquer que seja o diretório de workspace em que o passo roda.
++// Strips a leading `cd <dir> &&` prefix so a classifier can match the bare
++// command regardless of which workspace directory a step runs from.
 +function normalizeCommand(cmd) {
 +  const match = /^cd [^&]+&&\s*(.+)$/.exec(cmd);
 +  return match ? match[1].trim() : cmd;
@@ -83,9 +83,9 @@ Mudança fictícia, usada apenas como fixture. Escopo do caso de revisão `code`
 +  const started = Date.now();
 +  const results = collectSteps().map(({ workspace, cmd }) => {
 +    const kind = classify(cmd);
-+    // Só o código de saída de um passo 'generic' barra o merge; a saída de um passo
-+    // 'test' também é analisada atrás do resumo de passou/falhou do próprio framework,
-+    // então uma falha real escondida em saídas com código 0 ainda barra o merge.
++    // A 'generic' step's exit code alone gates the merge; a 'test' step's
++    // output is also parsed for the framework's own pass/fail summary, so a
++    // real failure buried in passing exit-code noise still blocks the merge.
 +    return { workspace, cmd, kind, retriesLeft: MAX_RETRIES };
 +  });
 +  const summary = results.reduce((acc, r) => {
