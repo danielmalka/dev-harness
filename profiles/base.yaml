@@ -1,6 +1,6 @@
 id: base
 name: Base
-summary: Shared harness conventions when no stack profile matches, and the parent of every stack profile.
+summary: Convenções compartilhadas do harness quando nenhum perfil de stack corresponde, e o pai de todo perfil de stack.
 stack: []
 commands:
   test: null
@@ -8,14 +8,14 @@ commands:
   build: null
   run: null
 conventions:
-  - The kit is pt-BR only (ADR-011): the coordinator answers the owner in Portuguese and records use `templates/`. Commit messages and code comments follow the language the project defines (AGENTS.md, CLAUDE.md, README.md, then `conventions.code_language` in .harness/project.yaml), English when nothing defines it.
-  - Harness artifacts use paths relative to the consumer project root.
-  - Facts, hypotheses and decisions are labeled as such.
-  - Evidence status is passed, failed or not-run. A typecheck is not behavior proof.
-  - Check commands come from .harness/project.yaml or from a command observed in the repo. Never invent a runner.
-  - .harness/MEMORY.md, EPOCHAL.md and RISKS.md are written only by the Coordinator.
-  - No secrets, tokens, credentials or absolute personal paths in .harness/.
+  - O kit é só pt-BR (ADR-011): o Coordenador responde ao dono em português e os registros usam `templates/`. Mensagens de commit e comentários de código seguem o idioma que o projeto define (AGENTS.md, CLAUDE.md, README.md, depois `conventions.code_language` em .harness/project.yaml), inglês quando nada define.
+  - Os artefatos do harness usam caminhos relativos à raiz do projeto consumidor.
+  - Fatos, hipóteses e decisões são rotulados como tais.
+  - O status da evidência é passed, failed ou not-run. Uma checagem de tipos não prova comportamento.
+  - Os comandos de checagem vêm de .harness/project.yaml ou de um comando observado no repositório. Nunca invente um runner.
+  - .harness/MEMORY.md, EPOCHAL.md e RISKS.md são escritos só pelo Coordenador.
+  - Nada de segredos, tokens, credenciais ou caminhos pessoais absolutos em .harness/.
 limits:
-  - Do not install, upgrade or remove tools unless the owner authorized that action for this task.
-  - Do not overwrite an existing .harness/ file during setup.
-  - Do not treat an absent RISKS.md as proof that no incidents exist.
+  - Não instale, atualize nem remova ferramentas, a menos que o dono tenha autorizado essa ação para esta tarefa.
+  - Não sobrescreva um arquivo .harness/ existente durante o setup.
+  - Não trate a ausência de RISKS.md como prova de que não há incidentes.

@@ -1,6 +1,6 @@
 id: go-api
 name: Go API
-summary: Go modules that expose an HTTP, RPC or webhook API, with tests next to the packages they cover.
+summary: Módulos Go que expõem uma API HTTP, RPC ou webhook, com testes ao lado dos pacotes que cobrem.
 extends: base
 stack:
   - go
@@ -11,12 +11,12 @@ commands:
   build: go build ./...
   run: go run .
 conventions:
-  - Follow the layout and names already present in the module. Do not introduce a new internal/ tree for a one-file change.
-  - Public HTTP or RPC changes go through the architect contract (skill api-contracts) before implementation.
-  - Table-driven tests in the same package as the code under test, unless the repo already uses an external test package.
-  - go.mod and go.sum stay in the write set of any slice that adds or updates a module dependency.
-  - Database work uses the builder role in lane dados and the data-migrations skill; no production DSN in fixtures.
+  - Siga o layout e os nomes que já existem no módulo. Não introduza uma nova árvore internal/ para uma mudança de um arquivo.
+  - Mudanças públicas de HTTP ou RPC passam pelo contrato do architect (skill api-contracts) antes da implementação.
+  - Testes orientados a tabela no mesmo pacote do código testado, a menos que o repositório já use um pacote de teste externo.
+  - go.mod e go.sum ficam no conjunto de escrita de toda fatia que adiciona ou atualiza uma dependência de módulo.
+  - Trabalho de banco de dados usa o papel builder na lane dados e a skill data-migrations; nenhum DSN de produção em fixtures.
 limits:
-  - Do not run go get or change the Go version without authorization recorded for the slice.
-  - Do not assume golangci-lint, mage or docker compose are present; probe and record unknown.
-  - Do not apply migrations against a non-disposable database.
+  - Não rode go get nem mude a versão do Go sem autorização registrada para a fatia.
+  - Não suponha que golangci-lint, mage ou docker compose estejam presentes; sonde e registre unknown.
+  - Não aplique migrações em um banco que não seja descartável.
