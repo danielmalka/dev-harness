@@ -1,191 +1,193 @@
-# PRD-024 · Make the public repository ready for strangers
+# PRD-024 · Deixar o repositório público pronto para pessoas de fora
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | delivered on 2026-10-16 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-10-16 / 2026-10-16 |
-| Tickets | T-2401 (planned) |
-| Origin | Owner chat, 2026-10-16 (scope and decisions in chat) |
-| Depends on | nothing |
-| Enables | nothing |
+| Status | entregue em 2026-10-16 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-10-16 / 2026-10-16 |
+| Tickets | T-2401 (planejado) |
+| Origem | Conversa com o dono, 2026-10-16 (escopo e decisões na conversa) |
+| Depende de | nada |
+| Habilita | nada |
 
-## 1. Problem
+## 1. Problema
 
-- The GitHub repository is public. A stranger who opens it cannot tell what the kit is, how to remove it, or what it writes on the machine. Fact: audit UND-006 by `repo-scout`.
-- `README.md` and `README.en.md` have these gaps:
-  - Line 20 is a release-notes paragraph of about 2,500 characters. It holds the version, the VS Code extension, the dashboard, test counts ("226 pass") and kit counts. `CHANGELOG.md` already holds this content.
-  - No section says what the kit is, what it needs, how to start, how to update, how to uninstall and remove data, what the kit writes and where, how to turn things off, or what to do when something fails.
-  - Control information exists only in `docs/tutorial.html` and `docs/en/tutorial.html`, in scattered places (deactivate plugin, prune of mod or snapshot, stop of the dashboard).
-  - Line 7 of both READMEs links `docs/plano-produto.html` as the product page. That page is in pt-br and is internal. The English README must not lead with it.
-  - The maintenance block is for contributors only, but nothing says so.
-  - Neither README names the two companion projects: `danielmalka/malka-claude-mods` (visual mods that moved out of this kit in 0.29.0) and `akitaonrails/ai-memory` (long-term memory and handoff across coding CLIs). The kit needs neither.
-- Personal data in the tree:
-  - 28 of 52 tracked `evals/baselines/*.json` files contain the absolute path of the owner's home (the repository checkout path). No other tracked file has the owner's home path. No secret or token was found.
-  - "danlemos", the name of another project of the owner, appears in `docs/roadmap.html` and `docs/en/roadmap.html` (near line 1631). It means nothing to a stranger. It also appears in old PRDs and ADRs, which are history.
-  - Both roadmaps cite `CLAUDE.md`, which only imports `AGENTS.md`. Base lines: pt 1543, 1632, 1698, 1780; en 1541, 1632, 1699, 1783.
-- Both roadmaps cite `RISKS.md` in the Relations of RISK-002 (pt 921 and 1591; en 922 and 1589). That record lives in the maintainer's harness record, not in this repository. Lines 760 and 839 of both files also cite `RISKS.md`. Their prose is correct (consumer-project records) and stays.
-- The line numbers are on the base. The builder finds each line again by its text.
-- Public-repository files: only `LICENSE` and `CHANGELOG.md` exist. There is no `SECURITY.md` and no `CONTRIBUTING.md`.
-- The roadmap has no card for three deferred items from `docs/discovery/renova.md` (section 7): a form for `config.yaml` in the dashboard, animated diagrams for a public showcase, and a per-project `events.jsonl`.
-- The roadmap has no card for a request of the owner. The Coordinator does too much hands-on work itself. It reads files, runs build, validate and grep, edits records, assembles CLI review prompts and spot-checks by shell. It should dispatch subagents instead. Fact: owner observation, 2026-10-16.
+- O repositório do GitHub é público. Uma pessoa de fora que o abre não consegue saber o que é o kit, como removê-lo nem o que ele grava na máquina. Fato: auditoria UND-006 do `repo-scout`.
+- `README.md` e `README.en.md` têm estas lacunas:
+  - A linha 20 é um parágrafo de notas de release de cerca de 2.500 caracteres. Ela guarda a versão, a extensão do VS Code, o dashboard, contagens de teste (`"226 pass"`) e contagens do kit. O `CHANGELOG.md` já guarda esse conteúdo.
+  - Nenhuma seção diz o que o kit é, o que ele exige, como começar, como atualizar, como desinstalar e remover dados, o que o kit grava e onde, como desligar as coisas, nem o que fazer quando algo falha.
+  - A informação de controle existe só em `docs/tutorial.html` e `docs/en/tutorial.html`, em lugares espalhados (desativar o plugin, poda de mod ou de snapshot, parada do dashboard).
+  - A linha 7 dos dois READMEs liga `docs/plano-produto.html` como a página do produto. Essa página está em pt-br e é interna. O README em inglês não deve abrir com ela.
+  - O bloco de manutenção é só para quem contribui, mas nada diz isso.
+  - Nenhum dos READMEs nomeia os dois projetos companheiros: `danielmalka/malka-claude-mods` (mods visuais que saíram deste kit na 0.29.0) e `akitaonrails/ai-memory` (memória de longo prazo e handoff entre CLIs de código). O kit não precisa de nenhum dos dois.
+- Dados pessoais na árvore:
+  - 28 dos 52 arquivos `evals/baselines/*.json` rastreados contêm o caminho absoluto da home do dono (o caminho do checkout do repositório). Nenhum outro arquivo rastreado tem o caminho da home do dono. Nenhum segredo ou token foi encontrado.
+  - `"danlemos"`, o nome de outro projeto do dono, aparece em `docs/roadmap.html` e `docs/en/roadmap.html` (perto da linha 1631). Não significa nada para uma pessoa de fora. Também aparece em PRDs e ADRs antigos, que são histórico.
+  - Os dois roadmaps citam `CLAUDE.md`, que só importa o `AGENTS.md`. Linhas da base: pt 1543, 1632, 1698, 1780; en 1541, 1632, 1699, 1783.
+- Os dois roadmaps citam `RISKS.md` nas Relações do RISK-002 (pt 921 e 1591; en 922 e 1589). Esse registro vive no registro do harness do mantenedor, não neste repositório. As linhas 760 e 839 dos dois arquivos também citam `RISKS.md`. A prosa delas está correta (registros de projetos consumidores) e fica.
+- Os números de linha são da base. O construtor acha cada linha de novo pelo texto.
+- Arquivos do repositório público: existem só `LICENSE` e `CHANGELOG.md`. Não há `SECURITY.md` nem `CONTRIBUTING.md`.
+- O roadmap não tem card para três itens adiados de `docs/discovery/renova.md` (seção 7): um formulário para o `config.yaml` no dashboard, diagramas animados para uma vitrine pública e um `events.jsonl` por projeto.
+- O roadmap não tem card para um pedido do dono. O Coordenador faz trabalho operacional demais por conta própria. Ele lê arquivos, roda build, validate e grep, edita registros, monta prompts de revisão por CLI e faz checagens por amostragem pelo shell. Ele deveria despachar subagentes. Fato: observação do dono, 2026-10-16.
 
-## 2. Solution
+## 2. Solução
 
-One release, 0.30.1, in one PR. After delivery, a stranger can read what the kit is, install it, remove it, find what it wrote, and report a vulnerability. The tree holds no path of the owner's machine. Add no kit behavior. Edit no file in `.agents/`, `.skills/` or `.commands/`.
+Um release, 0.30.1, em uma PR. Depois da entrega, uma pessoa de fora consegue ler o que o kit é, instalá-lo, removê-lo, achar o que ele gravou e reportar uma vulnerabilidade. A árvore não guarda nenhum caminho da máquina do dono. Não adicione comportamento ao kit. Não edite nenhum arquivo em `.agents/`, `.skills/` ou `.commands/`.
 
-README (pt-br in `README.md`, English in `README.en.md`). Both files have the same 12 `## ` sections in this order. The heading texts are fixed:
+README (pt-br em `README.md`, inglês em `README.en.md`). Os dois arquivos têm as mesmas 12 seções `## ` na mesma ordem. Os textos dos títulos são fixos:
 
-| # | English heading | pt-br heading | Content |
+| # | Título em inglês | Título em pt-br | Conteúdo |
 |---|---|---|---|
-| 1 | What it is | O que é | At most 3 lines. |
-| 2 | Requirements | Requisitos | Claude Code; Git. |
-| 3 | Install | Instalar | The marketplace URL form that exists today. |
-| 4 | Quick start | Início rápido | The real command names from `docs/tutorial.html` and `.commands/` (for example `/dh:doctor`, `/dh:setup`). It ends with at most 2 lines on language. |
-| 5 | Update | Atualizar | How to update the plugin. |
-| 6 | Uninstall and remove data | Desinstalar e remover dados | `/plugin uninstall`; the contents of `~/.harness`; the `additionalDirectories` entry; the `.harness/` folder of a repository. |
-| 7 | What the kit writes and where | O que o kit grava e onde | One table with 7 rows: repository `.harness/`; `~/.harness/config.yaml`; `projects/<name>/`; `sessions/`; `dashboard/`; `pdocs/`; the dashboard on `127.0.0.1:4747`. |
-| 8 | Turn things off | Desligar | `dh dashboard --stop`; disable the plugin. One sentence says there is no per-hook switch for the mod or the commit trap (pt: "por hook"). |
-| 9 | If something fails | Se algo falhar | `dh doctor` or `/dh:doctor`; port busy; plugin not found; link to GitHub Issues. |
-| 10 | Use together with | Usar junto com | The two companion projects, with links and one line each on what they add. The text says they are optional (pt: "opcional"). |
-| 11 | Docs map | Mapa da documentação | Quick start, tutorial, roadmap, `CHANGELOG.md`. `docs/prd`, `docs/adr` and `docs/discovery` are design history in pt-br. `evals/` is measurement history and is not needed to use the kit. `docs/plano-produto.html` is labeled pt-br and internal, and the English README does not link it first. |
-| 12 | For contributors | Para quem contribui | The maintenance block (`go test ./...` and the build commands), the sources-and-package table, and the clone-load instructions. |
+| 1 | `What it is` | `O que é` | No máximo 3 linhas. |
+| 2 | `Requirements` | `Requisitos` | Claude Code; Git. |
+| 3 | `Install` | `Instalar` | A forma da URL do marketplace que existe hoje. |
+| 4 | `Quick start` | `Início rápido` | Os nomes reais de comando de `docs/tutorial.html` e de `.commands/` (por exemplo `/dh:doctor`, `/dh:setup`). Termina com no máximo 2 linhas sobre idioma. |
+| 5 | `Update` | `Atualizar` | Como atualizar o plugin. |
+| 6 | `Uninstall and remove data` | `Desinstalar e remover dados` | `/plugin uninstall`; o conteúdo de `~/.harness`; a entrada de `additionalDirectories`; a pasta `.harness/` de um repositório. |
+| 7 | `What the kit writes and where` | `O que o kit grava e onde` | Uma tabela com 7 linhas: `.harness/` do repositório; `~/.harness/config.yaml`; `projects/<name>/`; `sessions/`; `dashboard/`; `pdocs/`; o dashboard em `127.0.0.1:4747`. |
+| 8 | `Turn things off` | `Desligar` | `dh dashboard --stop`; desabilitar o plugin. Uma frase diz que não existe chave por hook para o mod nem para a armadilha de commit (pt: `"por hook"`). |
+| 9 | `If something fails` | `Se algo falhar` | `dh doctor` ou `/dh:doctor`; porta ocupada; plugin não encontrado; link para o GitHub Issues. |
+| 10 | `Use together with` | `Usar junto com` | Os dois projetos companheiros, com links e uma linha cada sobre o que acrescentam. O texto diz que eles são opcionais (pt: `"opcional"`). |
+| 11 | `Docs map` | `Mapa da documentação` | Início rápido, tutorial, roadmap, `CHANGELOG.md`. `docs/prd`, `docs/adr` e `docs/discovery` são histórico de design em pt-br. `evals/` é histórico de medição e não é necessário para usar o kit. `docs/plano-produto.html` é rotulado como pt-br e interno, e o README em inglês não o liga primeiro. |
+| 12 | `For contributors` | `Para quem contribui` | O bloco de manutenção (`go test ./...` e os comandos de build), a tabela de fontes e pacote e as instruções de carga pelo clone. |
 
-Where the current README blocks go:
+Para onde vão os blocos atuais do README:
 
-- Language block: its facts shrink to at most 2 lines at the end of Quick start.
-- "Load from the clone" and "Sources and package": move into section 12.
-- The 0.8.0 migration note: removed. `CHANGELOG.md` keeps it.
-- Global mode paragraph: one line before the table in section 7. The tutorial holds the details.
-- Release-notes paragraph (line 20): removed. `CHANGELOG.md` is its source.
+- Bloco de idioma: seus fatos encolhem para no máximo 2 linhas no fim de Início rápido.
+- `"Load from the clone"` e `"Sources and package"`: movem para a seção 12.
+- A nota de migração da 0.8.0: removida. O `CHANGELOG.md` a mantém.
+- Parágrafo do modo global: uma linha antes da tabela da seção 7. O tutorial guarda os detalhes.
+- Parágrafo de notas de release (linha 20): removido. O `CHANGELOG.md` é a fonte dele.
 
-The README holds no test count. A kit count (of agents, commands and skills) appears in at most one place: one line that has the word "atual", "esperado", "current" or "expected" and at least two counted nouns. `checkDocumentedCounts` in `internal/kit/doc_counts.go` checks only such a line against the disk. A count on any other line is not checked, so the README does not state one.
+O README não guarda contagem de teste. Uma contagem do kit (de agentes, comandos e skills) aparece em no máximo um lugar: uma linha que tenha a palavra `"atual"`, `"esperado"`, `"current"` ou `"expected"` e pelo menos dois substantivos contados. `checkDocumentedCounts` em `internal/kit/doc_counts.go` checa contra o disco só uma linha assim. Uma contagem em qualquer outra linha não é checada, então o README não declara nenhuma.
 
-Roadmap (`docs/roadmap.html` and `docs/en/roadmap.html`, mirrored by hand):
+Roadmap (`docs/roadmap.html` e `docs/en/roadmap.html`, espelhados à mão):
 
-- Four cards in the Planned section (`<h2 id="planejado">`). No `<h3>` starts with a version number. Exact `<h3>` text (en / pt-br):
-  - (a) "Edit config.yaml from the dashboard" / "Editar o config.yaml pelo dashboard". It needs a CSRF or session token and a full security review. PRD-018 delivered the `dh config` write side.
-  - (b) "Animated diagrams for the public showcase" / "Diagramas animados para a vitrine pública". It starts after `pdocs` prove the content.
-  - (c) "Per-project events.jsonl for finer metrics" / "events.jsonl por projeto para métricas mais finas". This is PRD-016 option B. The granularity is one day today.
-  - (d) "Coordinator orchestrates, does not execute" / "O Coordenador orquestra, não executa". The Coordinator dispatches subagents for execution and verification. Execution covers reading, build, validate, grep, record edits, CLI review prompts and spot-checks. The Coordinator only judges whether the delegated work was done with skill or needs rework. It still owns the writes to `MEMORY.md`, `EPOCHAL.md` and `RISKS.md`. Status: planned, no PRD yet. Levers to evaluate later: the rules and spot-check wording in `.agents/coordinator.md`, and maybe a mod guard. Relations: `.agents/coordinator.md`.
-  - Each card has Description, Acceptance criteria, Status and Relations, as the existing cards do.
-- "danlemos" becomes generic wording in the two roadmaps only. The history documents stay unchanged.
-- Dead references: every `CLAUDE.md` hit (lines in section 1) becomes `AGENTS.md`. In the RISK-002 Relations, the text says that RISK-002 lives in the maintainer's harness record, not in this repository. The `RISKS.md` lines 760 and 839 stay unchanged.
-- A Delivered card for 0.30.1 in both files.
+- Quatro cards na seção Planejado (`<h2 id="planejado">`). Nenhum `<h3>` começa com número de versão. Texto exato dos `<h3>` (en / pt-br):
+  - (a) `"Edit config.yaml from the dashboard"` / `"Editar o config.yaml pelo dashboard"`. Precisa de um token CSRF ou de sessão e de uma revisão de segurança completa. O PRD-018 entregou o lado de escrita do `dh config`.
+  - (b) `"Animated diagrams for the public showcase"` / `"Diagramas animados para a vitrine pública"`. Começa depois que os `pdocs` provarem o conteúdo.
+  - (c) `"Per-project events.jsonl for finer metrics"` / `"events.jsonl por projeto para métricas mais finas"`. É a opção B do PRD-016. A granularidade hoje é de um dia.
+  - (d) `"Coordinator orchestrates, does not execute"` / `"O Coordenador orquestra, não executa"`. O Coordenador despacha subagentes para execução e verificação. Execução cobre leitura, build, validate, grep, edição de registros, prompts de revisão por CLI e checagens por amostragem. O Coordenador só julga se o trabalho delegado foi feito com perícia ou precisa de retrabalho. Ele continua dono das escritas em `MEMORY.md`, `EPOCHAL.md` e `RISKS.md`. Status: planejado, ainda sem PRD. Alavancas para avaliar depois: as regras e a redação da checagem por amostragem em `.agents/coordinator.md`, e talvez uma guarda de mod. Relações: `.agents/coordinator.md`.
+  - Cada card tem Descrição, Critérios de aceite, Status e Relações, como os cards existentes.
+- `"danlemos"` vira texto genérico só nos dois roadmaps. Os documentos de histórico ficam sem mudança.
+- Referências mortas: cada ocorrência de `CLAUDE.md` (linhas da seção 1) vira `AGENTS.md`. Nas Relações do RISK-002, o texto diz que o RISK-002 vive no registro do harness do mantenedor, não neste repositório. As linhas 760 e 839 com `RISKS.md` ficam sem mudança.
+- Um card Entregue para a 0.30.1 nos dois arquivos.
 
-Other files:
+Outros arquivos:
 
-- `evals/baselines/*.json`: the prefix of the owner's checkout path becomes `<repo>`. The git history is not rewritten.
-- `SECURITY.md` in English: report a vulnerability through GitHub private vulnerability reporting; a short policy.
-- `CONTRIBUTING.md` in English: canonical sources (`.agents/`, `.skills/`, `.commands/`, `templates/`, `profiles/`); `dist/` comes from `go run ./cmd/dh build` and is never edited by hand; checks `go test ./...`, `go run ./cmd/dh validate .` and `go run ./cmd/dh build`; Conventional Commits in English with no mention of AI; `AGENTS.md` is the canonical rules file and is in pt-br.
-- Release 0.30.1: `CHANGELOG.md` entry, the Delivered card, `version` and `ref` in `.claude-plugin/marketplace.json`, `defaultVersion` in `internal/build/build.go`.
+- `evals/baselines/*.json`: o prefixo do caminho do checkout do dono vira `<repo>`. O histórico do git não é reescrito.
+- `SECURITY.md` em inglês: reportar uma vulnerabilidade pelo relato privado de vulnerabilidade do GitHub; uma política curta.
+- `CONTRIBUTING.md` em inglês: fontes canônicas (`.agents/`, `.skills/`, `.commands/`, `templates/`, `profiles/`); `dist/` vem de `go run ./cmd/dh build` e nunca é editado à mão; checagens `go test ./...`, `go run ./cmd/dh validate .` e `go run ./cmd/dh build`; Conventional Commits em inglês, sem menção a IA; `AGENTS.md` é o arquivo canônico de regras e está em pt-br.
+- Release 0.30.1: entrada no `CHANGELOG.md`, o card Entregue, `version` e `ref` em `.claude-plugin/marketplace.json`, `defaultVersion` em `internal/build/build.go`.
 
-## 3. Rules
+## 3. Regras
 
-Each check below fails on the tree at the time of writing, except R7, R11, R17, R18, R19 and R21. Those six guard against a regression and must hold at the end. The ticket author checks again on the base before the first edit.
+Cada checagem abaixo falha na árvore no momento da escrita, exceto R7, R11, R17, R18, R19 e R21. Essas seis protegem contra uma regressão e devem valer no fim. O autor do ticket checa de novo na base antes da primeira edição.
 
-- R1 `README.md` and `README.en.md` have the 12 sections of section 2 in the same order, and each file has at most 110 lines. Verifiable: `grep '^## ' README.en.md` prints the 12 English headings of section 2 in that order, `grep '^## ' README.md` prints the 12 pt-br headings in that order; `wc -l README.md README.en.md` shows 110 or less for each file.
-- R2 No README holds the release-notes paragraph or a test count. Verifiable: `grep -n -E 'Versão atual|Current version|226|Testes:|Tests:' README.md README.en.md` has no hit, and no line of the two files is longer than 600 characters (`awk 'length>600' README.md README.en.md` prints nothing).
-- R3 Both READMEs name the two companion projects with links and say they are optional. Verifiable: `grep -c 'github.com/danielmalka/malka-claude-mods' README.md README.en.md` and `grep -c 'github.com/akitaonrails/ai-memory' README.md README.en.md` print 1 or more for each file, and the "Use together with" / "Usar junto com" section holds "optional" / "opcional".
-- R4 Both READMEs state what the kit writes and where, how to uninstall and remove data, and how to turn things off. Verifiable, per section (read the text between the section heading and the next `## `):
-  - Uninstall section: has `/plugin uninstall`, `~/.harness`, `.harness/` and `additionalDirectories`.
-  - Writes section: has 7 body rows (after the header and the separator) that start with `|`, naming `.harness/`, `config.yaml`, `projects/`, `sessions/`, `dashboard/`, `pdocs/` and `4747`.
-  - Turn-off section: has `dh dashboard --stop`, a plugin step (the disable form that QA verified, or `/plugin uninstall` when `claude plugin --help` shows no disable form), and the sentence with `per-hook` (pt: `por hook`).
-- R5 The Docs map labels `docs/plano-produto.html` as pt-br and internal, and `README.en.md` does not link it before the quick start. Verifiable: `grep -n 'plano-produto' README.en.md` shows a hit only inside the Docs map section, with the label; no hit on line 7.
-- R6 The maintenance block sits under a heading or lead line that says it is for contributors only. Verifiable: the section 12 heading contains "contribut" (pt: "contribu") and holds the `go test ./...` command block.
-- R7 No README holds an unchecked or wrong kit count. Verifiable: `go run ./cmd/dh validate .` passes, and `grep -n -i -E '[0-9]+ (agents|agentes|commands|comandos|skills|profiles|perfis|templates)' README.md README.en.md` has no hit, or its hits are on one line per file that has "atual", "esperado", "current" or "expected" and at least two counted nouns.
-- R8 No tracked file holds the path of the owner's machine. Verifiable: `git grep -l '/ho[m]e/ma[l]ka'` over the whole tree prints nothing (the bracket classes match the path, and the PRD text does not hold the literal). Each of the 28 changed JSON files still parses: `for f in evals/baselines/*.json; do python3 -m json.tool "$f" >/dev/null || echo bad $f; done` prints nothing. The replacement is exactly `<repo>`: `git grep -l '<repo>' -- evals/baselines` lists 28 files.
-- R9 `SECURITY.md` exists in English and names GitHub private vulnerability reporting. Verifiable: `grep -n -i 'private vulnerability reporting' SECURITY.md` has a hit.
-- R10 `CONTRIBUTING.md` exists in English and has the 5 items of section 2. Verifiable: `grep -n -E '\.agents/|go run \./cmd/dh build|go run \./cmd/dh validate|go test \./\.\.\.|Conventional Commits|AGENTS\.md' CONTRIBUTING.md` finds each term, and `grep -n -i -E 'co-authored-by|generated with' CONTRIBUTING.md` has no hit except the rule line that forbids mention of AI. The names Claude Code and `.claude-plugin` are allowed.
-- R11 No `CODE_OF_CONDUCT.md`, no `.github/ISSUE_TEMPLATE` and no pull request template are added. Verifiable: `git diff --name-status main...HEAD` lists none of them.
-- R12 Both roadmaps hold the four Planned cards, mirrored. Verifiable: in each file, the lines between `id="planejado"` and the next `<h2` contain the four exact `<h3>` texts of section 2 (en in `docs/en/roadmap.html`, pt-br in `docs/roadmap.html`), the Relations of card (d) name `.agents/coordinator.md`, and the two files have the same number of `<div class="card">` in that section. No `<h3>` of the four cards starts with a version number.
-- R13 "danlemos" is gone from the two roadmaps and stays in the history documents. Verifiable: `grep -c danlemos docs/roadmap.html docs/en/roadmap.html` prints 0 for both; `git diff --name-only main...HEAD -- docs/adr docs/prd docs/discovery` lists only this PRD and its review file.
-- R14 The two roadmaps have no dead reference. Verifiable: `grep -n 'CLAUDE\.md' docs/roadmap.html docs/en/roadmap.html` prints nothing; `grep -n 'RISKS\.md' docs/roadmap.html docs/en/roadmap.html` prints exactly 3 lines per file: base lines 760 and 839 (found again by text) and the line of card (d). No RISK-002 Relations line cites `RISKS.md`. The 0.30.1 Delivered card writes neither `CLAUDE.md` nor `RISKS.md`.
-- R15 Version 0.30.1 in three places: `defaultVersion` in `internal/build/build.go`, `version` in `.claude-plugin/marketplace.json`, and the source `ref` (`v0.30.1`). Verifiable: `grep` of the three values shows `0.30.1` or `v0.30.1`.
-- R16 `CHANGELOG.md` has an entry for 0.30.1, and both roadmaps have a Delivered card for 0.30.1 that agree with it. Verifiable: `grep -n '0.30.1' CHANGELOG.md docs/roadmap.html docs/en/roadmap.html` has a hit in each file, and `dh validate` reports no roadmap drift.
-- R17 The change edits no file in `.agents/`, `.skills/` or `.commands/`, and adds no agent, skill or command. Counts stay at 13 agents and 19 + 1 commands. Verifiable: `git diff --name-only main...HEAD -- .agents .skills .commands` prints nothing.
-- R18 Hand edits are limited to the files in section 4, this PRD with its review file, and the ticket records. No file in `dist/` is edited by hand. Verifiable: `git diff --name-only main...HEAD -- dist` lists only files that `go run ./cmd/dh build` regenerates (`plugin.json`, `harness-manifest.json`, `dist/*/bin/**`).
-- R19 `go run ./cmd/dh validate .` passes with 0 errors, and `go test ./...` is green. The build runs twice, and the second run changes nothing in `dist/` besides the `generated_at` line of `harness-manifest.json`. Verifiable: run the commands and compare with `git diff`.
-- R20 Clean-clone proof, because the PR touches `internal/build/build.go` and `dist/*/bin`: run `git clone . <tmp>`, run `go run ./cmd/dh build` there, and compare `sha256sum` of the binaries with the tree. Verifiable: 5 of 5 sums are equal.
-- R21 The change does not rewrite git history. Verifiable: no `--force` push, and `git merge-base --is-ancestor main HEAD` succeeds.
-- R22 Every command in the README sections Update, Uninstall and Turn things off counts as verified in the form that the README prints (slash or CLI). A command is verified when the docs of this repository show it, or when QA ran it in this PR. The CLI forms already run by the Coordinator are `claude plugin marketplace update dev-harness` and `claude plugin update dh@dev-harness`. QA checks `claude plugin --help` for a disable form. If the help shows none, the Turn things off section uses `/plugin uninstall` as its plugin step, and R4 accepts it. Verifiable: the QA report lists each README command with its source (doc path or the run output).
+- R1 `README.md` e `README.en.md` têm as 12 seções da seção 2 na mesma ordem, e cada arquivo tem no máximo 110 linhas. Verificável: `grep '^## ' README.en.md` imprime os 12 títulos em inglês da seção 2 nessa ordem, `grep '^## ' README.md` imprime os 12 títulos em pt-br nessa ordem; `wc -l README.md README.en.md` mostra 110 ou menos para cada arquivo.
+- R2 Nenhum README guarda o parágrafo de notas de release nem contagem de teste. Verificável: `grep -n -E 'Versão atual|Current version|226|Testes:|Tests:' README.md README.en.md` não tem resultado, e nenhuma linha dos dois arquivos passa de 600 caracteres (`awk 'length>600' README.md README.en.md` não imprime nada).
+- R3 Os dois READMEs nomeiam os dois projetos companheiros com links e dizem que são opcionais. Verificável: `grep -c 'github.com/danielmalka/malka-claude-mods' README.md README.en.md` e `grep -c 'github.com/akitaonrails/ai-memory' README.md README.en.md` imprimem 1 ou mais para cada arquivo, e a seção `"Use together with"` / `"Usar junto com"` guarda `"optional"` / `"opcional"`.
+- R4 Os dois READMEs dizem o que o kit grava e onde, como desinstalar e remover dados, e como desligar as coisas. Verificável, por seção (leia o texto entre o título da seção e o próximo `## `):
+  - Seção de desinstalar: tem `/plugin uninstall`, `~/.harness`, `.harness/` e `additionalDirectories`.
+  - Seção do que grava: tem 7 linhas de corpo (depois do cabeçalho e do separador) que começam com `|`, nomeando `.harness/`, `config.yaml`, `projects/`, `sessions/`, `dashboard/`, `pdocs/` e `4747`.
+  - Seção de desligar: tem `dh dashboard --stop`, um passo do plugin (a forma de desabilitar que o QA verificou, ou `/plugin uninstall` quando `claude plugin --help` não mostra forma de desabilitar) e a frase com `per-hook` (pt: `por hook`).
+- R5 O Mapa da documentação rotula `docs/plano-produto.html` como pt-br e interno, e `README.en.md` não o liga antes do início rápido. Verificável: `grep -n 'plano-produto' README.en.md` mostra um resultado só dentro da seção Mapa da documentação, com o rótulo; nenhum resultado na linha 7.
+- R6 O bloco de manutenção fica sob um título ou uma linha de abertura que diz que é só para quem contribui. Verificável: o título da seção 12 contém `"contribut"` (pt: `"contribu"`) e guarda o bloco de comando `go test ./...`.
+- R7 Nenhum README guarda uma contagem do kit não checada ou errada. Verificável: `go run ./cmd/dh validate .` passa, e `grep -n -i -E '[0-9]+ (agents|agentes|commands|comandos|skills|profiles|perfis|templates)' README.md README.en.md` não tem resultado, ou seus resultados estão em uma linha por arquivo que tem `"atual"`, `"esperado"`, `"current"` ou `"expected"` e pelo menos dois substantivos contados.
+- R8 Nenhum arquivo rastreado guarda o caminho da máquina do dono. Verificável: `git grep -l '/ho[m]e/ma[l]ka'` sobre a árvore inteira não imprime nada (as classes de colchetes casam o caminho, e o texto do PRD não guarda o literal). Cada um dos 28 arquivos JSON alterados ainda é lido pelo parser: `for f in evals/baselines/*.json; do python3 -m json.tool "$f" >/dev/null || echo bad $f; done` não imprime nada. A substituição é exatamente `<repo>`: `git grep -l '<repo>' -- evals/baselines` lista 28 arquivos.
+- R9 `SECURITY.md` existe em inglês e nomeia o relato privado de vulnerabilidade do GitHub. Verificável: `grep -n -i 'private vulnerability reporting' SECURITY.md` tem um resultado.
+- R10 `CONTRIBUTING.md` existe em inglês e tem os 5 itens da seção 2. Verificável: `grep -n -E '\.agents/|go run \./cmd/dh build|go run \./cmd/dh validate|go test \./\.\.\.|Conventional Commits|AGENTS\.md' CONTRIBUTING.md` encontra cada termo, e `grep -n -i -E 'co-authored-by|generated with' CONTRIBUTING.md` não tem resultado, exceto a linha de regra que proíbe menção a IA. Os nomes Claude Code e `.claude-plugin` são permitidos.
+- R11 Nenhum `CODE_OF_CONDUCT.md`, nenhum `.github/ISSUE_TEMPLATE` e nenhum template de pull request é adicionado. Verificável: `git diff --name-status main...HEAD` não lista nenhum deles.
+- R12 Os dois roadmaps guardam os quatro cards Planejados, espelhados. Verificável: em cada arquivo, as linhas entre `id="planejado"` e o próximo `<h2` contêm os quatro textos exatos de `<h3>` da seção 2 (en em `docs/en/roadmap.html`, pt-br em `docs/roadmap.html`), as Relações do card (d) nomeiam `.agents/coordinator.md`, e os dois arquivos têm o mesmo número de `<div class="card">` nessa seção. Nenhum `<h3>` dos quatro cards começa com número de versão.
+- R13 `"danlemos"` some dos dois roadmaps e fica nos documentos de histórico. Verificável: `grep -c danlemos docs/roadmap.html docs/en/roadmap.html` imprime 0 para os dois; `git diff --name-only main...HEAD -- docs/adr docs/prd docs/discovery` lista só este PRD e seu arquivo de revisão.
+- R14 Os dois roadmaps não têm referência morta. Verificável: `grep -n 'CLAUDE\.md' docs/roadmap.html docs/en/roadmap.html` não imprime nada; `grep -n 'RISKS\.md' docs/roadmap.html docs/en/roadmap.html` imprime exatamente 3 linhas por arquivo: as linhas da base 760 e 839 (achadas de novo pelo texto) e a linha do card (d). Nenhuma linha de Relações do RISK-002 cita `RISKS.md`. O card Entregue da 0.30.1 não escreve `CLAUDE.md` nem `RISKS.md`.
+- R15 Versão 0.30.1 em três lugares: `defaultVersion` em `internal/build/build.go`, `version` em `.claude-plugin/marketplace.json` e o `ref` da origem (`v0.30.1`). Verificável: `grep` dos três valores mostra `0.30.1` ou `v0.30.1`.
+- R16 `CHANGELOG.md` tem uma entrada para a 0.30.1, e os dois roadmaps têm um card Entregue para a 0.30.1 que concorda com ela. Verificável: `grep -n '0.30.1' CHANGELOG.md docs/roadmap.html docs/en/roadmap.html` tem um resultado em cada arquivo, e `dh validate` não reporta deriva do roadmap.
+- R17 A mudança não edita nenhum arquivo em `.agents/`, `.skills/` ou `.commands/`, e não adiciona agente, skill nem comando. As contagens continuam em 13 agentes e 19 + 1 comandos. Verificável: `git diff --name-only main...HEAD -- .agents .skills .commands` não imprime nada.
+- R18 As edições à mão se limitam aos arquivos da seção 4, a este PRD com seu arquivo de revisão e aos registros do ticket. Nenhum arquivo em `dist/` é editado à mão. Verificável: `git diff --name-only main...HEAD -- dist` lista só arquivos que `go run ./cmd/dh build` regenera (`plugin.json`, `harness-manifest.json`, `dist/*/bin/**`).
+- R19 `go run ./cmd/dh validate .` passa com 0 erros, e `go test ./...` está verde. O build roda duas vezes, e a segunda execução não muda nada em `dist/` além da linha `generated_at` de `harness-manifest.json`. Verificável: rode os comandos e compare com `git diff`.
+- R20 Prova de clone limpo, porque a PR toca `internal/build/build.go` e `dist/*/bin`: rode `git clone . <tmp>`, rode `go run ./cmd/dh build` lá e compare o `sha256sum` dos binários com a árvore. Verificável: 5 de 5 somas iguais.
+- R21 A mudança não reescreve o histórico do git. Verificável: nenhum push com `--force`, e `git merge-base --is-ancestor main HEAD` tem sucesso.
+- R22 Todo comando nas seções do README Atualizar, Desinstalar e Desligar conta como verificado na forma que o README imprime (barra ou CLI). Um comando é verificado quando os docs deste repositório o mostram, ou quando o QA o rodou nesta PR. As formas de CLI que o Coordenador já rodou são `claude plugin marketplace update dev-harness` e `claude plugin update dh@dev-harness`. O QA checa `claude plugin --help` em busca de uma forma de desabilitar. Se a ajuda não mostrar nenhuma, a seção Desligar usa `/plugin uninstall` como passo do plugin, e o R4 aceita isso. Verificável: o relatório do QA lista cada comando do README com sua fonte (caminho do doc ou a saída da execução).
 
 ## 4. Docs
 
-Update:
+Atualize:
 
-- `README.md`, `README.en.md` (rewritten as in section 2).
-- `docs/roadmap.html`, `docs/en/roadmap.html` (four Planned cards, 0.30.1 Delivered card, "danlemos", dead references).
-- `CHANGELOG.md` (entry 0.30.1).
-- `.claude-plugin/marketplace.json` (`version` and `ref`).
+- `README.md`, `README.en.md` (reescritos como na seção 2).
+- `docs/roadmap.html`, `docs/en/roadmap.html` (quatro cards Planejados, card Entregue da 0.30.1, `"danlemos"`, referências mortas).
+- `CHANGELOG.md` (entrada 0.30.1).
+- `.claude-plugin/marketplace.json` (`version` e `ref`).
 - `internal/build/build.go` (`defaultVersion`).
-- `evals/baselines/*.json` (28 files, path prefix).
-- `SECURITY.md`, `CONTRIBUTING.md` (new).
+- `evals/baselines/*.json` (28 arquivos, prefixo do caminho).
+- `SECURITY.md`, `CONTRIBUTING.md` (novos).
 
-Not affected (the ticket author checks with `grep`):
+Não afetados (o autor do ticket checa com `grep`):
 
-- `docs/tutorial.html`, `docs/en/tutorial.html`, `docs/inicio-rapido.html`, `docs/en/quick-start.html`. The README links to them. It does not change them.
-- `docs/plano-produto.html`. It stays as is. Only the README labels it.
-- `docs/adr/`, `docs/prd/` (other PRDs) and `docs/discovery/`. History. They keep "danlemos" on purpose.
+- `docs/tutorial.html`, `docs/en/tutorial.html`, `docs/inicio-rapido.html`, `docs/en/quick-start.html`. O README liga para eles. Não os muda.
+- `docs/plano-produto.html`. Fica como está. Só o README o rotula.
+- `docs/adr/`, `docs/prd/` (outros PRDs) e `docs/discovery/`. Histórico. Eles mantêm `"danlemos"` de propósito.
 
-## 5. Out of scope
+## 5. Fora do escopo
 
-- Rewrite of git history to remove the path from old commits. Accepted by the owner.
-- Translation of `AGENTS.md`, PRDs or ADRs.
-- `CODE_OF_CONDUCT.md`, issue templates, pull request templates.
-- Move of `evals/` or of `*.review.md` files.
-- Any change of kit behavior, and any edit in `.agents/`, `.skills/` or `.commands/`.
-- A new per-hook switch for the mod or the commit trap.
-- Implementation of the four Planned items, including any edit of `.agents/coordinator.md`. Only their roadmap cards are in scope.
-- GitHub description and topics. The Coordinator set them with `gh repo edit`, outside the PR.
-- Change of the holder name in `LICENSE`.
+- Reescrita do histórico do git para remover o caminho dos commits antigos. Aceito pelo dono.
+- Tradução de `AGENTS.md`, PRDs ou ADRs.
+- `CODE_OF_CONDUCT.md`, templates de issue, templates de pull request.
+- Mover `evals/` ou os arquivos `*.review.md`.
+- Qualquer mudança de comportamento do kit, e qualquer edição em `.agents/`, `.skills/` ou `.commands/`.
+- Uma nova chave por hook para o mod ou para a armadilha de commit.
+- Implementação dos quatro itens Planejados, inclusive qualquer edição de `.agents/coordinator.md`. Só os cards deles no roadmap estão no escopo.
+- Descrição e tópicos do GitHub. O Coordenador os definiu com `gh repo edit`, fora da PR.
+- Mudança do nome do titular em `LICENSE`.
 
-## 6. Owner decisions
+## 6. Decisões do dono
 
-- Owner, 2026-10-16: release 0.30.1 for all of this, in one PR. Reason: docs never ship in a docs-only PR, and every merge is tagged `v<version>` (`AGENTS.md`). The release changes the `CHANGELOG.md` entry, the Delivered card in both roadmaps, the marketplace `version` and `ref`, and `defaultVersion`. Clean-clone proof applies (R20).
-- Owner, 2026-10-16: the holder in `LICENSE` stays "Daniel Lemos". No change.
-- Owner, 2026-10-16: in `evals/baselines`, the prefix of the owner's checkout path becomes `<repo>`. The git history is not rewritten. The owner accepts that old commits keep the path.
-- Owner, 2026-10-16: create `SECURITY.md` (GitHub private vulnerability reporting, short policy) and a short `CONTRIBUTING.md`, both in English. No `CODE_OF_CONDUCT.md`, no issue or pull request templates.
-- Owner, 2026-10-16: add a fourth Planned card, "Coordinator orchestrates, does not execute". The owner observed that the Coordinator does too much hands-on work. Desired: it orchestrates and only judges whether delegated work was done with skill or needs rework; execution and verification go to subagents; it keeps the writes to `MEMORY.md`, `EPOCHAL.md` and `RISKS.md`. Status planned, no PRD yet.
-- Owner, 2026-10-16: GitHub description and topics are set outside the PR (done).
-- Owner, 2026-10-16: validation cap reached with P9 open; owner accepted the validator's correction for P9 and P10 without another round.
-- Owner, 2026-10-16: the build found R8 conflicting with checkPrivatePaths; the owner accepted the amendment of R8 and R22 and the validator's corrections P11-P14 without another round.
-- Pending decisions: none.
+- Dono, 2026-10-16: release 0.30.1 para tudo isto, em uma PR. Motivo: docs nunca saem numa PR só de docs, e todo merge recebe a tag `v<version>` (`AGENTS.md`). O release muda a entrada do `CHANGELOG.md`, o card Entregue nos dois roadmaps, `version` e `ref` do marketplace, e `defaultVersion`. A prova de clone limpo se aplica (R20).
+- Dono, 2026-10-16: o titular em `LICENSE` continua `"Daniel Lemos"`. Sem mudança.
+- Dono, 2026-10-16: em `evals/baselines`, o prefixo do caminho do checkout do dono vira `<repo>`. O histórico do git não é reescrito. O dono aceita que os commits antigos mantenham o caminho.
+- Dono, 2026-10-16: criar `SECURITY.md` (relato privado de vulnerabilidade do GitHub, política curta) e um `CONTRIBUTING.md` curto, ambos em inglês. Nenhum `CODE_OF_CONDUCT.md`, nenhum template de issue ou de pull request.
+- Dono, 2026-10-16: adicionar um quarto card Planejado, `"Coordinator orchestrates, does not execute"`. O dono observou que o Coordenador faz trabalho operacional demais. Desejado: ele orquestra e só julga se o trabalho delegado foi feito com perícia ou precisa de retrabalho; execução e verificação vão para subagentes; ele mantém as escritas em `MEMORY.md`, `EPOCHAL.md` e `RISKS.md`. Status planejado, ainda sem PRD.
+- Dono, 2026-10-16: descrição e tópicos do GitHub são definidos fora da PR (feito).
+- Dono, 2026-10-16: teto de validação atingido com P9 em aberto; o dono aceitou a correção do validador para P9 e P10 sem outra rodada.
+- Dono, 2026-10-16: o build achou o R8 em conflito com checkPrivatePaths; o dono aceitou a emenda de R8 e R22 e as correções P11-P14 do validador sem outra rodada.
+- Decisões pendentes: nenhuma.
 
-## Appendix
+## Apêndice
 
-### Discarded alternatives
+### Alternativas descartadas
 
-| Alternative | Why not |
+| Alternativa | Por que não |
 |---|---|
-| Rewrite git history to remove the path | The owner accepts the old path. A rewrite breaks clones and tags, and the path is not a secret. |
-| Keep the release-notes paragraph in the README | `CHANGELOG.md` is its source. The paragraph goes stale at each release. |
-| Docs-only PR for the README | `AGENTS.md`: documentation enters inside the PR of the feature. |
-| Add a switch for each hook now | It is a behavior change. It needs its own PRD. |
-| Move `evals/` and `*.review.md` out of the tree | It is a large change with no gain for a reader. The README labels them instead. |
+| Reescrever o histórico do git para remover o caminho | O dono aceita o caminho antigo. Uma reescrita quebra clones e tags, e o caminho não é segredo. |
+| Manter o parágrafo de notas de release no README | O `CHANGELOG.md` é a fonte dele. O parágrafo fica velho a cada release. |
+| PR só de docs para o README | `AGENTS.md`: a documentação entra dentro da PR da funcionalidade. |
+| Adicionar agora uma chave para cada hook | É uma mudança de comportamento. Precisa de um PRD próprio. |
+| Mover `evals/` e os `*.review.md` para fora da árvore | É uma mudança grande sem ganho para quem lê. O README os rotula no lugar. |
 
-### Risks and pending decisions
+### Riscos e decisões pendentes
 
-- Risk: the pt and en READMEs or roadmaps drift apart · mitigation: R1 and R12 check the parity; `dh validate` checks the Delivered cards.
-- Risk: the README states a count that goes stale · mitigation: R2 and R7 forbid counts outside the anchored lines that `checkDocumentedCounts` checks.
-- Risk: the path replacement breaks a baseline JSON or a test that reads it · mitigation: R8 parses every file, and R19 runs `go test ./...`.
-- Risk: the README grows back into a changelog · mitigation: R1 caps lines and R2 caps line length.
-- Risk: the clean-clone proof differs from the tree · mitigation: R20 blocks the commit until the sums are equal.
-- Pending decisions: none.
+- Risco: os READMEs ou os roadmaps pt e en divergem · mitigação: R1 e R12 checam a paridade; `dh validate` checa os cards Entregues.
+- Risco: o README declara uma contagem que fica velha · mitigação: R2 e R7 proíbem contagens fora das linhas ancoradas que `checkDocumentedCounts` checa.
+- Risco: a troca do caminho quebra um JSON de baseline ou um teste que o lê · mitigação: R8 faz o parse de cada arquivo, e R19 roda `go test ./...`.
+- Risco: o README volta a crescer até virar changelog · mitigação: R1 limita as linhas e R2 limita o tamanho de linha.
+- Risco: a prova de clone limpo difere da árvore · mitigação: R20 bloqueia o commit até as somas serem iguais.
+- Decisões pendentes: nenhuma.
 
-## Executed summary
+## Resumo executado
 
-- **Delivered:** the public repository has a newcomer README in pt-br and English (12 mirrored sections with install, update, uninstall, what the kit writes, how to turn things off, troubleshooting and the two optional companions), `SECURITY.md` and `CONTRIBUTING.md`, four Planned roadmap cards, no owner path in the tracked files, and release 0.30.1.
-- **Rules:**
-  - R1-R7 Honored: QA matrix (`qa-verifier`): 12 headings in order in both READMEs (106 lines each after the docs pass), no release paragraph or test count, both companion links marked optional, uninstall/writes/turn-off sections scoped as required, plano-produto only in the Docs map, contributor-only block, no unanchored count.
-  - R8 Honored: the bracket-class grep over the whole tree prints nothing; 28 baselines hold `<repo>` and parse.
-  - R9-R11 Honored: `SECURITY.md` names private vulnerability reporting; `CONTRIBUTING.md` covers the five items with no AI attribution phrase; no code of conduct or templates.
-  - R12-R14 Honored: four Planned cards with the exact titles in both roadmaps; no `danlemos`; no `CLAUDE.md`; exactly three `RISKS.md` lines per roadmap.
-  - R15-R16 Honored: 0.30.1 in `build.go`, `marketplace.json` version and ref; CHANGELOG entry and Delivered cards with no drift.
-  - R17-R19 Honored: no edit in `.agents/`, `.skills/`, `.commands/`; `dist/` only from the build; `dh validate` 0 errors, `go test ./...` green, the second build changes only `generated_at`.
-  - R20 Honored: clean-clone proof, 5 of 5 binaries with equal sha256.
-  - R21 Honored: no history rewrite.
-  - R22 Honored: each README command in Update, Uninstall and Turn things off has a source (repo docs or `claude plugin ... --help`); none was run against the installed plugin.
-- **Tickets:** T-2401 (backend, harness-maintainer) approved. QA by `qa-verifier`: verified (minor notes settled by the docs pass or accepted). Code review by `cli:codex/gpt-6-luna`: approve, 0 findings. Adherence by `product-discovery`: every item adheres.
+- **Entregue:** o repositório público tem um README para quem chega, em pt-br e em inglês (12 seções espelhadas com instalar, atualizar, desinstalar, o que o kit grava, como desligar, solução de problemas e os dois companheiros opcionais), `SECURITY.md` e `CONTRIBUTING.md`, quatro cards Planejados no roadmap, nenhum caminho do dono nos arquivos rastreados e o release 0.30.1.
+- **Regras:**
+  - R1-R7 Cumpridas: matriz de QA (`qa-verifier`): 12 títulos em ordem nos dois READMEs (106 linhas cada um depois da passada de docs), nenhum parágrafo de release nem contagem de teste, os dois links dos companheiros marcados como opcionais, seções de desinstalar, do que grava e de desligar delimitadas como exigido, plano-produto só no Mapa da documentação, bloco só para quem contribui, nenhuma contagem sem âncora.
+  - R8 Cumprida: o grep com classes de colchetes sobre a árvore inteira não imprime nada; 28 baselines guardam `<repo>` e passam no parse.
+  - R9-R11 Cumpridas: `SECURITY.md` nomeia o relato privado de vulnerabilidade; `CONTRIBUTING.md` cobre os cinco itens sem frase de atribuição a IA; nenhum código de conduta nem templates.
+  - R12-R14 Cumpridas: quatro cards Planejados com os títulos exatos nos dois roadmaps; nenhum `danlemos`; nenhum `CLAUDE.md`; exatamente três linhas `RISKS.md` por roadmap.
+  - R15-R16 Cumpridas: 0.30.1 em `build.go`, `version` e `ref` do `marketplace.json`; entrada do CHANGELOG e cards Entregues sem deriva.
+  - R17-R19 Cumpridas: nenhuma edição em `.agents/`, `.skills/`, `.commands/`; `dist/` só pelo build; `dh validate` 0 erros, `go test ./...` verde, o segundo build muda só `generated_at`.
+  - R20 Cumprida: prova de clone limpo, 5 de 5 binários com sha256 igual.
+  - R21 Cumprida: nenhuma reescrita de histórico.
+  - R22 Cumprida: cada comando do README em Atualizar, Desinstalar e Desligar tem uma fonte (docs do repositório ou `claude plugin ... --help`); nenhum foi rodado contra o plugin instalado.
+- **Tickets:** T-2401 (backend, harness-maintainer) `approved`. QA por `qa-verifier`: verificado (notas menores resolvidas pela passada de docs ou aceitas). Revisão de código por `cli:codex/gpt-6-luna`: `approve`, 0 achados. Aderência por `product-discovery`: todo item adere.
 - **Docs:** `README.md`, `README.en.md`, `SECURITY.md`, `CONTRIBUTING.md`, `docs/roadmap.html`, `docs/en/roadmap.html`, `CHANGELOG.md`, `.claude-plugin/marketplace.json`, `internal/build/build.go`.
-- **Out of scope:** history rewrite, translation of `AGENTS.md`, PRDs and ADRs, code of conduct and templates, moving evals or review files, kit behavior changes, a per-hook switch, and the implementation of the four Planned items.
+- **Fora do escopo:** reescrita de histórico, tradução de `AGENTS.md`, PRDs e ADRs, código de conduta e templates, mover evals ou arquivos de revisão, mudanças de comportamento do kit, uma chave por hook e a implementação dos quatro itens Planejados.

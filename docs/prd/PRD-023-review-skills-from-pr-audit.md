@@ -1,175 +1,177 @@
-# PRD-023 · Add review and test checks from two external audit skills
+# PRD-023 · Adicionar checagens de revisão e de teste de duas skills de auditoria externas
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | delivered on 2026-10-16 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-10-16 / 2026-10-16 |
-| Tickets | T-2301 (planned) |
-| Origin | Owner chat, 2026-10-16 (scope decided in chat); amended the same day with the `security-audit` items |
-| Depends on | nothing |
-| Enables | nothing |
+| Status | entregue em 2026-10-16 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-10-16 / 2026-10-16 |
+| Tickets | T-2301 (planejado) |
+| Origem | Conversa com o dono, 2026-10-16 (escopo decidido na conversa); emendado no mesmo dia com os itens do `security-audit` |
+| Depende de | nada |
+| Habilita | nada |
 
-## 1. Problem
+## 1. Problema
 
-- Two external skills, `pr-audit` and `security-audit` (akitaonrails/my-skills, commit 7b8a5e5), find defects that the kit's review skills miss. Fact: the Coordinator compared them with the kit.
-- Gaps in `code-review`:
-  - It does not tell the reviewer to look for sibling call sites of a fixed bug. The idea exists only in `.skills/systematic-debugging/SKILL.md`, step 8.
-  - It does not tell the reviewer to find every consumer of a changed data shape, including mirrors that people maintain by hand.
-  - It checks whether an added file is safe. It does not check whether the file belongs in the tree.
-  - It does not require a new entry point to prove again the invariants of the old ones.
-- Gaps in `security-review`:
-  - It has no gate for a hostile diff or for the supply chain.
-  - It has no rule for a security fix or for the proof of a security report.
-  - It accepts a clean scanner result even when the diff changed the scanner.
-  - It has no row for a disabled control, a model boundary, a leaked secret, or a fail-closed identity check.
-- Gap in `regression-testing`: step 6 accepts "fails before the fix" even when the failure is a compile or import error.
+- Duas skills externas, `pr-audit` e `security-audit` (akitaonrails/my-skills, commit 7b8a5e5), encontram defeitos que as skills de revisão do kit deixam passar. Fato: o Coordenador as comparou com o kit.
+- Lacunas em `code-review`:
+  - Ela não manda o revisor procurar pontos de chamada irmãos de um bug corrigido. A ideia existe só em `.skills/systematic-debugging/SKILL.md`, passo 8.
+  - Ela não manda o revisor achar todos os consumidores de um formato de dados alterado, inclusive os espelhos que as pessoas mantêm à mão.
+  - Ela checa se um arquivo adicionado é seguro. Não checa se o arquivo pertence à árvore.
+  - Ela não exige que um novo ponto de entrada prove de novo os invariantes dos antigos.
+- Lacunas em `security-review`:
+  - Ela não tem gate para um diff hostil nem para a cadeia de suprimentos.
+  - Ela não tem regra para uma correção de segurança nem para a prova de um relato de segurança.
+  - Ela aceita um resultado limpo de scanner mesmo quando o diff alterou o scanner.
+  - Ela não tem linha para um controle desligado, uma fronteira de modelo, um segredo vazado nem uma checagem de identidade com falha fechada.
+- Lacuna em `regression-testing`: o passo 6 aceita `"fails before the fix"` mesmo quando a falha é um erro de compilação ou de import.
 
-## 2. Solution
+## 2. Solução
 
-Add each idea to an existing skill as a few short lines. Add no skill, no agent and no command. Examples in the shipped skill text are generic. File names of this repository stay in this PRD only.
+Adicione cada ideia a uma skill existente, em poucas linhas curtas. Não adicione skill, agente nem comando. Os exemplos no texto das skills entregues são genéricos. Os nomes de arquivo deste repositório ficam só neste PRD.
 
 `code-review`:
 
-1. Steps 4 and 5: when a change fixes a symptom, the reviewer searches for sibling call sites of the same helper, guard or normalization. A point fix that leaves a twin site broken is Major, unless the scope is justified.
-2. "Contracts" bullet: when a shared data shape changes, the reviewer lists every consumer. This includes mirrors that people maintain by hand, such as translated docs, a fixture and its parity test, and stated counts. A mirror that the change should have updated is a finding. In this repository the examples are the pt/en doc mirrors, `status-cases.fixture.ts` with `fixture_parity_test.go`, and the stated counts.
-3. The reviewer checks that each added file belongs in the tree. A stray screenshot, scratch output, reviewer scaffolding or a stray binary is a finding. This follows the cleanup premise in `AGENTS.md`.
-4. A new entry point (command, mod, adapter, route, CLI surface) must prove again the cross-cutting invariants of the old ones. Examples: the write lock on the memory files, harness-dir resolution, path handling. A new entry point does not inherit old fixes.
+1. Passos 4 e 5: quando uma mudança corrige um sintoma, o revisor procura pontos de chamada irmãos do mesmo helper, guarda ou normalização. Uma correção pontual que deixa quebrado um ponto gêmeo é Major, a menos que o escopo seja justificado.
+2. Item `"Contracts"`: quando um formato de dados compartilhado muda, o revisor lista todos os consumidores. Isso inclui os espelhos que as pessoas mantêm à mão, como docs traduzidos, uma fixture e seu teste de paridade, e contagens declaradas. Um espelho que a mudança deveria ter atualizado é um achado. Neste repositório, os exemplos são os espelhos de docs pt/en, `status-cases.fixture.ts` com `fixture_parity_test.go`, e as contagens declaradas.
+3. O revisor checa se cada arquivo adicionado pertence à árvore. Uma captura de tela solta, uma saída de rascunho, uma estrutura auxiliar do revisor ou um binário solto é um achado. Isso segue a premissa de limpeza do `AGENTS.md`.
+4. Um novo ponto de entrada (comando, mod, adaptador, rota, superfície de CLI) deve provar de novo os invariantes transversais dos antigos. Exemplos: a trava de escrita nos arquivos de memória, a resolução do harness dir, o tratamento de caminhos. Um novo ponto de entrada não herda as correções antigas.
 
-`security-review` (`SKILL.md` and `references/checklist.md`):
+`security-review` (`SKILL.md` e `references/checklist.md`):
 
-5. A diff-inventory gate for a hostile change and for the supply chain.
-   - File and content signals (a new checklist row): executable bits, symlinks, submodules, Unicode bidi characters and homoglyphs, unexplained encoded or binary blobs. CI workflow changes: `pull_request_target`, `permissions`, unpinned actions, secrets that reach untrusted code.
-   - Dependency signals extend the existing checklist rows "Dependencies" and "Configuration" (`checklist.md`, lines 42 and 43). They add no duplicate row: lockfile drift, new registries or git dependencies, package lifecycle hooks.
-   - A security fix is the highest-risk diff. The reviewer looks for changes that ride along and for guards that the diff weakens elsewhere.
-   - A security report is proven or disproved before a fix. The proof reproduces the problem with trusted code. It never runs the payload of the reporter.
-   - An independent refuter of a report or a fix is a Coordinator dispatch: a second reviewer run, or a configured CLI reviewer. It receives only the finding and the code evidence, never the reasoning of the author. The reviewer never spawns agents.
-7. A scanner result is not a pass when the diff changed or narrowed the scanner config, its ignores, its baseline or its threshold. It is also not a pass when the scanner does not gate the merge. A suppression or ignore entry defers the finding. It does not resolve it. To dismiss an alert, the reviewer records a reason that names the boundary that makes it safe. Place: `SKILL.md` step 1, next to "scanner output is evidence", and the Dependencies and Configuration rows.
-8. A new checklist row: the diff disables or weakens a security control (tests, logging, TLS or signature checks, auth, limits, scanners); tests or mocks that hide real side effects; delayed or conditional activation (time, host, CI, region).
-9. Quick reference: a gap that another enforced layer already blocks is hardening (Low), unless the coverage of that layer is itself incomplete.
-10. A new row in "Input and interpretation": untrusted text that reaches a model, or a tool with authority, is a trust boundary. Tool policy is enforced outside the model. Retrieved text and tool output are data.
-11. The row "Secrets in the tree": a leaked secret is rotated or revoked outside git before the reviewer dismisses or baselines it. A baseline holds only exact, reviewed fingerprints. It never holds a broad exclusion by path, rule or pattern.
-12. `SKILL.md` step 10: a security regression test also has a legitimate control case. A blanket deny must not pass as correct authorization.
-13. The row "Authorization": the check fails closed on a missing or partial identity. Cache and index keys are fully scoped.
+5. Um gate de inventário do diff para uma mudança hostil e para a cadeia de suprimentos.
+   - Sinais de arquivo e de conteúdo (uma nova linha do checklist): bits de execução, symlinks, submódulos, caracteres bidi Unicode e homóglifos, blobs codificados ou binários sem explicação. Mudanças em workflows de CI: `pull_request_target`, `permissions`, actions não fixadas, segredos que chegam a código não confiável.
+   - Os sinais de dependência estendem as linhas existentes do checklist `"Dependencies"` e `"Configuration"` (`checklist.md`, linhas 42 e 43). Eles não adicionam linha duplicada: deriva do lockfile, novos registries ou dependências git, hooks de ciclo de vida de pacote.
+   - Uma correção de segurança é o diff de maior risco. O revisor procura mudanças que vão de carona e guardas que o diff enfraquece em outro lugar.
+   - Um relato de segurança é provado ou refutado antes de uma correção. A prova reproduz o problema com código confiável. Ela nunca executa o payload de quem reportou.
+   - Um refutador independente de um relato ou de uma correção é um despacho do Coordenador: uma segunda execução do revisor, ou um revisor de CLI configurado. Ele recebe só o achado e a evidência do código, nunca o raciocínio do autor. O revisor nunca cria agentes.
+7. Um resultado de scanner não é aprovação quando o diff alterou ou estreitou a configuração do scanner, seus ignores, sua linha de base ou seu limiar. Também não é aprovação quando o scanner não barra o merge. Uma entrada de supressão ou de ignore adia o achado. Ela não o resolve. Para dispensar um alerta, o revisor registra um motivo que nomeia a fronteira que o torna seguro. Local: passo 1 do `SKILL.md`, ao lado de `"scanner output is evidence"`, e as linhas Dependencies e Configuration.
+8. Uma nova linha do checklist: o diff desliga ou enfraquece um controle de segurança (testes, logs, checagens de TLS ou de assinatura, autenticação, limites, scanners); testes ou mocks que escondem efeitos colaterais reais; ativação atrasada ou condicional (tempo, host, CI, região).
+9. Referência rápida: uma lacuna que outra camada imposta já bloqueia é endurecimento (Low), a menos que a cobertura dessa camada seja ela própria incompleta.
+10. Uma nova linha em `"Input and interpretation"`: texto não confiável que chega a um modelo, ou uma ferramenta com autoridade, é uma fronteira de confiança. A política de ferramentas é imposta fora do modelo. Texto recuperado e saída de ferramenta são dados.
+11. A linha `"Secrets in the tree"`: um segredo vazado é rotacionado ou revogado fora do git antes de o revisor dispensá-lo ou colocá-lo na linha de base. Uma linha de base guarda só impressões digitais exatas e revisadas. Ela nunca guarda uma exclusão ampla por caminho, regra ou padrão.
+12. Passo 10 do `SKILL.md`: um teste de regressão de segurança também tem um caso de controle legítimo. Uma negação total não deve passar por autorização correta.
+13. A linha `"Authorization"`: a checagem falha fechada diante de identidade ausente ou parcial. As chaves de cache e de índice têm escopo completo.
 
 `regression-testing`:
 
-6. Step 6: "fails before the fix" means an assertion failure on the behavior under test. A compile or import error does not count. When the new test cannot compile against the base, the tester proves red by reverting only the fix in an isolated copy. This uses the isolation rules that step 6 already has.
+6. Passo 6: `"fails before the fix"` significa uma falha de asserção no comportamento sob teste. Um erro de compilação ou de import não conta. Quando o novo teste não compila contra a base, o testador prova o vermelho revertendo só a correção numa cópia isolada. Isso usa as regras de isolamento que o passo 6 já tem.
 
-Each changed skill adds the origin to `metadata.sources` in its frontmatter. The value of `provenance` stays `adapted`.
+Cada skill alterada adiciona a origem em `metadata.sources` no seu frontmatter. O valor de `provenance` continua `adapted`.
 
-Release: version 0.30.0.
+Release: versão 0.30.0.
 
-## 3. Rules
+## 3. Regras
 
-Greps below return no hit in the tree at the time of writing. The ticket author checks again on the base before the first edit.
+Os greps abaixo não retornam nenhum resultado na árvore no momento da escrita. O autor do ticket checa de novo na base antes da primeira edição.
 
-- R1 Item 1 is in `.skills/code-review/SKILL.md`, in steps 4 or 5. Verifiable: `grep -n -i 'sibling call' .skills/code-review/SKILL.md` has a hit, and the line says that a twin site left broken is Major.
-- R2 Item 2 is in the "Contracts" bullet of `.skills/code-review/SKILL.md`, with generic examples. Verifiable: `grep -n -i 'hand-maintained' .skills/code-review/SKILL.md` has a hit in that bullet, and `grep -n -E 'status-cases|fixture_parity' .skills` has no hit.
-- R3 Item 3 is in `.skills/code-review/SKILL.md`. Verifiable: `grep -n -i 'belongs in the tree' .skills/code-review/SKILL.md` has a hit, and the line names stray artifacts.
-- R4 Item 4 is in `.skills/code-review/SKILL.md`. Verifiable: `grep -n -i 'new entry point' .skills/code-review/SKILL.md` has a hit, and the line names the write lock on the memory files.
-- R5 Item 5 is in `.skills/security-review/SKILL.md` and `references/checklist.md`, in the places that section 2 names. Verifiable: `grep -n -E 'pull_request_target|lifecycle|bidi|symlink' .skills/security-review/references/checklist.md` finds each term; the checklist has one new row for file and CI signals and no new row for dependencies; `grep -n -i 'reporter' .skills/security-review/SKILL.md` and `grep -n -i "author's reasoning" .skills/security-review/SKILL.md` each have a hit that names the proof rule and the refuter rule. Note: "author's reasoning" has one hit today in another context; the new hit must name the refuter.
-- R6 Item 6 is in `.skills/regression-testing/SKILL.md`, step 6. Verifiable: `grep -n -i 'assertion failure' .skills/regression-testing/SKILL.md` has a hit in step 6, and the step says that a compile or import error does not count.
-- R7 Item 7 is in `.skills/security-review/SKILL.md` (step 1) and in the Dependencies and Configuration rows. Verifiable: `grep -n -i 'narrowed' .skills/security-review/SKILL.md .skills/security-review/references/checklist.md` has a hit, and `grep -n -i 'baseline' .skills/security-review/SKILL.md` has a hit that says a suppression defers.
-- R8 Item 8 is a checklist row. Verifiable: `grep -n -i 'weaken' .skills/security-review/references/checklist.md` has a hit in a row that names conditional activation.
-- R9 Item 9 is in the Quick reference of `.skills/security-review/SKILL.md`. Verifiable: `grep -n -i 'hardening' .skills/security-review/SKILL.md` has a hit in the Quick reference.
-- R10 Item 10 is a row in "Input and interpretation". Verifiable: `grep -n -i 'tool policy' .skills/security-review/references/checklist.md` has a hit in that section.
-- R11 Item 11 is in the "Secrets in the tree" row. Verifiable: `grep -n -i 'fingerprint' .skills/security-review/references/checklist.md` has a hit in that row, and the row says "rotated or revoked" before baseline.
-- R12 Item 12 is in step 10 of `.skills/security-review/SKILL.md`. Verifiable: `grep -n -i 'control case' .skills/security-review/SKILL.md` has a hit in step 10.
-- R13 Item 13 is in the "Authorization" row. Verifiable: `grep -n -i 'fail closed' .skills/security-review/references/checklist.md` has a hit in that row.
-- R14 Provenance. `metadata.sources` of `code-review` names `akitaonrails/my-skills pr-audit @7b8a5e5`. The same field of `regression-testing` names it too. The same field of `security-review` names `akitaonrails/my-skills pr-audit @7b8a5e5` and `akitaonrails/my-skills security-audit @7b8a5e5`. `provenance` stays `adapted` in all three. Verifiable: `grep -n -E 'my-skills (pr|security)-audit @7b8a5e5' ` on the three `SKILL.md` frontmatters, and `grep -n 'provenance: adapted'` on the same files.
-- R15 The change adds no skill, agent or command. The counts stay at 13 agents and 19 + 1 commands. Verifiable: `git diff --name-status main...HEAD` shows no added file under `.agents/` or `.commands/`, and no new `SKILL.md` under `.skills/`; `dh validate` is green.
-- R16 Hand edits are limited to: the three skills and `references/checklist.md` in `.skills/`, this PRD and its review file, the ticket records, and the release files in section 4. No file in `dist/` is edited by hand. Verifiable: `go run ./cmd/dh build` regenerates `dist/`, and `git diff --name-only main...HEAD -- dist` lists only `dist/claude-code/dev-harness/skills/{code-review,security-review,regression-testing}/**`, `plugin.json`, `harness-manifest.json` and `dist/*/bin/**`.
-- R17 `go run ./cmd/dh validate .` passes with 0 errors. The build runs twice, and the second run changes nothing in `dist/` besides the `generated_at` line of `harness-manifest.json`. Verifiable: run both commands and compare with `git diff`.
-- R18 Clean-clone proof, because the PR touches `internal/build/build.go` and `dist/*/bin`: run `git clone . <tmp>`, run `go run ./cmd/dh build` there, and compare `sha256sum` of the binaries with the tree. Verifiable: all sums are equal.
-- R19 Length caps, counted as added lines (`git diff --numstat main...HEAD -- <file>`, first column): `code-review/SKILL.md` at most 14; `regression-testing/SKILL.md` at most 4; `security-review/SKILL.md` at most 18; `references/checklist.md` at most 24. Verifiable: the numstat values stay under the caps. The frontmatter line of `metadata.sources` counts as a changed line.
-- R20 No new heading. Verifiable: `git diff -U0 main...HEAD -- .skills | grep -c '^+#'` prints 0 for the four touched files.
-- R21 Version 0.30.0. `defaultVersion` in `internal/build/build.go`, `version` in `.claude-plugin/marketplace.json`, and the source `ref` (`v0.30.0`) change together. Verifiable: `grep` of the three values shows `0.30.0` or `v0.30.0`.
-- R22 The scope in section 5 stays true. Verifiable: the diff has no `/dh:pr-audit` command, no script, no new `dh` subcommand, no `references/ecosystem-checks.md`, and no rule for merge, retarget, attribution or batching.
+- R1 O item 1 está em `.skills/code-review/SKILL.md`, nos passos 4 ou 5. Verificável: `grep -n -i 'sibling call' .skills/code-review/SKILL.md` tem um resultado, e a linha diz que um ponto gêmeo deixado quebrado é Major.
+- R2 O item 2 está no item `"Contracts"` de `.skills/code-review/SKILL.md`, com exemplos genéricos. Verificável: `grep -n -i 'hand-maintained' .skills/code-review/SKILL.md` tem um resultado nesse item, e `grep -n -E 'status-cases|fixture_parity' .skills` não tem resultado.
+- R3 O item 3 está em `.skills/code-review/SKILL.md`. Verificável: `grep -n -i 'belongs in the tree' .skills/code-review/SKILL.md` tem um resultado, e a linha nomeia os artefatos soltos.
+- R4 O item 4 está em `.skills/code-review/SKILL.md`. Verificável: `grep -n -i 'new entry point' .skills/code-review/SKILL.md` tem um resultado, e a linha nomeia a trava de escrita nos arquivos de memória.
+- R5 O item 5 está em `.skills/security-review/SKILL.md` e em `references/checklist.md`, nos lugares que a seção 2 nomeia. Verificável: `grep -n -E 'pull_request_target|lifecycle|bidi|symlink' .skills/security-review/references/checklist.md` encontra cada termo; o checklist tem uma nova linha para sinais de arquivo e de CI e nenhuma nova linha para dependências; `grep -n -i 'reporter' .skills/security-review/SKILL.md` e `grep -n -i "author's reasoning" .skills/security-review/SKILL.md` têm cada um um resultado que nomeia a regra da prova e a regra do refutador. Nota: `"author's reasoning"` tem hoje um resultado em outro contexto; o novo resultado deve nomear o refutador.
+- R6 O item 6 está em `.skills/regression-testing/SKILL.md`, passo 6. Verificável: `grep -n -i 'assertion failure' .skills/regression-testing/SKILL.md` tem um resultado no passo 6, e o passo diz que um erro de compilação ou de import não conta.
+- R7 O item 7 está em `.skills/security-review/SKILL.md` (passo 1) e nas linhas Dependencies e Configuration. Verificável: `grep -n -i 'narrowed' .skills/security-review/SKILL.md .skills/security-review/references/checklist.md` tem um resultado, e `grep -n -i 'baseline' .skills/security-review/SKILL.md` tem um resultado que diz que uma supressão adia.
+- R8 O item 8 é uma linha do checklist. Verificável: `grep -n -i 'weaken' .skills/security-review/references/checklist.md` tem um resultado numa linha que nomeia a ativação condicional.
+- R9 O item 9 está na Referência rápida de `.skills/security-review/SKILL.md`. Verificável: `grep -n -i 'hardening' .skills/security-review/SKILL.md` tem um resultado na Referência rápida.
+- R10 O item 10 é uma linha em `"Input and interpretation"`. Verificável: `grep -n -i 'tool policy' .skills/security-review/references/checklist.md` tem um resultado nessa seção.
+- R11 O item 11 está na linha `"Secrets in the tree"`. Verificável: `grep -n -i 'fingerprint' .skills/security-review/references/checklist.md` tem um resultado nessa linha, e a linha diz `"rotated or revoked"` antes de baseline.
+- R12 O item 12 está no passo 10 de `.skills/security-review/SKILL.md`. Verificável: `grep -n -i 'control case' .skills/security-review/SKILL.md` tem um resultado no passo 10.
+- R13 O item 13 está na linha `"Authorization"`. Verificável: `grep -n -i 'fail closed' .skills/security-review/references/checklist.md` tem um resultado nessa linha.
+- R14 Procedência. `metadata.sources` de `code-review` nomeia `akitaonrails/my-skills pr-audit @7b8a5e5`. O mesmo campo de `regression-testing` também o nomeia. O mesmo campo de `security-review` nomeia `akitaonrails/my-skills pr-audit @7b8a5e5` e `akitaonrails/my-skills security-audit @7b8a5e5`. `provenance` continua `adapted` nas três. Verificável: `grep -n -E 'my-skills (pr|security)-audit @7b8a5e5' ` nos frontmatters dos três `SKILL.md`, e `grep -n 'provenance: adapted'` nos mesmos arquivos.
+- R15 A mudança não adiciona skill, agente nem comando. As contagens continuam em 13 agentes e 19 + 1 comandos. Verificável: `git diff --name-status main...HEAD` não mostra arquivo adicionado em `.agents/` nem em `.commands/`, nem novo `SKILL.md` em `.skills/`; `dh validate` está verde.
+- R16 As edições à mão se limitam a: as três skills e `references/checklist.md` em `.skills/`, este PRD e seu arquivo de revisão, os registros do ticket e os arquivos de release da seção 4. Nenhum arquivo em `dist/` é editado à mão. Verificável: `go run ./cmd/dh build` regenera `dist/`, e `git diff --name-only main...HEAD -- dist` lista só `dist/claude-code/dev-harness/skills/{code-review,security-review,regression-testing}/**`, `plugin.json`, `harness-manifest.json` e `dist/*/bin/**`.
+- R17 `go run ./cmd/dh validate .` passa com 0 erros. O build roda duas vezes, e a segunda execução não muda nada em `dist/` além da linha `generated_at` de `harness-manifest.json`. Verificável: rode os dois comandos e compare com `git diff`.
+- R18 Prova de clone limpo, porque a PR toca `internal/build/build.go` e `dist/*/bin`: rode `git clone . <tmp>`, rode `go run ./cmd/dh build` lá e compare o `sha256sum` dos binários com a árvore. Verificável: todas as somas são iguais.
+- R19 Limites de tamanho, contados em linhas adicionadas (`git diff --numstat main...HEAD -- <file>`, primeira coluna): `code-review/SKILL.md` no máximo 14; `regression-testing/SKILL.md` no máximo 4; `security-review/SKILL.md` no máximo 18; `references/checklist.md` no máximo 24. Verificável: os valores do numstat ficam abaixo dos limites. A linha do frontmatter de `metadata.sources` conta como linha alterada.
+- R20 Nenhum título novo. Verificável: `git diff -U0 main...HEAD -- .skills | grep -c '^+#'` imprime 0 para os quatro arquivos tocados.
+- R21 Versão 0.30.0. `defaultVersion` em `internal/build/build.go`, `version` em `.claude-plugin/marketplace.json` e o `ref` da origem (`v0.30.0`) mudam juntos. Verificável: `grep` dos três valores mostra `0.30.0` ou `v0.30.0`.
+- R22 O escopo da seção 5 continua verdadeiro. Verificável: o diff não tem comando `/dh:pr-audit`, nem script, nem novo subcomando de `dh`, nem `references/ecosystem-checks.md`, nem regra de merge, retarget, atribuição ou lote.
 
 ## 4. Docs
 
-Evidence: `grep -rlE 'code-review|security-review|regression-testing'` over `docs`, the READMEs, `CHANGELOG.md` and `AGENTS.md`, without PRDs and ADRs, lists these files only: `docs/tutorial.html`, `docs/en/tutorial.html`, `docs/roadmap.html`, `docs/en/roadmap.html`, `docs/plano-produto.html`, `CHANGELOG.md`.
+Evidência: `grep -rlE 'code-review|security-review|regression-testing'` sobre `docs`, os READMEs, `CHANGELOG.md` e `AGENTS.md`, sem PRDs e ADRs, lista só estes arquivos: `docs/tutorial.html`, `docs/en/tutorial.html`, `docs/roadmap.html`, `docs/en/roadmap.html`, `docs/plano-produto.html`, `CHANGELOG.md`.
 
-Update:
+Atualize:
 
-- `CHANGELOG.md` (release entry 0.30.0). The roadmap is checked against it by `dh validate`.
-- `docs/roadmap.html`, `docs/en/roadmap.html` (0.30.0 card; the pt and en cards must agree).
-- `.claude-plugin/marketplace.json` (`version` and `ref`).
+- `CHANGELOG.md` (entrada de release 0.30.0). O roadmap é conferido contra ela por `dh validate`.
+- `docs/roadmap.html`, `docs/en/roadmap.html` (card 0.30.0; os cards pt e en devem concordar).
+- `.claude-plugin/marketplace.json` (`version` e `ref`).
 - `internal/build/build.go` (`defaultVersion`).
-- `README.md`, `README.en.md` (line 20: the current-version line becomes 0.30.0 with tag v0.30.0, and the one-sentence summary of the latest release names this PRD). Every earlier release commit (43a280b, 00c0fb4, e67dba1) changed this line.
+- `README.md`, `README.en.md` (linha 20: a linha da versão atual vira 0.30.0 com a tag v0.30.0, e o resumo de uma frase do último release nomeia este PRD). Todo commit de release anterior (43a280b, 00c0fb4, e67dba1) mudou esta linha.
 
-Not affected:
+Não afetados:
 
-- `docs/tutorial.html`, `docs/en/tutorial.html` (lines 859 and 860). The command table names `code-review` and `security-review` as the output of `review` and `secure`. It does not describe procedure steps.
-- `docs/plano-produto.html`. It names the skills only in the catalog.
-- `docs/inicio-rapido.html`, `docs/en/quick-start.html`, `docs/tutoriais/`, `docs/en/tutorials/`. No hit for the three skills.
+- `docs/tutorial.html`, `docs/en/tutorial.html` (linhas 859 e 860). A tabela de comandos nomeia `code-review` e `security-review` como a saída de `review` e `secure`. Ela não descreve passos de procedimento.
+- `docs/plano-produto.html`. Ele nomeia as skills só no catálogo.
+- `docs/inicio-rapido.html`, `docs/en/quick-start.html`, `docs/tutoriais/`, `docs/en/tutorials/`. Nenhum resultado para as três skills.
 
-## 5. Out of scope
+## 5. Fora do escopo
 
-From `pr-audit`:
+De `pr-audit`:
 
-- A `/dh:pr-audit` command for PRs from third-party contributors. It waits for a real case.
-- Rules for carry-through by the maintainer, merge, retarget and attribution.
-- Batching of several PRs.
-- Sandboxed execution of untrusted PRs.
-- The "Unreleased" item in the changelog.
-- The parts of `pr-audit` that belong to its own project.
+- Um comando `/dh:pr-audit` para PRs de contribuidores externos. Ele espera um caso real.
+- Regras de conclusão pelo mantenedor, merge, retarget e atribuição.
+- Lote de várias PRs.
+- Execução em sandbox de PRs não confiáveis.
+- O item "Unreleased" do changelog.
+- As partes do `pr-audit` que pertencem ao próprio projeto dele.
 
-From `security-audit`:
+De `security-audit`:
 
-- Its 6-phase full audit process.
-- Triage and PATCH of GitHub alerts through `gh api`.
-- Running scanners or the test gate from the reviewer.
+- Seu processo de auditoria completa em 6 fases.
+- Triagem e PATCH de alertas do GitHub por `gh api`.
+- Rodar scanners ou o gate de testes a partir do revisor.
 - `references/ecosystem-checks.md`.
-- `scripts/security-surface.sh`. There is no script and no new `dh` subcommand.
-- Its output template sections.
-- Its policy on disclosure and privacy.
+- `scripts/security-surface.sh`. Não há script nem novo subcomando de `dh`.
+- As seções do seu template de saída.
+- Sua política de divulgação e de privacidade.
 
-Also out: any other change to the three skills.
+Também fora: qualquer outra mudança nas três skills.
 
-## 6. Owner decisions
+## 6. Decisões do dono
 
-- Owner, 2026-10-16: absorb the ideas into existing skills and import nothing whole. Decision: "follow your recommendations" on the Coordinator's investigation.
-- Owner, 2026-10-16: no new skill, agent or command in this change.
-- Owner, 2026-10-16: the files in akitaonrails/my-skills (`pr-audit` and `security-audit`) are released for use. Literal copying of their text is allowed. Each changed skill records the origin in `metadata.sources` (R14), and `provenance` stays `adapted`.
-- Owner, 2026-10-16: the `security-audit` items (7 to 13, and the refuter rule in item 5) join this PRD.
-- Decision (AGENTS.md rule on tags): the change ships as version 0.30.0 (R21).
-- Pending decisions: none.
+- Dono, 2026-10-16: absorver as ideias em skills existentes e não importar nada inteiro. Decisão: `"follow your recommendations"` sobre a investigação do Coordenador.
+- Dono, 2026-10-16: nenhuma skill, agente ou comando novo nesta mudança.
+- Dono, 2026-10-16: os arquivos em akitaonrails/my-skills (`pr-audit` e `security-audit`) estão liberados para uso. A cópia literal do texto deles é permitida. Cada skill alterada registra a origem em `metadata.sources` (R14), e `provenance` continua `adapted`.
+- Dono, 2026-10-16: os itens do `security-audit` (7 a 13, e a regra do refutador no item 5) entram neste PRD.
+- Decisão (regra do `AGENTS.md` sobre tags): a mudança sai como versão 0.30.0 (R21).
+- Decisões pendentes: nenhuma.
 
-## Appendix
+## Apêndice
 
-### Discarded alternatives
+### Alternativas descartadas
 
-| Alternative | Why not |
+| Alternativa | Por que não |
 |---|---|
-| Import `pr-audit` and `security-audit` whole | Most of their text belongs to their own project. The kit must stay lean. |
-| Add a `/dh:pr-audit` command now | It serves PRs from third-party contributors. No real case exists. It would raise the command count (19 + 1). Deferred until a real case. |
-| Write one new "audit" section in each skill | The owner wants a lean kit. Short lines inside the existing steps and rows carry the same checks. |
-| Keep the two sources in two PRDs | The `security-audit` items land in the same files as item 5 and share one release. Two PRDs would conflict on `checklist.md`. |
+| Importar `pr-audit` e `security-audit` inteiros | A maior parte do texto deles pertence ao próprio projeto. O kit deve continuar enxuto. |
+| Adicionar agora um comando `/dh:pr-audit` | Ele atende PRs de contribuidores externos. Não existe caso real. Ele aumentaria a contagem de comandos (19 + 1). Adiado até haver um caso real. |
+| Escrever uma nova seção "audit" em cada skill | O dono quer um kit enxuto. Linhas curtas dentro dos passos e das linhas existentes carregam as mesmas checagens. |
+| Manter as duas fontes em dois PRDs | Os itens do `security-audit` caem nos mesmos arquivos do item 5 e dividem um release. Dois PRDs conflitariam em `checklist.md`. |
 
-### Risks and pending decisions
+### Riscos e decisões pendentes
 
-- Risk: the skills grow and their trigger text gets noisy · mitigation: R19 caps lines per file and R20 forbids new headings.
-- Risk: added text repeats a rule that the skill already has (for example the "do not execute the payload" rule in step 8) · mitigation: the reviewer of the ticket checks for duplicates, and the new line refers to the existing rule.
-- Risk: the roadmap pt and en cards disagree · mitigation: `dh validate` checks the drift (R17).
-- Risk: the clean-clone proof differs from the tree · mitigation: R18 blocks the commit until the sums are equal.
-- Pending decisions: none.
+- Risco: as skills crescem e o texto de gatilho fica ruidoso · mitigação: R19 limita as linhas por arquivo e R20 proíbe títulos novos.
+- Risco: o texto adicionado repete uma regra que a skill já tem (por exemplo a regra `"do not execute the payload"` do passo 8) · mitigação: o revisor do ticket checa duplicatas, e a nova linha remete à regra existente.
+- Risco: os cards pt e en do roadmap divergem · mitigação: `dh validate` checa a deriva (R17).
+- Risco: a prova de clone limpo difere da árvore · mitigação: R18 bloqueia o commit até as somas serem iguais.
+- Decisões pendentes: nenhuma.
 
-## Executed summary
+## Resumo executado
 
-- **Delivered:** `code-review`, `regression-testing`, `security-review` and its checklist carry the 13 checks from `pr-audit` and `security-audit` as short lines inside existing steps and rows, with no new skill, agent, command or heading, released as 0.30.0.
-- **Rules:**
-  - R1-R13 Honored: each item's grep hits in the named step or row (QA matrix, `qa-verifier`), and a read of the added text confirms the full meaning of items 7, 8, 10 and 13; adherence read by `product-discovery`: all 13 items adhere.
-  - R14 Honored: `metadata.sources` of the three skills names `akitaonrails/my-skills pr-audit @7b8a5e5` (and `security-audit @7b8a5e5` in `security-review`); `provenance: adapted` unchanged.
-  - R15 Honored: `git diff --name-status` shows only modified files; 13 agents, 19 + 1 commands, 21 skills (`dh validate`).
-  - R16 Honored: hand edits limited to the four skill files, the release files of section 4 (README line amended in, revalidated); the `dist/` diff is limited to the three skills, `plugin.json`, `harness-manifest.json` and the five binaries.
-  - R17 Honored: `dh validate` 0 errors, `go test ./...` green; the second build changes only `generated_at`.
-  - R18 Honored: clean-clone proof, 5 of 5 binaries with equal sha256.
-  - R19 Honored: added lines 5 / 2 / 7 / 7 against caps 14 / 4 / 18 / 24.
-  - R20 Honored: no new `#` line in the four files.
-  - R21 Honored: `defaultVersion` 0.30.0, marketplace `version` 0.30.0 and `ref` `v0.30.0`.
-  - R22 Honored: no command, script, `dh` subcommand, `ecosystem-checks.md` or merge/retarget/attribution/batching rule.
-- **Tickets:** T-2301 (backend, harness-maintainer) approved. QA by `qa-verifier`: verified, one minor note (item 7's scanner wording sits in the Configuration row and step 1, not in the Dependencies row; accepted). Code review by `cli:codex/gpt-6-luna`: no finding on the text; its one Major (R15-R18 evidence absent from the review bundle) was resolved with the QA matrix, with no edit.
+- **Entregue:** `code-review`, `regression-testing`, `security-review` e seu checklist carregam as 13 checagens de `pr-audit` e `security-audit` como linhas curtas dentro de passos e linhas existentes, sem skill, agente, comando nem título novo, lançadas como 0.30.0.
+- **Regras:**
+  - R1-R13 Cumpridas: cada item tem seu resultado de grep no passo ou na linha nomeada (matriz de QA, `qa-verifier`), e a leitura do texto adicionado confirma o sentido completo dos itens 7, 8, 10 e 13; aderência lida por `product-discovery`: os 13 itens aderem.
+  - R14 Cumprida: `metadata.sources` das três skills nomeia `akitaonrails/my-skills pr-audit @7b8a5e5` (e `security-audit @7b8a5e5` em `security-review`); `provenance: adapted` não mudou.
+  - R15 Cumprida: `git diff --name-status` mostra só arquivos modificados; 13 agentes, 19 + 1 comandos, 21 skills (`dh validate`).
+  - R16 Cumprida: as edições à mão se limitam aos quatro arquivos de skill e aos arquivos de release da seção 4 (linha do README emendada, revalidada); o diff de `dist/` se limita às três skills, `plugin.json`, `harness-manifest.json` e aos cinco binários.
+  - R17 Cumprida: `dh validate` 0 erros, `go test ./...` verde; o segundo build muda só `generated_at`.
+  - R18 Cumprida: prova de clone limpo, 5 de 5 binários com sha256 igual.
+  - R19 Cumprida: linhas adicionadas 5 / 2 / 7 / 7 contra os limites 14 / 4 / 18 / 24.
+  - R20 Cumprida: nenhuma nova linha `#` nos quatro arquivos.
+  - R21 Cumprida: `defaultVersion` 0.30.0, `version` do marketplace 0.30.0 e `ref` `v0.30.0`.
+  - R22 Cumprida: nenhum comando, script, subcomando de `dh`, `ecosystem-checks.md` nem regra de merge/retarget/atribuição/lote.
+- **Tickets:** T-2301 (backend, harness-maintainer) `approved`. QA por `qa-verifier`: verificado, uma nota menor (o texto do scanner do item 7 fica na linha Configuration e no passo 1, não na linha Dependencies; aceito). Revisão de código por `cli:codex/gpt-6-luna`: nenhum achado no texto; seu único Major (evidência de R15-R18 ausente do pacote de revisão) foi resolvido com a matriz de QA, sem edição.
 - **Docs:** `CHANGELOG.md`, `docs/roadmap.html`, `docs/en/roadmap.html`, `README.md`, `README.en.md`, `.claude-plugin/marketplace.json`, `internal/build/build.go`.
-- **Out of scope:** a `/dh:pr-audit` command for third-party PRs, maintainer merge/retarget/attribution rules, multi-PR batching, sandboxed execution of untrusted PRs, the full six-phase audit, GitHub alert triage, running scanners from the reviewer, `ecosystem-checks.md` and `security-surface.sh`.
+- **Fora do escopo:** um comando `/dh:pr-audit` para PRs externas, regras de merge/retarget/atribuição pelo mantenedor, lote de várias PRs, execução em sandbox de PRs não confiáveis, a auditoria completa em seis fases, triagem de alertas do GitHub, rodar scanners a partir do revisor, `ecosystem-checks.md` e `security-surface.sh`.
