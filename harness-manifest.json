@@ -3,8 +3,8 @@
   "version": "0.46.0",
   "license": "MIT",
   "generated": true,
-  "generated_at": "2026-11-18T02:04:51Z",
-  "content_sha256": "179e1b703a5f4ac9e3b37184d339f499898a5e4cb1d0845fbe56ef7f561dae11",
+  "generated_at": "2026-11-18T02:06:09Z",
+  "content_sha256": "4d04872e412edd4308ad7c002c563d10c48361320636f8a1a7348fdd00591f81",
   "source": "dh build",
   "runtime": {
     "primary": "claude-code",
