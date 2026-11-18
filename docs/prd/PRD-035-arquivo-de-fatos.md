@@ -53,6 +53,7 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
   - Quando o modo é `global`, então o arquivo fica em `<home>/projects/<nome>/FACTS.md`.
   - Quando o modo é `none`, então o kit não deve criar o arquivo.
 - R2 O arquivo tem um cabeçalho, uma seção por categoria, uma seção `## Candidatos` e uma seção `## Mudanças`. O cabeçalho deve ter a data e o sha curto da última curadoria.
+  - Formato das seções (fixado na F1, 2026-11-18, origem: a revisão da F1): `## <categoria>` com uma das 11 categorias de R4, sem diferenciar maiúsculas de minúsculas, `## Candidatos` e `## Mudanças`. Numa seção de categoria e em `## Candidatos`, toda linha que não está em branco deve ser uma linha de fato; o texto de `## Mudanças` e o cabeçalho são livres para o `dh facts check`, que não confere o cabeçalho.
 - R3 Cada fato ocupa uma linha e deve ter, nesta ordem, estes campos:
   1. id `F-<n>`, com n de 3 dígitos, único no arquivo;
   2. a frase do fato;
@@ -60,14 +61,19 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
   4. `Visto:` com a data `AAAA-MM-DD`, o papel e o id da tarefa;
   5. `sha` com o sha curto do `HEAD` em que o fato foi conferido;
   6. `Estado:` com um de `candidato`, `confirmado` ou `hipótese`.
+  - Formato exato da linha (fixado na F1, 2026-11-18, origem: a revisão da F1): `- F-<n> · <frase> · Evidência: <caminho:linha>[, <caminho:linha>...] · Visto: <AAAA-MM-DD>, <papel>, <tarefa> · sha: <sha curto> · Estado: <candidato|confirmado|hipótese>`. O separador entre os campos é ` · ` (espaço, ponto médio, espaço). O campo `sha` aceita também a forma sem os dois pontos. O sha curto tem de 7 a 40 hexadecimais minúsculos.
+  - Cada evidência deve ser um arquivo regular do repositório, e não uma pasta: um caminho relativo, sem `..` nem barra invertida. Um link simbólico só vale quando aponta para um arquivo dentro do projeto.
   - Quando uma linha não tem um desses campos, então `dh facts check` deve reportar a linha e o campo.
 - R4 As categorias são estas 11, nesta ordem: estilo de escrita, arquitetura, design system, dependências, ferramentas complementares, particularidades de código, testes, dados e esquema, build e CI, armadilhas, fronteiras.
   - Quando uma seção usa outro nome, então `dh facts check` deve reportá-la.
+  - Na F1, `dh facts check` também reporta uma categoria fora da ordem de R4 e uma seção repetida.
 - R5 Os tetos são fixos: até 150 linhas no arquivo, até 12 KB, até 15 fatos por categoria e até 300 caracteres por fato. O dono revê os tetos depois de 30 dias de uso (D8).
   - Quando um teto é excedido, então `dh facts check` deve sair com 1 e nomear o teto.
   - Quando o arquivo passa de 150 linhas ou de 12 KB, então `dh doctor` deve avisar, como já avisa os 40000 bytes do `MEMORY.md`.
+  - Medidas que `dh facts check` aplica (fixadas na F1, 2026-11-18, origem: a revisão da F1): 150 linhas contam o arquivo inteiro; 12 KB são 12288 bytes; o teto de 15 fatos vale por seção de categoria, e `## Candidatos` não conta; o teto de 300 caracteres conta as runas da linha de fato inteira, com todos os campos. Os tetos vivem em `internal/harness/facts.go`, e o `dh doctor` usa os mesmos valores.
 - R6 Um fato não deve repetir o que `README.md`, `AGENTS.md`, `CLAUDE.md` ou `REPO-MAP.md` já dizem. Um fato não deve conter decisão do dono, estado de tarefa, valor de segredo, conteúdo de `.env`, token, nome de cliente ou dado pessoal.
-  - Quando um fato tem um padrão de segredo, então `dh facts check` deve reportá-lo. A lista de padrões é a mesma do `[redacted]` de `/dh:dream`.
+  - Quando um fato tem um padrão de segredo, então `dh facts check` deve reportá-lo. O relatório nomeia o tipo e a linha, e nunca imprime o valor.
+  - A lista de padrões é fixa e vive em `internal/harness/facts.go` (fixada na F1, 2026-11-18, origem: a revisão da F1). O `dream.md` não tinha lista: ele manda trocar "tudo que parecer um segredo" por `[redacted]`. A lista tem 12 padrões: chave privada, chave de acesso da AWS, token do GitHub, token do Slack, chave `sk-`, chave de API do Google, JWT, credencial em URL, valor atribuído a `password`, `token`, `api_key` e nomes parecidos (com letra e dígito), e-mail, CPF e CNPJ. O verificador lê o arquivo inteiro, inclusive `## Mudanças`.
 - R7 Um fato confirmado sobre o qual o código diz outra coisa sai do arquivo. A saída fica registrada em `## Mudanças`, com o id, o motivo e a evidência.
 
 ### Parte B · Escrita
@@ -81,6 +87,8 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
   - Quando `--file` nomeia outro arquivo, então o comando deve sair com 1 e listar os dois nomes válidos.
   - Quando `--file FACTS.md` é usado, então a trava é `FACTS.md.lock` no harness dir.
 - R12 O mod `runtime-guard` acrescenta `FACTS.md` à lista `FILES`. O mod deve negar `Edit` e `Write` de subagente em `FACTS.md`, exceto quando o subagente é o curador despachado com `FACTS.md` no write set (D7).
+  - Reconhecimento do curador (fixado na F1, 2026-11-18, origem: a revisão da F1): o mod não recebe um write set estruturado, e lê só o tipo e o texto do despacho. O curador é um `docs-guide` (`dh:docs-guide`) cujo texto de despacho tem uma linha que começa com `Arquivos permitidos:`, `Conjunto de escrita:` ou `Write set:` (sem diferenciar maiúsculas de minúsculas; um marcador de lista ou `>` antes é aceito) e cita `FACTS.md` nessa mesma linha. `FACTS.md.bak` e `NOFACTS.md` não contam.
+  - O mod guarda o id do agente criado e libera só o `FACTS.md`, nunca `MEMORY.md`, `EPOCHAL.md` nem `RISKS.md`. Um id reaproveitado por outro agente perde a exceção.
 
 ### Parte C · Curadoria
 
@@ -137,7 +145,7 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
 
 ### Parte F · `dh facts check`, docs e versão
 
-- R27 `dh facts check [dir]` resolve o harness dir como `dh harness-path [dir]` e confere R3, R4, R5 e R6. O comando também confere se cada `caminho` existe no repositório. O comando não escreve nada.
+- R27 `dh facts check [dir]` resolve o harness dir como `dh harness-path [dir]` e confere R3, R4, R5 e R6. O comando também confere se cada `caminho` é um arquivo do repositório (uma pasta não vale). O comando não escreve nada.
   - Quando o arquivo passa, então o comando sai com 0 e imprime `ok`, o número de fatos e o de candidatos.
   - Quando o arquivo não existe, então o comando sai com 0 e imprime `absent`.
   - Quando o modo é `none`, então o comando sai com 1 e nomeia a causa.
@@ -201,7 +209,7 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
 | F0 | este PRD, aprovado; entra no pull request da F1 | todas | — |
 | F1 | `dh memory --file` com lista fechada, `dh facts check`, aviso do `dh doctor`, `FACTS.md` no mod | R5, R6, R11, R12, R27, R30 | 0.47.0 |
 | F2 | escrita: bloco `Fatos candidatos` no scout, candidatos do builder e do QA, gravação pelo Coordenador, semente pelo `REPO-MAP.md`, linha de referência do setup | R1 a R4, R8 a R10, R22 a R26 | 0.48.0 |
-| F3 | curadoria: skill `facts-curation`, modo do `docs-guide`, gatilhos, seção `## Mudanças` | R7, R13 a R16 | 0.49.0 |
+| F3 | curadoria: skill `facts-curation`, modo do `docs-guide`, gatilhos, seção `## Mudanças`; o despacho do curador deve trazer a linha `Arquivos permitidos:` (ou `Conjunto de escrita:` ou `Write set:`) citando `FACTS.md`, senão o mod nega a escrita (R12) | R7, R13 a R16 | 0.49.0 |
 | F4 | leitura: categorias por papel no despacho, rótulo do reviewer, linha `Fato contradito`; docs e contagens finais | R17 a R21, R28, R29 | 0.50.0 |
 | F5 | prova: um ciclo real num projeto de teste (setup, `bootstrap`, 2 tarefas, 1 curadoria), com o `qa-verifier` conferindo tetos, trava e ausência de segredo; e a eval paga de R31 a R37, com 3 casos, 2 braços e 3 repetições, teto de US$ 80 | R5, R6, R10, R15, R31 a R37 | depois da F4; o card vai para "Entregue" só com o veredito |
 
@@ -233,6 +241,18 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
 - Risco: o custo de tokens cresce. Mitigação: tetos de R5, categorias por papel (R17) e proibição de `@import` (R24).
 - Risco: o Coordenador grava candidatos sem a trava. Mitigação: R10, mais o mod que nega o subagente (R12). O mod não obriga o Coordenador a usar o comando, como no PRD-034.
 - Risco: a eval dá piora ou fica neutra. Mitigação: os passos de R35 e a decisão do dono; o custo fica dentro do teto de R36.
+
+### Escolhas da implementação da F1 (registradas em 2026-11-18, origem: a revisão da F1)
+
+O revisor da F1 aceitou estas cinco escolhas, que o PRD não fechava, e pediu o registro aqui. Cada uma está também na regra que ela completa.
+
+- E1 Formato exato da linha de fato, com o separador ` · `, e as seções `## <categoria>`, `## Candidatos` e `## Mudanças` (R2, R3).
+- E2 A lista fixa de 12 padrões de segredo vive em `internal/harness/facts.go`, e não no `dream.md`, que não tinha lista (R6).
+- E3 O despacho do curador traz a linha `Arquivos permitidos:`, `Conjunto de escrita:` ou `Write set:` citando `FACTS.md`, para o mod reconhecer o curador (R12, F3).
+- E4 Os tetos: 150 linhas do arquivo, 12 KB = 12288 bytes, 15 fatos por categoria, 300 runas por linha de fato (R5).
+- E5 Categorias fora de ordem e seção repetida são reportadas pelo `dh facts check`, e o cabeçalho não é conferido (R2, R4).
+
+Na mesma revisão, a evidência passou a exigir um arquivo regular do repositório: uma pasta não vale (R3, R27).
 
 ### Decisões (fechadas em 2026-11-18, dono)
 
