@@ -249,9 +249,9 @@ func TestValidateSkipsWorktreesFolder(t *testing.T) {
 
 func TestAntiDelegationClauseParity(t *testing.T) {
 	block := "## External CLI reviewers\n\n```\nrule one\nrule two\n```\n"
-	skillBlock := "## The anti-delegation clause\n\n```\nrule one\nrule two\n```\n"
-	whitespaceBlock := "## The anti-delegation clause\n\n```\n rule one \n  rule two\n```\n"
-	divergentBlock := "## The anti-delegation clause\n\n```\nrule one\nrule three\n```\n"
+	skillBlock := "## A cláusula anti-delegação\n\n```\nrule one\nrule two\n```\n"
+	whitespaceBlock := "## A cláusula anti-delegação\n\n```\n rule one \n  rule two\n```\n"
+	divergentBlock := "## A cláusula anti-delegação\n\n```\nrule one\nrule three\n```\n"
 
 	tests := []struct {
 		name           string
@@ -264,6 +264,8 @@ func TestAntiDelegationClauseParity(t *testing.T) {
 		{name: "divergent", coordinator: block, skill: divergentBlock, writeSkillFile: true, want: "a cláusula anti-delegação difere entre .agents/coordinator.md e .skills/external-clis/SKILL.md"},
 		{name: "whitespace only", coordinator: block, skill: whitespaceBlock, writeSkillFile: true, want: ""},
 		{name: "skill file absent", coordinator: block, writeSkillFile: false, want: ""},
+		// S2: the English heading of the skill is no longer read, so an old-heading skill with a different block stays silent (the pairing needs both headings).
+		{name: "old English heading is not read", coordinator: block, skill: strings.Replace(divergentBlock, "## A cláusula anti-delegação", "## The anti-delegation clause", 1), writeSkillFile: true, want: ""},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -278,7 +280,7 @@ func TestAntiDelegationClauseParity(t *testing.T) {
 			}
 			joined := strings.Join(report.Errors, "\n")
 			if test.want == "" {
-				if strings.Contains(joined, "anti-delegation clause differs") {
+				if strings.Contains(joined, "a cláusula anti-delegação difere") {
 					t.Fatalf("errors = %v, want no clause-parity error", report.Errors)
 				}
 				return

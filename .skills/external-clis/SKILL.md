@@ -1,203 +1,203 @@
 ---
 name: external-clis
-description: Use when the Coordinator dispatches a review stage (`document`, `code`, `security`) that lists a `cli:<binary>/<slug>` entry in `reviewers:` (`.harness/project.yaml`), when `/dh:plan-loop` dispatches a `cli:<binary>/<slug>` planning call for a wave, when a CLI call returns without the stage's verdict signal (or, for a planning call, without recognizable plan content) and the failure needs classifying, or when a new CLI binary needs a headless invocation recipe added under `references/`. Do not use for builder roles, for interactive/TUI use of any CLI, or for the `verify` stage, which is out of scope in this version.
+description: Use quando o Coordenador despacha uma etapa de revisão (`document`, `code`, `security`) que lista uma entrada `cli:<binary>/<slug>` em `reviewers:` (`.harness/project.yaml`), quando `/dh:plan-loop` despacha uma chamada de planejamento `cli:<binary>/<slug>` para uma onda, quando uma chamada de CLI volta sem o sinal de veredito da etapa (ou, numa chamada de planejamento, sem conteúdo de plano reconhecível) e a falha precisa ser classificada, ou quando um novo binário de CLI precisa de uma receita de invocação sem interface acrescentada em `references/`. Não use para papéis de `builder`, para uso interativo/TUI de qualquer CLI, nem para a etapa `verify`, que está fora de escopo nesta versão.
 author: malka
 metadata:
   provenance: adapted
   sources: ["personal skill fleet-clis (SKILL.md, per-binary recipes, gotchas.md), not versioned in this kit"]
 ---
 
-# External CLIs
+# CLIs externas
 
-## Overview
+## Visão geral
 
-An external CLI reviewer is invoked headlessly with the same role prompt a Claude specialist would receive, so its verdict is evidence the Coordinator can trust exactly as much as a Claude reviewer's. Four parts never change per binary: resolve the binary before assuming it exists; put the prompt on disk when it is longer than one line; apply the binary's read-only mode, or run it in a disposable clone when it has none; and read the outcome through the stage's verdict signal, so a silent or malformed reply is never mistaken for approval. A `/dh:plan-loop` planning call has no verdict signal and is classified per "The planning call". Per-binary flags and quirks live in one recipe per binary under `references/`, because flag order is part of each binary's contract and mixing recipes invites copying the wrong order.
+Um revisor de CLI externa é invocado sem interface, com o mesmo prompt de papel que um especialista Claude receberia, de modo que o veredito dele é evidência em que o Coordenador pode confiar exatamente tanto quanto no de um revisor Claude. Quatro partes nunca mudam por binário: resolver o binário antes de supor que ele existe; pôr o prompt em disco quando passar de uma linha; aplicar o modo somente leitura do binário, ou rodá-lo num clone descartável quando ele não tem um; e ler o resultado pelo sinal de veredito da etapa, para que uma resposta muda ou malformada nunca seja tomada por aprovação. Uma chamada de planejamento de `/dh:plan-loop` não tem sinal de veredito e é classificada conforme "A chamada de planejamento". As flags e manias de cada binário ficam numa receita por binário em `references/`, porque a ordem das flags faz parte do contrato de cada binário e misturar receitas convida a copiar a ordem errada.
 
-## When to use
+## Quando usar
 
-- The Coordinator dispatches `cli:<binary>/<slug>` for a review stage configured in `reviewers:`, alongside or instead of the stage's Claude agent, or for an in-flight doubt (a `code` review, see "In-flight doubt"), or `/dh:plan-loop` dispatches one to draft a competing plan for a wave ("The planning call"). This skill does not choose which entry runs.
-- A role prompt (`document-validator`, `reviewer` in mode `code` or `security`) must go to an external CLI instead of a Claude specialist.
-- A call returned without the stage's verdict signal, or ran past its timeout, and the failure must be classified; or a new CLI binary needs its own recipe under `references/`.
+- O Coordenador despacha `cli:<binary>/<slug>` para uma etapa de revisão configurada em `reviewers:`, junto com o agente Claude da etapa ou no lugar dele, ou para uma dúvida no meio do build (uma revisão `code`, ver "Dúvida no meio do build"), ou `/dh:plan-loop` despacha uma para redigir um plano concorrente para uma onda ("A chamada de planejamento"). Esta skill não escolhe qual entrada roda.
+- Um prompt de papel (`document-validator`, `reviewer` no modo `code` ou `security`) precisa ir para uma CLI externa em vez de um especialista Claude.
+- Uma chamada voltou sem o sinal de veredito da etapa, ou passou do timeout, e a falha precisa ser classificada; ou um novo binário de CLI precisa da própria receita em `references/`.
 
-## When not to use
+## Quando não usar
 
-- The builder role, in any lane or mode. A CLI never writes production code, and a planning call never writes any file: it returns plan text, and `docs-guide` is the only writer of plan files.
-- Interactive or TUI use of any CLI (every call here is headless and one-shot), or installing, authenticating or updating one: a binary not installed and authenticated here is reported not-run, never provisioned.
-- The `verify` stage (`qa-verifier`), out of scope until a read-only reviewer contract exists for QA.
-- Choosing reviewers, merging N verdicts, or writing `.harness/local.yaml`: the Coordinator's own procedure.
+- O papel de `builder`, em qualquer raia ou modo. Uma CLI nunca escreve código de produção, e uma chamada de planejamento nunca escreve arquivo algum: ela devolve texto de plano, e `docs-guide` é o único que escreve arquivos de plano.
+- Uso interativo ou TUI de qualquer CLI (toda chamada aqui é sem interface e de disparo único), ou instalar, autenticar ou atualizar uma: um binário não instalado e autenticado aqui é reportado como `not-run`, nunca provisionado.
+- A etapa `verify` (`qa-verifier`), fora de escopo até existir um contrato de revisor somente leitura para o QA.
+- Escolher revisores, mesclar N vereditos ou escrever `.harness/local.yaml`: o procedimento do próprio Coordenador.
 
-## Who runs the call
+## Quem executa a chamada
 
-The Coordinator does not run a CLI call. It dispatches a `qa-verifier`, or a `builder` in lane `infra`, with the stage, the `cli:<binary>/<slug>` entry, the context bundle and the harness dir. The delegate loads this skill, runs every mechanic in it (resolve, assemble, clone, freeze, call, compare, revert, classify) and returns the block below. The Coordinator merges verdicts and never reads the reply as evidence of its own; it may open the cited raw output.
+O Coordenador não executa uma chamada de CLI. Ele despacha um `qa-verifier`, ou um `builder` na raia `infra`, com a etapa, a entrada `cli:<binary>/<slug>`, o pacote de contexto e o harness dir. O delegado carrega esta skill, executa toda a mecânica dela (resolver, montar, clonar, congelar, chamar, comparar, reverter, classificar) e devolve o bloco abaixo. O Coordenador mescla os vereditos e nunca lê a resposta como evidência própria; pode abrir a saída bruta citada.
 
 ```
-## CLI reviewer: <binary>/<slug>
-- Resolved binary: <command found on PATH, or the path taken from .harness/local.yaml>
-- Verdict: <the stage's verdict signal, verbatim> | not-run (<kind>: <reason>)
-- Timeout: <the value used, configured per reviewer or the 15-minute default>
-- Raw output: <path on disk to the prompt and the reply, if either was written there>
-- Workspace check: clean | reverted (<what the reviewer changed, now reverted>) | clone removed: <path> | notes: <new untracked files in the clone> | leftover processes: stopped / none (<match string>)
+## Revisor de CLI: <binário>/<slug>
+- Binário resolvido: <comando achado no PATH, ou o caminho tirado de .harness/local.yaml>
+- Veredito: <o sinal de veredito da etapa, literal> | not-run (<classe>: <motivo>)
+- Timeout: <o valor usado, configurado por revisor ou o padrão de 15 minutos>
+- Saída bruta: <caminho em disco do prompt e da resposta, se algum dos dois foi escrito lá>
+- Checagem do espaço de trabalho: clean | reverted (<o que o revisor alterou, agora revertido>) | clone removed: <caminho> | notes: <arquivos novos não rastreados no clone> | leftover processes: stopped / none (<string casada>)
 ```
 
-`<kind>` is one of the kinds in "Failure classification". A not-run reply always names the kind and the reason, because the Coordinator reports both to the owner at once. The last three Workspace check values apply to a call in a clone. Nothing writes to the tree or to the `<harness dir>` while a CLI call is in flight (RISK-002), the delegate included: it writes the prompt before the call starts, and only the freeze directory and the clone are written during the call.
+`<classe>` é uma das classes de "Classificação de falhas". Uma resposta `not-run` sempre nomeia a classe e o motivo, porque o Coordenador reporta os dois ao dono de imediato. Os três últimos valores da Checagem do espaço de trabalho valem para uma chamada num clone. Nada escreve na árvore nem no `<harness dir>` enquanto uma chamada de CLI está em andamento (RISK-002), delegado inclusive: ele escreve o prompt antes de a chamada começar, e só o diretório de congelamento e o clone são escritos durante a chamada.
 
-Every call is one shell command that starts with the binary name. No `timeout` or other wrapper goes before it, and no `&&`, `;` or pipe chains it with the freeze or any other step: the pre-call freeze and the post-call comparison are separate commands. Reason (2026-10-16): an allow rule such as `Bash(<binary>:*)` matches only commands that start with the binary; a wrapped call chained with a snapshot script was denied, and the same call standalone ran. The binary's own flag bounds the time where it has one; otherwise the recipe says the Bash tool timeout or `run_in_background` does. A clone call fixes the working directory with the binary's own flag inside that same command; a recipe whose binary has none starts with `cd "$CLONE" &&`, which does not match such an allow rule, so the call may need the owner's approval or be not-run.
+Toda chamada é um único comando de shell que começa com o nome do binário. Nenhum `timeout` nem outro invólucro vai antes dele, e nenhum `&&`, `;` ou pipe o encadeia com o congelamento ou com qualquer outro passo: o congelamento anterior à chamada e a comparação posterior são comandos separados. Motivo (2026-10-16): uma regra de permissão como `Bash(<binary>:*)` casa só com comandos que começam com o binário; uma chamada embrulhada e encadeada com um script de instantâneo foi negada, e a mesma chamada isolada rodou. A flag do próprio binário limita o tempo quando ele tem uma; senão a receita diz que o timeout da ferramenta Bash ou `run_in_background` faz isso. Uma chamada em clone fixa o diretório de trabalho com a flag do próprio binário dentro desse mesmo comando; uma receita cujo binário não tem essa flag começa com `cd "$CLONE" &&`, que não casa com uma regra de permissão assim, então a chamada pode precisar da aprovação do dono ou ser `not-run`.
 
-## Inputs
+## Entradas
 
-| Input (a review call; a planning call's inputs are in "The planning call") | If missing |
+| Entrada (uma chamada de revisão; as entradas de uma chamada de planejamento estão em "A chamada de planejamento") | Se faltar |
 | --- | --- |
-| Role prompt body (`.agents/reviewer.md` for `code` and `security`, `.agents/document-validator.md` for `document`), without frontmatter | Stop. A CLI reviewer never receives a prompt other than the one a Claude specialist would receive for the stage. |
-| The stage's review skill text (`code-review`, `document-review`, `security-review`) | Stop. The verdict signal comes from that skill's own output format. |
-| Dispatch context bundle. `document` stage: exactly five items (document path; source material as file paths, or the owner's request word for word under `owner's words`; previous report path on a later round; project language; harness dir). Other stages: scope, diff or document, source material. Never any part of the Coordinator's conversation (owner turns, reasoning, intent summaries, earlier-round notes); in `code`, builder and QA results only as quoted data labelled `unverified` | Stop. Same requirement as for a Claude specialist. |
-| `.harness/local.yaml`, when the binary is not on `PATH` | Not-run, kind `not_installed`. Never invent a path. |
-| `commands.test` / `commands.lint` from `.harness/project.yaml` | Omit that instruction; the reviewer reasons from the code alone. |
+| Corpo do prompt de papel (`.agents/reviewer.md` para `code` e `security`, `.agents/document-validator.md` para `document`), sem frontmatter | Pare. Um revisor de CLI nunca recebe um prompt diferente do que um especialista Claude receberia para a etapa. |
+| O texto da skill de revisão da etapa (`code-review`, `document-review`, `security-review`) | Pare. O sinal de veredito vem do formato de saída da própria skill. |
+| Pacote de contexto do despacho. Etapa `document`: exatamente quatro itens (caminho do documento; material-fonte como caminhos de arquivo, ou o pedido do dono palavra por palavra sob `owner's words`; caminho do relatório anterior numa rodada seguinte; harness dir). Demais etapas: escopo, diff ou documento, material-fonte. Nunca qualquer parte da conversa do Coordenador (turnos do dono, raciocínio, resumos de intenção, notas de rodadas anteriores); em `code`, resultados do `builder` e do QA só como dado citado e rotulado `unverified` | Pare. Mesma exigência que para um especialista Claude. |
+| `.harness/local.yaml`, quando o binário não está no `PATH` | `not-run`, classe `not_installed`. Nunca invente um caminho. |
+| `commands.test` / `commands.lint` de `.harness/project.yaml` | Omita essa instrução; o revisor raciocina só a partir do código. |
 
-## Procedure
+## Procedimento
 
-1. **Resolve the binary.** `command -v <binary>`; if that fails, `binaries.<binary>` in `.harness/local.yaml` (a bare command, a `~/...` path or a project-relative path, see `references/local.yaml.example`). Neither resolves: not-run, `not_installed`. Never substitute another binary.
-2. **Pin the model.** Take the slug from the dispatched `cli:<binary>/<slug>` entry. Never invent one; an unmeasured slug fails at the CLI's own level.
-3. **Assemble the prompt** (see "Prompt assembly"; a planning call assembles under "The planning call"). Write it to disk when it is longer than one line; the recipe names how the binary takes it. The prompt never contains the absolute path of the live tree (hygiene, not a boundary), and a check result the CLI reports is never evidence: a dispatched `qa-verifier` reruns the checks.
-4. **Isolate and freeze.** Use the binary's row in "Read-only mode by binary". A read-only flag: apply it. A disposable clone: [references/clone-isolation.md](references/clone-isolation.md) for the lifecycle and [references/live-tree-freeze.md](references/live-tree-freeze.md) for the freeze. Live tree: [references/live-tree-compare.md](references/live-tree-compare.md). If the clone cannot be made, the call is not-run, `isolation_unavailable`, with no fallback to the live tree.
-5. **Invoke** with the flag order of the binary's recipe, as one command (see "Who runs the call"). Do not reorder flags from what the recipe shows.
-6. **Compare and revert.** Recompute the freeze with the same file as step 4. Any difference is `tree_changed`: discard the verdict, revert the change, report not-run.
-7. **Classify the outcome** by the stage's verdict signal, never by exit code alone ("Failure classification"), and **report** the block in "Who runs the call". Merging verdicts and writing a persistent report are the Coordinator's.
+1. **Resolva o binário.** `command -v <binary>`; se falhar, `binaries.<binary>` em `.harness/local.yaml` (um comando simples, um caminho `~/...` ou um caminho relativo ao projeto, ver `references/local.yaml.example`). Nenhum resolve: `not-run`, `not_installed`. Nunca substitua por outro binário.
+2. **Fixe o modelo.** Pegue o slug da entrada `cli:<binary>/<slug>` despachada. Nunca invente um; um slug não medido falha no nível da própria CLI.
+3. **Monte o prompt** (ver "Montagem do prompt"; uma chamada de planejamento é montada conforme "A chamada de planejamento"). Escreva-o em disco quando passar de uma linha; a receita diz como o binário o recebe. O prompt nunca contém o caminho absoluto da árvore viva (higiene, não uma fronteira), e o resultado de uma checagem que a CLI reporta nunca é evidência: um `qa-verifier` despachado roda as checagens de novo.
+4. **Isole e congele.** Use a linha do binário em "Modo somente leitura por binário". Uma flag somente leitura: aplique-a. Um clone descartável: [references/clone-isolation.md](references/clone-isolation.md) para o ciclo de vida e [references/live-tree-freeze.md](references/live-tree-freeze.md) para o congelamento. Árvore viva: [references/live-tree-compare.md](references/live-tree-compare.md). Se o clone não puder ser feito, a chamada é `not-run`, `isolation_unavailable`, sem recuo para a árvore viva.
+5. **Invoque** com a ordem de flags da receita do binário, como um único comando (ver "Quem executa a chamada"). Não reordene as flags em relação ao que a receita mostra.
+6. **Compare e reverta.** Recalcule o congelamento com o mesmo arquivo do passo 4. Qualquer diferença é `tree_changed`: descarte o veredito, reverta a alteração, reporte `not-run`.
+7. **Classifique o resultado** pelo sinal de veredito da etapa, nunca só pelo código de saída ("Classificação de falhas"), e **reporte** o bloco de "Quem executa a chamada". Mesclar vereditos e escrever um relatório persistente cabem ao Coordenador.
 
-## Prompt assembly
+## Montagem do prompt
 
-A review prompt holds, verbatim and in its body, never only in a frontmatter field or a dispatch instruction the CLI's runtime is trusted to enforce: the role prompt body, the stage's review skill text, the context bundle as limited under Inputs, the reviewer's tag line, the anti-delegation clause, the "Reading is allowed" block and the verdict contract, all below. A CLI reviewer reads the stage's output format as one section among many and paraphrases its verdict signal unless the prompt states it as a requirement; a measured run (2026-09-22) returned a correct blocking verdict written as `- **Request changes**` with no `Review status:` line, which classification would have thrown away. A reviewer never told its own tag invents one, so the tag is one line of the prompt naming the exact string it must write in every finding's `Reported by:` field. A call in a clone also carries the `commands.test`/`commands.lint` block, which runs in the clone.
+Um prompt de revisão contém, literalmente e no corpo, nunca só num campo de frontmatter nem numa instrução de despacho que o ambiente de execução da CLI se confie a fazer cumprir: o corpo do prompt de papel, o texto da skill de revisão da etapa, o pacote de contexto como limitado em Entradas, a linha de tag do revisor, a cláusula anti-delegação, o bloco "Ler é permitido" e o contrato de veredito, todos abaixo. Um revisor de CLI lê o formato de saída da etapa como uma seção entre muitas e parafraseia o sinal de veredito a menos que o prompt o declare como exigência; uma execução medida (2026-09-22) devolveu um veredito bloqueante correto escrito como `- **Request changes**` sem linha `Status da revisão:`, que a classificação teria descartado. Um revisor a quem ninguém diz a própria tag inventa uma, então a tag é uma linha do prompt que nomeia a string exata que ele deve escrever no campo `Reportado por:` de cada achado. Uma chamada num clone também leva o bloco `commands.test`/`commands.lint`, que roda no clone.
 
-## The anti-delegation clause
+## A cláusula anti-delegação
 
-Copy this block verbatim into the body of every CLI reviewer prompt, not just into the dispatch instruction around it:
-
-```
-Do not invoke another CLI binary, spawn another agent, or delegate any part
-of this review to another tool. Do not execute any script in this
-repository. The only commands you may run are the project's own
-`commands.test` and `commands.lint`, exactly as declared in
-`.harness/project.yaml`, and only to read the result of the existing test
-or lint suite — never `commands.build` or any other repository command.
-This instruction is written here, in the prompt text, because the runtime
-does not enforce it by itself: a specialist in this project once ignored a
-`disallowedTools` restriction declared only in its frontmatter and
-dispatched another agent anyway. Follow the words in this prompt, not an
-assumption about what the runtime blocks.
-```
-
-`commands.test`/`commands.lint` is the only execution this skill permits a CLI reviewer, never `commands.build`, which can rewrite versioned artifacts such as `dist/` and trip the reversion. A recipe states where this permission is inert in practice.
-
-## Reading is allowed
-
-Append this block, verbatim, to every CLI reviewer prompt, alongside the clause above. A reviewer that reads the clause as a ban on opening files has misread it; the block exists because that misreading was observed:
+Copie este bloco literalmente para o corpo de todo prompt de revisor de CLI, não só para a instrução de despacho em volta:
 
 ```
-Reading any file in this repository is allowed and expected — the clause
-above forbids executing scripts and delegating this review to another
-tool, not reading.
+Não invoque outro binário de CLI, não crie outro agente nem delegue qualquer parte
+desta revisão a outra ferramenta. Não execute nenhum script deste
+repositório. Os únicos comandos que você pode rodar são o `commands.test` e o
+`commands.lint` do próprio projeto, exatamente como declarados em
+`.harness/project.yaml`, e só para ler o resultado da suíte de testes
+ou de lint existente — nunca `commands.build` nem qualquer outro comando do repositório.
+Esta instrução está escrita aqui, no texto do prompt, porque o ambiente de execução
+não a faz cumprir por si só: um especialista deste projeto já ignorou uma
+restrição `disallowedTools` declarada apenas no frontmatter e
+despachou outro agente mesmo assim. Siga as palavras deste prompt, não uma
+suposição sobre o que o ambiente de execução bloqueia.
 ```
 
-## The verdict contract
+`commands.test`/`commands.lint` é a única execução que esta skill permite a um revisor de CLI, nunca `commands.build`, que pode reescrever artefatos versionados como `dist/` e disparar a reversão. Uma receita diz onde essa permissão é inerte na prática.
 
-Append this block to every CLI reviewer prompt, with `<stage signal>` and `<stage section>` replaced from the table below:
+## Ler é permitido
+
+Acrescente este bloco, literalmente, a todo prompt de revisor de CLI, junto com a cláusula acima. Um revisor que lê a cláusula como proibição de abrir arquivos a entendeu mal; o bloco existe porque esse mal-entendido foi observado:
 
 ```
-Your reply must contain, on its own line, exactly this line, with no bold, no
-quoting and no extra words before it:
-<stage signal>
-Write it inside the `<stage section>` section of the output format above. Every
-other part of your reply follows that format as written. A reply without this
-exact line is discarded as a transport failure and your review is recorded as
-not-run, however sound its content.
+Ler qualquer arquivo deste repositório é permitido e esperado — a cláusula
+acima proíbe executar scripts e delegar esta revisão a outra
+ferramenta, não ler.
 ```
 
-And, on its own line: `Your Reported by: tag for this review is cli:<binary>/<slug>. Write that string, exactly, on every finding you report.` This is the one verdict format of the kit; no recipe defines another.
+## O contrato de veredito
 
-| Stage | `<stage section>` | `<stage signal>` (matched as a prefix of a line, never whole-line equality) |
+Acrescente este bloco a todo prompt de revisor de CLI, com `<sinal da etapa>` e `<seção da etapa>` substituídos a partir da tabela abaixo:
+
+```
+Sua resposta deve conter, em uma linha própria, exatamente esta linha, sem negrito, sem
+citação e sem palavras extras antes dela:
+<sinal da etapa>
+Escreva-a dentro da seção `<seção da etapa>` do formato de saída acima. Todas as
+outras partes da sua resposta seguem esse formato como escrito. Uma resposta sem esta
+linha exata é descartada como falha de transporte e sua revisão é registrada como
+`not-run`, por mais sólido que seja o conteúdo.
+```
+
+E, em linha própria: `Sua tag Reportado por: para esta revisão é cli:<binary>/<slug>. Escreva essa string, exatamente, em todo achado que você reportar.` Este é o único formato de veredito do kit; nenhuma receita define outro.
+
+| Etapa | `<seção da etapa>` | `<sinal da etapa>` (casado como prefixo de uma linha, nunca por igualdade da linha inteira) |
 | --- | --- | --- |
-| `document` | `## Verdict` | `- approved` or `- changes required` |
-| `code` | `## Verdict` | `- Review status: approve` or `- Review status: request changes` |
-| `security` | `## Findings` | `### <SEVERITY>: <title>` per finding, or `- No demonstrated vulnerability or confirmed exposure found in the reviewed scope` (the full sentence continues "; unresolved hypotheses remain listed below": match the prefix) |
+| `document` | `## Veredito` | `- approved` ou `- changes required` |
+| `code` | `## Veredito` | `- Status da revisão: approve` ou `- Status da revisão: request changes` |
+| `security` | `## Achados` | `### <SEVERIDADE>: <título>` por achado, ou `- Nenhuma vulnerabilidade demonstrada ou exposição confirmada encontrada no escopo revisado` (a frase completa continua com `; as hipóteses não resolvidas continuam listadas abaixo`: case o prefixo) |
 
-`security` has no `## Verdict` section: its Output format goes straight to `## Findings`, where its signal lives. A trailing clause, footnote or punctuation after the matched text never turns a real verdict into a failure.
+`security` não tem seção `## Veredito`: o formato de saída dela vai direto para `## Achados`, onde está o sinal. Uma cláusula final, nota de rodapé ou pontuação depois do texto casado nunca transforma um veredito real numa falha. Até a 0.46.0 casam também os sinais em inglês de um relatório escrito antes da 0.43.0 (`- Review status: approve` ou `- Review status: request changes`, e `## Findings` com `### <SEVERITY>: <title>`); quem escreve usa sempre os rótulos em pt-BR desta tabela.
 
-## Failure classification
+## Classificação de falhas
 
-A call that did not return a usable reply is not-run with one kind. Every kind gets the same action: report not-run with that kind as the reason, spend no review round, never count it as approval or rejection, and make no automatic retry. The Coordinator tells the owner at once, naming the reviewer and the kind. `tree_changed` also discards the verdict, whatever it said.
+Uma chamada que não devolveu uma resposta utilizável é `not-run` com uma classe. Toda classe recebe a mesma ação: reportar `not-run` com essa classe como motivo, não gastar rodada de revisão, nunca contar como aprovação nem como rejeição e não fazer nova tentativa automática. O Coordenador avisa o dono de imediato, nomeando o revisor e a classe. `tree_changed` também descarta o veredito, seja qual for.
 
-| Kind | Detection |
+| Classe | Detecção |
 | --- | --- |
-| `not_installed` | `command -v` fails and `binaries.<binary>` in `.harness/local.yaml` is absent or does not resolve. A `command -v` miss alone is not enough: some binaries sit only on a login-shell `PATH`. |
-| `auth_required` | The CLI's output asks to log in or reports missing or invalid credentials. |
-| `rate_limited` | The CLI's output reports a rate, quota or usage limit. |
-| `timed_out` | The binary's own timeout or the Bash tool timeout fired, or the process outlived a complete reply (the recipe says how to stop it). |
-| `no_signal` | Exit 0, or any exit with no other kind, and the reply lacks the stage's verdict signal: help text, a reasoning preamble, an empty file, a section with neither outcome. A planning call: no recognizable plan content. |
-| `tree_changed` | The freeze comparison differs (live tree, or the judged set of the clone). The change is reverted first. |
-| `isolation_unavailable` | The clone could not be created or matched, a precondition of the isolation procedure failed, or a live-tree review ran in a project whose `.git` is not a directory (see `live-tree-compare.md`). No fallback to the live tree. |
+| `not_installed` | `command -v` falha e `binaries.<binary>` em `.harness/local.yaml` está ausente ou não resolve. Uma falha de `command -v` sozinha não basta: alguns binários ficam só no `PATH` de um shell de login. |
+| `auth_required` | A saída da CLI pede login ou reporta credenciais ausentes ou inválidas. |
+| `rate_limited` | A saída da CLI reporta um limite de taxa, de cota ou de uso. |
+| `timed_out` | O timeout do próprio binário ou o timeout da ferramenta Bash disparou, ou o processo sobreviveu a uma resposta completa (a receita diz como pará-lo). |
+| `no_signal` | Saída 0, ou qualquer saída sem outra classe, e a resposta não tem o sinal de veredito da etapa: texto de ajuda, um preâmbulo de raciocínio, um arquivo vazio, uma seção sem nenhum dos resultados. Numa chamada de planejamento: nenhum conteúdo de plano reconhecível. |
+| `tree_changed` | A comparação do congelamento difere (árvore viva, ou o conjunto julgado do clone). A alteração é revertida primeiro. |
+| `isolation_unavailable` | O clone não pôde ser criado nem casado, uma precondição do procedimento de isolamento falhou, ou uma revisão na árvore viva rodou num projeto cujo `.git` não é um diretório (ver `live-tree-compare.md`). Sem recuo para a árvore viva. |
 
-**Recovering a deviating verdict.** One narrow exception to `no_signal`, because discarding a blocking verdict is worse than reading a deviating one: when the reply has the stage's own verdict section (`## Verdict` for `document` and `code`, `## Findings` for `security`) and that section contains exactly one of the stage's two outcomes (`approved` or `changes required`; `approve` or `request changes`; for `security`, a severity entry for at least one finding, or a statement that none was found), in any emphasis or punctuation, read it as that outcome and record the deviation beside it (`verdict recovered: the reviewer wrote "<the line it actually wrote>"`). Both outcomes, neither, or the section absent (for `security`, findings and a clean statement together) stays `no_signal`. The recovery never upgrades anything: a recovered approval is one reviewer's approval, a recovered blocking verdict blocks as a well-formed one would. Known cases per kind: [references/gotchas.md](references/gotchas.md).
+**Recuperar um veredito divergente.** Uma exceção estreita a `no_signal`, porque descartar um veredito bloqueante é pior do que ler um divergente: quando a resposta tem a seção de veredito da própria etapa (`## Veredito` para `document` e `code`, `## Achados` para `security`) e essa seção contém exatamente um dos dois resultados da etapa (`approved` ou `changes required`; `approve` ou `request changes`; para `security`, uma entrada de severidade para pelo menos um achado, ou uma declaração de que nenhum foi achado), com qualquer ênfase ou pontuação, leia-a como esse resultado e registre o desvio ao lado (`veredito recuperado: o revisor escreveu "<a linha que ele de fato escreveu>"`). Os dois resultados, nenhum, ou a seção ausente (para `security`, achados e uma declaração de limpeza juntos) continua `no_signal`. A recuperação nunca promove nada: uma aprovação recuperada é a aprovação de um só revisor, um veredito bloqueante recuperado bloqueia como um bem formado bloquearia. Casos conhecidos por classe: [references/gotchas.md](references/gotchas.md).
 
-## Read-only mode by binary
+## Modo somente leitura por binário
 
-The index of the fleet: how each binary is isolated, and whether it may plan. A read-only flag qualifies a binary as a planner only with a recorded, dated probe in which the CLI was asked to create a file and run a shell command and refused both. A disposable clone qualifies it too. The clone is not a sandbox, so the qualification is stated as it is: disposable clone; writes outside it are detected on the live tree, never prevented; writes outside the project are not detected.
+O índice da frota: como cada binário é isolado e se ele pode planejar. Uma flag somente leitura qualifica um binário como planejador só com uma sondagem registrada e datada em que a CLI foi instruída a criar um arquivo e a rodar um comando de shell e recusou os dois. Um clone descartável também o qualifica. O clone não é um sandbox, então a qualificação é dita como é: clone descartável; escritas fora dele são detectadas na árvore viva, nunca impedidas; escritas fora do projeto não são detectadas.
 
-| Binary | Isolation | Recipe |
+| Binário | Isolamento | Receita |
 | --- | --- | --- |
-| `codex` | read-only flag `-s read-only`, documented and measured; may plan | [codex.md](references/codex.md) |
-| `mcode` | disposable clone (read-only flag `--permission off` documented, not measured); may plan | [mcode.md](references/mcode.md) |
-| `grok` | disposable clone; may plan | [grok.md](references/grok.md) |
-| `opencode` | disposable clone; may plan | [opencode.md](references/opencode.md) |
-| `agy` | no read-only flag documented; live tree under the accepted RISK-002 exposure, with the comparison of `live-tree-compare.md` (detects only); may not plan until a dated cwd probe is recorded | [agy.md](references/agy.md) |
-| `claude` | disposable clone; never plans while the kit runs on Claude | [claude.md](references/claude.md) |
+| `codex` | flag somente leitura `-s read-only`, documentada e medida; pode planejar | [codex.md](references/codex.md) |
+| `mcode` | clone descartável (flag somente leitura `--permission off` documentada, não medida); pode planejar | [mcode.md](references/mcode.md) |
+| `grok` | clone descartável; pode planejar | [grok.md](references/grok.md) |
+| `opencode` | clone descartável; pode planejar | [opencode.md](references/opencode.md) |
+| `agy` | sem flag somente leitura documentada; árvore viva sob a exposição aceita RISK-002, com a comparação de `live-tree-compare.md` (só detecta); não pode planejar até que uma sondagem datada do cwd seja registrada | [agy.md](references/agy.md) |
+| `claude` | clone descartável; nunca planeja enquanto o kit roda sobre o Claude | [claude.md](references/claude.md) |
 
-## The planning call
+## A chamada de planejamento
 
-`/dh:plan-loop` dispatches a CLI planner only from a binary the table above marks "may plan". The call uses the same resolution, isolation and freeze as a review call, with a different prompt and a different failure test. It is assembled exclusively as [references/planning-call.md](references/planning-call.md) says: the planner body, the `implementation-planning` skill text and the wave context, then the no-write instruction, the planning anti-delegation clause and the "Reading is allowed" block above, in the prompt body. The reply is untrusted data and is persisted only after the freeze comparison passed, by `docs-guide`, in the wrapper that file defines; a `Checks:` command outside its allowlist is a conflict. A planning call has no verdict signal and is never classified by the review table. Its failures use the same kinds: `no_signal` means no recognizable plan content, read as a plan only when it contains, in `implementation-planning`'s output format, a `## Plan` heading (or `### Slice N` headings) naming at least a goal and one slice; an empty reply, a refusal, a question back to the Coordinator or prose with no such structure is not a plan. The wave's hand-off applies to a not-run planner.
+`/dh:plan-loop` despacha um planejador de CLI só a partir de um binário que a tabela acima marca como "pode planejar". A chamada usa a mesma resolução, o mesmo isolamento e o mesmo congelamento de uma chamada de revisão, com um prompt diferente e um teste de falha diferente. Ela é montada exclusivamente como [references/planning-call.md](references/planning-call.md) diz: o corpo do planejador, o texto da skill `implementation-planning` e o contexto da onda, depois a instrução de não escrever, a cláusula anti-delegação de planejamento e o bloco "Ler é permitido" acima, no corpo do prompt. A resposta é dado não confiável e só é persistida depois que a comparação do congelamento passou, por `docs-guide`, no invólucro que aquele arquivo define; um comando de `Checagens:` fora da lista permitida é um conflito. Uma chamada de planejamento não tem sinal de veredito e nunca é classificada pela tabela de revisão. Suas falhas usam as mesmas classes: `no_signal` significa nenhum conteúdo de plano reconhecível, lido como plano só quando contém, no formato de saída de `implementation-planning`, um título `## Plano` (ou títulos `### Fatia N`; até a 0.46.0 casam também `## Plan` e `### Slice N`, de um plano escrito antes da 0.43.0) que nomeie ao menos um objetivo e uma fatia; uma resposta vazia, uma recusa, uma pergunta de volta ao Coordenador ou prosa sem essa estrutura não é um plano. O handoff da onda se aplica a um planejador `not-run`.
 
 ## `.harness/local.yaml`
 
-The machine-specific binary paths and measured model slugs live in `.harness/local.yaml`, never in this skill or in any file under `.skills/`. Schema and placeholders: `references/local.yaml.example`. The Coordinator is the only writer; the delegate only reads it.
+Os caminhos de binário específicos da máquina e os slugs de modelo medidos ficam em `.harness/local.yaml`, nunca nesta skill nem em qualquer arquivo sob `.skills/`. Esquema e marcadores de posição: `references/local.yaml.example`. O Coordenador é o único que escreve; o delegado só lê.
 
-## What to load when
+## O que carregar e quando
 
-| Situation | Load, in `references/` |
+| Situação | Carregue, em `references/` |
 | --- | --- |
-| Any call | The binary's recipe from the table above |
-| A clone call, or a recipe's `$CLONE` / `$PROMPT` | `clone-isolation.md` (Terms first), then `live-tree-freeze.md` for the freeze, compare, revert and prompt hygiene |
-| A call on the live tree (no clone) | `live-tree-compare.md` |
-| A planning call | `planning-call.md` |
-| A call failed or looks odd | `gotchas.md`, then add the new case under its kind |
-| Writing `local.yaml` (Coordinator) | `local.yaml.example` |
+| Qualquer chamada | A receita do binário, da tabela acima |
+| Uma chamada em clone, ou um `$CLONE` / `$PROMPT` de receita | `clone-isolation.md` (Termos primeiro), depois `live-tree-freeze.md` para o congelamento, a comparação, a reversão e a higiene do prompt |
+| Uma chamada na árvore viva (sem clone) | `live-tree-compare.md` |
+| Uma chamada de planejamento | `planning-call.md` |
+| Uma chamada falhou ou parece estranha | `gotchas.md`, depois acrescente o caso novo sob a sua classe |
+| Escrever `local.yaml` (Coordenador) | `local.yaml.example` |
 
-## Quick reference
+## Referência rápida
 
-- One command, first word the binary; flags and prompt input from the recipe; compare the freeze after every call.
-- The outcome is the stage's verdict signal, never the exit code. Not-run: one kind, no round, no retry, owner told at once.
+- Um comando, a primeira palavra é o binário; flags e entrada do prompt vêm da receita; compare o congelamento depois de toda chamada.
+- O resultado é o sinal de veredito da etapa, nunca o código de saída. `not-run`: uma classe, sem rodada, sem nova tentativa, dono avisado de imediato.
 
-## Common mistakes
+## Erros comuns
 
-| Mistake | Why it hurts | Do instead |
+| Erro | Por que prejudica | Em vez disso |
 | --- | --- | --- |
-| Building the context bundle with a directory pathspec, such as `git show <sha> -- 'evals/cases/*/graders'` | Git matches files, not directories: the command succeeds with an empty diff and the reviewer silently judges a scope that was never sent (measured 2026-09-22) | Match files (`'evals/cases/*/graders/*'`) and check the byte count of the bundle before sending it |
-| Leaving out the clause, the "Reading is allowed" block or the verdict contract, or putting them only in the dispatch instruction | The runtime does not enforce a restriction stated outside the prompt body (RISK-001), and a real CLI writes its own verdict shape | Copy the blocks verbatim into the prompt text; a planning call follows "The planning call" instead |
-| Treating exit 0 as a pass, or letting a reviewer run `commands.build` | Help text, a preamble and a silent no-op all exit 0; a build can rewrite versioned artifacts such as `dist/` | Read the stage's verdict signal; the clause permits only `commands.test`/`commands.lint` |
-| Calling the clone isolated, safe or a sandbox, or assuming a binary without a read-only flag cannot touch the workspace | The CLI runs as the same user and reaches the machine by absolute path | Say it as it is: disposable clone; writes outside it are detected on the live tree, never prevented; writes outside the project are not detected |
-| Retrying a not-run call on your own, or approving by omission | A retry hides the failure from the owner; an omitted reviewer is not an approval | Report the kind and reason; the Coordinator decides |
+| Montar o pacote de contexto com um `pathspec` de diretório, como `git show <sha> -- 'evals/cases/*/graders'` | O git casa arquivos, não diretórios: o comando tem sucesso com um diff vazio e o revisor julga em silêncio um escopo que nunca foi enviado (medido em 2026-09-22) | Case arquivos (`'evals/cases/*/graders/*'`) e confira o tamanho em bytes do pacote antes de enviá-lo |
+| Deixar de fora a cláusula, o bloco "Ler é permitido" ou o contrato de veredito, ou pô-los só na instrução de despacho | O ambiente de execução não faz cumprir uma restrição declarada fora do corpo do prompt (RISK-001), e uma CLI real escreve o próprio formato de veredito | Copie os blocos literalmente para o texto do prompt; uma chamada de planejamento segue "A chamada de planejamento" |
+| Tratar saída 0 como aprovação, ou deixar um revisor rodar `commands.build` | Texto de ajuda, um preâmbulo e uma operação nula e silenciosa saem todos com 0; um build pode reescrever artefatos versionados como `dist/` | Leia o sinal de veredito da etapa; a cláusula permite só `commands.test`/`commands.lint` |
+| Chamar o clone de isolado, seguro ou sandbox, ou supor que um binário sem flag somente leitura não pode tocar o espaço de trabalho | A CLI roda como o mesmo usuário e alcança a máquina por caminho absoluto | Diga como é: clone descartável; escritas fora dele são detectadas na árvore viva, nunca impedidas; escritas fora do projeto não são detectadas |
+| Repetir por conta própria uma chamada `not-run`, ou aprovar por omissão | Uma nova tentativa esconde a falha do dono; um revisor omitido não é uma aprovação | Reporte a classe e o motivo; o Coordenador decide |
 
-## Example
+## Exemplo
 
-A `code` stage lists `["claude", "cli:codex/<slug>"]`. The delegate resolves `codex`, assembles the prompt from `.agents/reviewer.md`'s body (mode `code`), `code-review`'s skill text, the diff and the blocks above, writes it to disk, freezes the live tree, runs `codex exec --skip-git-repo-check -s read-only -m <slug> - < prompt.md`, recompares the freeze and reads the reply for `Review status:` under `## Verdict`. Found: that is the verdict. Exit 0 with no `## Verdict` section: not-run, kind `no_signal`, no round spent.
+Uma etapa `code` lista `["claude", "cli:codex/<slug>"]`. O delegado resolve `codex`, monta o prompt a partir do corpo de `.agents/reviewer.md` (modo `code`), do texto da skill `code-review`, do diff e dos blocos acima, escreve-o em disco, congela a árvore viva, roda `codex exec --skip-git-repo-check -s read-only -m <slug> - < prompt.md`, recompara o congelamento e lê a resposta atrás de `Status da revisão:` sob `## Veredito`. Achado: esse é o veredito. Saída 0 sem seção `## Veredito`: `not-run`, classe `no_signal`, nenhuma rodada gasta.
 
-A `document` stage lists `["claude", "cli:grok/<slug>"]`. `grok` has no read-only mode, so the delegate follows the clone order of `references/live-tree-freeze.md` (freeze, create and match the clone, freeze the clone, write the prompt, call `grok --always-approve --cwd "<clone>" --prompt-file "<prompt>"`, recompare the clone, compare and revert the live tree, remove the clone and the freeze directory). A difference in either comparison is not-run, `tree_changed`; a clone that cannot be matched is `isolation_unavailable`. The reply adds `clone removed: <path>`.
+Uma etapa `document` lista `["claude", "cli:grok/<slug>"]`. `grok` não tem modo somente leitura, então o delegado segue a ordem de clone de `references/live-tree-freeze.md` (congelar, criar e casar o clone, congelar o clone, escrever o prompt, chamar `grok --always-approve --cwd "<clone>" --prompt-file "<prompt>"`, recomparar o clone, comparar e reverter a árvore viva, remover o clone e o diretório de congelamento). Uma diferença em qualquer das comparações é `not-run`, `tree_changed`; um clone que não pôde ser casado é `isolation_unavailable`. A resposta acrescenta `clone removed: <path>`.
 
-## In-flight doubt
+## Dúvida no meio do build
 
-An in-flight doubt call is a `code` review assembled on the same path as any code review: the role body, `code-review`, the context bundle, the anti-delegation clause, the "Reading is allowed" block and the code verdict contract. The bundle is the artifact and the contract only, plus the adversarial instruction in `code-review` under "In-flight doubt"; the author's claim is not part of it. The verdict signal stays the code signal. Choosing which entry runs is the Coordinator's procedure in `.agents/coordinator.md`; this skill still covers one binary.
+Uma chamada de dúvida no meio do build é uma revisão `code` montada pelo mesmo caminho de qualquer revisão de código: o corpo do papel, `code-review`, o pacote de contexto, a cláusula anti-delegação, o bloco "Ler é permitido" e o contrato de veredito de código. O pacote é só o artefato e o contrato, mais a instrução adversarial de `code-review` em "Dúvida no meio do build"; a afirmação do autor não faz parte dele. O sinal de veredito continua sendo o sinal de código. Escolher qual entrada roda é o procedimento do Coordenador em `.agents/coordinator.md`; esta skill ainda cobre um binário.
 
-## Related
+## Relacionado
 
-Roles: coordinator, document-validator, reviewer, implementation-planner. Commands: `/dh:review`, `/dh:discover`, `/dh:secure`, `/dh:plan-loop`, `/dh:auto` (loads this skill). Skills: code-review, document-review, security-review (own the verdict formats this skill reads), implementation-planning (owns the output format "The planning call" tests for), project-onboarding (`.harness/local.yaml` is written on first CLI reviewer invocation, not by setup).
+Papéis: coordinator, document-validator, reviewer, implementation-planner. Comandos: `/dh:review`, `/dh:discover`, `/dh:secure`, `/dh:plan-loop`, `/dh:auto` (carrega esta skill). Skills: code-review, document-review, security-review (donas dos formatos de veredito que esta skill lê), implementation-planning (dona do formato de saída que "A chamada de planejamento" testa), project-onboarding (`.harness/local.yaml` é escrito na primeira invocação de revisor de CLI, não pelo setup).
 
-## Proof case
+## Caso de prova
 
-Given a `code` stage with a Claude reviewer and a CLI reviewer that has a read-only flag, the CLI call is assembled from the same role and skill text the Claude reviewer receives, run with that flag, and read for `Review status:` under `## Verdict`, not trusted on exit code. Given exit 0 with a reasoning preamble and no `## Verdict` section, it is reported not-run, kind `no_signal`, spends no round, is never read as approval and is not retried. Given a call that changed a file despite the flag, or a clone call that wrote a file on the live tree by absolute path, the comparison detects it, the change is reverted, the verdict is discarded and it is reported not-run, `tree_changed`; the clone is removed either way, and a write outside the project directory is not detected. An in-flight doubt call uses the same assembly with the author's claim left out of the bundle.
+Dada uma etapa `code` com um revisor Claude e um revisor de CLI que tem uma flag somente leitura, a chamada de CLI é montada a partir do mesmo texto de papel e de skill que o revisor Claude recebe, rodada com essa flag e lida atrás de `Status da revisão:` sob `## Veredito`, sem confiar no código de saída. Dada uma saída 0 com um preâmbulo de raciocínio e sem seção `## Veredito`, ela é reportada como `not-run`, classe `no_signal`, não gasta rodada, nunca é lida como aprovação e não é repetida. Dada uma chamada que alterou um arquivo apesar da flag, ou uma chamada em clone que escreveu um arquivo na árvore viva por caminho absoluto, a comparação detecta, a alteração é revertida, o veredito é descartado e ela é reportada como `not-run`, `tree_changed`; o clone é removido de qualquer forma, e uma escrita fora do diretório do projeto não é detectada. Uma chamada de dúvida no meio do build usa a mesma montagem com a afirmação do autor deixada fora do pacote.

@@ -1,194 +1,193 @@
 ---
 name: requirements-discovery
-description: Use when a request names a pain, an audience or an outcome but no testable behavior, when two readings of the same ask would produce different software, or when acceptance criteria must exist before a plan can be written. Do not use when acceptance already exists, when the user asked for a plan, a patch or a review, or when the only missing piece is knowing where the code lives.
+description: Use quando um pedido nomeia uma dor, um público ou um resultado, mas nenhum comportamento testável, quando duas leituras do mesmo pedido produziriam softwares diferentes, ou quando critérios de aceite precisam existir antes que um plano possa ser escrito. Não use quando o aceite já existe, quando o usuário pediu um plano, um patch ou uma revisão, ou quando a única peça que falta é saber onde o código está.
 author: malka
 metadata:
   provenance: adapted
   sources: ["product-discovery role", "brainstorming", "grilling", " discovery-agent", "addyosmani/agent-skills (MIT); mechanism adapted, not copied"]
 ---
 
-# Requirements Discovery
+# Descoberta de requisitos
 
-## Overview
+## Visão geral
 
-Turn a vague ask into five things a builder can act on: the current situation, the desired outcome, concrete examples, the alternatives considered, and the limits. The output is a brief short enough to read in one sitting and specific enough to plan from. Questions cost the user's attention, so only decisions that would change what gets built are worth asking about; everything findable is found, not asked. This skill writes discovery artifacts only: brief, acceptance, open decisions. Never application source, configuration or test files.
+Transforme um pedido vago em cinco coisas em que um construtor possa agir: a situação atual, o resultado desejado, exemplos concretos, as alternativas consideradas e os limites. A saída é um resumo curto o bastante para ler de uma vez e específico o bastante para planejar a partir dele. Perguntas custam a atenção do usuário, então só vale perguntar sobre decisões que mudariam o que será construído; tudo o que dá para encontrar é encontrado, não perguntado. Esta skill escreve só artefatos de descoberta: resumo, aceite, decisões em aberto. Nunca código-fonte da aplicação, configuração ou arquivos de teste.
 
-## When to use
+## Quando usar
 
-- The request describes a pain, a user or a goal, but no observable behavior.
-- Two honest readings of the same sentence would lead to different builds.
-- Nobody can say what "done" looks like without inventing it mid-build.
-- The ask is large enough that it may be several independent pieces rather than one.
-- A previous attempt shipped the wrong thing and the cause was ambiguity, not execution.
+- O pedido descreve uma dor, um usuário ou um objetivo, mas nenhum comportamento observável.
+- Duas leituras honestas da mesma frase levariam a construções diferentes.
+- Ninguém sabe dizer como é o "pronto" sem inventá-lo no meio do build.
+- O pedido é grande o bastante para ser várias peças independentes em vez de uma só.
+- Uma tentativa anterior entregou a coisa errada e a causa foi ambiguidade, não execução.
 
-## When not to use
+## Quando não usar
 
-- Acceptance criteria already exist and are testable. Go to implementation-planning.
-- The user asked for a patch, a plan, a review or a map.
-- The unknown is the codebase, not the intent. Use repository-mapping.
-- A brief exists and the goal has not changed. Do not reopen a closed brief for polish.
+- Os critérios de aceite já existem e são testáveis. Vá para `implementation-planning`.
+- O usuário pediu um patch, um plano, uma revisão ou um mapa.
+- O desconhecido é a base de código, não a intenção. Use `repository-mapping`.
+- Um resumo existe e o objetivo não mudou. Não reabra um resumo fechado para polimento.
 
-## Inputs
+## Entradas
 
-| Input | If missing |
+| Entrada | Se faltar |
 |---|---|
-| The stated goal, in the user's words | Nothing to discover. In the main session, ask the owner what should become possible that is not possible now. As a dispatched specialist, return the missing input to the Coordinator and stop; never proceed on an assumed value. |
-| Who is affected | Make it the first question, since it changes every later answer. |
-| Known constraints: deadline, stack, out of scope | Proceed and record them as unknown; do not invent a deadline or a stack. |
-| Existing product docs or a prior brief in the project | Search before asking. An answer already written down is not a question. |
+| O objetivo declarado, nas palavras do usuário | Não há nada a descobrir. Na sessão principal, pergunte ao dono o que deveria passar a ser possível e hoje não é. Como especialista despachado, devolva a entrada que falta ao Coordenador e pare; nunca prossiga com um valor presumido. |
+| Quem é afetado | Faça desta a primeira pergunta, pois ela muda todas as respostas seguintes. |
+| Restrições conhecidas: prazo, stack, fora de escopo | Prossiga e registre-as como desconhecidas; não invente prazo nem stack. |
+| Docs de produto existentes ou um resumo anterior no projeto | Busque antes de perguntar. Uma resposta que já está escrita não é uma pergunta. |
 
-## Procedure
+## Procedimento
 
-1. **Size the ask before refining it.** If the request contains several independent subsystems, say so immediately and propose splitting it. Refining details inside a request that needs decomposition wastes every question that follows. Each piece then gets its own brief.
+1. **Dimensione o pedido antes de refiná-lo.** Se o pedido contém vários subsistemas independentes, diga isso de imediato e proponha dividi-lo. Refinar detalhes dentro de um pedido que precisa ser decomposto desperdiça todas as perguntas seguintes. Cada peça recebe então o seu próprio resumo.
 
-2. **Separate facts from decisions, and never mix the two.** Facts about the repository, existing behavior, current data shape and prior art are yours to find with reading and search. Decisions about who this serves, what happens in the awkward case, and what is out of scope belong to the user. Asking the user for a fact you could look up spends their attention on the wrong thing; answering a decision yourself is the failure mode that produces confident, wrong software.
+2. **Separe fatos de decisões e nunca misture os dois.** Fatos sobre o repositório, o comportamento existente, o formato atual dos dados e o estado da arte cabem a você, com leitura e busca. Decisões sobre a quem isto serve, o que acontece no caso incômodo e o que fica fora de escopo pertencem ao usuário. Perguntar ao usuário um fato que você poderia consultar gasta a atenção dele na coisa errada; responder uma decisão por conta própria é o modo de falha que produz software confiante e errado.
 
-3. **Build the question frontier.** List every open decision, then keep only the ones whose prerequisites are already settled. A question that depends on an unanswered question belongs to a later round. Order the survivors by how much they change the build.
+3. **Monte a fronteira de perguntas.** Liste toda decisão em aberto e mantenha só as que já têm os pré-requisitos resolvidos. Uma pergunta que depende de uma pergunta sem resposta pertence a uma rodada posterior. Ordene as sobreviventes pelo quanto mudam a construção.
 
-4. **Apply the scope test to each candidate question.** Would two different answers produce different acceptance criteria, different files, or different tests? If not, drop it or decide it yourself and label the choice as a suggestion. Curiosity is not a reason to ask.
+4. **Aplique o teste de escopo a cada pergunta candidata.** Duas respostas diferentes produziriam critérios de aceite, arquivos ou testes diferentes? Se não, descarte a pergunta ou decida você mesmo e rotule a escolha como sugestão. Curiosidade não é motivo para perguntar.
 
-5. **Ask the smallest useful question and wait for required decisions.** Include a recommendation, but silence is never an answer or authorization. Continue independent research while a blocking scope decision is pending. Two questions may share one message only when the second is meaningless without the first; otherwise one blocking question at a time. Record the actual answers in the brief.
+5. **Faça a menor pergunta útil e espere as decisões necessárias.** Inclua uma recomendação, mas o silêncio nunca é uma resposta nem uma autorização. Continue a pesquisa independente enquanto uma decisão de escopo bloqueante estiver pendente. Duas perguntas só podem dividir uma mensagem quando a segunda não faz sentido sem a primeira; fora isso, uma pergunta bloqueante por vez. Registre no resumo as respostas reais.
 
-6. **Fill the five dimensions.** Current situation, what actually happens today, with evidence where the project can show it. Desired outcome, in behavior, not in feelings. Examples, at least one normal case and one awkward case. Alternatives, including doing nothing and the cheaper partial version. Limits, meaning explicitly out of scope, non-negotiable constraints, and the data or permissions involved. Record each claim about current behavior you could not verify as a hypothesis, with the observation that would falsify it.
+6. **Preencha as cinco dimensões.** Situação atual: o que de fato acontece hoje, com evidência onde o projeto puder mostrá-la. Resultado desejado: em comportamento, não em sentimentos. Exemplos: pelo menos um caso normal e um caso incômodo. Alternativas: incluindo não fazer nada e a versão parcial mais barata. Limites: o que está explicitamente fora de escopo, as restrições inegociáveis e os dados ou permissões envolvidos. Registre como hipótese cada afirmação sobre o comportamento atual que você não pôde verificar, com a observação que a refutaria.
 
-7. **Write acceptance as "when X, then Y".** Each item observable by a person or a test, with X naming a trigger and Y naming a result. Mark each one `requirement` or `suggestion`. A requirement is something the user asked for or that correctness demands; anything you thought of that nobody requires is a suggestion, and shipping suggestions as requirements is scope creep with a straight face.
+7. **Escreva o aceite como "quando X, então Y".** Cada item observável por uma pessoa ou por um teste, com X nomeando um gatilho e Y nomeando um resultado. Marque cada um como `requirement` ou `suggestion`. Um `requirement` é algo que o usuário pediu ou que a correção exige; tudo o que você pensou e ninguém exige é uma `suggestion`, e entregar sugestões como requisitos é aumento de escopo com cara séria.
 
-8. **Cover the awkward cases proportionally.** Empty, duplicate, expired, unauthorized, concurrent, and too large. Include only those the feature actually meets. An invented edge case is scope, not diligence.
+8. **Cubra os casos incômodos de forma proporcional.** Vazio, duplicado, expirado, não autorizado, concorrente e grande demais. Inclua só os que a funcionalidade de fato encontra. Um caso-limite inventado é escopo, não diligência.
 
-9. **Record what is still open.** Each open decision gets the question, why it changes scope, and your recommendation. Do not resolve an open product decision by picking quietly; do not stall the whole brief on one unanswered item either. If a question cannot be settled by talking because it needs something to look at, say so and route it to a prototype instead of rephrasing it forever.
+9. **Registre o que ainda está em aberto.** Cada decisão em aberto recebe a pergunta, por que ela muda o escopo e a sua recomendação. Não resolva uma decisão de produto em aberto escolhendo em silêncio; também não trave o resumo inteiro por causa de um item sem resposta. Se uma pergunta não pode ser resolvida conversando porque precisa de algo para olhar, diga isso e encaminhe-a a um protótipo em vez de reformulá-la para sempre.
 
-10. **Stop when acceptance is testable and the open decisions are explicit.** Hand the brief to the Coordinator, along with any constraint or incident worth remembering. Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.harness/RISKS.md`; discovery reports facts and never edits those records.
+10. **Pare quando o aceite for testável e as decisões em aberto estiverem explícitas.** Entregue o resumo ao Coordenador, junto com qualquer restrição ou incidente que valha lembrar. Só o Coordenador escreve `.harness/MEMORY.md`, `.harness/EPOCHAL.md` e `.harness/RISKS.md`; a descoberta reporta fatos e nunca edita esses registros.
 
-## Output format
+## Formato de saída
 
 ```
-## Brief
-- Problem: <what is wrong today, observable>
-- Users affected: <who, and what they do now instead>
-- Desired behavior: <what becomes possible>
-- Out of scope: <explicitly not now>
+## Resumo
+- Problema: <o que está errado hoje, observável>
+- Usuários afetados: <quem, e o que fazem hoje em vez disso>
+- Comportamento desejado: <o que passa a ser possível>
+- Fora de escopo: <explicitamente não agora>
 
-## Examples
-- Normal: given <input>, the user sees <result>
-- Awkward: given <edge input>, the user sees <result>
+## Exemplos
+- Normal: dado <entrada>, o usuário vê <resultado>
+- Incômodo: dada <entrada-limite>, o usuário vê <resultado>
 
-## Alternatives considered
-| Option | Cost | Why not chosen |
+## Alternativas consideradas
+| Opção | Custo | Por que não foi escolhida |
 |---|---|---|
-| Do nothing | | |
-| <cheaper partial version> | | |
+| Não fazer nada | | |
+| <versão parcial mais barata> | | |
 
-## Limits and constraints
-- <constraint> (source: user | project instructions | observed)
+## Limites e restrições
+- <restrição> (fonte: usuário | instruções do projeto | observado)
 
-## Acceptance
-- When <X>, then <Y>. [requirement]
-- When <X>, then <Y>. [suggestion]
+## Aceite
+- Quando <X>, então <Y>. [requirement]
+- Quando <X>, então <Y>. [suggestion]
 
-## Hypotheses
-- <claim>, how it would be shown wrong
+## Hipóteses
+- <afirmação>, como seria mostrada errada
 
-## Open decisions
-- <question>, why it changes scope, recommended answer
+## Decisões em aberto
+- <pergunta>, por que muda o escopo, resposta recomendada
 
-## Evidence
-- <relative path> or "none yet"
+## Evidência
+- <caminho relativo> ou "ainda nenhuma"
 ```
 
-When persisted, the brief becomes `.harness/prd/PRD-<n>.md` from the kit template `templates/en/PRD.md`; keep the requirement/suggestion marking in the text.
+Quando persistido, o resumo vira `.harness/prd/PRD-<n>.md` a partir do template do kit `templates/PRD.md`; mantenha a marcação `requirement`/`suggestion` no texto.
 
-## PRD writing rules
-Every PRD is in English, whatever `language` says. These rules summarize the ASD-STE100 idea (Simplified Technical English, an English standard) in the kit's own words. The kit does not copy the approved-word dictionary or any text of the standard.
-- Procedural sentences have at most 20 words. Descriptive sentences have at most 25 words.
-- Give one instruction per sentence.
-- Use active voice.
-- Use one term for one concept. Do not use synonyms.
-- Use simple tenses and verbs that have one sense.
-- Keep the articles (a, an, the).
-- Use one plain verb, not an idiom or a phrasal verb.
-- Use a list for a sequence of steps.
-- Keep paragraphs short.
-- A `Verifiable:` command line is exempt from the length limits.
+## Regras de escrita do PRD
+O PRD é escrito em pt-BR (ADR-011). Estas sete regras valem para o texto do PRD e são próprias do kit, em português; o `document-validator` as confere com a mesma severidade de sempre: ambiguidade bloqueia, estilo puro é Minor.
+1. Frase curta, de até cerca de 25 palavras, com uma ação por frase.
+2. Voz ativa e sujeito explícito ("o `dh` grava", não "é gravado").
+3. Um termo por conceito, sem sinônimo: o termo definido uma vez é o termo do documento inteiro.
+4. Verbo de obrigação com o mesmo peso sempre: "deve" (obrigatório), "pode" (opcional), "não deve" (proibido).
+5. Número com unidade e limite fechado ("até 200 linhas", "no máximo 2 rodadas").
+6. Sem "etc.", "e afins", "entre outros", "quando possível", "adequado" ou "rápido" sem número.
+7. Lista para passos e critérios; prosa só para contexto.
 
-## Quick reference
+Uma linha de comando `Verifiable:` fica isenta do limite de tamanho da regra 1.
 
-| Vague phrase | The question that makes it testable |
+## Referência rápida
+
+| Frase vaga | A pergunta que a torna testável |
 |---|---|
-| "make it faster" | Which operation, measured how, and what number is acceptable? |
-| "users get confused" | At which step do they stop, and what should happen instead? |
-| "it should be secure" | Which data, which actor must be refused, and what does refusal look like? |
-| "add reporting" | Which decision does the reader make from the report? |
-| "it should just work" | Which case fails today, and what is the correct result there? |
-| "like <other product>" | Which one behavior of it, specifically? |
+| "deixe mais rápido" | Qual operação, medida como, e qual número é aceitável? |
+| "os usuários ficam confusos" | Em que passo eles param, e o que deveria acontecer em vez disso? |
+| "tem que ser seguro" | Quais dados, qual ator deve ser recusado, e como é a recusa? |
+| "adicione relatórios" | Que decisão o leitor toma a partir do relatório? |
+| "tem que simplesmente funcionar" | Qual caso falha hoje, e qual é o resultado correto nele? |
+| "como <outro produto>" | Qual comportamento específico dele, exatamente? |
 
-| Test | Ask it | Do not ask it |
+| Teste | Faça a pergunta | Não faça a pergunta |
 |---|---|---|
-| Scope test | Two answers change the build | Two answers change only wording |
-| Ownership test | It is the user's decision | It is discoverable in the repository |
-| Frontier test | Its prerequisites are settled | It depends on an open question |
-| Cost test | The answer is cheaper than building the wrong thing | The answer is guessable and low risk |
+| Teste de escopo | Duas respostas mudam a construção | Duas respostas mudam só a redação |
+| Teste de propriedade | A decisão é do usuário | Dá para descobrir no repositório |
+| Teste de fronteira | Os pré-requisitos estão resolvidos | Depende de uma pergunta em aberto |
+| Teste de custo | A resposta é mais barata que construir a coisa errada | A resposta é adivinhável e de baixo risco |
 
-## Common mistakes
+## Erros comuns
 
-| Mistake | Why it hurts | Do instead |
+| Erro | Por que prejudica | Faça em vez disso |
 |---|---|---|
-| Asking everything upfront so you only interrupt once | A question list gets one answer and a tired user | One blocking question at a time, ordered by impact |
-| Treating the stack question as discovery | It changes the build only when the user has a real constraint | Leave an unconstrained stack to planning |
-| Adding a nicer flow you thought of | Your idea ships as scope nobody asked for | Label it a suggestion and let the user promote it |
-| Running discovery when the scope is already clear | A settled brief gets reopened and closed questions come back | Go to planning |
-| Treating one request as one brief | Independent subsystems get refined before they are split | Decompose first, then one brief per piece |
+| Perguntar tudo de uma vez para interromper só uma vez | Uma lista de perguntas recebe uma resposta e um usuário cansado | Uma pergunta bloqueante por vez, ordenada por impacto |
+| Tratar a pergunta sobre a stack como descoberta | Ela só muda a construção quando o usuário tem uma restrição real | Deixe uma stack sem restrição para o planejamento |
+| Acrescentar um fluxo mais bonito em que você pensou | Sua ideia vira escopo que ninguém pediu | Rotule-a como sugestão e deixe o usuário promovê-la |
+| Rodar a descoberta quando o escopo já está claro | Um resumo resolvido é reaberto e perguntas fechadas voltam | Vá para o planejamento |
+| Tratar um pedido como um resumo | Subsistemas independentes são refinados antes de serem divididos | Decomponha primeiro, depois um resumo por peça |
 
-## Rationalizations
+## Racionalizações
 
-| What you will be tempted to think | Why it is wrong | What to do |
+| O que você vai ficar tentado a pensar | Por que está errado | O que fazer |
 | --- | --- | --- |
-| "I already understand it, I will write the PRD without the question that changes the software" | Two readings of that sentence produce different software, and the brief freezes the wrong one | Ask that one question and wait |
-| "Acceptance is obvious, I will skip writing it" | Obvious acceptance is what two people read differently | Write each item as "when X, then Y" |
-| "They did not mention errors, so there are none" | Unstated does not mean absent | Name the awkward case and get a decision on it |
-| "I could not reach the user, so I decided for them" | A quiet decision becomes a contract | Record an open decision with a recommendation, and mark the brief provisional |
+| "Eu já entendi, vou escrever o PRD sem a pergunta que muda o software" | Duas leituras dessa frase produzem softwares diferentes, e o resumo congela a errada | Faça essa pergunta e espere |
+| "O aceite é óbvio, vou pular a escrita" | O aceite óbvio é o que duas pessoas leem de modo diferente | Escreva cada item como "quando X, então Y" |
+| "Eles não mencionaram erros, então não há nenhum" | Não declarado não quer dizer ausente | Nomeie o caso incômodo e obtenha uma decisão sobre ele |
+| "Não consegui falar com o usuário, então decidi por ele" | Uma decisão silenciosa vira contrato | Registre uma decisão em aberto com uma recomendação e marque o resumo como provisório |
 
-## Example
+## Exemplo
 
-Input: "people forget to follow up after demos".
+Entrada: "as pessoas esquecem de dar retorno depois das demos".
 
 ```
-## Brief
-- Problem: after a demo, the next contact depends on the rep remembering; nothing in the product records that a demo happened.
-- Users affected: sales reps, who currently keep notes outside the product.
-- Desired behavior: a demo can be marked as held, and an unanswered one becomes visible to its owner.
-- Out of scope: sending email on the user's behalf.
+## Resumo
+- Problema: depois de uma demo, o próximo contato depende de o vendedor lembrar; nada no produto registra que uma demo aconteceu.
+- Usuários afetados: vendedores, que hoje guardam anotações fora do produto.
+- Comportamento desejado: uma demo pode ser marcada como realizada, e uma sem resposta fica visível para o seu dono.
+- Fora de escopo: enviar e-mail em nome do usuário.
 
-## Examples
-- Normal: rep marks a demo held; two days with no logged reply puts it on their open list.
-- Awkward: the contact replies the same day; the demo never reaches the open list.
+## Exemplos
+- Normal: o vendedor marca uma demo como realizada; dois dias sem resposta registrada a colocam na lista de pendências dele.
+- Incômodo: o contato responde no mesmo dia; a demo nunca chega à lista de pendências.
 
-## Alternatives considered
-| Option | Cost | Why not chosen |
+## Alternativas consideradas
+| Opção | Custo | Por que não foi escolhida |
 |---|---|---|
-| Do nothing | none | the forgotten follow-up is the reported pain |
+| Não fazer nada | nenhum | o retorno esquecido é a dor reportada |
 
-## Limits and constraints
-- No outbound email on the user's behalf (source: user)
+## Limites e restrições
+- Nenhum e-mail enviado em nome do usuário (fonte: usuário)
 
-## Acceptance
-- When a demo is marked held and no reply is logged within the configured window, then it appears on the owner's open list. [requirement]
-- When a reply is logged, then the item leaves the list on the next load. [requirement]
-- When the owner dismisses an item, then it does not return for that demo. [suggestion]
+## Aceite
+- Quando uma demo é marcada como realizada e nenhuma resposta é registrada dentro da janela configurada, então ela aparece na lista de pendências do dono. [requirement]
+- Quando uma resposta é registrada, então o item sai da lista no próximo carregamento. [requirement]
+- Quando o dono descarta um item, então ele não volta para aquela demo. [suggestion]
 
-## Hypotheses
-- Replies are already logged against the contact. Shown wrong by a contact with a reply that never reaches the product.
+## Hipóteses
+- As respostas já são registradas junto ao contato. Seria mostrada errada por um contato com uma resposta que nunca chega ao produto.
 
-## Open decisions
-- Is the window fixed or per user? It changes storage and settings. Recommended: fixed at first, configurable later.
+## Decisões em aberto
+- A janela é fixa ou por usuário? Muda o armazenamento e as configurações. Recomendado: fixa no começo, configurável depois.
 
-## Evidence
-- none yet
+## Evidência
+- ainda nenhuma
 ```
 
-## Related
+## Relacionado
 
-Roles: product-discovery, coordinator, implementation-planner, qa-verifier. Command: `/dh:discover`. Skills: implementation-planning consumes this brief, architecture-decisions when a constraint here forces a durable choice, regression-testing turns the acceptance items into checks, repository-mapping when a claim about current behavior needs evidence.
+Papéis: `product-discovery`, `coordinator`, `implementation-planner`, `qa-verifier`. Comando: `/dh:discover`. Skills: `implementation-planning` consome este resumo, `architecture-decisions` quando uma restrição daqui força uma escolha durável, `regression-testing` transforma os itens de aceite em checagens, `repository-mapping` quando uma afirmação sobre o comportamento atual precisa de evidência.
 
-## Proof case
+## Caso de prova
 
-A one-sentence vague request produces a brief with at least one normal and one awkward example, acceptance written as "when X, then Y" with requirement and suggestion marked separately, and at least one open decision stated with the reason it changes scope. The session asks no question whose two possible answers would produce the same build, and asks nothing that was already answered in the repository. The brief is not written while a question that would change the software is still unasked, and acceptance is written even when it looks obvious.
+Um pedido vago de uma frase produz um resumo com pelo menos um exemplo normal e um incômodo, aceite escrito como "quando X, então Y" com `requirement` e `suggestion` marcados separadamente, e pelo menos uma decisão em aberto enunciada com o motivo de ela mudar o escopo. A sessão não faz nenhuma pergunta cujas duas respostas possíveis produziriam a mesma construção, e não pergunta nada que já tenha sido respondido no repositório. O resumo não é escrito enquanto houver uma pergunta que mudaria o software ainda não feita, e o aceite é escrito mesmo quando parece óbvio.

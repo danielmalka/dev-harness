@@ -1,84 +1,84 @@
-# Running a CLI call in a disposable clone
+# Rodar uma chamada de CLI num clone descartável
 
-This file is the exact lifecycle for a CLI call that runs in a disposable
-clone: create, populate, verify, use, remove, sweep orphans. It applies to a
-review or planning call to a binary with no documented and measured
-read-only mode. `codex` keeps its own sandbox and never uses it.
+Este arquivo é o ciclo de vida exato de uma chamada de CLI que roda num clone
+descartável: criar, popular, verificar, usar, remover, varrer órfãos. Ele vale
+para uma chamada de revisão ou de planejamento a um binário sem modo somente
+leitura documentado e medido. `codex` mantém o próprio sandbox e nunca o usa.
 
-Every mention of this mechanism carries one qualification, stated in full:
+Toda menção a este mecanismo traz uma qualificação, dita por inteiro:
 
-disposable clone; writes outside it are detected on the live tree, never prevented; writes outside the project are not detected
+clone descartável; escritas fora dele são detectadas na árvore viva, nunca impedidas; escritas fora do projeto não são detectadas
 
-The clone is a
-working directory, not a sandbox. The CLI runs as the same OS user and still
-reaches the live tree and the rest of the machine by absolute path. Nothing
-here prevents a write; it only puts the call's working directory somewhere
-else and lets the delegate throw that directory away.
+O clone é um
+diretório de trabalho, não um sandbox. A CLI roda como o mesmo usuário do sistema operacional e ainda
+alcança a árvore viva e o resto da máquina por caminho absoluto. Nada
+aqui impede uma escrita; ele só põe o diretório de trabalho da chamada em outro
+lugar e deixa o delegado jogar esse diretório fora.
 
-This file defines only the clone lifecycle. Which binaries may plan is decided
-under "The planning call" in `SKILL.md`, not here.
+Este arquivo define só o ciclo de vida do clone. Quais binários podem planejar é decidido
+em "A chamada de planejamento" de `SKILL.md`, não aqui.
 
-## Terms
+## Termos
 
-`<project>` is the project root (the live tree). `$CLONE` is the exact
-clone path. Shell variables do not survive between separate tool calls, so the
-call stores the literal path that `mktemp` printed, and every later command
-(verification, comparison, removal) uses that literal string, not `$CLONE`.
-`<call-id>` is chosen once by the Coordinator before step 1, as
-`<task id>-<binary>-<n>` with `<n>` a per-batch counter, and may contain only
-`[A-Za-z0-9_-]`; anything else is `isolation_unavailable`. It is used verbatim
-in both names of a call: `dh-cli-<call-id>-XXXXXXXX` (the clone) and
-`dh-freeze-<call-id>-XXXXXXXX` (the freeze directory, which also holds the
-call's prompt file). Calls that overlap in time share one freeze directory,
-named after the first call, with one clone and one prompt file each.
+`<project>` é a raiz do projeto (a árvore viva). `$CLONE` é o caminho exato do
+clone. Variáveis de shell não sobrevivem entre chamadas de ferramenta separadas, então a
+chamada guarda o caminho literal que o `mktemp` imprimiu, e todo comando
+posterior (verificação, comparação, remoção) usa essa string literal, não `$CLONE`.
+`<call-id>` é escolhido uma vez pelo Coordenador antes do passo 1, como
+`<task id>-<binary>-<n>` com `<n>` um contador por lote, e pode conter só
+`[A-Za-z0-9_-]`; qualquer outra coisa é `isolation_unavailable`. Ele é usado literalmente
+nos dois nomes de uma chamada: `dh-cli-<call-id>-XXXXXXXX` (o clone) e
+`dh-freeze-<call-id>-XXXXXXXX` (o diretório de congelamento, que também guarda o
+arquivo de prompt da chamada). Chamadas que se sobrepõem no tempo compartilham um diretório de congelamento,
+com o nome da primeira chamada, com um clone e um arquivo de prompt para cada uma.
 
-`<tmp root>` is `(cd "${TMPDIR:-/tmp}" && pwd -P)`, resolved once when the call (or
-the batch) starts and stored as a literal path. Every `mktemp` template, every
-removal guard and the orphan sweep use `<tmp root>`, never the unresolved
-variable.
+`<tmp root>` é `(cd "${TMPDIR:-/tmp}" && pwd -P)`, resolvido uma vez quando a chamada (ou
+o lote) começa e guardado como caminho literal. Todo template de `mktemp`, toda
+guarda de remoção e a varredura de órfãos usam `<tmp root>`, nunca a variável
+não resolvida.
 
-`$PROMPT` is the literal path of the call's prompt file, written into the command as that literal string, like `$CLONE`. A clone call creates it with `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )` inside the call's freeze directory ([live-tree-freeze.md](live-tree-freeze.md), section 5); it is unique per call and is removed with that directory. A call without a clone (`codex`, the `agy` review) creates it with `( umask 077; mktemp "<tmp root>/dh-prompt-XXXXXXXX" )` and removes it in its own cleanup (an interrupted call can leave it behind, mode 0600; it is not swept and is left for the owner).
+`$PROMPT` é o caminho literal do arquivo de prompt da chamada, escrito no comando como essa string literal, como `$CLONE`. Uma chamada em clone o cria com `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )` dentro do diretório de congelamento da chamada ([live-tree-freeze.md](live-tree-freeze.md), seção 5); ele é único por chamada e é removido junto com esse diretório. Uma chamada sem clone (`codex`, a revisão do `agy`) o cria com `( umask 077; mktemp "<tmp root>/dh-prompt-XXXXXXXX" )` e o remove na própria limpeza (uma chamada interrompida pode deixá-lo para trás, modo 0600; ele não é varrido e fica para o dono).
 
-## Project requirement
+## Requisito do projeto
 
-The project must have `.harness/` and `.claude/settings*.json` git-ignored. If
-it does not, the live tree holds them as tracked or untracked files, the clone
-would carry them, the absence checks in step 2 fail, and every call ends as
-`isolation_unavailable`. It is never fixed up by deleting them from the clone.
-The development worktrees of the kit live in `<project>/.worktrees/`, which must
-be git-ignored too (`/dh:setup` adds the line): otherwise their files are
-untracked, the clone would copy them and the comparison would judge them.
+O projeto deve ter `.harness/` e `.claude/settings*.json` ignorados pelo git. Se
+não tiver, a árvore viva os guarda como arquivos rastreados ou não rastreados, o clone
+os levaria, as checagens de ausência do passo 2 falhariam e toda chamada terminaria como
+`isolation_unavailable`. Isso nunca é consertado apagando-os do clone.
+Os worktrees de desenvolvimento do kit ficam em `<project>/.worktrees/`, que deve
+estar ignorado pelo git também (`/dh:setup` acrescenta a linha): senão os arquivos deles
+ficam não rastreados, o clone os copiaria e a comparação os julgaria.
 
-## 1. Create the clone
+## 1. Criar o clone
 
-Before creating anything, the project must pass one of two branches, chosen by
-what `<project>/.git` is:
+Antes de criar qualquer coisa, o projeto deve passar por um de dois ramos, escolhido pelo
+que `<project>/.git` é:
 
-- (a) `<project>/.git` is a directory: `test -d "<project>/.git" && test ! -L "<project>/.git"`
-  must pass, and no other check applies.
-- (b) `<project>/.git` is not a directory (a linked worktree has a gitfile):
-  `dh harness-path --json "<project>"` must succeed with a non-null
-  `linked_worktree`, and, in the same shell, right before the clone,
-  `test -f "<project>/.git" && test ! -L "<project>/.git"` must pass. The layout
-  of the gitfile is validated by `dh` (Go), never restated or re-checked here:
-  the shell only consumes `linked_worktree`.
-- (c) Anything else is `isolation_unavailable`: `dh` missing or failing,
-  `linked_worktree` null, `.git` a symlink, a bare repository, a submodule, an
-  invalid layout, content outside the gitfile format, or a `.git` that is not
-  a regular file at the check right before the clone.
+- (a) `<project>/.git` é um diretório: `test -d "<project>/.git" && test ! -L "<project>/.git"`
+  deve passar, e nenhuma outra checagem se aplica.
+- (b) `<project>/.git` não é um diretório (um worktree vinculado tem um `gitfile`):
+  `dh harness-path --json "<project>"` deve ter sucesso com um
+  `linked_worktree` não nulo e, no mesmo shell, logo antes do clone,
+  `test -f "<project>/.git" && test ! -L "<project>/.git"` deve passar. O formato
+  do `gitfile` é validado pelo `dh` (Go), nunca repetido nem reconferido aqui:
+  o shell só consome `linked_worktree`.
+- (c) Qualquer outra coisa é `isolation_unavailable`: `dh` ausente ou falhando,
+  `linked_worktree` nulo, `.git` um symlink, um repositório bare, um submódulo, um
+  formato inválido, conteúdo fora do formato do `gitfile`, ou um `.git` que não é
+  um arquivo regular na checagem logo antes do clone.
 
-The sandbox is still a new `git clone --no-hardlinks "<project>"` into a
-disposable temporary folder, for both branches. The kit never uses the
-worktree as the sandbox and never uses `git worktree` for the sandbox.
-Hypothesis to prove (T-2805): the clone of a linked worktree starts at the
-worktree's `HEAD`. If it does not, the match in step 2 fails and the call ends
-`isolation_unavailable`; the hypothesis can only block a call, never open a gap.
+O sandbox continua sendo um novo `git clone --no-hardlinks "<project>"` numa
+pasta temporária descartável, nos dois ramos. O kit nunca usa o
+worktree como sandbox e nunca usa `git worktree` para o sandbox.
+Hipótese a provar (T-2805): o clone de um worktree vinculado começa no
+`HEAD` do worktree. Se não começar, o casamento do passo 2 falha e a chamada termina
+em `isolation_unavailable`; a hipótese só pode bloquear uma chamada, nunca abrir uma brecha.
 
-Run these in order. Every git command in this file, in every step, runs with
-the prefix `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1` (the commands
-written out in this step included). `mktemp` gives the random suffix, mode 0700 and
-uniqueness. `<tmp root>` is the only root the kit creates clones in and
-the only root the orphan sweep (step 5) reads.
+Rode estes em ordem. Todo comando git deste arquivo, em todo passo, roda com
+o prefixo `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1` (os comandos
+escritos neste passo inclusive). O `mktemp` dá o sufixo aleatório, o modo 0700 e
+a unicidade. `<tmp root>` é a única raiz em que o kit cria clones e
+a única raiz que a varredura de órfãos (passo 5) lê.
 
 ```
 CLONE=$(mktemp -d "<tmp root>/dh-cli-<call-id>-XXXXXXXX")
@@ -88,254 +88,254 @@ rm -rf "$CLONE/.git/logs"
 printf 'pid=%s\nstarted=%s\n' "$PPID" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$CLONE/.git/dh-cli.lock"
 ```
 
-`$PPID` is the process that hosts the delegate's shell, not the short-lived
-shell itself. `started` is ISO 8601 in UTC; `date -Iseconds` (GNU) also works
-but the `date -u +%Y-%m-%dT%H:%M:%SZ` form is portable. The clone has its own
-`.git` (hooks, config, refs, objects, `info/exclude`), holds no ignored file
-of the live tree, and nothing uncommitted: it is born clean at `HEAD`. Until
-the third command runs, `origin` still points at the live tree; the reflog
-under `.git/logs` records the live path, which is why the fourth command
-deletes it.
+`$PPID` é o processo que hospeda o shell do delegado, não o próprio shell
+de vida curta. `started` é ISO 8601 em UTC; `date -Iseconds` (GNU) também funciona,
+mas a forma `date -u +%Y-%m-%dT%H:%M:%SZ` é portátil. O clone tem o próprio
+`.git` (hooks, config, refs, objetos, `info/exclude`), não guarda nenhum arquivo ignorado
+da árvore viva e nada não commitado: nasce limpo no `HEAD`. Até
+o terceiro comando rodar, `origin` ainda aponta para a árvore viva; o reflog
+sob `.git/logs` registra o caminho vivo, e é por isso que o quarto comando
+o apaga.
 
-Verify before going on. Each check must pass:
+Verifique antes de seguir. Cada checagem deve passar:
 
-- `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$CLONE" remote` prints nothing.
-- `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$CLONE" rev-parse --git-common-dir` resolves to `$CLONE/.git`, the
-  clone's own directory.
+- `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$CLONE" remote` não imprime nada.
+- `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$CLONE" rev-parse --git-common-dir` resolve para `$CLONE/.git`, o
+  diretório do próprio clone.
 - `test ! -e "$CLONE/.git/objects/info/alternates"`.
 - `test ! -e "$CLONE/.git/logs"`.
 
-## 2. Populate the clone and match it
+## 2. Popular o clone e casá-lo
 
-The clone must hold the state under judgment: the current commit, plus the
-tracked modifications and the new non-ignored files of the live tree at the
-freeze. Run the live-tree commands from `<project>`, each prefixed with
+O clone deve guardar o estado sob julgamento: o commit atual, mais as
+modificações rastreadas e os arquivos novos não ignorados da árvore viva no
+congelamento. Rode os comandos da árvore viva a partir de `<project>`, cada um com o prefixo
 `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -c core.fsmonitor=false -c core.untrackedCache=false`.
-Every git command run against the clone (`apply`, `status`, `hash-object`)
-gets the same `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1` prefix, so a
-global or system configuration cannot change or run anything there.
+Todo comando git rodado contra o clone (`apply`, `status`, `hash-object`)
+recebe o mesmo prefixo `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1`, para que uma
+configuração global ou de sistema não possa mudar nem rodar nada ali.
 
-1. Staged part: save
+1. Parte preparada (staged): salve
    `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -c core.fsmonitor=false -c core.untrackedCache=false diff --cached --binary --no-ext-diff --no-textconv --src-prefix=a/ --dst-prefix=b/`
-   to a file. If the diff is empty, skip this step: `git apply` exits 128
-   ("No valid patches in input") on empty input, so an empty diff is never
-   piped in. (`git apply --allow-empty`, from git 2.35, is an alternative;
-   the skip works on any git version and is the rule.) Otherwise apply it with
+   num arquivo. Se o diff estiver vazio, pule este passo: `git apply` sai com 128
+   (`No valid patches in input`) numa entrada vazia, então um diff vazio nunca é
+   enviado por pipe. (`git apply --allow-empty`, do git 2.35, é uma alternativa;
+   o pulo funciona em qualquer versão do git e é a regra.) Senão, aplique-o com
    `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$CLONE" apply --index`.
-2. Unstaged part: the same command without `--cached`, with the same skip on
-   an empty diff, applied with
-   `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$CLONE" apply` (no `--index`).
-3. New files: from `<project>`, list them with
-   `git ls-files -z --others --exclude-standard`. Any entry ending in `/` (a
-   nested repository shows as `sub/`) is `isolation_unavailable` on its own,
-   before anything is copied; it is not left to the match. If the list is
-   empty, skip the copy. Otherwise run, under `set -o pipefail` so a failing
-   `ls-files` is not masked by the `tar` stages,
+2. Parte não preparada (unstaged): o mesmo comando sem `--cached`, com o mesmo pulo em
+   diff vazio, aplicado com
+   `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -C "$CLONE" apply` (sem `--index`).
+3. Arquivos novos: a partir de `<project>`, liste-os com
+   `git ls-files -z --others --exclude-standard`. Qualquer entrada terminada em `/` (um
+   repositório aninhado aparece como `sub/`) é `isolation_unavailable` por si só,
+   antes de qualquer coisa ser copiada; isso não fica a cargo do casamento. Se a lista estiver
+   vazia, pule a cópia. Senão rode, sob `set -o pipefail` para que um `ls-files` que falha
+   não seja mascarado pelos estágios do `tar`,
    `git ls-files -z --others --exclude-standard | tar --null -T - -cf - | tar -xpf - -C "$CLONE"`.
-   The NUL-separated list survives any file name, `tar` stores a symlink as a
-   symlink instead of following it, and `-p` keeps the mode. GNU tar accepts
-   this pipeline (an empty list also exits 0 there; the skip is kept anyway);
-   that bsdtar (macOS, BSD) accepts it is a hypothesis, not measured here.
-   Ignored files are never copied.
+   A lista separada por NUL sobrevive a qualquer nome de arquivo, o `tar` guarda um symlink como
+   symlink em vez de segui-lo, e `-p` mantém o modo. O tar GNU aceita
+   este pipeline (uma lista vazia também sai com 0 nele; o pulo é mantido mesmo assim);
+   que o bsdtar (macOS, BSD) o aceite é uma hipótese, não medida aqui.
+   Arquivos ignorados nunca são copiados.
 
-Then match. All of these must hold:
+Depois case. Tudo isto deve valer:
 
-- The judged set (tracked paths plus untracked non-ignored paths) is the same
-  path set in the clone and in the live tree. A path absent on disk records the
-  marker `deleted` on its side, and the markers must equal too.
-- Per path, by kind. A regular file: the same `git hash-object --no-filters` hash and the
-  same mode (`stat -c %a` on GNU, `stat -f %Lp` on BSD), for tracked and
-  untracked paths alike. A symlink: the same link text from `readlink`, never
-  a hash of the target it points at. A submodule: the same commit id.
-- `git status --porcelain -uall` (never `--ignored`) prints the same lines in
-  the clone (run with the clone-side prefix above) and in the live tree, including the two XY status letters, so the
-  clone reproduces the index (staged part and unstaged part), not only the
-  content. Only the marker `.git/dh-cli.lock` is ignored, and it is inside
-  `.git`, so status does not show it.
-- `test ! -e "$CLONE/.harness"` and
-  `test ! -e "$CLONE/.claude/settings.local.json"` pass.
+- O conjunto julgado (caminhos rastreados mais caminhos não rastreados e não ignorados) é o mesmo
+  conjunto de caminhos no clone e na árvore viva. Um caminho ausente no disco registra o
+  marcador `deleted` do seu lado, e os marcadores também devem ser iguais.
+- Por caminho, por tipo. Um arquivo regular: o mesmo hash de `git hash-object --no-filters` e o
+  mesmo modo (`stat -c %a` no GNU, `stat -f %Lp` no BSD), para caminhos rastreados e
+  não rastreados igualmente. Um symlink: o mesmo texto de link de `readlink`, nunca
+  um hash do alvo para o qual aponta. Um submódulo: o mesmo id de commit.
+- `git status --porcelain -uall` (nunca `--ignored`) imprime as mesmas linhas no
+  clone (rodado com o prefixo do lado do clone acima) e na árvore viva, inclusive as duas letras de status XY, de modo que o
+  clone reproduz o índice (parte preparada e parte não preparada), não só o
+  conteúdo. Só o marcador `.git/dh-cli.lock` é ignorado, e ele fica dentro de
+  `.git`, então o status não o mostra.
+- `test ! -e "$CLONE/.harness"` e
+  `test ! -e "$CLONE/.claude/settings.local.json"` passam.
 
-A state that does not reproduce exactly (a rename, a mode change, a symlink, a
-submodule, a nested repository (refused before the copy), a binary file, or an XY that the two-step
-population cannot recreate) is `isolation_unavailable` (step 4). The mismatch
-is the gate. Never adjust the clone by hand until it matches, and never
-continue on the live tree instead.
+Um estado que não se reproduz exatamente (uma renomeação, uma mudança de modo, um symlink, um
+submódulo, um repositório aninhado (recusado antes da cópia), um arquivo binário, ou um XY que a população
+em dois passos não consegue recriar) é `isolation_unavailable` (passo 4). A divergência
+é o gate. Nunca ajuste o clone à mão até ele casar, e nunca
+continue na árvore viva em vez dele.
 
-## 3. Use the clone and remove it
+## 3. Usar o clone e removê-lo
 
-Fix the CLI's working directory to the stored clone path with the binary's
-own working-directory flag, written inside the single command that starts with
-the binary name (`grok --cwd`, `mcode exec --cwd`; fact, read from each
-binary's own help on 2026-10-16). `claude` and `opencode` have no such flag
-(`opencode run` measured 2026-10-21 on v2.0.32), so their recipes keep
-`cd "$CLONE" && <binary> ...` as the two named exceptions; that form starts with
-`cd`, does not match a `Bash(claude:*)` or `Bash(opencode:*)` allow rule, so
-the call may need the owner's approval or be not-run. The opencode form is
+Fixe o diretório de trabalho da CLI no caminho guardado do clone com a flag de
+diretório de trabalho do próprio binário, escrita dentro do único comando que começa com
+o nome do binário (`grok --cwd`, `mcode exec --cwd`; fato, lido na ajuda de cada
+binário em 2026-10-16). `claude` e `opencode` não têm essa flag
+(`opencode run` medido em 2026-10-21 na v2.0.32), então as receitas deles mantêm
+`cd "$CLONE" && <binary> ...` como as duas exceções nomeadas; essa forma começa com
+`cd`, não casa com uma regra de permissão `Bash(claude:*)` ou `Bash(opencode:*)`, então
+a chamada pode precisar da aprovação do dono ou ser `not-run`. A forma do opencode é
 `cd "<clone>" && <opencode binary> run --auto -m <provider/model>[#<variant>]
---file=<prompt file> -- "Follow the attached prompt."`. The working directory of
-a Bash call does not persist to the next call (measured 2026-10-16), so the
-flag or the `cd` belongs to the same command that starts the binary. Measured
-earlier (T-1015): a flag-only launch can show a wrapper process with a cwd
-inside the live tree before the binary changes directory; the call therefore
-has no `timeout` or other wrapper before the binary. The
-prompt does not carry the live tree's absolute path.
+--file=<prompt file> -- "Siga o prompt anexado."`. O diretório de trabalho de
+uma chamada Bash não persiste para a chamada seguinte (medido em 2026-10-16), então a
+flag ou o `cd` pertence ao mesmo comando que inicia o binário. Medido
+antes (T-1015): um lançamento só com flag pode mostrar um processo invólucro com um cwd
+dentro da árvore viva antes de o binário mudar de diretório; a chamada por isso
+não tem `timeout` nem outro invólucro antes do binário. O
+prompt não carrega o caminho absoluto da árvore viva.
 
-When the call ends (success, transport failure, timeout or `tree_changed`),
-and after the comparisons of the live tree and of the clone have run, the
-delegate removes the clone with `rm -rf` on the exact stored path, and only
-that. Guard first; all of these must hold: the parent directory of the
-stored path equals `<tmp root>`; its basename starts with `dh-cli-` and
-contains no `/` and no `..`; `test -d` passes; `test ! -L` passes. A path that
-fails the guard is never passed to `rm`. Then confirm the directory no longer exists. If
-`rm` fails, report it and leave the directory for the orphan sweep. Nothing
-from the clone is copied or merged into the live tree: the verdict or the plan
-text comes back as the reply, as before.
+Quando a chamada termina (sucesso, falha de transporte, timeout ou `tree_changed`),
+e depois de rodadas as comparações da árvore viva e do clone, o
+delegado remove o clone com `rm -rf` no caminho exato guardado, e só
+nele. Antes, a guarda; tudo isto deve valer: o diretório pai do
+caminho guardado é igual a `<tmp root>`; o nome-base começa com `dh-cli-` e
+não contém `/` nem `..`; `test -d` passa; `test ! -L` passa. Um caminho que
+falha na guarda nunca é passado ao `rm`. Depois confirme que o diretório não existe mais. Se
+o `rm` falhar, reporte e deixe o diretório para a varredura de órfãos. Nada
+do clone é copiado nem mesclado na árvore viva: o veredito ou o texto do plano
+volta como a resposta, como antes.
 
-## 4. Isolation unavailable
+## 4. Isolamento indisponível
 
-The call is not-run, with the reason `isolation_unavailable` ("isolamento
-indisponivel" in the owner's language), when any of these holds: the project
-is not a git repository; the step 1 branch fails (`dh` missing or failing,
-`linked_worktree` null with a `.git` that is not a directory, `.git` a symlink,
-bare, submodule, invalid layout, content outside the gitfile format, or a
-`.git` that is not a regular file at the check right before the clone; a valid
-linked worktree is not on this list); any step of the freeze
-(`references/live-tree-freeze.md` section 1) fails (no CLI starts and no comparison runs; the partial freeze directory is removed under the guard of step 3);
-`HEAD` has no commit yet; disk is short; `<call-id>`
-has a character outside `[A-Za-z0-9_-]`; a check in step 1 fails;
-the population or the match in step 2 fails. Remove any partial clone at its
-exact stored path under the exact guard of step 3, including one that has no marker
-because its creation failed, report the reason, and stop. There is no
-fallback: a binary with no read-only mode is never run on the live tree in
-place of the clone. The round is not spent, and the call counts as neither an
-approval nor a rejection.
+A chamada é `not-run`, com o motivo `isolation_unavailable` ("isolamento
+indisponivel" no idioma do dono), quando qualquer uma destas condições vale: o projeto
+não é um repositório git; o ramo do passo 1 falha (`dh` ausente ou falhando,
+`linked_worktree` nulo com um `.git` que não é um diretório, `.git` um symlink,
+bare, submódulo, formato inválido, conteúdo fora do formato do `gitfile`, ou um
+`.git` que não é um arquivo regular na checagem logo antes do clone; um
+worktree vinculado válido não está nesta lista); qualquer passo do congelamento
+(`references/live-tree-freeze.md` seção 1) falha (nenhuma CLI inicia e nenhuma comparação roda; o diretório de congelamento parcial é removido sob a guarda do passo 3);
+`HEAD` ainda não tem commit; falta disco; `<call-id>`
+tem um caractere fora de `[A-Za-z0-9_-]`; uma checagem do passo 1 falha;
+a população ou o casamento do passo 2 falha. Remova qualquer clone parcial no seu
+caminho exato guardado sob a guarda exata do passo 3, inclusive um que não tem marcador
+porque a criação falhou, reporte o motivo e pare. Não há
+recuo: um binário sem modo somente leitura nunca roda na árvore viva no
+lugar do clone. A rodada não é gasta, e a chamada não conta como aprovação nem
+como rejeição.
 
-## 5. Orphan sweep
+## 5. Varredura de órfãos
 
-Interrupted runs can leave clones behind. Once per batch of dispatches, run by
-the delegate (a dispatched `qa-verifier`) before the first CLI call of the batch and never inside a
-call, list the direct children of `<tmp root>` and remove a directory
-only when all five conditions hold. The sweep covers two kinds: a clone
-(`dh-cli-`, marker `.git/dh-cli.lock`) and a freeze directory (`dh-freeze-`,
-marker `dh-freeze.lock` at its top, written by
-`references/live-tree-freeze.md`); the same five conditions apply to both,
-with the prefix and marker of its kind:
+Execuções interrompidas podem deixar clones para trás. Uma vez por lote de despachos, rodada pelo
+delegado (um `qa-verifier` despachado) antes da primeira chamada de CLI do lote e nunca dentro de uma
+chamada, liste os filhos diretos de `<tmp root>` e remova um diretório
+só quando as cinco condições valerem. A varredura cobre dois tipos: um clone
+(`dh-cli-`, marcador `.git/dh-cli.lock`) e um diretório de congelamento (`dh-freeze-`,
+marcador `dh-freeze.lock` no topo dele, escrito por
+`references/live-tree-freeze.md`); as mesmas cinco condições valem para os dois,
+com o prefixo e o marcador do seu tipo:
 
-1. Its name starts with `dh-cli-` (or `dh-freeze-`), it is a direct child of `<tmp root>`,
-   and it is a real directory, not a symlink (`test -d` and `test ! -L`).
-2. It belongs to the current user (`stat -c %U` on GNU, or `find -user`).
-3. It contains its marker: `.git/dh-cli.lock` (or `dh-freeze.lock`).
-4. The `pid` in the marker no longer exists (`kill -0 <pid>` fails with "no
-   such process"). A `kill -0` that fails with EPERM means the process exists,
-   so the PID counts as alive and the directory stays.
-5. The `started` in the marker is older than the call timeout (15 minutes by
-   default) plus 5 minutes of margin.
+1. O nome começa com `dh-cli-` (ou `dh-freeze-`), é filho direto de `<tmp root>`
+   e é um diretório de verdade, não um symlink (`test -d` e `test ! -L`).
+2. Pertence ao usuário atual (`stat -c %U` no GNU, ou `find -user`).
+3. Contém o marcador dele: `.git/dh-cli.lock` (ou `dh-freeze.lock`).
+4. O `pid` no marcador não existe mais (`kill -0 <pid>` falha com
+   `no such process`). Um `kill -0` que falha com EPERM significa que o processo existe,
+   então o PID conta como vivo e o diretório fica.
+5. O `started` no marcador é mais antigo que o timeout da chamada (15 minutos por
+   padrão) mais 5 minutos de margem.
 
-The conditions are conjunctive. Never touch a directory that fails any one of
-them: no prefix, a symlink, no marker, another user, a live PID, or a recent
-`started` is left alone, including a directory of another project.
+As condições são conjuntivas. Nunca toque num diretório que falhe em qualquer uma
+delas: sem prefixo, um symlink, sem marcador, outro usuário, um PID vivo ou um
+`started` recente é deixado em paz, inclusive um diretório de outro projeto.
 
-## 6. Parallel calls
+## 6. Chamadas em paralelo
 
-Two calls in clones at the same time each get their own `<call-id>` and their
-own `$CLONE` (distinct `mktemp` results). Each call removes only its own
-clone, and never touches another `dh-cli-` directory; only the sweep in step 5
-does, before the batch. When such calls overlap in time, the order is: one live-tree freeze taken
-before the first of them; then every clone created, populated and matched;
-then every prompt written; only then the first CLI started. Calls are dispatched in closed groups: a new clone call never starts while a
-CLI from an earlier group is still running. They share one
-freeze directory (named after the first call), each with its own clone and
-prompt file. The live-tree comparison and the reversion run only after the last one has ended; any live-tree difference marks every overlapping call not-run,
-`tree_changed`, and the clone comparison stays per clone (`references/live-tree-freeze.md`,
-Order). The cap of two concurrent specialists and the serialization of
-`opencode` do not change.
+Duas chamadas em clones ao mesmo tempo recebem cada uma o próprio `<call-id>` e o
+próprio `$CLONE` (resultados distintos de `mktemp`). Cada chamada remove só o
+próprio clone, e nunca toca outro diretório `dh-cli-`; só a varredura do passo 5
+o faz, antes do lote. Quando essas chamadas se sobrepõem no tempo, a ordem é: um congelamento da árvore viva tirado
+antes da primeira delas; depois todo clone criado, populado e casado;
+depois todo prompt escrito; só então a primeira CLI iniciada. As chamadas são despachadas em grupos fechados: uma nova chamada em clone nunca começa enquanto uma
+CLI de um grupo anterior ainda está rodando. Elas compartilham um
+diretório de congelamento (com o nome da primeira chamada), cada uma com o próprio clone e
+arquivo de prompt. A comparação da árvore viva e a reversão rodam só depois que a última terminou; qualquer diferença na árvore viva marca toda chamada sobreposta como `not-run`,
+`tree_changed`, e a comparação do clone continua por clone (`references/live-tree-freeze.md`,
+Ordem). O limite de dois especialistas simultâneos e a serialização de
+`opencode` não mudam.
 
-## 7. What stays outside the clone (residual, stated in full)
+## 7. O que fica fora do clone (residual, dito por inteiro)
 
-The clone is a working directory, not a sandbox: disposable clone; writes outside it are detected on the live tree, never prevented; writes outside the project are not detected.
+O clone é um diretório de trabalho, não um sandbox: clone descartável; escritas fora dele são detectadas na árvore viva, nunca impedidas; escritas fora do projeto não são detectadas.
 
-What the live-tree comparison covers: the list of
-`git status --porcelain -uall --ignored` with the hash of each path; the hash
-of every tracked file; the output of `git ls-files -v --stage` (index flags
-and blob ids, which catches `--skip-worktree` and `--assume-unchanged`); the
-bytes of the resolved harness dir in mode `repo`, wherever it is (inside the
-project, or the main checkout's `.harness/`, not the copy inside the worktree,
-when the project is a linked worktree; in mode `global` it is outside the freeze of this clone procedure,
-while the freeze of [live-tree-compare.md](live-tree-compare.md), for a call without a clone, saves it in
-both modes), of `.claude/settings*.json` and, from the common dir `<C>`
-(`<project>/.git` for a normal checkout, `linked_worktree.commondir` for a
-linked worktree), of `hooks/`, `config`, `config.worktree` (when present), `info/`,
-`HEAD` and `packed-refs`, and the admin dir `config.worktree` of a linked
-worktree (restored before any git command, like `<C>/config`); the
-output of `git for-each-ref`; and, also from `<C>`, the files under `refs/` and the entries under `worktrees/` when they exist.
-When `<project>/.git` is a gitfile, also the bytes of the gitfile and, in the
-worktree admin dir, `HEAD`, `commondir`, `gitdir`, the files
-under `refs/` and the presence of `locked`
-(`references/live-tree-freeze.md` section 1). The repository-discovery items
-(a normal checkout's `.git` still a real directory; the gitfile bytes,
-`<admin>/commondir` and `<admin>/gitdir`; `<C>/commondir` and
-`<project>/.git/commondir` still absent) are compared by bytes with non-git
-tools and restored or removed before the first git command; if that is
-impossible, no git command runs and the verdict is discarded, not-run,
-`not revertible`. An item absent in both snapshots
-is not a difference and never an error. The trust paths of `<C>`, both `config.worktree` files, the gitfile, `<admin>/commondir` and `<admin>/gitdir` are restored; the files under `refs/`, the
-`worktrees/` entries and the other admin dir items are detected only: a
-change is `tree_changed` and is reported as `not revertible: <path>`.
+O que a comparação da árvore viva cobre: a lista de
+`git status --porcelain -uall --ignored` com o hash de cada caminho; o hash
+de todo arquivo rastreado; a saída de `git ls-files -v --stage` (flags do índice
+e ids de blob, o que pega `--skip-worktree` e `--assume-unchanged`); os
+bytes do harness dir resolvido no modo `repo`, onde quer que esteja (dentro do
+projeto, ou o `.harness/` do checkout principal, não a cópia dentro do worktree,
+quando o projeto é um worktree vinculado; no modo `global` ele fica fora do congelamento deste procedimento de clone,
+enquanto o congelamento de [live-tree-compare.md](live-tree-compare.md), para uma chamada sem clone, o salva
+nos dois modos), de `.claude/settings*.json` e, a partir do diretório comum `<C>`
+(`<project>/.git` para um checkout normal, `linked_worktree.commondir` para um
+worktree vinculado), de `hooks/`, `config`, `config.worktree` (quando presente), `info/`,
+`HEAD` e `packed-refs`, e o `config.worktree` do diretório admin de um worktree
+vinculado (restaurado antes de qualquer comando git, como `<C>/config`); a
+saída de `git for-each-ref`; e, também a partir de `<C>`, os arquivos sob `refs/` e as entradas sob `worktrees/` quando existirem.
+Quando `<project>/.git` é um `gitfile`, também os bytes do `gitfile` e, no
+diretório admin do worktree, `HEAD`, `commondir`, `gitdir`, os arquivos
+sob `refs/` e a presença de `locked`
+(`references/live-tree-freeze.md` seção 1). Os itens de descoberta do repositório
+(o `.git` de um checkout normal ainda um diretório de verdade; os bytes do `gitfile`,
+`<admin>/commondir` e `<admin>/gitdir`; `<C>/commondir` e
+`<project>/.git/commondir` ainda ausentes) são comparados por bytes com ferramentas que não são
+do git e restaurados ou removidos antes do primeiro comando git; se isso for
+impossível, nenhum comando git roda e o veredito é descartado, `not-run`,
+`not revertible`. Um item ausente nos dois instantâneos
+não é uma diferença e nunca um erro. Os caminhos de confiança de `<C>`, os dois arquivos `config.worktree`, o `gitfile`, `<admin>/commondir` e `<admin>/gitdir` são restaurados; os arquivos sob `refs/`, as
+entradas de `worktrees/` e os demais itens do diretório admin são só detectados: uma
+alteração é `tree_changed` e é reportada como `not revertible: <path>`.
 
-Not covered by the live-tree comparison, so not detected (this list of live git-dir paths is the one
-the author knows and is not exhaustive; any live git-dir path that comparison does not name
-is outside the coverage): `index` as raw bytes (only its logical content
-is read by `ls-files`; the same for the `index` of each worktree admin dir),
-`logs/` (reflogs), loose objects and packs, `modules/`, `FETCH_HEAD`,
-`ORIG_HEAD` and `COMMIT_EDITMSG`.
+Não coberto pela comparação da árvore viva, portanto não detectado (esta lista de caminhos vivos do diretório git é a
+que o autor conhece e não é exaustiva; qualquer caminho vivo do diretório git que essa comparação não nomeie
+está fora da cobertura): `index` como bytes brutos (só o conteúdo lógico dele
+é lido por `ls-files`; o mesmo vale para o `index` de cada diretório admin de worktree),
+`logs/` (reflogs), objetos soltos e packs, `modules/`, `FETCH_HEAD`,
+`ORIG_HEAD` e `COMMIT_EDITMSG`.
 
-Residuals of accepting a linked worktree, not detected or not prevented (ADR-008 D4):
+Residuais de aceitar um worktree vinculado, não detectados ou não impedidos (ADR-008 D4):
 
-- a writer that runs as the same user can forge a whole coherent layout, and
-  the validation cannot tell it from a legitimate worktree (the same trust given
-  to the `.git/config` of a normal checkout);
-- the tree of the main checkout and of other worktrees is outside the
-  `<project>` of the call and falls under "a write outside the project
-  directory" in (a) below. When the `<project>` is the main checkout, the
-  worktrees in its ignored `.worktrees/` folder are inside it: the
-  `--ignored` status lists them, so a builder write there during the call
-  discards the verdict (a false alarm, never a miss; review the worktree path
-  instead of the main checkout while a worktree is being written);
-- the gitfile can be swapped between the validation and the clone; this is
-  detected only if the swap persists until the second snapshot;
-- the global harness dir stays outside the freeze of this clone procedure.
+- um escritor que roda como o mesmo usuário pode forjar um arranjo inteiro coerente, e
+  a validação não o distingue de um worktree legítimo (a mesma confiança dada
+  ao `.git/config` de um checkout normal);
+- a árvore do checkout principal e de outros worktrees está fora do
+  `<project>` da chamada e cai em "uma escrita fora do diretório do
+  projeto" em (a) abaixo. Quando o `<project>` é o checkout principal, os
+  worktrees na pasta `.worktrees/` ignorada dele estão dentro dele: o
+  status com `--ignored` os lista, então uma escrita de `builder` ali durante a chamada
+  descarta o veredito (um alarme falso, nunca uma falha de detecção; revise o caminho do worktree
+  em vez do checkout principal enquanto um worktree está sendo escrito);
+- o `gitfile` pode ser trocado entre a validação e o clone; isso é
+  detectado só se a troca persistir até o segundo instantâneo;
+- o harness dir global fica fora do congelamento deste procedimento de clone.
 
-RISK-002 stays mitigated: the freeze detects, it never prevents.
+RISK-002 continua mitigado: o congelamento detecta, nunca impede.
 
-Accepted by the owner on 2026-09-29, until the OS sandbox batch, and not
-detected:
+Aceito pelo dono em 2026-09-29, até o lote do sandbox do sistema operacional, e não
+detectado:
 
-- (a) a write outside the project directory: dotfiles under the home
-  directory, `~/.ssh`, the global git configuration, credentials and the
-  CLI's own configuration, other repositories, other folders under `/tmp`;
-- (b) processes that outlive the call, network calls, and `git push` to any
-  remote that is not the live repository;
-- (e) reading secrets (`.env`, `~/.aws`, anything the user reaches) and
-  returning them in the reply, because the clone only hides them from a
-  relative path.
+- (a) uma escrita fora do diretório do projeto: dotfiles sob o diretório
+  pessoal, `~/.ssh`, a configuração global do git, credenciais e a
+  configuração da própria CLI, outros repositórios, outras pastas sob `/tmp`;
+- (b) processos que sobrevivem à chamada, chamadas de rede e `git push` para qualquer
+  remoto que não seja o repositório vivo;
+- (e) ler segredos (`.env`, `~/.aws`, qualquer coisa que o usuário alcance) e
+  devolvê-los na resposta, porque o clone só os esconde de um
+  caminho relativo.
 
-The freeze directory of `references/live-tree-freeze.md` is covered by (a) and
-(e) above. It holds copies of `.harness/`, `.claude/settings*.json` and the
-dirty or untracked non-ignored files, it sits in `<tmp root>`, and a CLI
-running as the same user can read and alter it; mode 0700 does not stop that.
-Tampering with the copies is a write outside the project (a), reading them is
-reading secrets (e). The same holds between overlapping calls: a running CLI
-can read or alter a sibling call's prompt file or the shared freeze directory
-(residual (a)). Writing every prompt before any CLI starts narrows this window;
-it does not close it. A separate command after the call (a kill by the pid recorded when the call
-started, or by a bracket pattern such as `pkill -f '[o]pencode run'`; Order step
-4 of `live-tree-freeze.md`) stops this call's leftover processes and narrows
-residual (b) again; it does not close it. An
-interrupted `agy` review can leave its `dh-prompt-XXXXXXXX` file (mode 0600)
-under `<tmp root>`: it is not swept, and it is left for the owner to remove.
+O diretório de congelamento de `references/live-tree-freeze.md` é coberto por (a) e
+(e) acima. Ele guarda cópias de `.harness/`, `.claude/settings*.json` e dos
+arquivos modificados ou não rastreados e não ignorados, fica em `<tmp root>`, e uma CLI
+rodando como o mesmo usuário pode lê-lo e alterá-lo; o modo 0700 não impede isso.
+Adulterar as cópias é uma escrita fora do projeto (a), lê-las é
+ler segredos (e). O mesmo vale entre chamadas sobrepostas: uma CLI em execução
+pode ler ou alterar o arquivo de prompt de uma chamada irmã ou o diretório de congelamento compartilhado
+(residual (a)). Escrever todo prompt antes de qualquer CLI iniciar estreita esta janela;
+não a fecha. Um comando separado depois da chamada (um kill pelo pid registrado quando a chamada
+começou, ou por um padrão com colchetes como `pkill -f '[o]pencode run'`; Ordem, passo
+4 de `live-tree-freeze.md`) para os processos remanescentes desta chamada e estreita
+de novo o residual (b); não o fecha. Uma
+revisão `agy` interrompida pode deixar o arquivo `dh-prompt-XXXXXXXX` dela (modo 0600)
+sob `<tmp root>`: ele não é varrido e fica para o dono remover.
 
-Also not detected: (c) a write to the live tree that is undone before the
-second snapshot or that preserves the bytes; (f) a concurrent write by another
-process, the Coordinator included, which `live-tree-compare.md` already says to
-avoid. Only an operating-system isolation would close these; it is a later
-batch.
+Também não detectados: (c) uma escrita na árvore viva que é desfeita antes do
+segundo instantâneo ou que preserva os bytes; (f) uma escrita concorrente de outro
+processo, o Coordenador inclusive, que `live-tree-compare.md` já manda
+evitar. Só um isolamento do sistema operacional fecharia isso; é um lote
+posterior.

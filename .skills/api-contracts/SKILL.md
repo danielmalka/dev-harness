@@ -1,191 +1,191 @@
 ---
 name: api-contracts
-description: Use when a public interface between components is being created or changed and consumers must agree with the provider before code is written, including HTTP, RPC, event, webhook, and cross-module APIs, or when a change may break deployed clients and needs a migration path. Do not use when the change is internal with no consumer-visible surface, when the contract already exists and only its implementation is in question, or when the task is to build the server rather than specify it.
+description: Use quando uma interface pública entre componentes estiver sendo criada ou alterada e os consumidores precisarem concordar com o provedor antes de o código ser escrito, incluindo APIs HTTP, RPC, de eventos, de webhooks e entre módulos, ou quando uma mudança puder quebrar clientes implantados e precisar de um caminho de migração. Não use quando a mudança for interna e sem superfície visível ao consumidor, quando o contrato já existir e só a implementação estiver em questão, ou quando a tarefa for construir o servidor em vez de especificá-lo.
 author: malka
 metadata:
   provenance: adapted
   sources: ["api-design reference (REST/GraphQL conventions)", " api-designer role description", "dev-harness api-designer agent", "addyosmani/agent-skills (MIT); mechanism adapted, not copied"]
 ---
 
-# API Contracts
+# Contratos de API
 
-## Overview
+## Visão geral
 
-This procedure produces a contract that a consumer and a provider read identically: operations, error catalog, one success example, one failure example, and an explicit register of what breaks. The contract is written before the server exists, so disagreement surfaces in text rather than in integration. The core principle is applicability: every concern below is included only when a stated trigger is present, and anything included without a trigger is speculation, not design.
+Este procedimento produz um contrato que um consumidor e um provedor leem de forma idêntica: operações, catálogo de erros, um exemplo de sucesso, um exemplo de falha e um registro explícito do que quebra. O contrato é escrito antes de o servidor existir, para que a divergência apareça no texto e não na integração. O princípio central é a aplicabilidade: cada preocupação abaixo só é incluída quando um gatilho declarado está presente, e tudo o que for incluído sem gatilho é especulação, não projeto.
 
-## When to use
+## Quando usar
 
-- A new HTTP, RPC, event, webhook, or cross-module interface must be defined.
-- An existing interface changes shape, status codes, error codes, or authorization.
-- Two roles are about to implement the same interface from different sides.
-- A consumer already deployed may break, and the migration path is unclear.
-- Acceptance criteria depend on what the interface returns in success and in failure.
+- Uma interface nova de HTTP, RPC, eventos, webhook ou entre módulos precisa ser definida.
+- Uma interface existente muda de formato, de códigos de status, de códigos de erro ou de autorização.
+- Dois papéis estão prestes a implementar a mesma interface de lados diferentes.
+- Um consumidor já implantado pode quebrar e o caminho de migração não está claro.
+- Os critérios de aceite dependem do que a interface devolve no sucesso e na falha.
 
-## When not to use
+## Quando não usar
 
-- Internal refactor with no consumer-visible surface. Use safe-refactoring.
-- A single known endpoint whose behavior is already specified and only needs building. Use incremental-implementation.
-- Picking the transport or the service boundary itself. Use architecture-decisions.
-- Pure UI work against an unchanged API.
+- Refactor interno sem superfície visível ao consumidor. Use `safe-refactoring`.
+- Um único endpoint conhecido cujo comportamento já está especificado e só precisa ser construído. Use `incremental-implementation`.
+- Escolher o transporte ou a própria fronteira do serviço. Use `architecture-decisions`.
+- Trabalho puramente de UI contra uma API inalterada.
 
-## Inputs
+## Entradas
 
-| Input | If missing |
+| Entrada | Se faltar |
 | --- | --- |
-| Authorization and write set for the contract file | Do not write. Return the contract in the reply and request the path and scope from the Coordinator. |
-| The consumers of the interface and what each one does with it | Ask the Coordinator. An unknown consumer changes pagination, auth, and compatibility. Do not guess. |
-| Existing conventions in the repository (paths, error shape, auth, naming) | Read two or three neighboring contracts and adopt what they do. Record it as a decision, not as a fact. |
-| Acceptance criteria that depend on the contract | Write the contract for the operations you can source, and list the criteria you could not map under Open decisions. |
-| Current version and deployment status of existing consumers | Treat every consumer as deployed. That is the safe assumption and it only costs a migration note. |
+| Autorização e conjunto de escrita para o arquivo do contrato | Não escreva. Devolva o contrato na resposta e peça o caminho e o escopo ao Coordenador. |
+| Os consumidores da interface e o que cada um faz com ela | Pergunte ao Coordenador. Um consumidor desconhecido muda a paginação, a autenticação e a compatibilidade. Não adivinhe. |
+| Convenções existentes no repositório (caminhos, formato de erro, autenticação, nomenclatura) | Leia dois ou três contratos vizinhos e adote o que eles fazem. Registre como decisão, não como fato. |
+| Critérios de aceite que dependem do contrato | Escreva o contrato para as operações que você consegue embasar numa fonte e liste os critérios que não conseguiu mapear em Decisões em aberto. |
+| Versão atual e estado de implantação dos consumidores existentes | Trate todo consumidor como implantado. É a premissa segura e custa só uma nota de migração. |
 
-## Procedure
+## Procedimento
 
-1. **Read before writing.** Locate existing contracts, error shapes, auth middleware, and naming conventions with local search. Cite each convention with a relative path. A contract that contradicts its neighbors is a defect even when it is internally consistent.
-2. **Name the consumers.** List each consumer and the single question it asks the interface. An operation that no listed consumer calls does not belong in this contract.
-3. **Model operations from the domain, not from the storage.** For each operation record intent, inputs, output on success, preconditions, and observable effects. Name actions by intent, not by table mutation.
-4. **Apply the applicability gate.** Walk the table in Quick reference. For each concern, either state the trigger that makes it apply and specify it, or record one line saying it does not apply and why. Silence is not a decision.
-5. **Define one error catalog for the whole surface.** Each error carries a stable machine code, a transport status, a human message, optional per-field details, and a correlation identifier. The same failure never appears under two codes.
-6. **Write one success example and one failure example per operation.** Complete, concrete, copy-pasteable values, no placeholders like `...`. These two examples are the shared artifact: the consumer builds its parser from them and the provider builds its response from them.
-7. **Register compatibility.** Classify every delta as additive, breaking, or unresolved pending named consumer evidence using the compatibility table. Do not finalize compatibility-dependent work while that evidence is missing. For each breaking item record what breaks, which consumer breaks, and the expand and contract sequence that avoids a flag day.
-8. **Write integration scenarios.** One given/when/then per acceptance criterion, each pointing at an operation and at one of the two examples. These become the inputs for regression-testing.
-9. **Stop at the specification.** Do not implement the server, the client, or the migration in this role. Hand the contract back with evidence, limitations, and open decisions.
-10. **Report, do not record.** Facts, evidence, open decisions, and any incident go back to the Coordinator, who is the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`. Write the contract only inside the write set assigned by the Coordinator, normally `.harness/tasks/<id>/`. If the project keeps specifications elsewhere, request that path before writing.
+1. **Leia antes de escrever.** Localize contratos existentes, formatos de erro, middleware de autenticação e convenções de nomenclatura com busca local. Cite cada convenção com um caminho relativo. Um contrato que contradiz os vizinhos é um defeito mesmo quando é internamente consistente.
+2. **Nomeie os consumidores.** Liste cada consumidor e a única pergunta que ele faz à interface. Uma operação que nenhum consumidor listado chama não pertence a este contrato.
+3. **Modele as operações a partir do domínio, não do armazenamento.** Para cada operação registre intenção, entradas, saída no sucesso, pré-condições e efeitos observáveis. Nomeie as ações pela intenção, não pela mutação de tabela.
+4. **Aplique o gate de aplicabilidade.** Percorra a tabela em Referência rápida. Para cada preocupação, ou declare o gatilho que a faz valer e especifique-a, ou registre uma linha dizendo que não se aplica e por quê. Silêncio não é decisão.
+5. **Defina um catálogo de erros para a superfície inteira.** Cada erro carrega um código estável legível por máquina, um status de transporte, uma mensagem humana, detalhes opcionais por campo e um identificador de correlação. A mesma falha nunca aparece sob dois códigos.
+6. **Escreva um exemplo de sucesso e um exemplo de falha por operação.** Valores completos, concretos e que se possa copiar e colar, sem marcadores como `...`. Esses dois exemplos são o artefato compartilhado: o consumidor constrói seu parser a partir deles e o provedor constrói sua resposta a partir deles.
+7. **Registre a compatibilidade.** Classifique cada delta como aditivo, incompatível ou não resolvido, pendente de evidência de consumidor nomeado, usando a tabela de compatibilidade. Não finalize o trabalho que depende de compatibilidade enquanto essa evidência faltar. Para cada item incompatível registre o que quebra, qual consumidor quebra e a sequência de expandir e contrair que evita uma virada simultânea.
+8. **Escreva cenários de integração.** Um dado/quando/então por critério de aceite, cada um apontando para uma operação e para um dos dois exemplos. Eles viram as entradas de `regression-testing`.
+9. **Pare na especificação.** Não implemente o servidor, o cliente nem a migração neste papel. Devolva o contrato com evidência, limitações e decisões em aberto.
+10. **Reporte, não registre.** Fatos, evidência, decisões em aberto e qualquer incidente voltam ao Coordenador, que é o único a escrever `.harness/MEMORY.md`, `.harness/EPOCHAL.md` e `.harness/RISKS.md`. Escreva o contrato só dentro do conjunto de escrita atribuído pelo Coordenador, normalmente `.harness/tasks/<id>/`. Se o projeto guarda especificações em outro lugar, peça esse caminho antes de escrever.
 
-## Output format
+## Formato de saída
 
 ```
-# Contract: <interface name>
+# Contrato: <nome da interface>
 
-## Consumers
-- <consumer> -> <what it needs from this interface>
+## Consumidores
+- <consumidor> -> <o que precisa desta interface>
 
-## Conventions followed
-- <convention> (source: <relative path>)
+## Convenções seguidas
+- <convenção> (fonte: <caminho relativo>)
 
-## Operations
-### <operation id> <transport form, e.g. POST /v1/invites>
-- Intent:
-- Request: <fields, types, required or optional>
-- Success: <status> <response shape>
-- Errors: <code> -> <status> -> <when>
-- Authorization: <rule, or "not applicable: reason">
-- Idempotency: <rule, or "not applicable: reason">
-- Pagination: <rule, or "not applicable: reason">
-- Versioning: <rule, or "not applicable: reason">
-- Rate limiting: <rule, or "not applicable: reason">
-- Partial failure: <rule, or "not applicable: reason">
+## Operações
+### <id da operação> <forma de transporte, p. ex. POST /v1/invites>
+- Intenção:
+- Requisição: <campos, tipos, obrigatório ou opcional>
+- Sucesso: <status> <formato da resposta>
+- Erros: <código> -> <status> -> <quando>
+- Autorização: <regra, ou "não aplicável: motivo">
+- Idempotência: <regra, ou "não aplicável: motivo">
+- Paginação: <regra, ou "não aplicável: motivo">
+- Versionamento: <regra, ou "não aplicável: motivo">
+- Limitação de taxa: <regra, ou "não aplicável: motivo">
+- Falha parcial: <regra, ou "não aplicável: motivo">
 
-## Error catalog
-| code | status | meaning | field details | correlation id |
+## Catálogo de erros
+| código | status | significado | detalhes do campo | id de correlação |
 | --- | --- | --- | --- | --- |
 
-## Examples
-### Success
-<complete request and response>
-### Failure
-<complete request and response>
+## Exemplos
+### Sucesso
+<requisição e resposta completas>
+### Falha
+<requisição e resposta completas>
 
-## Compatibility
-- Additive: <items>
-- Breaking: <item> | <consumer affected> | <migration step>
-- Unresolved: <item> | <consumer> | <evidence needed before finalizing compatibility>
-- Sequence: expand -> migrate consumers -> contract
-- Retirement: not applicable | <surface> | consumers: <measured count or unknown> | replacement: <name or "no replacement", owner decision>
+## Compatibilidade
+- Aditivas: <itens>
+- Incompatíveis: <item> | <consumidor afetado> | <passo de migração>
+- Não resolvidas: <item> | <consumidor> | <evidência necessária antes de finalizar a compatibilidade>
+- Sequência: expandir -> migrar consumidores -> contrair
+- Retirada: não aplicável | <superfície> | consumidores: <contagem medida ou desconhecida> | substituto: <nome ou "sem substituto", decisão do dono>
 
-## Integration scenarios
-- Given <state>, when <call>, then <observable result> (criterion: <id>)
+## Cenários de integração
+- Dado <estado>, quando <chamada>, então <resultado observável> (critério: <id>)
 
-## Open decisions
-- <question> | <who decides> | <what changes with each answer>
+## Decisões em aberto
+- <pergunta> | <quem decide> | <o que muda com cada resposta>
 
-## Evidence
-- <relative path> - <what it establishes>
+## Evidência
+- <caminho relativo> - <o que estabelece>
 ```
 
-## Quick reference
+## Referência rápida
 
-Applicability gate. Include the concern only when the trigger holds.
+Gate de aplicabilidade. Inclua a preocupação só quando o gatilho valer.
 
-| Concern | Include when | Record when skipped |
+| Preocupação | Incluir quando | Registrar quando omitida |
 | --- | --- | --- |
-| Authorization | The operation accesses protected data or requires a role, capability, entitlement, or object-level permission, including on the caller's own data | "Unrestricted public operation: <reason no permission is required>" |
-| Idempotency | A retry is realistic and the effect is not naturally repeatable (creation, charge, dispatch) | "GET, naturally idempotent" |
-| Pagination | The collection grows without a bound the caller controls | "Fixed small set, bounded by design" |
-| Versioning | At least one consumer is already deployed against the old shape | "First release, no deployed consumer" |
-| Rate limiting | The surface is public, expensive, or abusable | "Internal, behind a trusted caller" |
-| Partial failure semantics | The operation touches more than one resource or system | "Single resource, atomic" |
+| Autorização | A operação acessa dados protegidos ou exige um papel, capacidade, direito ou permissão em nível de objeto, inclusive sobre os dados do próprio chamador | "Operação pública irrestrita: <motivo pelo qual nenhuma permissão é exigida>" |
+| Idempotência | Uma nova tentativa é realista e o efeito não é naturalmente repetível (criação, cobrança, despacho) | "GET, naturalmente idempotente" |
+| Paginação | A coleção cresce sem um limite que o chamador controle | "Conjunto pequeno e fixo, limitado por projeto" |
+| Versionamento | Ao menos um consumidor já está implantado contra a forma antiga | "Primeiro release, nenhum consumidor implantado" |
+| Limitação de taxa | A superfície é pública, cara ou abusável | "Interna, atrás de um chamador confiável" |
+| Semântica de falha parcial | A operação toca mais de um recurso ou sistema | "Recurso único, atômico" |
 
-Compatibility classification.
+Classificação de compatibilidade.
 
-| Change | Class |
+| Mudança | Classe |
 | --- | --- |
-| New optional request field or new operation | Additive when existing calls keep their meaning and behavior |
-| New response field | Additive only when the consumer contract or verified consumers tolerate unknown fields; otherwise breaking, or unresolved until checked |
-| New error code for a previously unhandled condition | Additive if clients have a default branch, otherwise breaking |
-| New enum value | Breaking unless consumers are specified to tolerate unknown values |
-| Remove or rename a field, operation, or error code | Breaking |
-| Make an optional request field required, or tighten validation | Breaking |
-| Change a type, a status code, a default, or a unit | Breaking |
-| Change pagination defaults or ordering | Breaking |
+| Campo de requisição opcional novo ou operação nova | Aditiva quando as chamadas existentes mantêm seu significado e comportamento |
+| Campo de resposta novo | Aditiva só quando o contrato do consumidor ou os consumidores verificados toleram campos desconhecidos; caso contrário, incompatível, ou não resolvida até ser conferida |
+| Código de erro novo para uma condição antes não tratada | Aditiva se os clientes têm um ramo padrão, caso contrário incompatível |
+| Valor novo de enum | Incompatível, a menos que esteja especificado que os consumidores toleram valores desconhecidos |
+| Remover ou renomear um campo, operação ou código de erro | Incompatível |
+| Tornar obrigatório um campo de requisição opcional, ou apertar a validação | Incompatível |
+| Mudar um tipo, um código de status, um padrão ou uma unidade | Incompatível |
+| Mudar os padrões de paginação ou a ordenação | Incompatível |
 
-Expand and contract, the only sequence that avoids a flag day: add the new shape beside the old one, serve both, migrate each consumer with evidence, announce the removal date, then remove.
+Expandir e contrair, a única sequência que evita uma virada simultânea: adicione a forma nova ao lado da antiga, sirva as duas, migre cada consumidor com evidência, anuncie a data de remoção e então remova.
 
-Retirement, only when the change removes or sunsets a consumer-visible operation, field, or error code. Measure usage first: call sites, plus any deployed consumer named in the inputs. An unknown count stays unknown. Do not write unknown as zero. Name a proven replacement, or write "no replacement" as an open decision for the owner. The default is advisory. It is compulsory only with a date, a migration guide that has concrete steps, and a way to find the remaining callers. Do not add behavior to a surface marked for removal. Column and schema removal stay in data-migrations. This section does not restate that procedure.
+Retirada, só quando a mudança remove ou descontinua uma operação, campo ou código de erro visível ao consumidor. Meça o uso primeiro: pontos de chamada, mais qualquer consumidor implantado nomeado nas entradas. Uma contagem desconhecida continua desconhecida. Não escreva desconhecido como zero. Nomeie um substituto comprovado, ou escreva "sem substituto" como decisão em aberto para o dono. O padrão é consultivo. Só é obrigatório com uma data, um guia de migração com passos concretos e uma forma de encontrar os chamadores restantes. Não adicione comportamento a uma superfície marcada para remoção. A remoção de coluna e de esquema continua em `data-migrations`. Esta seção não repete esse procedimento.
 
-Do not label an unresolved compatibility check additive. Name the affected consumer and the evidence needed to decide. For example, a consumer that rejects unknown response properties can break when a field is added. Ownership alone also does not settle authorization: changing one's own account can still require a role or entitlement.
+Não rotule como aditiva uma checagem de compatibilidade não resolvida. Nomeie o consumidor afetado e a evidência necessária para decidir. Por exemplo, um consumidor que rejeita propriedades de resposta desconhecidas pode quebrar quando um campo é adicionado. Propriedade, sozinha, também não resolve a autorização: mudar a própria conta ainda pode exigir um papel ou um direito.
 
-## Common mistakes
+## Erros comuns
 
-| Mistake | Why it hurts | Do instead |
+| Erro | Por que prejudica | Faça em vez disso |
 | --- | --- | --- |
-| Fields added "for later" | Every speculative field becomes a compatibility obligation the moment one consumer reads it | Only fields a named consumer needs now |
-| Examples with placeholders | Consumer and provider fill the gaps differently and the disagreement appears in integration | Complete concrete values on both sides |
-| Two error codes for the same cause | Clients branch on transport status and lose the distinction anyway | One stable machine code per cause |
-| 5xx for a caller mistake | Hides client bugs inside provider alerting and defeats retry policy | 4xx for caller, 5xx only for provider fault |
-| Contract shaped like the database tables | Storage refactors then become breaking API changes | Model the domain intent |
-| Breaking change with a version bump and nothing else | A version number is not a migration; deployed clients still break | Register affected consumer plus expand and contract steps |
-| Writing the server while writing the spec | The spec stops being reviewable and becomes a description of the code | Specification only, implementation is another role |
-| Treating a draft as deployed | Downstream work plans against something that does not exist | Mark status explicitly |
+| Campos adicionados "para depois" | Todo campo especulativo vira uma obrigação de compatibilidade no instante em que um consumidor o lê | Só campos de que um consumidor nomeado precisa agora |
+| Exemplos com marcadores | Consumidor e provedor preenchem as lacunas de jeitos diferentes e a divergência aparece na integração | Valores completos e concretos dos dois lados |
+| Dois códigos de erro para a mesma causa | Os clientes ramificam pelo status de transporte e perdem a distinção de qualquer forma | Um código estável legível por máquina por causa |
+| 5xx para um erro do chamador | Esconde bugs do cliente dentro dos alertas do provedor e anula a política de nova tentativa | 4xx para o chamador, 5xx só para falha do provedor |
+| Contrato moldado como as tabelas do banco | Refatorações do armazenamento viram mudanças incompatíveis na API | Modele a intenção do domínio |
+| Mudança incompatível com um aumento de versão e mais nada | Um número de versão não é uma migração; os clientes implantados continuam quebrando | Registre o consumidor afetado mais os passos de expandir e contrair |
+| Escrever o servidor enquanto escreve a especificação | A especificação deixa de ser revisável e vira uma descrição do código | Só especificação, a implementação é outro papel |
+| Tratar um rascunho como implantado | O trabalho a jusante planeja contra algo que não existe | Marque o status explicitamente |
 
-## Example
+## Exemplo
 
-Input: "Add an invite endpoint. Frontend creates invites, the worker retries on timeout."
+Entrada: "Adicione um endpoint de convites. O frontend cria convites, o worker tenta de novo em caso de timeout."
 
 ```
 ### create_invite  POST /v1/invites
-- Intent: invite an email address to an organization.
-- Request: { "email": string (required), "role": "member" | "admin" (required) }
-- Success: 201 { "id": "inv_7Kq", "email": "sam@example.com",
+- Intenção: convidar um endereço de e-mail para uma organização.
+- Requisição: { "email": string (obrigatório), "role": "member" | "admin" (obrigatório) }
+- Sucesso: 201 { "id": "inv_7Kq", "email": "sam@example.com",
                  "role": "member", "status": "pending" }
-- Errors: invalid_email -> 422 | already_invited -> 409 | forbidden -> 403
-- Authorization: caller must hold admin on the target organization.
-- Idempotency: Idempotency-Key header required; a replay returns the original 201 body.
-- Pagination: not applicable, single resource.
+- Erros: invalid_email -> 422 | already_invited -> 409 | forbidden -> 403
+- Autorização: o chamador deve ter admin na organização de destino.
+- Idempotência: cabeçalho Idempotency-Key obrigatório; um reenvio devolve o corpo 201 original.
+- Paginação: não aplicável, recurso único.
 
-### Failure example
+### Exemplo de falha
 POST /v1/invites   { "email": "sam@", "role": "member" }
-422 { "error": { "code": "invalid_email", "message": "Email is invalid",
+422 { "error": { "code": "invalid_email", "message": "O e-mail é inválido",
       "details": [{ "field": "email", "issue": "format" }],
       "request_id": "req_abc123" } }
 
-## Compatibility
-- Additive: create_invite is a new operation, no deployed consumer
+## Compatibilidade
+- Aditivas: create_invite é uma operação nova, sem consumidor implantado
 
-## Integration scenarios
-- Given an org with a pending invite for sam@example.com, when create_invite is
-  called again, then 409 already_invited (criterion: AC-2)
+## Cenários de integração
+- Dada uma organização com um convite pendente para sam@example.com, quando create_invite é
+  chamada de novo, então 409 already_invited (critério: AC-2)
 
-## Open decisions
-- Expiry of a pending invite | product owner | an expiry adds a field and a
-  second reason for 409 to disappear
+## Decisões em aberto
+- Expiração de um convite pendente | dono do produto | uma expiração adiciona um campo e um
+  segundo motivo para o 409 desaparecer
 ```
 
-Idempotency is present because the worker retries. Pagination is skipped with a stated reason. The failure example is what the frontend builds its error branch from.
+A idempotência está presente porque o worker tenta de novo. A paginação é omitida com um motivo declarado. É a partir do exemplo de falha que o frontend constrói seu ramo de erro.
 
-## Related
+## Relacionado
 
-Roles: architect, builder, qa-verifier. Commands: used inside `/dh:plan`. Skills: architecture-decisions, implementation-planning, incremental-implementation, regression-testing.
+Papéis: `architect`, `builder`, `qa-verifier`. Comandos: usados dentro de `/dh:plan`. Skills: `architecture-decisions`, `implementation-planning`, `incremental-implementation`, `regression-testing`.
 
-## Proof case
+## Caso de prova
 
-Given a contract produced by this procedure, a consumer role and a provider role independently describe the same success body and the same failure body, including status, error code, and field names, without further clarification. A change that removes a response field is classified as breaking, names the affected consumer, and carries an expand and contract sequence rather than a bare version bump. Adding a response field for a consumer that rejects unknown properties is also breaking; absent tolerance evidence remains unresolved. An operation on the caller's own account that requires an entitlement retains that authorization rule. A removal of a consumer-visible operation names a consumer count, measured or explicitly unknown, and a replacement or an explicit no-replacement decision. Unknown is not written as zero. A column drop is left to data-migrations.
+Dado um contrato produzido por este procedimento, um papel de consumidor e um papel de provedor descrevem, de forma independente, o mesmo corpo de sucesso e o mesmo corpo de falha, incluindo status, código de erro e nomes de campo, sem mais esclarecimentos. Uma mudança que remove um campo de resposta é classificada como incompatível, nomeia o consumidor afetado e carrega uma sequência de expandir e contrair em vez de um mero aumento de versão. Adicionar um campo de resposta para um consumidor que rejeita propriedades desconhecidas também é incompatível; sem evidência de tolerância, permanece não resolvido. Uma operação sobre a conta do próprio chamador que exige um direito mantém essa regra de autorização. A remoção de uma operação visível ao consumidor nomeia uma contagem de consumidores, medida ou explicitamente desconhecida, e um substituto ou uma decisão explícita de não ter substituto. Desconhecido não é escrito como zero. A remoção de uma coluna fica com `data-migrations`.

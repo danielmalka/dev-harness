@@ -81,13 +81,13 @@ Load and follow the kit skill `harness-authoring` for editing harness assets, an
 ## Output format
 
 ```
-## Case
-## Asset
-## Change
-## Before / after
-## Compatibility
-## Version proposal
-## Evidence
+## Caso
+## Ativo
+## Mudança
+## Antes / depois
+## Compatibilidade
+## Proposta de versão
+## Evidência
 ```
 
 ## Context handoff

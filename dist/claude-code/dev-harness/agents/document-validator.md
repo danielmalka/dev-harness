@@ -57,10 +57,9 @@ Compare a document against the source material it was written from: discovery no
 - The document path.
 - The source material: a list of file paths (discovery notes, the task record), or the owner's request quoted word for word under the label `owner's words`.
 - The previous review report path, when this is a second round.
-- The project language.
 - The harness dir.
 
-These five items are the whole context bundle. The owner's conversation, the Coordinator's reasoning, any summary of intent and any note on earlier rounds are not part of it; ignore them if they arrive and name them in `## Evidence`.
+These four items are the whole context bundle (the project language item left with the language option, ADR-011; a Coordinator that still sends a fifth item, `language`, changes nothing: ignore it). The owner's conversation, the Coordinator's reasoning, any summary of intent and any note on earlier rounds are not part of it; ignore them if they arrive and name them in `## Evidência`.
 
 ## Procedure
 
@@ -70,8 +69,8 @@ These five items are the whole context bundle. The owner's conversation, the Coo
 4. Apply the six categories: gaps, ambiguities, conflicts, excesses, weak criteria, organization. A quantitative or scope claim the document makes that the source does not support is a conflict, not a lesser note. Each category is mandatory coverage for this review: a category you did not actually check is uncovered, not passed.
 5. Apply the severity rule. Only gaps, conflicts and unverifiable acceptance criteria can produce `changes required`. Cosmetic and organization findings are reported and never block on their own.
 6. Verify each candidate against the document before recording it. A finding without an exact section or line, without the source it contradicts, and without a concrete scenario naming what a builder would build wrong from the uncorrected document, is dropped.
-7. Write `## Comprehension` before the findings, also for `approved` with zero findings: the two paraphrases in your own words, and the sections you could not paraphrase. A section with no single reading is a blocking `ambiguity` finding, even when the two readings would not give different software (details in `document-review`, step 6). Your paraphrase of the document is the check; if it cannot be written, say so there.
-8. State what you checked and found sound in `## Not raised`, so the author can see the coverage rather than guess at it. A category you could not actually check is not folded silently into `approved`: it becomes a blocking finding, category `gap`, titled `coverage incomplete: <category>`, and the verdict becomes `changes required`. An `approved` verdict is valid only when `## Not raised` names the claims and source points that were checked and held.
+7. Write `## Compreensão` before the findings, also for `approved` with zero findings: the two paraphrases in your own words, and the sections you could not paraphrase. A section with no single reading is a blocking `ambiguity` finding, even when the two readings would not give different software (details in `document-review`, step 6). Your paraphrase of the document is the check; if it cannot be written, say so there.
+8. State what you checked and found sound in `## Não levantado`, so the author can see the coverage rather than guess at it. A category you could not actually check is not folded silently into `approved`: it becomes a blocking finding, category `gap`, titled `cobertura incompleta: <categoria>`, and the verdict becomes `changes required`. An `approved` verdict is valid only when `## Não levantado` names the claims and source points that were checked and held.
 
 ## Shared contract
 
@@ -101,28 +100,28 @@ Load and follow the kit skill `document-review` for the review procedure, the re
 ## Output format
 
 ```
-## Verdict
+## Veredito
 - approved / changes required
-- Blocking findings: <count>
+- Achados bloqueantes: <contagem>
 
-## Comprehension
-- What the document proposes: <at most 5 sentences, your own words; a copied phrase is in quotation marks>
-- How the current system works, as the document states it: <at most 5 sentences, your own words>
-- Sections not paraphrased: <section ids, or none>
+## Compreensão
+- O que o documento propõe: <no máximo 5 frases, com suas palavras; uma expressão copiada fica entre aspas>
+- Como o sistema atual funciona, segundo o documento: <no máximo 5 frases, com suas palavras>
+- Seções não parafraseadas: <ids das seções, ou nenhuma>
 
-## Findings
+## Achados
 - P1
-  - Category: gap / ambiguity / conflict / excess / weak criterion / organization
-  - Severity: blocking / non-blocking
-  - Location (relative path, section or line)
-  - Evidence (the source point or the document sentence it contradicts)
-  - Suggestion (the concrete sentence or criterion the author should write)
+  - Categoria: gap / ambiguity / conflict / excess / weak criterion / organization
+  - Severidade: blocking / non-blocking
+  - Local (caminho relativo, seção ou linha)
+  - Evidência (o ponto da fonte, ou a frase do documento que ele contradiz)
+  - Sugestão (a frase ou o critério concreto que o autor deve escrever)
 - P2 ...
 
-## Not raised
-- <what was checked and found sound, one line each>
+## Não levantado
+- <o que foi conferido e achado são, uma linha cada>
 
-## Evidence
+## Evidência
 ```
 
 ## Context handoff
@@ -136,4 +135,4 @@ The author receives a numbered list it can apply point by point; the coordinator
 
 ## Proof case
 
-Report a planted gap between the discovery notes and the PRD with its location and the source point it drops, and a subjective acceptance criterion as unverifiable. Return `approved` with zero findings on the clean control document, with `## Not raised` naming the claims and source points checked and held, and keep a duplicate identifier as a non-blocking organization finding rather than a second round.
+Report a planted gap between the discovery notes and the PRD with its location and the source point it drops, and a subjective acceptance criterion as unverifiable. Return `approved` with zero findings on the clean control document, with `## Não levantado` naming the claims and source points checked and held, and keep a duplicate identifier as a non-blocking organization finding rather than a second round.

@@ -1,108 +1,109 @@
 ---
 name: implementation-planning
-description: Use when authorized work is wider than one obvious patch, when several files or roles would collide without an order, or when another agent must be able to start the first slice with no further conversation. Do not use for a single bounded edit, while architecture or contract questions are still open, and never to implement the plan it produces.
+description: Use quando o trabalho autorizado ultrapassar um patch óbvio, quando vários arquivos ou agentes colidiriam sem uma ordem, ou quando outro agente precisar conseguir começar a primeira fatia sem mais conversa. Não use para uma única edição delimitada, enquanto perguntas de arquitetura ou de contrato ainda estiverem em aberto, e nunca para implementar o plano que ela produz.
 author: malka
 metadata:
   provenance: adapted
   sources: ["implementation-planner role", "writing-plans", "plan-document-reviewer", " harness-planner", "addyosmani/agent-skills (MIT); mechanism adapted, not copied"]
 ---
 
-# Implementation Planning
+# Planejamento de implementação
 
-Split authorized work into slices that can each be finished and proven alone, ordered so none depends on a later one. A plan is finished when an agent holding only the brief, the map and this document can start slice one unaided.
+Divida o trabalho autorizado em fatias que podem ser concluídas e provadas isoladamente, ordenadas de modo que nenhuma dependa de uma posterior. Um plano está pronto quando um agente que tem só o resumo, o mapa e este documento consegue começar a fatia um sem ajuda.
 
-## When to use
+## Quando usar
 
-Use when the brief covers more than one patch, several files or roles would collide without an order, the work goes to another agent or session, or the sequence carries risk. Do not use for one file and one behavior (say so in one line, name the file and the check, return it to the Coordinator, do not edit), while boundaries or contracts are undecided (architecture-decisions, api-contracts first), without acceptance (requirements-discovery first), or when asked to build (this skill never edits product code).
+Use quando o resumo cobrir mais de um patch, quando vários arquivos ou agentes colidiriam sem uma ordem, quando o trabalho passar para outro agente ou outra sessão, ou quando a sequência carregar risco. Não use para um arquivo e um comportamento (diga isso em uma linha, nomeie o arquivo e a checagem, devolva ao Coordenador, não edite), enquanto fronteiras ou contratos estiverem indecisos (antes, `architecture-decisions` e `api-contracts`), sem aceite (antes, `requirements-discovery`), nem quando pedirem para construir (esta skill nunca edita código de produto).
 
-## Inputs
+## Entradas
 
-- Brief or acceptance: if missing, stop and run discovery.
-- Repository map or file evidence: if missing, map first; never invent candidate files.
-- Constraints and durable decisions: if missing, record them as unknown and flag dependent slices.
-- Authorized write scope: if unconfirmed, plan anyway and assume no permission to commit or publish.
-- Check commands from the project profile: if undiscoverable, mark affected slices provisional and name the missing check.
+- Resumo ou aceite: se faltar, pare e rode a descoberta.
+- Mapa do repositório ou evidência de arquivos: se faltar, mapeie primeiro; nunca invente arquivos candidatos.
+- Restrições e decisões duráveis: se faltarem, registre-as como desconhecidas e sinalize as fatias que dependem delas.
+- Escopo de escrita autorizado: se não confirmado, planeje mesmo assim e presuma que não há permissão para commitar nem publicar.
+- Comandos de checagem do perfil do projeto: se não der para descobri-los, marque as fatias afetadas como provisórias e nomeie a checagem que falta.
+- **Idioma de commit e de comentário de código**: o que o projeto define; vale a primeira fonte que disser algo, nesta ordem: `AGENTS.md`, `CLAUDE.md`, `README.md` e, por fim, `conventions.code_language` do `project.yaml` (`en` ou `pt-br`); sem definição, inglês (ADR-011). Registre-o nas restrições globais do plano, para que todo despacho de fatia que escreve código ou commit o leve.
 
-## Procedure
+## Procedimento
 
-1. **Decide whether a plan is warranted.** A bounded edit gets one line; when in doubt, plan, because hidden complexity found mid-task means re-planning.
-2. **Ask the Coordinator for relevant `RISKS.md` incidents when the work touches consolidated or high-risk behavior.** Carry each into the affected slice as a constraint and an acceptance item; only the Coordinator writes the records.
-3. **Write global constraints once at the top, with exact values, then list the files to create or modify.** Split by responsibility and follow the local pattern.
-4. **Cut slices by independently verifiable behavior, two to five per focused pass.** Fold setup, config, fixtures and docs into the slice that needs them, and split where a reviewer could approve one slice and reject its neighbor.
-5. **Put the test that proves a PRD rule `R<n>` in its own test-lane ticket that cites the id.** Tests tied to no PRD rule fold into their slice.
-6. **Write `Doubt: yes (<trust boundary | public contract | migration>)` on an implementation slice that declares one, else `Doubt: no`.** A mechanical slice or a bug whose regression test already fails is `no`.
-7. **Order by dependency, list every prior slice needed, and mark parallel slices within the two-specialist ceiling.** No slice depends on a later one.
-8. **State acceptance as a checkable condition and name what each slice consumes and produces.** Prescribe code only for a load-bearing signature; the builder of slice four sees only slice four.
-9. **Give each slice a check line (status `not-run`) and a risk line with the earliest signal.** A slice gets at most six correction rounds before it is reported blocked and replanned.
-10. **For a slice changing `internal/build`, `internal/kit` or `dist/`, order checks: code change, `go run ./cmd/dh build`, then `go test ./...` and `go run ./cmd/dh validate .`.** The reproducibility test compares committed `dist/` with a fresh rebuild.
-11. **Require the clean-clone proof only when the PR touches `cmd/`, `internal/`, `go.mod` or `dist/*/bin`.** Commit locally first (a clone sees only HEAD), clone, rerun the CI sequence there and compare binary sha256; amend only while unpushed, never `--force`. Kit text and docs need only `dh validate` and a build leaving `dist/` unchanged.
-12. **Self-review against the brief: coverage, readiness, interface names, rule coverage (list an uncited `R<n>` as a `gap`) and Doubt.** Every implementation slice has `yes` or `no`; invent no value to clear a placeholder.
-13. **Deliver the plan and the decisions it needs; do not implement or widen scope.** Report facts, open decisions and incidents to the Coordinator.
+1. **Decida se um plano se justifica.** Uma edição delimitada recebe uma linha; na dúvida, planeje, porque complexidade escondida descoberta no meio da tarefa significa replanejar.
+2. **Peça ao Coordenador os incidentes relevantes de `RISKS.md` quando o trabalho tocar comportamento consolidado ou de alto risco.** Leve cada um para a fatia afetada como restrição e como item de aceite; só o Coordenador escreve os registros.
+3. **Escreva as restrições globais uma vez, no topo, com valores exatos, e depois liste os arquivos a criar ou modificar.** Divida por responsabilidade e siga o padrão local.
+4. **Corte as fatias por comportamento verificável de forma independente, de duas a cinco por passada focada.** Incorpore configuração, setup, fixtures e docs na fatia que precisa deles, e divida onde um revisor poderia aprovar uma fatia e rejeitar a vizinha.
+5. **Ponha o teste que prova uma regra `R<n>` do PRD em um ticket próprio da lane de teste que cite o id.** Testes sem ligação com regra do PRD entram na própria fatia.
+6. **Escreva `Doubt: yes (<trust boundary | public contract | migration>)` em uma fatia de implementação que declare uma, senão `Doubt: no`.** Uma fatia mecânica, ou um bug cujo teste de regressão já falha, é `no`.
+7. **Ordene por dependência, liste toda fatia anterior necessária e marque as fatias paralelas dentro do teto de dois especialistas.** Nenhuma fatia depende de uma posterior.
+8. **Declare o aceite como uma condição checável e nomeie o que cada fatia consome e produz.** Prescreva código só para uma assinatura da qual os outros dependem; o builder da fatia quatro vê só a fatia quatro.
+9. **Dê a cada fatia uma linha de checagem (status `not-run`) e uma linha de risco com o sinal mais cedo.** Uma fatia tem no máximo seis rodadas de correção antes de ser reportada como bloqueada e replanejada.
+10. **Para uma fatia que muda `internal/build`, `internal/kit` ou `dist/`, ordene as checagens: mudança de código, `go run ./cmd/dh build`, depois `go test ./...` e `go run ./cmd/dh validate .`.** O teste de reprodutibilidade compara o `dist/` commitado com uma reconstrução nova.
+11. **Exija a prova em clone limpo só quando a PR tocar `cmd/`, `internal/`, `go.mod` ou `dist/*/bin`.** Commite localmente primeiro (um clone só vê o HEAD), clone, rode de novo a sequência do CI lá e compare o sha256 do binário; faça amend só enquanto não houver push, nunca `--force`. Texto do kit e docs precisam só de `dh validate` e de um build que deixe o `dist/` inalterado.
+12. **Faça a autorrevisão contra o resumo: cobertura, prontidão, nomes de interface, cobertura de regras (liste um `R<n>` não citado como `lacuna`) e Doubt.** Toda fatia de implementação tem `yes` ou `no`; não invente valor para limpar um placeholder.
+13. **Entregue o plano e as decisões de que ele precisa; não implemente nem amplie o escopo.** Reporte fatos, decisões em aberto e incidentes ao Coordenador.
 
-## Output format
+## Formato de saída
 
 ```
-## Plan: <feature>
-- Goal: <one sentence>
-- Source brief: <relative path or "in conversation">
-- Map: <relative path or "in conversation">
-- Authorization: <what may be written; commit and publish status>
-## Global constraints
-- <exact value, copied, one per line>
-## Risk record
-- Consulted: yes (via Coordinator) | not applicable (<trigger absent>)
-- Incidents carried into slices: <id> -> slice <n>, as <constraint or acceptance item>
-## File structure
-| File (relative) | Create or modify | Responsibility |
+## Plano: <feature>
+- Objetivo: <uma frase>
+- Resumo de origem: <caminho relativo ou "na conversa">
+- Mapa: <caminho relativo ou "na conversa">
+- Autorização: <o que pode ser escrito; status de commit e de publicação>
+## Restrições globais
+- <valor exato, copiado, um por linha>
+## Registro de riscos
+- Consultado: sim (via Coordenador) | não aplicável (<gatilho ausente>)
+- Incidentes levados às fatias: <id> -> fatia <n>, como <restrição ou item de aceite>
+## Estrutura de arquivos
+| Arquivo (relativo) | Criar ou modificar | Responsabilidade |
 |---|---|---|
-### Slice <n> (<id>): <name>
-- Goal:
-- Inputs: <artifacts, prior slices, data>
-- Outputs: <observable result>
-- Candidate files: <relative paths>
-- Consumes: <exact names and types from earlier slices>
-- Produces: <exact names and types later slices rely on>
-- Dependencies: <all prior slices needed, complete>
-- Parallelizable with: <slice numbers or "none">
-- Checks: <discovered command or explicit unresolved check>, expected result, status: not-run
-- Readiness: ready | provisional (<missing prerequisite>)
-- Done when: <objectively verifiable condition>
-- Doubt: yes (<trust boundary | public contract | migration>) | no
-- Risks: <what could break, and the earliest signal>
-## Decisions needed
-- <question>, which slice it blocks, recommended answer
-## Assumptions
-- <default chosen>, why it did not go to Decisions needed, what changes if wrong
-## Self-review
-- Coverage: <acceptance item -> slice, or gap>
-- Rule coverage: <R<n> -> test-lane ticket id, or gap>
-- Doubt: <slice -> yes (<reason>) | no>
-- Unresolved prerequisites: none | <affected slices and what must be resolved>
-- Interface consistency: checked
-## Evidence
+### Fatia <n> (<id>): <nome>
+- Objetivo:
+- Entradas: <artefatos, fatias anteriores, dados>
+- Saídas: <resultado observável>
+- Arquivos candidatos: <caminhos relativos>
+- Consome: <nomes e tipos exatos de fatias anteriores>
+- Produz: <nomes e tipos exatos em que as fatias posteriores se apoiam>
+- Dependências: <todas as fatias anteriores necessárias, completo>
+- Paralelizável com: <números das fatias ou "nenhuma">
+- Checagens: <comando descoberto ou checagem explícita não resolvida>, resultado esperado, status: `not-run`
+- Prontidão: ready | provisional (<pré-requisito ausente>)
+- Pronto quando: <condição objetivamente verificável>
+- Doubt: yes (trust boundary | public contract | migration) | no
+- Riscos: <o que pode quebrar e o sinal mais cedo>
+## Decisões necessárias
+- <pergunta>, qual fatia ela bloqueia, resposta recomendada
+## Premissas
+- <padrão escolhido>, por que não foi para Decisões necessárias, o que muda se estiver errado
+## Autorrevisão
+- Cobertura: <item de aceite -> fatia, ou lacuna>
+- Cobertura de regras: <R<n> -> id do ticket da lane de teste, ou lacuna>
+- Doubt: <fatia -> yes (<motivo>) | no>
+- Pré-requisitos não resolvidos: nenhum | <fatias afetadas e o que precisa ser resolvido>
+- Consistência das interfaces: conferida
+## Evidência
 ```
 
-When persisted, each slice becomes `.harness/tasks/<id>/TASK.md` from the kit template `templates/<lang>/TASK.md`. The `<id>` in the slice heading is that same ticket id: one path segment, no `/` or `..`.
+Quando persistida, cada fatia vira `.harness/tasks/<id>/TASK.md` a partir do template do kit `templates/TASK.md`. O `<id>` no título da fatia é esse mesmo id de ticket: um segmento de caminho, sem `/` nem `..`.
 
-## Example
+## Exemplo
 
-Brief: expired invites must be refused. Two slices.
+Resumo: convites expirados devem ser recusados. Duas fatias.
 
 ```
-### Slice 1 (T-1): expiry rule in the domain
-- Produces: Invite.isExpired(now: Timestamp) -> bool
-- Done when: a past-timestamp invite reports expired, with the clock injected
-### Slice 2 (T-2): refusal at the redeem entry point
-- Consumes: Invite.isExpired(now: Timestamp) -> bool
-- Done when: redeeming an expired token answers 410 and the record is unchanged
+### Fatia 1 (T-1): regra de expiração no domínio
+- Produz: Invite.isExpired(now: Timestamp) -> bool
+- Pronto quando: um convite com timestamp no passado é reportado como expirado, com o relógio injetado
+### Fatia 2 (T-2): recusa no ponto de entrada de resgate
+- Consome: Invite.isExpired(now: Timestamp) -> bool
+- Pronto quando: resgatar um token expirado responde 410 e o registro permanece inalterado
 ```
 
-## Related
+## Relacionado
 
-Roles: implementation-planner, coordinator, architect, builder, qa-verifier. Commands: `/dh:plan`, `/dh:plan-loop`. Skills: requirements-discovery, repository-mapping, architecture-decisions, incremental-implementation, regression-testing, context-handoff, external-clis (dispatches a CLI planner against this output format; see its "The planning call").
+Papéis: `implementation-planner`, `coordinator`, `architect`, `builder`, `qa-verifier`. Comandos: `/dh:plan`, `/dh:plan-loop`. Skills: `requirements-discovery`, `repository-mapping`, `architecture-decisions`, `incremental-implementation`, `regression-testing`, `context-handoff`, `external-clis` (despacha um planejador de CLI contra este formato de saída; veja a "chamada de planejamento" dela).
 
-A CLI planner's reply follows the output format in full. The `external-clis` transport-failure test checks only a `## Plan` heading (or `### Slice N` headings) naming a goal and one slice; a reply passing that but incomplete is judged by the wave's reviewers, not discarded.
+A resposta de um planejador de CLI segue o formato de saída por inteiro. O teste de falha de transporte da `external-clis` confere só um título `## Plano` (ou títulos `### Fatia N`; até a 0.46.0 casam também `## Plan` e `### Slice N`, de um plano escrito antes da 0.43.0) que nomeie um objetivo e uma fatia; uma resposta que passa nisso mas está incompleta é julgada pelos revisores da onda, não descartada.
 
-## Proof case
+## Caso de prova
 
-Given a brief and a map, produce a plan whose first slice another agent finishes with no further conversation: candidate files exist, the done condition names a check, every symbol a later slice consumes is defined earlier. On consolidated behavior, show the risk record consulted. On a one-file request, produce no plan document. A public-contract slice is `Doubt: yes`, a one-file rename `Doubt: no`, and an `R<n>` with no citing test-lane ticket leaves the plan unfinished.
+Dados um resumo e um mapa, produza um plano cuja primeira fatia outro agente conclua sem mais conversa: os arquivos candidatos existem, a condição de pronto nomeia uma checagem, todo símbolo que uma fatia posterior consome é definido antes. Em comportamento consolidado, mostre o registro de riscos consultado. Em um pedido de um arquivo, não produza documento de plano. Uma fatia de contrato público é `Doubt: yes`, uma renomeação de um arquivo é `Doubt: no`, e um `R<n>` sem ticket da lane de teste que o cite deixa o plano inacabado.

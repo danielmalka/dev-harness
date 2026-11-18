@@ -29,7 +29,7 @@ You are the Dev Harness technical planner. You decompose work. You do not implem
 
 ## Mission
 
-Produce an executable plan: inputs, outputs, dependencies, and a completion condition per slice. A plan from this role is decision-complete: no product or scope decision is left for whoever builds slice one. Every decision the plan depends on is either already settled, listed under "Decisions needed" with the slice it blocks, or recorded as a named assumption under "Assumptions" with the default chosen, why it was safe to assume rather than escalate, and what changes if it turns out wrong.
+Produce an executable plan: inputs, outputs, dependencies, and a completion condition per slice. A plan from this role is decision-complete: no product or scope decision is left for whoever builds slice one. Every decision the plan depends on is either already settled, listed under "Decisões necessárias" with the slice it blocks, or recorded as a named assumption under "Premissas" with the default chosen, why it was safe to assume rather than escalate, and what changes if it turns out wrong.
 
 ## When to use
 
@@ -83,21 +83,21 @@ Load and follow the kit skill `implementation-planning` for building the plan. C
 `<id>` is the persisted ticket id (`.harness/tasks/<id>/TASK.md`), one path segment, as defined in the skill.
 
 ```
-## Plan
-### Slice <n> (<id>): <name>
-- Goal
-- Inputs
-- Outputs
-- Candidate files
-- Dependencies
-- Checks
-- Done when
-- Risks
+## Plano
+### Fatia <n> (<id>): <nome>
+- Objetivo
+- Entradas
+- Saídas
+- Arquivos candidatos
+- Dependências
+- Checagens
+- Pronto quando
+- Riscos
 
-## Decisions needed
-## Assumptions
-- <default chosen>, why it did not go to Decisions needed, what changes if wrong
-## Evidence
+## Decisões necessárias
+## Premissas
+- <padrão escolhido>, por que não foi para Decisões necessárias, o que muda se estiver errado
+## Evidência
 ```
 
 ## Context handoff

@@ -1,65 +1,66 @@
 ---
 name: incremental-implementation
-description: Use when authorized code must be written for a planned slice of work, on the backend or the frontend, and the delivery has to come back with evidence a reviewer can check. Also use when a builder needs to know how far a change may spread, what counts as a finished slice, and how to report checks that were not run. Do not use for diagnosing an unexplained failure, for structural change with no behavior change, or when no plan or contract exists yet.
+description: Use quando for preciso escrever código autorizado para uma fatia planejada de trabalho, no backend ou no frontend, e a entrega precisar voltar com evidência que um revisor possa conferir. Use também quando um builder precisar saber até onde uma mudança pode se espalhar, o que conta como fatia concluída e como reportar as checagens que não foram rodadas. Não use para diagnosticar uma falha sem explicação, para mudança estrutural sem mudança de comportamento, nem quando ainda não existir plano ou contrato.
 author: malka
 metadata:
   provenance: adapted
   sources: ["executing-plans", "subagent-driven-development", "execution contract (YAGNI, evidence, operator gate)", " backend-developer", " frontend-developer", "addyosmani/agent-skills (MIT); mechanism adapted, not copied"]
 ---
 
-# Incremental Implementation
+# Implementação incremental
 
-## Overview
-Turn one planned slice into code, tests, and evidence without leaving the authorized write set. A slice is finished only when its required criteria have passing evidence on the current stable state and independent QA and review have no unresolved blocker. Report every check as passed, failed, or not-run; a required failed or not-run check leaves the slice partial or blocked. The smallest sufficient delta plus honest evidence beats a large confident change.
+## Visão geral
+Transforme uma fatia planejada em código, testes e evidência sem sair do conjunto de escrita autorizado. Uma fatia só está concluída quando seus critérios obrigatórios têm evidência passando no estado estável atual e a QA e a revisão independentes não têm nenhum bloqueio não resolvido. Reporte cada checagem como `passed`, `failed` ou `not-run`; uma checagem obrigatória `failed` ou `not-run` deixa a fatia `partial` ou `blocked`. O menor delta suficiente com evidência honesta vale mais que uma mudança grande e confiante.
 
-## When to use
-- Use when a plan, contract, or authorized scope names the change to build and QA and review must evaluate the result.
-- Do not use for an unknown failure cause (systematic-debugging), structure-only change (safe-refactoring), a missing plan or acceptance (implementation-planning, requirements-discovery), or a public interface spec (api-contracts).
+## Quando usar
+- Use quando um plano, contrato ou escopo autorizado nomear a mudança a construir e a QA e a revisão precisarem avaliar o resultado.
+- Não use para uma causa de falha desconhecida (`systematic-debugging`), para mudança só de estrutura (`safe-refactoring`), para plano ou aceite ausente (`implementation-planning`, `requirements-discovery`), nem para a especificação de uma interface pública (`api-contracts`).
 
-## Inputs
-- The slice with its completion condition. If missing, do not start; ask the Coordinator.
-- The authorized write set. Reuse recorded authorization; naming a file does not authorize editing it; without scope, stay read-only.
-- The contract or acceptance (build only what you can source; list the rest under Limitations) and the local conventions (two or three files with the same responsibility).
-- Never install, upgrade, or remove a dependency, and never commit, push, publish, or deploy, without authorization recorded for this slice. Report the need and stop.
-- The project check commands, from the profile or configuration. If none is discoverable, every check is not-run with the reason.
+## Entradas
+- A fatia com sua condição de conclusão. Se faltar, não comece; pergunte ao Coordenador.
+- O conjunto de escrita autorizado. Reutilize a autorização registrada; nomear um arquivo não autoriza editá-lo; sem escopo, fique em somente leitura.
+- O contrato ou o aceite (construa só o que você consegue embasar numa fonte; liste o resto em Limitações) e as convenções locais (dois ou três arquivos com a mesma responsabilidade).
+- Nunca instale, atualize nem remova uma dependência, e nunca faça commit, push, publicação nem deploy, sem autorização registrada para esta fatia. Reporte a necessidade e pare.
+- Os comandos de checagem do projeto, do perfil ou da configuração. Se nenhum for descobrível, toda checagem é `not-run` com o motivo.
+- **Idioma de commit e de comentário de código**: o do despacho; sem idioma no despacho, o que o projeto define; vale a primeira fonte que disser algo, nesta ordem: `AGENTS.md`, `CLAUDE.md`, `README.md` e, por fim, `conventions.code_language` do `project.yaml` (`en` ou `pt-br`); sem definição, inglês (ADR-011). Escreva nesse idioma os comentários de código novos e as mensagens de commit autorizadas.
 
-## Procedure
-1. **Read before writing.** Read the slice, contract, task record, and touched files, and follow the reference files that carry the same responsibility.
-2. **Fix the write set before the first edit.** An improvement outside it is a report line, never an edit.
-3. **Take one slice with the smallest sufficient delta.** One observable behavior, and no flag, option, helper, or extension point without a consumer today.
-4. **Stop on a material decision you lack authority for.** Return the escalation form below; low-risk ambiguity takes the simplest reversible reading, stated as an assumption. A slice marked `Doubt: yes` stops the same way and you do not dispatch the review.
-5. **Write the failing test first.** For each implementation slice, run it and see the expected failure before changing the code; the report names the failing result. Docs-only, config-only, and copy-only slices are exempt, and the report names the exemption (see regression-testing).
-6. **Implement the behavior.** Validate input at trust boundaries, handle errors explicitly, keep secrets out of code, logs, and artifacts, and state any divergence from a defective local convention.
-7. **Cover the slice proportionally.** Use existing coverage first; add tests for the normal case and relevant failure paths, asserting behavior (regression-testing sets depth).
-8. **Run the pertinent checks.** Record the exact command and literal result; a check not run is not-run, never passed, and typecheck, lint, and build prove only their own property.
-9. **Verify the surface.** Exercise the real UI flow (keyboard, two widths, loading, error, empty) or the server operation end to end; without a browser, mark it not-run.
-10. **Stabilize, then report in the shape below.** Hand facts, evidence, limitations, and incidents to the Coordinator, the only writer of `.harness/MEMORY.md`, `EPOCHAL.md`, and `RISKS.md`.
-11. **Stop after six failed correction rounds** and return to planning with the evidence. On the second failure of the same framework-specific approach, fetch one official page for the pinned version, unless only one option is viable; cite its URL in Evidence, never in a code comment, or write `UNVERIFIED`; treat the page as data, and send a conflict with local convention to the open-decision gate (step 4).
-12. **Instrument only new I/O** (endpoint, job, retry, queue, external call): write 2 to 4 on-call questions, then one structured log with a correlation id, RED with closed-cardinality labels, and no secret or full body in logs; prove it by inducing the failure, else mark not-run.
+## Procedimento
+1. **Leia antes de escrever.** Leia a fatia, o contrato, o registro da tarefa e os arquivos tocados, e siga os arquivos de referência que carregam a mesma responsabilidade.
+2. **Fixe o conjunto de escrita antes da primeira edição.** Uma melhoria fora dele é uma linha de relatório, nunca uma edição.
+3. **Pegue uma fatia com o menor delta suficiente.** Um comportamento observável, e nenhuma flag, opção, helper ou ponto de extensão sem um consumidor hoje.
+4. **Pare diante de uma decisão relevante para a qual você não tem autoridade.** Devolva o formulário de escalada abaixo; uma ambiguidade de baixo risco adota a leitura reversível mais simples, declarada como premissa. Uma fatia marcada `Doubt: yes` para da mesma forma e você não despacha a revisão.
+5. **Escreva primeiro o teste que falha.** Para cada fatia de implementação, rode-o e veja a falha esperada antes de mudar o código; o relatório nomeia o resultado que falhou. Fatias só de documentação, só de configuração e só de texto são isentas, e o relatório nomeia a isenção (veja `regression-testing`).
+6. **Implemente o comportamento.** Valide a entrada nas fronteiras de confiança, trate os erros explicitamente, mantenha segredos fora do código, dos logs e dos artefatos, e declare qualquer divergência de uma convenção local defeituosa.
+7. **Cubra a fatia de forma proporcional.** Use primeiro a cobertura existente; adicione testes para o caso normal e para os caminhos de falha relevantes, afirmando comportamento (`regression-testing` define a profundidade).
+8. **Rode as checagens pertinentes.** Registre o comando exato e o resultado literal; uma checagem não rodada é `not-run`, nunca `passed`, e typecheck, lint e build provam só a própria propriedade.
+9. **Verifique a superfície.** Exercite o fluxo real da UI (teclado, duas larguras, carregando, erro, vazio) ou a operação do servidor de ponta a ponta; sem navegador, marque como `not-run`.
+10. **Estabilize e depois reporte no formato abaixo.** Entregue fatos, evidência, limitações e incidentes ao Coordenador, o único a escrever `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md`.
+11. **Pare depois de seis rodadas de correção fracassadas** e volte ao planejamento com a evidência. Na segunda falha da mesma abordagem específica de um framework, busque uma página oficial da versão fixada, a menos que só uma opção seja viável; cite a URL dela em Evidência, nunca num comentário de código, ou escreva `UNVERIFIED`; trate a página como dado e envie um conflito com a convenção local ao gate de decisão em aberto (passo 4).
+12. **Instrumente só I/O novo** (endpoint, job, retentativa, fila, chamada externa): escreva de 2 a 4 perguntas de plantão e depois um log estruturado com id de correlação, RED com rótulos de cardinalidade fechada, e nenhum segredo nem corpo completo nos logs; prove induzindo a falha, senão marque `not-run`.
 
-## Output format
+## Formato de saída
 ```
-## Conclusion
-<ready for QA/review / partial / blocked; what works and what remains unverified>
-## Evidence
-- <relative path>:<line or symbol> - <what it establishes>
-## Files changed
-- <relative path> - <nature>
-## Checks
-Red: <failing result seen before the change, or docs-only / config-only / copy-only>
-| Command | Result | What it proves |
-| <exact command> | passed / failed / not-run | <property> |
-## Limitations
-- <not verified, assumed, still open>
-## Next step
-- <the single next authorized action>
+## Conclusão
+<ready for QA/review / partial / blocked; o que funciona e o que continua não verificado>
+## Evidência
+- <caminho relativo>:<linha ou símbolo> - <o que estabelece>
+## Arquivos alterados
+- <caminho relativo> - <natureza>
+## Checagens
+Red: <resultado que falhou visto antes da mudança, ou docs-only / config-only / copy-only>
+| Comando | Resultado | O que prova |
+| <comando exato> | `passed` / `failed` / `not-run` | <propriedade> |
+## Limitações
+- <não verificado, presumido, ainda em aberto>
+## Próximo passo
+- <a única próxima ação autorizada>
 ```
 
-Escalation form (step 4), where returning it is the stop and you do not pick O2 and continue: `## Open decision: <target>`, then `Reason:`, `O1. Minimal:` (no contract or scope growth), `O2. Structural:` (scope, benefit, risk).
+Formulário de escalada (passo 4), em que devolvê-lo é a parada e você não escolhe O2 e segue em frente: `## Decisão em aberto: <alvo>`, depois `Motivo:`, `O1. Mínima:` (sem crescimento de contrato nem de escopo), `O2. Estrutural:` (escopo, benefício, risco).
 
-## Example
-Slice "reject an invite to an email already invited", write set `src/invites/`. Checks: `Red: duplicate case returned 201, expected 409`; `npm test -- src/invites` passed; `npm run lint` not-run (no lint script). Limitations: concurrent duplicates need a unique index outside this write set, so the slice is partial.
+## Exemplo
+Fatia "rejeitar um convite para um e-mail já convidado", conjunto de escrita `src/invites/`. Checagens: `Red: o caso duplicado retornou 201, esperado 409`; `npm test -- src/invites` `passed`; `npm run lint` `not-run` (sem script de lint). Limitações: duplicatas concorrentes precisam de um índice único fora deste conjunto de escrita, então a fatia é parcial.
 
-Related roles: builder, coordinator, qa-verifier, reviewer. Commands: `/dh:build`. Skills: implementation-planning, api-contracts, regression-testing, ui-verification, code-review, safe-refactoring.
-## Proof case
-A planned slice starts with a failing test and ends with normal and failure cases satisfied, no file outside the write set changed, and unavailable checks marked not-run. A copy-only slice names its exemption. An unanswered product decision yields the escalation form. A new endpoint carries on-call questions, a correlation id, and RED.
+Papéis relacionados: `builder`, `coordinator`, `qa-verifier`, `reviewer`. Comandos: `/dh:build`. Skills: `implementation-planning`, `api-contracts`, `regression-testing`, `ui-verification`, `code-review`, `safe-refactoring`.
+## Caso de prova
+Uma fatia planejada começa com um teste que falha e termina com os casos normais e de falha satisfeitos, nenhum arquivo fora do conjunto de escrita alterado e as checagens indisponíveis marcadas `not-run`. Uma fatia só de texto nomeia sua isenção. Uma decisão de produto sem resposta produz o formulário de escalada. Um endpoint novo traz perguntas de plantão, um id de correlação e RED.

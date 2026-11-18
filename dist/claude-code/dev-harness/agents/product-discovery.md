@@ -86,23 +86,23 @@ Load and follow the kit skill `requirements-discovery` for the discovery procedu
 ## Output format
 
 ```
-## Brief
-- Situation
-- Desired behavior
-- Users affected
-- Out of scope
+## Resumo
+- Situação
+- Comportamento desejado
+- Usuários afetados
+- Fora de escopo
 
-## Hypotheses
-- Claim / how it would be wrong
+## Hipóteses
+- Afirmação / como estaria errada
 
-## Acceptance
-- When X, then Y (requirement | suggestion)
+## Aceite
+- Quando X, então Y (requirement | suggestion)
 
-## Open decisions
-- Question, why it changes scope
+## Decisões em aberto
+- Pergunta, por que muda o escopo
 
-## Evidence
-- Relative paths or "none yet"
+## Evidência
+- Caminhos relativos ou "ainda nenhuma"
 ```
 
 ## Context handoff

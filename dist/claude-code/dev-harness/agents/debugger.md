@@ -85,17 +85,17 @@ Load and follow the kit skill `systematic-debugging` for the diagnosis procedure
 Reply within the dispatch's reply cap (default 200 words). A report of more than 40 lines goes to the report path the dispatch names inside the task folder; a report of 40 lines or fewer stays in the reply. Reply shape: diagnosis status (confirmed, hypothesis, or inconclusive), the cause in one sentence, report path. The full report below goes to the file when it is over 40 lines.
 
 ```
-## Symptom
-## Reproduction
-- Before
-- After (or not reproduced)
-## Cause
-- Fact vs hypothesis
-## Fix
-- Applied / not applied
-## Regression guard
-## Limitations
-## Evidence
+## Sintoma
+## Reprodução
+- Antes
+- Depois (ou não reproduzido)
+## Causa raiz
+- Fato x hipótese
+## Correção
+- Aplicada / não aplicada
+## Proteção contra regressão
+## Limitações
+## Evidência
 ```
 
 ## Context handoff

@@ -1,63 +1,63 @@
 # agy (Antigravity)
 
-Binary: `agy`. Reviewer among other roles. No planning until a dated probe records that `agy` treats the process cwd as its workspace and which flag, if any, sets it.
+Binário: `agy`. Revisor entre outros papéis. Sem planejamento até que uma sondagem datada registre que `agy` trata o cwd do processo como o espaço de trabalho dele e qual flag, se houver, o define.
 
-## Invocation
+## Invocação
 
 ```bash
 agy --dangerously-skip-permissions --print-timeout 15m --print "$(cat "$PROMPT")"
 ```
 
-One shell command whose first word is `agy`: no `timeout`, `&&`, `;` or pipe in front of or after it. The pre-call freeze and the post-call comparison are separate commands. Order is load-bearing:
+Um comando de shell cuja primeira palavra é `agy`: nenhum `timeout`, `&&`, `;` ou pipe antes ou depois dele. O congelamento anterior à chamada e a comparação posterior são comandos separados. A ordem é determinante:
 
 1. `--dangerously-skip-permissions`
-2. optional session flags (`--model`, `--effort`, `--print-timeout`, `--output-format`)
-3. `--print` (or `-p` / `--prompt`)
-4. the prompt string
+2. flags de sessão opcionais (`--model`, `--effort`, `--print-timeout`, `--output-format`)
+3. `--print` (ou `-p` / `--prompt`)
+4. a string do prompt
 
-| Flag | Why |
+| Flag | Por quê |
 |---|---|
-| `--dangerously-skip-permissions` | unattended tool approval |
-| `--print` / `-p` / `--prompt` | one-shot; bare `agy` is the TUI |
-| `--print-timeout` | wait cap (`15m` for a review call) |
-| `--model` | the slug from `models.agy` in `.harness/local.yaml` |
-| `--effort` | `low` / `medium` / `high` (not `xhigh`) |
-| `--output-format` | `text` (default) / `json` / `stream-json` |
-| `--json-schema` | structured final output |
-| `--mode` | `accept-edits` or `plan` |
-| `--sandbox` | restrict the terminal |
+| `--dangerously-skip-permissions` | aprovação de ferramentas sem supervisão |
+| `--print` / `-p` / `--prompt` | disparo único; `agy` sozinho é a TUI |
+| `--print-timeout` | limite de espera (`15m` para uma chamada de revisão) |
+| `--model` | o slug de `models.agy` em `.harness/local.yaml` |
+| `--effort` | `low` / `medium` / `high` (não `xhigh`) |
+| `--output-format` | `text` (padrão) / `json` / `stream-json` |
+| `--json-schema` | saída final estruturada |
+| `--mode` | `accept-edits` ou `plan` |
+| `--sandbox` | restringe o terminal |
 
-`--input-format stream-json` reads NDJSON turns on stdin and requires `--output-format stream-json`. The default path is a prompt string. If a clone recipe is ever added, it uses the cwd flag found by the probe inside the single command, or states the `cd` exception as [claude.md](claude.md) does.
+`--input-format stream-json` lê turnos NDJSON no `stdin` e exige `--output-format stream-json`. O caminho padrão é uma string de prompt. Se algum dia se acrescentar uma receita de clone, ela usa a flag de cwd achada pela sondagem dentro do único comando, ou declara a exceção do `cd` como [claude.md](claude.md) faz.
 
-## Prompt input
+## Entrada do prompt
 
-Inlined in the prompt string. Prefer inlining files in the prompt to `--add-dir`: `--add-dir PATH` before the prompt has been seen to print `--add-dir` help and ignore the packet. `$PROMPT` is defined in [clone-isolation.md](clone-isolation.md), Terms.
+Embutida na string do prompt. Prefira embutir arquivos no prompt a usar `--add-dir`: já se viu `--add-dir PATH` antes do prompt imprimir a ajuda de `--add-dir` e ignorar o pacote. `$PROMPT` é definido em [clone-isolation.md](clone-isolation.md), Termos.
 
-## Isolation
+## Isolamento
 
-No read-only flag documented; `agy` operates on the process cwd (unprobed). The review stays on the live tree under the accepted RISK-002 exposure, with the comparison of [live-tree-compare.md](live-tree-compare.md): not a sandbox, it only detects a workspace edit after the fact. A project whose `.git` is not a directory ends `isolation_unavailable` (see that file).
+Nenhuma flag somente leitura documentada; `agy` opera no cwd do processo (não sondado). A revisão fica na árvore viva sob a exposição aceita RISK-002, com a comparação de [live-tree-compare.md](live-tree-compare.md): não é um sandbox, só detecta depois do fato uma edição no espaço de trabalho. Um projeto cujo `.git` não é um diretório termina em `isolation_unavailable` (ver aquele arquivo).
 
-## Model flag
+## Flag de modelo
 
-`--model <slug>`, from `models.agy` in `.harness/local.yaml`. Refresh the slugs on this machine with `agy models` and record the result in `.harness/local.yaml`, never in this file.
+`--model <slug>`, de `models.agy` em `.harness/local.yaml`. Atualize os slugs desta máquina com `agy models` e registre o resultado em `.harness/local.yaml`, nunca neste arquivo.
 
 ## Timeout
 
-`--print-timeout`; the default is 5m, and a review call often needs longer (`15m` above). The timeout may not stop the process (see Known gotchas).
+`--print-timeout`; o padrão é 5m, e uma chamada de revisão muitas vezes precisa de mais (`15m` acima). O timeout pode não parar o processo (ver Pegadinhas conhecidas).
 
-## Output capture
+## Captura da saída
 
-Reply on stdout; `--output-format` selects `text` (default), `json` or `stream-json`.
+Resposta no `stdout`; `--output-format` seleciona `text` (padrão), `json` ou `stream-json`.
 
-## Failure signals
+## Sinais de falha
 
-- Help text instead of a reply: `--add-dir` placed before the prompt.
-- A reply without the stage's verdict signal is `no_signal`, whether or not the process is alive.
+- Texto de ajuda em vez de uma resposta: `--add-dir` posto antes do prompt.
+- Uma resposta sem o sinal de veredito da etapa é `no_signal`, com o processo vivo ou não.
 
-## Known gotchas
+## Pegadinhas conhecidas
 
-The timeout may not stop the process. A complete reply on disk that carries the stage's verdict signal is the result; stop the process with one separate command, `kill <pid>` of the pid recorded when the call started (the call runs in the background and its pid is recorded, or the delegate lists `pgrep -x agy` before and after the call and kills only the new pid), so the owner's own `agy` sessions are never matched. Do not use `pkill -f` with the prompt basename or any text of the command: it matches the delegate's own shell ([gotchas.md](gotchas.md)); a bracket pattern (`pkill -f '[a]gy --print'`) is the fallback. Report it as `leftover processes` in the workspace check.
+O timeout pode não parar o processo. Uma resposta completa em disco que traga o sinal de veredito da etapa é o resultado; pare o processo com um comando separado, `kill <pid>` do pid registrado quando a chamada começou (a chamada roda em segundo plano e o pid é registrado, ou o delegado lista `pgrep -x agy` antes e depois da chamada e mata só o pid novo), para que as sessões `agy` do próprio dono nunca sejam casadas. Não use `pkill -f` com o nome-base do prompt nem com qualquer texto do comando: ele casa com o shell do próprio delegado ([gotchas.md](gotchas.md)); um padrão com colchetes (`pkill -f '[a]gy --print'`) é o recurso de reserva. Reporte isso como `leftover processes` na checagem do espaço de trabalho.
 
-## Measured on
+## Medido em
 
-2026-10-16 (process kept alive past `--print-timeout 15m` after the full reply was written).
+2026-10-16 (processo mantido vivo além de `--print-timeout 15m` depois de a resposta completa ter sido escrita).

@@ -1,66 +1,66 @@
 # opencode
 
-Binary: `opencode`, resolved via `.harness/local.yaml` `binaries.opencode` when `command -v opencode` fails. A login-shell-only `PATH` is common for this binary: `command -v` misses it even when it is installed, so do not treat that miss alone as `not_installed`. Reviewer or builder, and planner (in a disposable clone); hands: yes (`opencode run`).
+Binário: `opencode`, resolvido por `binaries.opencode` em `.harness/local.yaml` quando `command -v opencode` falha. Um `PATH` só de shell de login é comum para este binário: `command -v` não o encontra mesmo quando ele está instalado, então não trate essa falha sozinha como `not_installed`. Revisor ou `builder`, e planejador (num clone descartável); mãos: sim (`opencode run`).
 
-## Invocation
+## Invocação
 
 ```bash
 cd "$CLONE" && opencode run --auto -m '<provider>/<slug>#high' \
   "$(cat "$PROMPT")"
 ```
 
-Long prompt as an attached file (do not stuff a multi-kilobyte prompt into argv):
+Prompt longo como arquivo anexado (não enfie um prompt de vários kilobytes no argv):
 
 ```bash
 cd "$CLONE" && opencode run --auto -m '<provider>/<slug>[#<variant>]' \
-  --file="$PROMPT" -- "Follow the attached prompt."
+  --file="$PROMPT" -- "Siga o prompt anexado."
 ```
 
-`opencode run` has no working-directory flag and no `--variant`. The call therefore starts with `cd "$CLONE" &&`, the second named exception (beside `claude`) to the rule that a call is one command whose first word is the binary. A separate `cd` in its own Bash call does not persist (the runtime resets the cwd), so the `cd` stays in the same command. Because the command starts with `cd`, it does not match a `Bash(opencode:*)` allow rule: the call may need the owner's approval or be not-run. Write the resolved binary as a literal (bare `opencode`, or the literal path taken from `.harness/local.yaml`). No `timeout` goes in front of the command and no `;` or pipe chains it; the freeze and the later comparisons are separate commands.
+`opencode run` não tem flag de diretório de trabalho nem `--variant`. A chamada por isso começa com `cd "$CLONE" &&`, a segunda exceção nomeada (ao lado de `claude`) à regra de que uma chamada é um comando cuja primeira palavra é o binário. Um `cd` separado numa chamada Bash própria não persiste (o ambiente de execução zera o cwd), então o `cd` fica no mesmo comando. Como o comando começa com `cd`, ele não casa com uma regra de permissão `Bash(opencode:*)`: a chamada pode precisar da aprovação do dono ou ser `not-run`. Escreva o binário resolvido como literal (`opencode` simples, ou o caminho literal tirado de `.harness/local.yaml`). Nenhum `timeout` vai na frente do comando e nenhum `;` ou pipe o encadeia; o congelamento e as comparações posteriores são comandos separados.
 
-| Flag | Why |
+| Flag | Por quê |
 |---|---|
-| `run` | one-shot; bare `opencode` is the TUI |
-| `--auto` | approve tools (required for an unattended call) |
-| `-m provider/model[#variant]` | pin; do not rely on the interactive picker; `#variant` sets the reasoning effort (only levels that slug advertises); there is no `--variant` flag |
-| `cd "$CLONE" &&` | workspace; there is no `--dir`, so every call starts with it |
-| `-f` / `--file` | attach file(s) to the message (repeatable) |
-| `--format json` | raw events if parsing is required |
-| `--thinking` | print thinking blocks |
-| `--title` | session title |
-| `-c` / `--continue`, `-s` / `--session`, `--fork` | resume / fork; default is a new session |
+| `run` | disparo único; `opencode` sozinho é a TUI |
+| `--auto` | aprova ferramentas (obrigatória para uma chamada sem supervisão) |
+| `-m provider/model[#variant]` | fixa; não dependa do seletor interativo; `#variant` define o esforço de raciocínio (só os níveis que esse slug anuncia); não existe flag `--variant` |
+| `cd "$CLONE" &&` | espaço de trabalho; não existe `--dir`, então toda chamada começa com isso |
+| `-f` / `--file` | anexa arquivo(s) à mensagem (repetível) |
+| `--format json` | eventos brutos se for preciso analisar |
+| `--thinking` | imprime os blocos de raciocínio |
+| `--title` | título da sessão |
+| `-c` / `--continue`, `-s` / `--session`, `--fork` | retomar / bifurcar; o padrão é uma sessão nova |
 
-Refuse from an orchestrator turn: bare `opencode`, `opencode --mini`, `run --interactive` / `-i`. `--agent` on `run` switches the primary agent, not an in-process subagent (`task` inside opencode): the anti-delegation clause still applies to what that primary agent may do.
+Recuse, a partir de um turno de orquestrador: `opencode` sozinho, `opencode --mini`, `run --interactive` / `-i`. `--agent` em `run` troca o agente primário, não um subagente no mesmo processo (`task` dentro do opencode): a cláusula anti-delegação continua valendo para o que esse agente primário pode fazer.
 
-## Prompt input
+## Entrada do prompt
 
-An attached file: `--file="$PROMPT" -- "message"`. `-f`/`--file` is a yargs array: a bare `-f file.md "msg"` swallows `msg` as a second file, and `--file=` alone with no `--` message is refused. Always `--file=path -- "message"`. `$CLONE` and `$PROMPT` are defined in [clone-isolation.md](clone-isolation.md), Terms.
+Um arquivo anexado: `--file="$PROMPT" -- "message"`. `-f`/`--file` é um array do yargs: um `-f file.md "msg"` sem mais nada engole `msg` como segundo arquivo, e `--file=` sozinho, sem mensagem após `--`, é recusado. Sempre `--file=path -- "message"`. `$CLONE` e `$PROMPT` são definidos em [clone-isolation.md](clone-isolation.md), Termos.
 
-## Isolation
+## Isolamento
 
-No read-only flag documented: disposable clone ([clone-isolation.md](clone-isolation.md)), compared as [live-tree-freeze.md](live-tree-freeze.md) says.
+Nenhuma flag somente leitura documentada: clone descartável ([clone-isolation.md](clone-isolation.md)), comparado como [live-tree-freeze.md](live-tree-freeze.md) diz.
 
-## Model flag
+## Flag de modelo
 
-`-m '<provider>/<slug>[#<variant>]'`, from `models.opencode` in `.harness/local.yaml`. The variant (reasoning effort) is part of the model string, only a level that slug advertises; without `#variant` the model default applies. The model catalog is provider-specific and changes over time: do not invent a slug here; refresh it by running the provider's own model-listing command on this machine and record the result in `.harness/local.yaml`, never in this file.
+`-m '<provider>/<slug>[#<variant>]'`, de `models.opencode` em `.harness/local.yaml`. A variante (esforço de raciocínio) faz parte da string do modelo, só um nível que esse slug anuncia; sem `#variant` vale o padrão do modelo. O catálogo de modelos é específico de cada provedor e muda com o tempo: não invente um slug aqui; atualize-o rodando nesta máquina o próprio comando de listagem de modelos do provedor e registre o resultado em `.harness/local.yaml`, nunca neste arquivo.
 
 ## Timeout
 
-`opencode run` has no wall-clock flag. The Bash tool timeout or `run_in_background` bounds the time.
+`opencode run` não tem flag de tempo real. O timeout da ferramenta Bash ou `run_in_background` limita o tempo.
 
-## Output capture
+## Captura da saída
 
-Reply on stdout; `--format json` gives raw events if parsing is required.
+Resposta no `stdout`; `--format json` dá eventos brutos se for preciso analisar.
 
-## Failure signals
+## Sinais de falha
 
-- A database lock error on the second of two concurrent runs against the same account.
-- A refused `--file=` call with no `--` message.
+- Um erro de trava de banco de dados na segunda de duas execuções simultâneas contra a mesma conta.
+- Uma chamada `--file=` recusada, sem mensagem após `--`.
 
-## Known gotchas
+## Pegadinhas conhecidas
 
-Do not run two `opencode run` calls concurrently. When a review stage lists more than one `opencode` entry, or the concurrency ceiling would otherwise be reached, the Coordinator serializes `opencode` calls into their own batch rather than running them alongside each other. See also [gotchas.md](gotchas.md).
+Não rode duas chamadas `opencode run` ao mesmo tempo. Quando uma etapa de revisão lista mais de uma entrada `opencode`, ou o teto de concorrência seria atingido de outro modo, o Coordenador serializa as chamadas `opencode` em seu próprio lote em vez de rodá-las lado a lado. Ver também [gotchas.md](gotchas.md).
 
-## Measured on
+## Medido em
 
-2026-10-21, v2.0.32 (no cwd flag, no `--variant`; the runtime resets the cwd between Bash calls).
+2026-10-21, v2.0.32 (sem flag de cwd, sem `--variant`; o ambiente de execução zera o cwd entre chamadas Bash).

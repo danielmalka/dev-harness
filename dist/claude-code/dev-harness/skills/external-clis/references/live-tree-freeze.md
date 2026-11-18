@@ -1,441 +1,441 @@
-# Live-tree freeze, clone comparison and prompt hygiene
+# Congelamento da árvore viva, comparação do clone e higiene do prompt
 
-This file is the comparison procedure for a CLI call that runs in a disposable
-clone (lifecycle in [clone-isolation.md](clone-isolation.md)). A call without
-a clone (`codex`, and the `agy` review on the live tree) uses
-[live-tree-compare.md](live-tree-compare.md) instead, which also explains why
-the `agy` live-tree review of a project whose `.git` is not a directory ends
-`isolation_unavailable` and does not run.
+Este arquivo é o procedimento de comparação para uma chamada de CLI que roda num
+clone descartável (ciclo de vida em [clone-isolation.md](clone-isolation.md)). Uma chamada sem
+clone (`codex`, e a revisão do `agy` na árvore viva) usa
+[live-tree-compare.md](live-tree-compare.md) em vez deste, que também explica por que
+a revisão do `agy` na árvore viva de um projeto cujo `.git` não é um diretório termina em
+`isolation_unavailable` e não roda.
 
-The delegate runs every step of this file: a dispatched `qa-verifier`, or
-`builder` in lane `infra` (`SKILL.md`, "Who runs the call"). It returns the
-verdict signal and the relative path of the raw output; the Coordinator runs
-none of these steps.
+O delegado executa todos os passos deste arquivo: um `qa-verifier` despachado, ou
+`builder` na raia `infra` (`SKILL.md`, "Quem executa a chamada"). Ele devolve o
+sinal de veredito e o caminho relativo da saída bruta; o Coordenador não executa
+nenhum destes passos.
 
-The qualification for every mention of this mechanism, stated in full:
+A qualificação para toda menção a este mecanismo, dita por inteiro:
 
-disposable clone; writes outside it are detected on the live tree, never prevented; writes outside the project are not detected
+clone descartável; escritas fora dele são detectadas na árvore viva, nunca impedidas; escritas fora do projeto não são detectadas
 
-Two comparisons run, on two trees. The live-tree comparison detects and
-reverts what the CLI wrote where it should not. The clone comparison
-judges whether the CLI changed the content it was given. Neither prevents
-anything.
+Duas comparações rodam, em duas árvores. A comparação da árvore viva detecta e
+reverte o que a CLI escreveu onde não devia. A comparação do clone
+julga se a CLI alterou o conteúdo que recebeu. Nenhuma das duas impede
+nada.
 
-## Order
+## Ordem
 
-1. Preconditions and freeze (section 1). The precondition is step 1 of
-   clone-isolation.md: `.git` a real directory, or a gitfile with a non-null
-   `linked_worktree` and the `test -f`/`test ! -L` check right before the clone;
-   anything else is `isolation_unavailable`. When clone calls overlap in time,
-   take one freeze before the first of them. Save the copies outside the
-   project tree and outside the clone: create a freeze directory with
-   `mktemp -d "<tmp root>/dh-freeze-<call-id>-XXXXXXXX"` (`<tmp root>` and
-   `<call-id>` as in clone-isolation.md, Terms; the call-id is that of the first
-   call; mode 0700) and write the marker `<freeze dir>/dh-freeze.lock` with the
-   same two lines as the clone marker (`pid=` and `started=`,
-   clone-isolation.md step 1). Then compute the digest of the freeze (end of
-   section 1). If any step of this freeze fails (a missing tool included, see the note on
-   GNU tools in Notation), the call is not-run, `isolation_unavailable`: no
-   CLI starts and no comparison runs. Remove the partial freeze directory under
-   the step 8 guard.
-2. Create, populate and match every overlapping clone (clone-isolation.md steps
-   1 and 2), and freeze each clone (section 3). Overlapping calls share the one
-   freeze directory, with one clone and one prompt file each.
-3. Write every call's prompt (section 5), all of them before any CLI starts.
-4. Start each CLI as one shell command that begins with the binary name, in its
-   own tool call, with the binary's own working-directory flag where its recipe
-   shows one (`grok --cwd`, `mcode exec --cwd`); `claude` and `opencode` have no
-   such flag and keep `cd "$CLONE" && <binary> ...` as the two named exceptions
-   (`references/claude.md`, `references/opencode.md`; the form starts with `cd`,
-   does not match a `Bash(<binary>:*)` allow rule and may need the owner's
-   approval; a separate `cd` in its own call does not persist). The opencode
-   form is `cd "<clone>" && <opencode binary> run --auto -m
-   <provider/model>[#<variant>] --file=<prompt file> -- "Follow the attached
-   prompt."`. No `timeout`, `setsid`, subshell,
-   `&&`, `;` or pipe wraps or chains the call, and the freeze and the later
-   comparisons are separate commands (a permission rule `Bash(<binary>:*)`
-   matches only a command that starts with the binary). The binary's own time
-   flag, or the Bash tool timeout, bounds the call. Then, as one separate
-   command run once the reply is on disk or the timeout has passed (before any
-   comparison), stop this call's leftover processes by pid: `kill <pid>`. The
-   pid comes from the call itself: the call runs in the background
-   (`run_in_background`) and its pid is recorded when it starts, or the delegate
-   lists `pgrep -x <binary>` before the call and after it and kills only the new
-   pid. Never `pkill -f` with the clone path or the command text: the pattern
-   matches the delegate's own shell (`references/gotchas.md`); if a pattern is
-   unavoidable, use a bracket pattern (`'[o]pencode run'`). The pid is unique to
-   this call, so it never matches the owner's own sessions of the same binary; a
-   pid already gone is ignored. This narrows residual (b) of clone-isolation.md
-   section 7 (a process that outlives the call); it does not close it, since a
-   child that has a different pid is missed. Report it as `leftover processes` in the
-   Workspace check.
-5. When a call ends, recompare its clone (section 3). That comparison stays per clone.
-6. After the last overlapping call has ended, and only then, on the live tree:
-   verify the freeze digest, extract the copies, compare and restore the trust
-   paths with non-git tools (section 2, part A), and, only when part A reports no
-   remaining difference, run the git-based comparison (section 2, part B).
-7. Revert what the comparison found (section 4).
-8. Remove each clone (clone-isolation.md step 3), then the freeze directory,
-   prompt files included, with the same guard (parent equals `<tmp root>`,
-   basename starts with `dh-freeze-`, `test -d`, `test ! -L`). Nothing is ever
-   swept by age on its own.
+1. Precondições e congelamento (seção 1). A precondição é o passo 1 de
+   clone-isolation.md: `.git` um diretório de verdade, ou um `gitfile` com um
+   `linked_worktree` não nulo e a checagem `test -f`/`test ! -L` logo antes do clone;
+   qualquer outra coisa é `isolation_unavailable`. Quando chamadas em clone se sobrepõem no tempo,
+   tire um congelamento antes da primeira delas. Salve as cópias fora da
+   árvore do projeto e fora do clone: crie um diretório de congelamento com
+   `mktemp -d "<tmp root>/dh-freeze-<call-id>-XXXXXXXX"` (`<tmp root>` e
+   `<call-id>` como em clone-isolation.md, Termos; o call-id é o da primeira
+   chamada; modo 0700) e escreva o marcador `<freeze dir>/dh-freeze.lock` com as
+   mesmas duas linhas do marcador do clone (`pid=` e `started=`,
+   clone-isolation.md passo 1). Depois calcule o digest do congelamento (fim da
+   seção 1). Se qualquer passo deste congelamento falhar (uma ferramenta ausente inclusive, ver a nota sobre
+   ferramentas GNU em Notação), a chamada é `not-run`, `isolation_unavailable`: nenhuma
+   CLI inicia e nenhuma comparação roda. Remova o diretório de congelamento parcial sob
+   a guarda do passo 8.
+2. Crie, popule e case todo clone sobreposto (clone-isolation.md passos
+   1 e 2) e congele cada clone (seção 3). Chamadas sobrepostas compartilham o único
+   diretório de congelamento, com um clone e um arquivo de prompt para cada uma.
+3. Escreva o prompt de cada chamada (seção 5), todos antes de qualquer CLI iniciar.
+4. Inicie cada CLI como um único comando de shell que começa com o nome do binário, em
+   uma chamada de ferramenta própria, com a flag de diretório de trabalho do próprio binário quando a receita
+   dele mostrar uma (`grok --cwd`, `mcode exec --cwd`); `claude` e `opencode` não têm
+   essa flag e mantêm `cd "$CLONE" && <binary> ...` como as duas exceções nomeadas
+   (`references/claude.md`, `references/opencode.md`; a forma começa com `cd`,
+   não casa com uma regra de permissão `Bash(<binary>:*)` e pode precisar da aprovação
+   do dono; um `cd` separado numa chamada própria não persiste). A forma do opencode
+   é `cd "<clone>" && <opencode binary> run --auto -m
+   <provider/model>[#<variant>] --file=<prompt file> -- "Siga o prompt
+   anexado."`. Nenhum `timeout`, `setsid`, subshell,
+   `&&`, `;` ou pipe embrulha ou encadeia a chamada, e o congelamento e as comparações
+   posteriores são comandos separados (uma regra de permissão `Bash(<binary>:*)`
+   casa só com um comando que começa com o binário). A flag de tempo do próprio
+   binário, ou o timeout da ferramenta Bash, limita a chamada. Depois, como um comando
+   separado rodado quando a resposta está em disco ou o timeout passou (antes de qualquer
+   comparação), pare os processos remanescentes desta chamada pelo pid: `kill <pid>`. O
+   pid vem da própria chamada: a chamada roda em segundo plano
+   (`run_in_background`) e o pid dela é registrado quando ela começa, ou o delegado
+   lista `pgrep -x <binary>` antes da chamada e depois dela e mata só o pid
+   novo. Nunca `pkill -f` com o caminho do clone ou o texto do comando: o padrão
+   casa com o shell do próprio delegado (`references/gotchas.md`); se um padrão for
+   inevitável, use um padrão com colchetes (`'[o]pencode run'`). O pid é único para
+   esta chamada, então nunca casa com as sessões do próprio dono do mesmo binário; um
+   pid que já se foi é ignorado. Isso estreita o residual (b) de clone-isolation.md
+   seção 7 (um processo que sobrevive à chamada); não o fecha, já que um
+   filho que tem outro pid escapa. Reporte-o como `leftover processes` na
+   Checagem do espaço de trabalho.
+5. Quando uma chamada termina, recompare o clone dela (seção 3). Essa comparação continua por clone.
+6. Depois que a última chamada sobreposta terminou, e só então, na árvore viva:
+   verifique o digest do congelamento, extraia as cópias, compare e restaure os caminhos de
+   confiança com ferramentas que não sejam do git (seção 2, parte A) e, só quando a parte A não relatar
+   nenhuma diferença restante, rode a comparação baseada em git (seção 2, parte B).
+7. Reverta o que a comparação achou (seção 4).
+8. Remova cada clone (clone-isolation.md passo 3), depois o diretório de congelamento,
+   arquivos de prompt inclusive, com a mesma guarda (o pai é igual a `<tmp root>`,
+   o nome-base começa com `dh-freeze-`, `test -d`, `test ! -L`). Nada nunca é
+   varrido por idade por conta própria.
 
-Clone calls are dispatched in closed groups: a new clone call never starts (its
-clone is never created) while a CLI from an earlier group is still running. A
-group is the set of calls that overlap in time under one freeze.
+Chamadas em clone são despachadas em grupos fechados: uma nova chamada em clone nunca começa (o
+clone dela nunca é criado) enquanto uma CLI de um grupo anterior ainda está rodando. Um
+grupo é o conjunto de chamadas que se sobrepõem no tempo sob um congelamento.
 
-Nothing else may write to the live tree or to the `<harness dir>` between step 1 and step 6, the delegate and the Coordinator included (the freeze directory is shared by overlapping calls, so this covers all of them): a build, a
-package regeneration or a test run started in parallel changes files the
-comparison then blames on the CLI (the measured case is in
-`live-tree-compare.md`). Overlapping clone calls are governed by the same rule: the live-tree comparison and the
-reversion run only after the last one has ended, because a sibling's reversion
-would otherwise hide the writer. Any live-tree difference marks every overlapping call
-not-run, `tree_changed`, as `coordinator.md` already does for calls without
-a clone. The cap of two concurrent specialists is unchanged. The reversion in
-section 4 is only sound when no process started by the call is still running; a
-process that outlives the call can write again after the reversion, and that
-stays undetected (clone-isolation.md section 7, item (b)). Either wait, or run
-the parallel work in a separate checkout.
+Nada mais pode escrever na árvore viva nem no `<harness dir>` entre o passo 1 e o passo 6, delegado e Coordenador inclusive (o diretório de congelamento é compartilhado por chamadas sobrepostas, então isto cobre todas elas): um build, uma
+regeneração de pacote ou uma execução de testes iniciada em paralelo muda arquivos que a
+comparação depois atribui à CLI (o caso medido está em
+`live-tree-compare.md`). Chamadas em clone sobrepostas são governadas pela mesma regra: a comparação da árvore viva e a
+reversão rodam só depois que a última terminou, porque a reversão de uma irmã
+esconderia o escritor de outro modo. Qualquer diferença na árvore viva marca toda chamada sobreposta como
+`not-run`, `tree_changed`, como `coordinator.md` já faz para chamadas sem
+clone. O limite de dois especialistas simultâneos não muda. A reversão na
+seção 4 só é segura quando nenhum processo iniciado pela chamada ainda está rodando; um
+processo que sobrevive à chamada pode escrever de novo depois da reversão, e isso
+fica não detectado (clone-isolation.md seção 7, item (b)). Espere, ou rode
+o trabalho paralelo num checkout separado.
 
-Not-run reasons for a clone call: `tree_changed` ("mudança detectada"),
-from this file, and `isolation_unavailable` ("isolamento indisponivel"), from
-clone-isolation.md step 4. Both discard the verdict, neither counts as an
-approval or a rejection, and neither spends a correction round.
+Motivos de `not-run` para uma chamada em clone: `tree_changed` ("mudança detectada"),
+deste arquivo, e `isolation_unavailable` ("isolamento indisponivel"), de
+clone-isolation.md passo 4. Os dois descartam o veredito, nenhum conta como
+aprovação ou rejeição, e nenhum gasta uma rodada de correção.
 
-## Notation
+## Notação
 
-`R5GIT` stands for
+`R5GIT` representa
 `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -c core.fsmonitor=false -c core.untrackedCache=false -c core.hooksPath=/dev/null`,
-that is, the prefix `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 -c core.fsmonitor=false -c core.untrackedCache=false -c core.hooksPath=/dev/null`
-placed on `git`. Every git command of the live-tree comparison, the reversion
-and the clone comparison runs as `R5GIT <subcommand>`, so a global or system
-configuration can neither change the result nor execute a command, and no hook
-runs. The `core.hooksPath` override is needed because a git command that
-updates a ref or the index runs the live repository's own hooks otherwise
-(measured: `update-ref` ran a planted `reference-transaction` hook twice; with
-the override it ran none). `<project>` is the live tree.
+isto é, o prefixo `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 -c core.fsmonitor=false -c core.untrackedCache=false -c core.hooksPath=/dev/null`
+posto em `git`. Todo comando git da comparação da árvore viva, da reversão
+e da comparação do clone roda como `R5GIT <subcommand>`, de modo que uma configuração
+global ou de sistema não possa nem mudar o resultado nem executar um comando, e nenhum hook
+rode. A sobreposição de `core.hooksPath` é necessária porque, de outro modo, um comando git que
+atualiza uma ref ou o índice roda os hooks do próprio repositório vivo
+(medido: `update-ref` rodou duas vezes um hook `reference-transaction` plantado; com
+a sobreposição não rodou nenhum). `<project>` é a árvore viva.
 
-This file assumes GNU tools in a few places: `sha256sum` (macOS: `shasum -a 256`),
-`stat -c` (BSD: `stat -f`) and `tar --null -T`.
-A tool that is missing during the freeze, with no equivalent, is
+Este arquivo supõe ferramentas GNU em alguns pontos: `sha256sum` (macOS: `shasum -a 256`),
+`stat -c` (BSD: `stat -f`) e `tar --null -T`.
+Uma ferramenta ausente durante o congelamento, sem equivalente, é
 `isolation_unavailable`.
 
-Hashing rule for one path, used everywhere below: a regular file is hashed
-with `R5GIT hash-object --no-filters -- <path>`; a symlink is recorded as its
-`readlink` text and never followed; a path absent on disk records the marker
-`deleted`. A directory is never hashed, only expanded to the files and
-symlinks under it (`find <dir> \( -type f -o -type l \)`, which does not
-follow symlinks). Every recorded path also records its mode (`stat -c %a` on
-GNU, `stat -f %Lp` on BSD). Entries that are neither a regular file nor a
-symlink (directories, fifos, sockets) are handled by the freeze list of
-section 1, not by this rule.
+Regra de hash para um caminho, usada em todo o restante: um arquivo regular é hasheado
+com `R5GIT hash-object --no-filters -- <path>`; um symlink é registrado como o texto de
+`readlink` dele e nunca é seguido; um caminho ausente no disco registra o marcador
+`deleted`. Um diretório nunca é hasheado, só expandido para os arquivos e
+symlinks sob ele (`find <dir> \( -type f -o -type l \)`, que não
+segue symlinks). Todo caminho registrado também registra o modo (`stat -c %a` no
+GNU, `stat -f %Lp` no BSD). Entradas que não são nem arquivo regular nem
+symlink (diretórios, fifos, sockets) são tratadas pela lista de congelamento da
+seção 1, não por esta regra.
 
-## 1. Freeze the live tree
+## 1. Congelar a árvore viva
 
-RISK-002 prevention: nothing writes to the tree or to the `<harness dir>` between the freeze and the comparison, the Coordinator included. Detection and revert below cover the resolved `<harness dir>` in mode `repo`, wherever it is (inside the project, or the main checkout's `.harness/` when the project is a linked worktree); in mode `global` it is outside the freeze of this procedure (RISK-002 residual).
+Prevenção do RISK-002: nada escreve na árvore nem no `<harness dir>` entre o congelamento e a comparação, Coordenador inclusive. A detecção e a reversão abaixo cobrem o `<harness dir>` resolvido no modo `repo`, onde quer que esteja (dentro do projeto, ou o `.harness/` do checkout principal quando o projeto é um worktree vinculado); no modo `global` ele fica fora do congelamento deste procedimento (residual do RISK-002).
 
-Run from `<project>`. Record all of these, before the call:
+Rode a partir de `<project>`. Registre tudo isto, antes da chamada:
 
-- The trust paths, as bytes and mode, saved with non-git tools (`cp -p`, or
-  `tar` from an explicit NUL list, below): everything under the resolved `<harness dir>` in mode `repo`, wherever it is (inside the project, or the main checkout's `.harness/` when the project is a linked worktree), and under `.harness/` when it exists. In mode `global` the harness dir (`<home>/projects/<name>/`) is outside the freeze of this procedure, a stated RISK-002 residual; only the freeze of `live-tree-compare.md`, for a call without a clone, saves it by bytes in both modes;
-  `.claude/settings.json` and `.claude/settings.local.json` (each when
-  present, and the list of those absent); from the common dir `<C>`, `hooks/`,
-  `config`, `config.worktree` (when present), `info/`, `HEAD` and `packed-refs`; for a linked worktree, also the admin dir `config.worktree` (read from the `gitdir` field of `linked_worktree`; part (b) below); and every `.gitattributes` file
-  in the working tree (found with `find . -path ./.git -prune -o -name .gitattributes -print`).
-  `<C>` is `<project>/.git` for a normal checkout and `linked_worktree.commondir`
-  (from `dh harness-path --json "<project>"`) for a linked worktree, where
-  `<project>/.git` is only a gitfile and holds none of these paths; an item
-  absent in both snapshots is not a difference and never an error. In a linked worktree the harness dir is the one `dh harness-path --json` gives
-  in `dir` (the main checkout's `.harness/` in mode `repo`), not the ignored copy
-  of `.harness/` inside the worktree; in mode `global` it stays outside the freeze of this procedure.
-  Also trust items, compared by bytes with non-git tools only (`cat`, `cmp`,
-  `stat`; section 2, part A): in a normal checkout, that `<project>/.git` is
-  still a real directory (not a file or a symlink); for a linked worktree, the
-  bytes of the gitfile `<project>/.git`, and `<admin>/commondir` and
-  `<admin>/gitdir`; and that `<C>/commondir` and `<project>/.git/commondir` are
-  absent when they were absent at the freeze (a planted one makes git
-  re-discover another repository, with that repository's config and
-  `info/attributes`). They are saved before the call like the other trust paths.
-  The `config.worktree` files are trust paths like `<C>/config`: with
-  `extensions.worktreeConfig` on, git reads them (`core.attributesFile`,
-  `filter.<x>.smudge`, `include.path`, `core.worktree`), so a planted one could run
-  a command in the delegate's own git. They are saved before the call and
-  restored with non-git tools in part A of section 2, before any git command.
-- `R5GIT status --porcelain -z -uall --ignored`, expanded to files (an ignored
-  directory such as `!! build/` is walked, without following symlinks), with
-  the hash of each path listed, ignored or not. Every ignored path is hashed
-  (the owner's decision D2); a cost limit is set only by an amendment after a
-  measurement.
-- The hash of every tracked file (`R5GIT ls-files -z`), not only the listed
-  ones.
-- `R5GIT ls-files -v --stage`, saved as text. Its first letter is the index
-  flag: `H` neither flag, `S` skip-worktree only, `h` assume-unchanged only,
-  `s` both skip-worktree and assume-unchanged. Each entry also holds the mode
-  and blob id.
-- `R5GIT for-each-ref --format='%(refname) %(objectname)'`, saved as text.
-- Git dirs, two parts; `config.worktree` (both dirs) is a restored trust path
-  (above), and so are the gitfile, `<admin>/commondir` and `<admin>/gitdir`;
-  the rest is detected only. Part (a), every project: in the common dir
-  `<C>`, besides the trust paths above, the files under `refs/` (bytes and
-  mode) and the entries under `worktrees/` when they exist, with the files of
-  each entry that part (b) lists. Part (b), only when `<project>/.git` is a
-  gitfile: the bytes of the gitfile and, in the worktree admin dir (read from the
-  `gitdir` field of `linked_worktree`), `HEAD`, `commondir`, `gitdir`,
-  `config.worktree`, the files under `refs/` and the presence of `locked`. An
-  item absent in both snapshots is not a difference and never an error. The raw
-  `index` files (of the common dir and of each admin dir) stay out of the freeze.
-  A change in these items during the call is `tree_changed`, as in a normal
-  checkout, and the verdict is discarded. Except the restored trust paths above, they are not
-  saved for reversion: each is reported as `not revertible: <path>`, like an
-  altered ignored path.
-- Every entry under the project that is not a regular file or a symlink,
-  excluding `.git`: `find . -path ./.git -prune -o ! -type f ! -type l -print`
-  (directories included), saved as text with the mode of each entry
-  (`stat -c %a` on GNU, `stat -f %Lp` on BSD). A new empty directory, FIFO or socket
-  then appears as a created path, and section 4 removes it with `rm -rf --`
-  after the ancestor check. A directory that disappeared is recreated with
-  `mkdir -p`; a directory whose mode changed gets `chmod <saved mode> <dir>`
-  during the reversion; a FIFO or socket that disappeared is reported as
+- Os caminhos de confiança, como bytes e modo, salvos com ferramentas que não sejam do git (`cp -p`, ou
+  `tar` a partir de uma lista NUL explícita, abaixo): tudo sob o `<harness dir>` resolvido no modo `repo`, onde quer que esteja (dentro do projeto, ou o `.harness/` do checkout principal quando o projeto é um worktree vinculado), e sob `.harness/` quando existir. No modo `global` o harness dir (`<home>/projects/<name>/`) fica fora do congelamento deste procedimento, um residual declarado do RISK-002; só o congelamento de `live-tree-compare.md`, para uma chamada sem clone, o salva por bytes nos dois modos;
+  `.claude/settings.json` e `.claude/settings.local.json` (cada um quando
+  presente, e a lista dos ausentes); do diretório comum `<C>`, `hooks/`,
+  `config`, `config.worktree` (quando presente), `info/`, `HEAD` e `packed-refs`; para um worktree vinculado, também o `config.worktree` do diretório admin (lido do campo `gitdir` de `linked_worktree`; parte (b) abaixo); e todo arquivo `.gitattributes`
+  na árvore de trabalho (achado com `find . -path ./.git -prune -o -name .gitattributes -print`).
+  `<C>` é `<project>/.git` para um checkout normal e `linked_worktree.commondir`
+  (de `dh harness-path --json "<project>"`) para um worktree vinculado, em que
+  `<project>/.git` é só um `gitfile` e não guarda nenhum desses caminhos; um item
+  ausente nos dois instantâneos não é uma diferença e nunca um erro. Num worktree vinculado o harness dir é o que `dh harness-path --json` dá
+  em `dir` (o `.harness/` do checkout principal no modo `repo`), não a cópia ignorada
+  de `.harness/` dentro do worktree; no modo `global` ele continua fora do congelamento deste procedimento.
+  Também são itens de confiança, comparados por bytes só com ferramentas que não sejam do git (`cat`, `cmp`,
+  `stat`; seção 2, parte A): num checkout normal, que `<project>/.git` ainda
+  é um diretório de verdade (não um arquivo nem um symlink); para um worktree vinculado, os
+  bytes do `gitfile` `<project>/.git`, e `<admin>/commondir` e
+  `<admin>/gitdir`; e que `<C>/commondir` e `<project>/.git/commondir` estão
+  ausentes quando estavam ausentes no congelamento (um plantado faz o git
+  redescobrir outro repositório, com a configuração e o
+  `info/attributes` desse repositório). Eles são salvos antes da chamada como os outros caminhos de confiança.
+  Os arquivos `config.worktree` são caminhos de confiança como `<C>/config`: com
+  `extensions.worktreeConfig` ligado, o git os lê (`core.attributesFile`,
+  `filter.<x>.smudge`, `include.path`, `core.worktree`), então um plantado poderia rodar
+  um comando no git do próprio delegado. Eles são salvos antes da chamada e
+  restaurados com ferramentas que não sejam do git na parte A da seção 2, antes de qualquer comando git.
+- `R5GIT status --porcelain -z -uall --ignored`, expandido para arquivos (um diretório
+  ignorado como `!! build/` é percorrido, sem seguir symlinks), com
+  o hash de cada caminho listado, ignorado ou não. Todo caminho ignorado é hasheado
+  (decisão D2 do dono); um limite de custo só é definido por uma emenda depois de uma
+  medição.
+- O hash de todo arquivo rastreado (`R5GIT ls-files -z`), não só os
+  listados.
+- `R5GIT ls-files -v --stage`, salvo como texto. A primeira letra é a flag
+  do índice: `H` nenhuma flag, `S` só skip-worktree, `h` só assume-unchanged,
+  `s` skip-worktree e assume-unchanged juntos. Cada entrada também guarda o modo
+  e o id do blob.
+- `R5GIT for-each-ref --format='%(refname) %(objectname)'`, salvo como texto.
+- Diretórios git, duas partes; `config.worktree` (os dois diretórios) é um caminho de confiança restaurado
+  (acima), e o mesmo vale para o `gitfile`, `<admin>/commondir` e `<admin>/gitdir`;
+  o resto é só detectado. Parte (a), todo projeto: no diretório comum
+  `<C>`, além dos caminhos de confiança acima, os arquivos sob `refs/` (bytes e
+  modo) e as entradas sob `worktrees/` quando existirem, com os arquivos de
+  cada entrada que a parte (b) lista. Parte (b), só quando `<project>/.git` é um
+  `gitfile`: os bytes do `gitfile` e, no diretório admin do worktree (lido do
+  campo `gitdir` de `linked_worktree`), `HEAD`, `commondir`, `gitdir`,
+  `config.worktree`, os arquivos sob `refs/` e a presença de `locked`. Um
+  item ausente nos dois instantâneos não é uma diferença e nunca um erro. Os arquivos
+  `index` brutos (do diretório comum e de cada diretório admin) ficam fora do congelamento.
+  Uma alteração nesses itens durante a chamada é `tree_changed`, como num checkout
+  normal, e o veredito é descartado. Exceto os caminhos de confiança restaurados acima, eles não são
+  salvos para reversão: cada um é reportado como `not revertible: <path>`, como um
+  caminho ignorado alterado.
+- Toda entrada sob o projeto que não é arquivo regular nem symlink,
+  excluindo `.git`: `find . -path ./.git -prune -o ! -type f ! -type l -print`
+  (diretórios inclusive), salva como texto com o modo de cada entrada
+  (`stat -c %a` no GNU, `stat -f %Lp` no BSD). Um novo diretório vazio, FIFO ou socket
+  então aparece como um caminho criado, e a seção 4 o remove com `rm -rf --`
+  depois da checagem de ancestrais. Um diretório que sumiu é recriado com
+  `mkdir -p`; um diretório cujo modo mudou recebe `chmod <saved mode> <dir>`
+  durante a reversão; um FIFO ou socket que sumiu é reportado como
   `not revertible: <path>`.
 
-Save the bytes and the mode only of the paths a reversion can need: every
-non-ignored path listed by `status` (dirty or untracked), every tracked path
-whose saved `ls-files -v` letter is not `H` (a file flagged `h`, `S` or `s`
-can hold an uncommitted edit that `status` hides), and the trust paths. A
-tracked path is "clean" only when its letter is `H` and `status` does not list
-it; a clean tracked path is not copied, it is restored from `HEAD` (section 4,
-item 3). Write the NUL-separated list of
-the saved paths to `<freeze dir>/paths.nul`, leaving out every path recorded as
-`deleted` (tar fails with "Cannot stat" on a path that is missing, exit 2; a
-deleted path has nothing to save and is recorded as `deleted` in the hash
-list), then run
-`tar --null -T "<freeze dir>/paths.nul" -cf "<freeze dir>/live.tar"` from
-`<project>` (`tar` stores a symlink as a symlink; GNU tar accepts this, and
-that bsdtar does too is a hypothesis, not measured here). An ignored path is
-hashed and its mode recorded, but its bytes are not saved: an altered or
-deleted ignored path cannot be reverted. It discards the verdict and is
-reported as `not revertible: <path>`. Also record, for every ancestor
-directory of a saved path, whether the freeze saw it as a real directory
-(`test -d` and `test ! -L`).
+Salve os bytes e o modo só dos caminhos de que uma reversão pode precisar: todo
+caminho não ignorado listado por `status` (modificado ou não rastreado), todo caminho rastreado
+cuja letra salva de `ls-files -v` não é `H` (um arquivo marcado `h`, `S` ou `s`
+pode guardar uma edição não commitada que o `status` esconde) e os caminhos de confiança. Um
+caminho rastreado é "limpo" só quando a letra dele é `H` e o `status` não o
+lista; um caminho rastreado limpo não é copiado, é restaurado do `HEAD` (seção 4,
+item 3). Escreva a lista separada por NUL dos
+caminhos salvos em `<freeze dir>/paths.nul`, deixando de fora todo caminho registrado como
+`deleted` (o tar falha com `Cannot stat` num caminho que não existe, saída 2; um
+caminho apagado não tem nada a salvar e é registrado como `deleted` na lista de
+hashes), depois rode
+`tar --null -T "<freeze dir>/paths.nul" -cf "<freeze dir>/live.tar"` a partir de
+`<project>` (o `tar` guarda um symlink como symlink; o tar GNU aceita isto, e
+que o bsdtar também aceite é uma hipótese, não medida aqui). Um caminho ignorado é
+hasheado e o modo dele registrado, mas os bytes dele não são salvos: um caminho ignorado alterado ou
+apagado não pode ser revertido. Isso descarta o veredito e é
+reportado como `not revertible: <path>`. Registre também, para todo diretório ancestral
+de um caminho salvo, se o congelamento o viu como diretório de verdade
+(`test -d` e `test ! -L`).
 
-Right after the records above are complete, compute `sha256sum` of
-`<freeze dir>/live.tar` and of every saved text snapshot in `<freeze dir>` (the
-manifest: the hash list, the `status` list, `ls-files -v --stage`,
-`for-each-ref`, the list of non-file entries and the ancestor records). Keep
-the digest in the delegate's own session output, never in a file the CLI can
-reach. This detects tampering with the copies; it does not prevent it.
+Logo depois que os registros acima estão completos, calcule o `sha256sum` de
+`<freeze dir>/live.tar` e de todo instantâneo de texto salvo em `<freeze dir>` (o
+manifesto: a lista de hashes, a lista do `status`, `ls-files -v --stage`,
+`for-each-ref`, a lista de entradas que não são arquivos e os registros de ancestrais). Guarde
+o digest na saída da própria sessão do delegado, nunca num arquivo que a CLI
+possa alcançar. Isso detecta adulteração das cópias; não a impede.
 
-## 2. Compare the live tree, after the call
+## 2. Comparar a árvore viva, depois da chamada
 
-Before part A, verify the freeze: recompute the `sha256sum` of `live.tar` and of
-the manifest files and compare with the digest the delegate kept. A mismatch
-is `tree_changed` plus `freeze tampered`: nothing is restored from the
-copies, no git command runs, and the report lists only the digest mismatch and
-a `find` listing of the live trust paths for the owner to restore by hand (no
-`cmp` against the untrusted copies). This is detection, not prevention: a CLI
-that runs as the same user can still write to the freeze directory, and
-only the tampering is noticed. When the digest matches, extract the copies:
-first require `test -d "<freeze dir>" && test ! -L "<freeze dir>"` on the stored
-freeze-directory path; a failed check is `freeze tampered`. Create the
-extraction directory fresh, `mktemp -d "<freeze dir>/copy-XXXXXXXX"`, store its
-literal path as `<copy dir>`, and extract with
-`tar -xpf "<freeze dir>/live.tar" -C "<copy dir>"`. Never `mkdir -p` a fixed
-name here: a planted symlink at a fixed name would send the extraction
-elsewhere. Every restore below reads from `<copy dir>`.
+Antes da parte A, verifique o congelamento: recalcule o `sha256sum` de `live.tar` e dos
+arquivos do manifesto e compare com o digest que o delegado guardou. Uma divergência
+é `tree_changed` mais `freeze tampered`: nada é restaurado das
+cópias, nenhum comando git roda, e o relatório lista só a divergência do digest e
+uma listagem de `find` dos caminhos de confiança vivos para o dono restaurar à mão (sem
+`cmp` contra as cópias não confiáveis). Isto é detecção, não prevenção: uma CLI
+que roda como o mesmo usuário ainda pode escrever no diretório de congelamento, e
+só a adulteração é percebida. Quando o digest confere, extraia as cópias:
+primeiro exija `test -d "<freeze dir>" && test ! -L "<freeze dir>"` no caminho guardado
+do diretório de congelamento; uma checagem que falha é `freeze tampered`. Crie o
+diretório de extração novo, `mktemp -d "<freeze dir>/copy-XXXXXXXX"`, guarde o caminho
+literal dele como `<copy dir>` e extraia com
+`tar -xpf "<freeze dir>/live.tar" -C "<copy dir>"`. Nunca faça `mkdir -p` num nome
+fixo aqui: um symlink plantado num nome fixo mandaria a extração
+para outro lugar. Toda restauração abaixo lê de `<copy dir>`.
 
-Ancestor check, before any `find` or `rm` in part A or part B. Every path
-involved (every saved, created or listed path, and the trust roots `<C>`,
-`<C>/hooks`, `<C>/info`, the resolved `<harness dir>` in mode `repo` (`dir` from `dh harness-path --json "<project>"`: `<project>/.harness` in a normal checkout, `<main>/.harness` in a linked worktree), `.harness` when it exists, and `.claude`) must have each ancestor
-still a real directory (`test -d` and `test ! -L`). An ancestor that the freeze
-recorded as a real directory and that is now a symlink or a regular file is
-planted: remove only that ancestor (`rm -- <ancestor>`), drop from the created
-list every path below it (they were reached through the planted link and are not
-in the project), and recreate the ancestor with `mkdir`. `rm -rf` does not
-follow the final component of its argument, and the intermediate components are
-the ones this check covers. Never pass a trust directory with a trailing slash
-to `find` or `rm` (a trailing slash makes both follow a symlink).
+Checagem de ancestrais, antes de qualquer `find` ou `rm` na parte A ou na parte B. Todo caminho
+envolvido (todo caminho salvo, criado ou listado, e as raízes de confiança `<C>`,
+`<C>/hooks`, `<C>/info`, o `<harness dir>` resolvido no modo `repo` (`dir` de `dh harness-path --json "<project>"`: `<project>/.harness` num checkout normal, `<main>/.harness` num worktree vinculado), `.harness` quando existir, e `.claude`) deve ter cada ancestral
+ainda um diretório de verdade (`test -d` e `test ! -L`). Um ancestral que o congelamento
+registrou como diretório de verdade e que agora é um symlink ou um arquivo regular
+foi plantado: remova só esse ancestral (`rm -- <ancestor>`), tire da lista
+de criados todo caminho abaixo dele (eles foram alcançados pelo link plantado e não estão
+no projeto) e recrie o ancestral com `mkdir`. `rm -rf` não
+segue o componente final do argumento, e os componentes intermediários são
+os que esta checagem cobre. Nunca passe um diretório de confiança com barra final
+para `find` ou `rm` (uma barra final faz os dois seguirem um symlink).
 
-Part A, trust paths first, with non-git tools only. Repo-local configuration
-can execute a command during `status`, `hash-object` (without `--no-filters`),
-`checkout` and similar (a `filter.<name>.clean` or `smudge` driver, selected
-by a `.gitattributes` file), so a hostile `<C>/config` or `.gitattributes`
-must be put back before any git command runs. Using only `tar`, `cmp`, `find`, `rm`, `mv`, `cat`, `mktemp`, `chmod`, `mkdir` and
-`ln`, compare every trust path with the copy in `<copy dir>`, list the trust
-directories (the resolved `<harness dir>` in mode `repo` (`dir` from `dh harness-path --json "<project>"`: `<project>/.harness` in a normal checkout, `<main>/.harness` in a linked worktree), `.harness` when it exists, `<C>/hooks`, `<C>/info`) with `find` and compare
-the list, and restore every difference at once as in section 4, items 1 and 2, for the
-trust paths and the `.gitattributes` files only. The same non-git byte
-comparison covers the repository-discovery items of section 1: the gitfile
-bytes (or, in a normal checkout, that `.git` is still a real directory, not a
-file or a symlink), `<admin>/commondir` and `<admin>/gitdir`, and that
-`<C>/commondir` and `<project>/.git/commondir` are still absent when they were
-absent at the freeze. On a difference, restore from the freeze copy or remove
-the planted file before any git command. If it cannot be restored or removed,
-no git command runs at all: skip part B and the reversion, and record the
-verdict as discarded, not-run, with the reason `not revertible`. No git
-command runs in part A. A difference here is `tree_changed`.
+Parte A, caminhos de confiança primeiro, só com ferramentas que não sejam do git. A configuração
+local do repositório pode executar um comando durante `status`, `hash-object` (sem `--no-filters`),
+`checkout` e similares (um driver `filter.<name>.clean` ou `smudge`, selecionado
+por um arquivo `.gitattributes`), então um `<C>/config` ou `.gitattributes` hostil
+deve ser posto de volta antes de qualquer comando git rodar. Usando só `tar`, `cmp`, `find`, `rm`, `mv`, `cat`, `mktemp`, `chmod`, `mkdir` e
+`ln`, compare todo caminho de confiança com a cópia em `<copy dir>`, liste os diretórios
+de confiança (o `<harness dir>` resolvido no modo `repo` (`dir` de `dh harness-path --json "<project>"`: `<project>/.harness` num checkout normal, `<main>/.harness` num worktree vinculado), `.harness` quando existir, `<C>/hooks`, `<C>/info`) com `find` e compare
+a lista, e restaure toda diferença de uma vez como na seção 4, itens 1 e 2, só para os
+caminhos de confiança e os arquivos `.gitattributes`. A mesma comparação
+de bytes sem git cobre os itens de descoberta do repositório da seção 1: os bytes do
+`gitfile` (ou, num checkout normal, que `.git` ainda é um diretório de verdade, não um
+arquivo nem um symlink), `<admin>/commondir` e `<admin>/gitdir`, e que
+`<C>/commondir` e `<project>/.git/commondir` ainda estão ausentes quando estavam
+ausentes no congelamento. Numa diferença, restaure da cópia do congelamento ou remova
+o arquivo plantado antes de qualquer comando git. Se não puder ser restaurado nem removido,
+nenhum comando git roda: pule a parte B e a reversão, e registre o
+veredito como descartado, `not-run`, com o motivo `not revertible`. Nenhum comando git
+roda na parte A. Uma diferença aqui é `tree_changed`.
 
-Order: every part A byte comparison and restoration happens before the first git
-command of part B; the git commands of part B and of the reversion (items 3 to
-5 of section 4) run only after part A reports no remaining difference.
+Ordem: toda comparação de bytes e restauração da parte A acontece antes do primeiro comando
+git da parte B; os comandos git da parte B e da reversão (itens 3 a
+5 da seção 4) rodam só depois que a parte A não relata nenhuma diferença restante.
 
-Part B, then the git-based comparison. Recompute every other item of section 1
-and compare each with the freeze. Any difference is `tree_changed`: a path
-created (absent, now present), deleted or altered (a different hash, mode or
-link text); an index entry whose flag letter or blob id differs; a ref
-created, moved or deleted (`for-each-ref` differs). The verdict is discarded
-regardless of what the CLI said, the rest of the reversion of section 4 (items
-1 and 2 for the other paths, then items 3 to 5) runs, and the report says
+Parte B, depois a comparação baseada em git. Recalcule todo outro item da seção 1
+e compare cada um com o congelamento. Qualquer diferença é `tree_changed`: um caminho
+criado (ausente, agora presente), apagado ou alterado (um hash, modo ou
+texto de link diferente); uma entrada de índice cuja letra de flag ou id de blob difere; uma ref
+criada, movida ou apagada (`for-each-ref` difere). O veredito é descartado
+independentemente do que a CLI disse, o restante da reversão da seção 4 (itens
+1 e 2 para os outros caminhos, depois itens 3 a 5) roda, e o relatório diz
 `tree_changed`.
 
-## 3. Freeze and compare the clone
+## 3. Congelar e comparar o clone
 
-Right after the match of clone-isolation.md step 2, record the judged set: the
-tracked paths (`R5GIT -C <clone path> ls-files -z`) and the untracked
-non-ignored paths (`R5GIT -C <clone path> ls-files -z --others --exclude-standard`),
-each with its hash (`deleted` when absent).
+Logo depois do casamento do passo 2 de clone-isolation.md, registre o conjunto julgado: os
+caminhos rastreados (`R5GIT -C <clone path> ls-files -z`) e os caminhos
+não rastreados e não ignorados (`R5GIT -C <clone path> ls-files -z --others --exclude-standard`),
+cada um com o hash dele (`deleted` quando ausente).
 
-Before the clone is removed, recompute the hash of each path of that initial
-set:
+Antes de o clone ser removido, recalcule o hash de cada caminho desse conjunto
+inicial:
 
-- A changed hash, or a removed path of the set, is `tree_changed`. The
-  verdict is discarded and nothing is reverted: the clone is thrown away.
-- Ignored paths of the clone and any new untracked file are outside the set.
-  Neither reaches the live tree nor changes the judged content, so neither
-  discards the verdict. Each new untracked file (a path in `ls-files` now that
-  is not in the initial set) is recorded as a note in the call's report.
-- The clone's `.git`, including `dh-cli.lock`, is not compared.
+- Um hash alterado, ou um caminho do conjunto removido, é `tree_changed`. O
+  veredito é descartado e nada é revertido: o clone é jogado fora.
+- Caminhos ignorados do clone e qualquer arquivo novo não rastreado estão fora do conjunto.
+  Nenhum chega à árvore viva nem muda o conteúdo julgado, então nenhum
+  descarta o veredito. Cada arquivo novo não rastreado (um caminho em `ls-files` agora que
+  não está no conjunto inicial) é registrado como nota no relatório da chamada.
+- O `.git` do clone, inclusive `dh-cli.lock`, não é comparado.
 
-## 4. Revert the live tree
+## 4. Reverter a árvore viva
 
-Revert from the freeze copies, and for a clean tracked path from `HEAD` (item
-3). Never write through an existing path: what is there now is removed first,
-without following a symlink, and the saved content is placed by a rename.
-Items 1 and 2 first restore the trust paths and the `.gitattributes` files, in
-part A of section 2, with no git command; in part B they run again for every
-other path. Items 3 to 5 run only in part B, after part A. Afterwards recompute
-section 1 and confirm it equals the freeze; if it does not, report `reversion
-incomplete` beside `tree_changed`.
+Reverta a partir das cópias do congelamento e, para um caminho rastreado limpo, a partir do `HEAD` (item
+3). Nunca escreva através de um caminho existente: o que está lá agora é removido primeiro,
+sem seguir um symlink, e o conteúdo salvo é posto por uma renomeação.
+Os itens 1 e 2 primeiro restauram os caminhos de confiança e os arquivos `.gitattributes`, na
+parte A da seção 2, sem comando git; na parte B eles rodam de novo para todo
+outro caminho. Os itens 3 a 5 rodam só na parte B, depois da parte A. Depois, recalcule
+a seção 1 e confirme que é igual ao congelamento; se não for, reporte `reversion
+incomplete` ao lado de `tree_changed`.
 
-1. **A path created** (absent before): `rm -rf -- <path>`, which does not
-   follow a symlink. A tracked path saved with letter `S` whose worktree file
-   was absent before the call is recorded `deleted`, so a file the CLI creates
-   there is removed by this item. All created paths are removed before any path is
-   restored, so a created path never blocks a restore.
-2. **A path altered or deleted, with a saved copy.**
-   - First the ancestors (the ancestor check of section 2 has already run;
-     repeat it here for each path), from the project root down. Git does not track
-     through a symlink, so every ancestor of a tracked path was a real
-     directory before the call by definition; for any other path the freeze
-     recorded whether the ancestor was a real directory. An ancestor that was a
-     real directory and is now a symlink (`test -L`) or a regular file is
-     planted: remove it with `rm -- <ancestor>`. A `.git` (or any other
-     ancestor) that was already a symlink before the call is left alone. Then
-     `mkdir -p -- <parent>` for every missing ancestor.
-   - A path with saved bytes and mode, written as one chained subshell so the
-     temporary name is not lost:
+1. **Um caminho criado** (ausente antes): `rm -rf -- <path>`, que não
+   segue um symlink. Um caminho rastreado salvo com a letra `S` cujo arquivo no worktree
+   estava ausente antes da chamada é registrado `deleted`, então um arquivo que a CLI cria
+   ali é removido por este item. Todos os caminhos criados são removidos antes de qualquer caminho ser
+   restaurado, de modo que um caminho criado nunca bloqueia uma restauração.
+2. **Um caminho alterado ou apagado, com cópia salva.**
+   - Primeiro os ancestrais (a checagem de ancestrais da seção 2 já rodou;
+     repita-a aqui para cada caminho), da raiz do projeto para baixo. O git não rastreia
+     através de um symlink, então todo ancestral de um caminho rastreado era um diretório
+     de verdade antes da chamada por definição; para qualquer outro caminho o congelamento
+     registrou se o ancestral era um diretório de verdade. Um ancestral que era um
+     diretório de verdade e agora é um symlink (`test -L`) ou um arquivo regular
+     foi plantado: remova-o com `rm -- <ancestor>`. Um `.git` (ou qualquer outro
+     ancestral) que já era um symlink antes da chamada é deixado em paz. Depois
+     `mkdir -p -- <parent>` para todo ancestral ausente.
+   - Um caminho com bytes e modo salvos, escrito como um subshell encadeado só, para que o
+     nome temporário não se perca:
      `( umask 077; tmp=$(mktemp <parent>/.dh-restore-XXXXXXXX) && cat -- <saved copy> > "$tmp" && chmod <saved mode> "$tmp" && rm -rf -- <path> && mv -f "$tmp" <path> )`.
-     A rename replaces the destination entry itself and does not follow a final
-     symlink: a symlink planted over `.harness/project.yaml` is removed and its
-     target is untouched (measured: exit 0, target untouched, regular file with
-     the saved mode).
-   - A path that was a symlink before the call, in the same shape, after
-     removing the name `mktemp` created (`ln -s` fails on an existing name):
+     Uma renomeação substitui a própria entrada de destino e não segue um symlink
+     final: um symlink plantado sobre `.harness/project.yaml` é removido e o alvo dele
+     fica intocado (medido: saída 0, alvo intocado, arquivo regular com
+     o modo salvo).
+   - Um caminho que era um symlink antes da chamada, na mesma forma, depois de
+     remover o nome que o `mktemp` criou (`ln -s` falha num nome existente):
      `( tmp=$(mktemp <parent>/.dh-restore-XXXXXXXX) && rm -f "$tmp" && ln -s <saved link text> "$tmp" && rm -rf -- <path> && mv -f "$tmp" <path> )`.
-3. **A clean tracked path** (saved letter `H`, not listed by `status`, so no
-   saved copy) that is now altered or deleted. Part B only, after part A has
-   restored the hooks, the config and the attributes, with the
-   `core.hooksPath` override in force. Handle the ancestors as in item 2, then
-   remove what is there, `rm -rf -- <path>`, then clear both index flags, one
-   command each (`R5GIT update-index --no-skip-worktree -- <path>`, then
-   `R5GIT update-index --no-assume-unchanged -- <path>`), and only then run
-   `R5GIT checkout HEAD -- <path>`. Plain `checkout -- <path>` is not used: it
-   restores the index blob, and a tampered index entry gives back the tampered
-   content (measured). `checkout HEAD -- <path>` restores the `HEAD` content,
-   resets the index entry to `HEAD`, leaving `H`. Measured (T-1015, git 2.53.0):
-   `checkout HEAD -- <path>` on a removed path whose index entry carries
-   skip-worktree fails with exit 1, "pathspec did not match any file(s) known to
-   git"; clearing the flags first, as above, works and leaves `H`. Item 4 then
-   sets the saved letters. For such a path the index equals `HEAD` by
-   construction, so `HEAD` is its pre-call state. Any filter that runs there is
-   the owner's own pre-call configuration, restored in part A; a `cat-file`
-   restore would break filtered repositories such as git-lfs.
-4. **Index entries, then flags**, after items 2 and 3. The saved letters and
-   blob ids are the final word: compare the saved `ls-files -v --stage` with
-   the new one, path by path:
-   - first entries: a stage entry whose mode or blob id differs is set back
-     with `R5GIT update-index --cacheinfo <mode>,<blob id>,<path>` using the
-     saved values; an entry that did not exist before is removed with
+3. **Um caminho rastreado limpo** (letra salva `H`, não listado por `status`, portanto sem
+   cópia salva) que agora está alterado ou apagado. Só na parte B, depois de a parte A ter
+   restaurado os hooks, a config e os atributos, com a
+   sobreposição de `core.hooksPath` em vigor. Trate os ancestrais como no item 2, depois
+   remova o que está lá, `rm -rf -- <path>`, depois limpe as duas flags do índice, um
+   comando cada (`R5GIT update-index --no-skip-worktree -- <path>`, depois
+   `R5GIT update-index --no-assume-unchanged -- <path>`), e só então rode
+   `R5GIT checkout HEAD -- <path>`. O `checkout -- <path>` simples não é usado: ele
+   restaura o blob do índice, e uma entrada de índice adulterada devolve o conteúdo
+   adulterado (medido). `checkout HEAD -- <path>` restaura o conteúdo do `HEAD`,
+   reinicia a entrada do índice para o `HEAD`, deixando `H`. Medido (T-1015, git 2.53.0):
+   `checkout HEAD -- <path>` num caminho removido cuja entrada de índice carrega
+   skip-worktree falha com saída 1,
+   `pathspec did not match any file(s) known to git`; limpar as flags antes, como acima, funciona e deixa `H`. O item 4 então
+   define as letras salvas. Para um caminho assim o índice é igual ao `HEAD` por
+   construção, então o `HEAD` é o estado dele anterior à chamada. Qualquer filtro que rode ali é
+   a configuração anterior à chamada do próprio dono, restaurada na parte A; uma
+   restauração por `cat-file` quebraria repositórios filtrados como git-lfs.
+4. **Entradas de índice, depois flags**, depois dos itens 2 e 3. As letras e os ids de blob
+   salvos têm a palavra final: compare o `ls-files -v --stage` salvo com
+   o novo, caminho a caminho:
+   - primeiro as entradas: uma entrada de stage cujo modo ou id de blob difere é
+     posta de volta com `R5GIT update-index --cacheinfo <mode>,<blob id>,<path>` usando os
+     valores salvos; uma entrada que não existia antes é removida com
      `R5GIT update-index --force-remove -- <path>`;
-   - then flags, one flag per invocation (measured: `--no-skip-worktree
-     --no-assume-unchanged` in one invocation leaves `S` set; separate
-     invocations clear it). Clear first: `R5GIT update-index --no-skip-worktree -- <path>`,
-     then, as its own command, `R5GIT update-index --no-assume-unchanged -- <path>`.
-     Then set what the saved letter had, each in its own command: for `S`,
-     `R5GIT update-index --skip-worktree -- <path>`; for `h`,
-     `R5GIT update-index --assume-unchanged -- <path>`; for `s` both, in two
-     commands; for `H` nothing more.
-5. **Refs**, last, from the saved `for-each-ref` list:
-   - a ref created by the call: `R5GIT update-ref -d <refname> <new id>`;
-   - a ref moved by the call: `R5GIT update-ref <refname> <old id> <new id>`;
-   - a ref deleted by the call: `R5GIT update-ref <refname> <old id>`.
-   `update-ref` can rewrite `<C>/packed-refs`. The final recompute includes
-   the trust paths, so a `packed-refs` that differs after this item is
-   restored again from the freeze copy (item 2, no git command).
+   - depois as flags, uma flag por invocação (medido: `--no-skip-worktree
+     --no-assume-unchanged` numa invocação deixa `S` ligado; invocações
+     separadas o limpam). Limpe primeiro: `R5GIT update-index --no-skip-worktree -- <path>`,
+     depois, como comando próprio, `R5GIT update-index --no-assume-unchanged -- <path>`.
+     Então defina o que a letra salva tinha, cada uma em seu próprio comando: para `S`,
+     `R5GIT update-index --skip-worktree -- <path>`; para `h`,
+     `R5GIT update-index --assume-unchanged -- <path>`; para `s` as duas, em dois
+     comandos; para `H` nada mais.
+5. **Refs**, por último, a partir da lista salva de `for-each-ref`:
+   - uma ref criada pela chamada: `R5GIT update-ref -d <refname> <new id>`;
+   - uma ref movida pela chamada: `R5GIT update-ref <refname> <old id> <new id>`;
+   - uma ref apagada pela chamada: `R5GIT update-ref <refname> <old id>`.
+   `update-ref` pode reescrever `<C>/packed-refs`. O recálculo final inclui
+   os caminhos de confiança, então um `packed-refs` que difere depois deste item é
+   restaurado de novo da cópia do congelamento (item 2, sem comando git).
 
-The reversion restores what the live-tree freeze saved copies for, `config.worktree` included. The
-other git-dir items of section 1 are detected and reported as
-`not revertible: <path>`, never reverted. It does not restore what that freeze does not name:
-objects a `git tag -a` wrote, reflogs and the other live git-dir paths listed
-in clone-isolation.md section 7 stay as the CLI left them, and the verdict is
-already discarded.
+A reversão restaura aquilo para que o congelamento da árvore viva salvou cópias, `config.worktree` inclusive. Os
+outros itens do diretório git da seção 1 são detectados e reportados como
+`not revertible: <path>`, nunca revertidos. Ela não restaura o que esse congelamento não nomeia:
+objetos que um `git tag -a` escreveu, reflogs e os demais caminhos vivos do diretório git listados
+em clone-isolation.md seção 7 ficam como a CLI os deixou, e o veredito já
+está descartado.
 
-## 5. The prompt
+## 5. O prompt
 
-The prompt carries the context as it does today: role, skill and bundle. A clone
-call writes it to a file created by `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )`,
-unique per call, inside the freeze directory: it is removed and swept together
-with that directory, and no prompt file is ever age-swept on its own. (A call
-without a clone, the `agy` review, creates its prompt with
-`( umask 077; mktemp "<tmp root>/dh-prompt-XXXXXXXX" )` and removes it in its
-own cleanup.) It
-keeps the `commands.test`/`commands.lint` block from the anti-delegation
-clause, and those commands run in the clone.
+O prompt leva o contexto como hoje: papel, skill e pacote. Uma chamada em clone
+o escreve num arquivo criado por `( umask 077; mktemp "<freeze dir>/prompt-XXXXXXXX.md" )`,
+único por chamada, dentro do diretório de congelamento: ele é removido e varrido junto
+com esse diretório, e nenhum arquivo de prompt é jamais varrido por idade por conta própria. (Uma chamada
+sem clone, a revisão do `agy`, cria o prompt dela com
+`( umask 077; mktemp "<tmp root>/dh-prompt-XXXXXXXX" )` e o remove na própria
+limpeza.) Ele
+mantém o bloco `commands.test`/`commands.lint` da cláusula
+anti-delegação, e esses comandos rodam no clone.
 
-The no-live-path rule is hygiene, not a boundary. The prompt must not contain the absolute path
-of the live tree; check with `grep -F -- "<absolute path of the project>" <prompt file>`,
-which must find nothing. The CLI can find that path by other means (the
-comparisons above detect what it does with it), so this does not prevent a
-write.
+A regra do caminho vivo ausente é higiene, não uma fronteira. O prompt não deve conter o caminho absoluto
+da árvore viva; confira com `grep -F -- "<absolute path of the project>" <prompt file>`,
+que não deve achar nada. A CLI pode achar esse caminho por outros meios (as
+comparações acima detectam o que ela faz com ele), então isto não impede uma
+escrita.
 
-An artifact that a legitimate test generates in the clone (an ignored file
-or a new untracked file) is outside the judged set and does not discard the
-verdict; a test that rewrites a tracked file discards it like any other change.
-A check result a CLI reports is never evidence: a dispatched `qa-verifier`
-reruns the checks. An ignored `_test.go` planted in the clone can only mislead the
-CLI's own reply, which is already untrusted input. If a command fails for a
-missing ignored file (a dependency, a `.env`), the CLI reports "not validated",
-and the Coordinator reads that report as neither a failure of the code nor an
-approval.
+Um artefato que um teste legítimo gera no clone (um arquivo ignorado
+ou um arquivo novo não rastreado) está fora do conjunto julgado e não descarta o
+veredito; um teste que reescreve um arquivo rastreado o descarta como qualquer outra alteração.
+O resultado de uma checagem que uma CLI reporta nunca é evidência: um `qa-verifier` despachado
+roda as checagens de novo. Um `_test.go` ignorado plantado no clone só pode enganar a
+resposta da própria CLI, que já é entrada não confiável. Se um comando falha por um
+arquivo ignorado ausente (uma dependência, um `.env`), a CLI reporta "não validado",
+e o Coordenador lê esse relato como nem uma falha do código nem uma
+aprovação.
 
-## 6. What the report carries
+## 6. O que o relatório leva
 
-The "Workspace check" line of the reply block in `SKILL.md` ("Who runs the call") takes, for a
-call in a clone: `clean` or `reverted (<what changed, now reverted>)` for the
-live tree; `clone removed: <path>` once the clone is gone; and
-`notes: <new untracked files in the clone>` when section 3 found any; and
-`leftover processes: stopped` or `none`, with the match string. An
-altered ignored path is reported as `not revertible: <path>`.
+A linha "Checagem do espaço de trabalho" do bloco de resposta em `SKILL.md` ("Quem executa a chamada") recebe, para uma
+chamada em clone: `clean` ou `reverted (<what changed, now reverted>)` para a
+árvore viva; `clone removed: <path>` quando o clone se foi; e
+`notes: <new untracked files in the clone>` quando a seção 3 achou algum; e
+`leftover processes: stopped` ou `none`, com a string casada. Um
+caminho ignorado alterado é reportado como `not revertible: <path>`.
 
-The residual of clone-isolation.md section 7 applies unchanged: disposable
-clone; writes outside it are detected on the live tree, never prevented;
-writes outside the project are not detected. It also holds for the freeze
-directory. It contains copies of the `<harness dir>`, of `.harness/`, of `.claude/settings*.json` and of
-the dirty or untracked non-ignored files, it sits in `<tmp root>`, and a
-CLI that runs as the same user can read and alter it (mode 0700 does not stop
-that). Tampering with the copies falls under the residual (a), a write outside
-the project, and reading the copies falls under (e), reading and returning
-secrets reachable by the user; the owner accepted both on 2026-09-29. The
-freeze directory is removed at the end of the call, and swept as an orphan if
-the call is interrupted (clone-isolation.md step 5).
+O residual de clone-isolation.md seção 7 vale sem mudança: clone
+descartável; escritas fora dele são detectadas na árvore viva, nunca impedidas;
+escritas fora do projeto não são detectadas. Vale também para o diretório de
+congelamento. Ele contém cópias do `<harness dir>`, de `.harness/`, de `.claude/settings*.json` e dos
+arquivos modificados ou não rastreados e não ignorados, fica em `<tmp root>`, e uma
+CLI que roda como o mesmo usuário pode lê-lo e alterá-lo (o modo 0700 não impede
+isso). Adulterar as cópias cai sob o residual (a), uma escrita fora
+do projeto, e ler as cópias cai sob (e), ler e devolver
+segredos alcançáveis pelo usuário; o dono aceitou os dois em 2026-09-29. O
+diretório de congelamento é removido ao fim da chamada, e varrido como órfão se
+a chamada for interrompida (clone-isolation.md passo 5).
 
-Residual of the freeze: configuration files pulled in by `include.path` or `includeIf` from `<C>/config` that live inside the project are not restored before the first git command of part B; the `R5GIT` overrides do not neutralise them. Accepted residual of the live-tree freeze.
+Residual do congelamento: arquivos de configuração trazidos por `include.path` ou `includeIf` a partir de `<C>/config` que vivem dentro do projeto não são restaurados antes do primeiro comando git da parte B; as sobreposições de `R5GIT` não os neutralizam. Residual aceito do congelamento da árvore viva.
