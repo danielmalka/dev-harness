@@ -1,18 +1,18 @@
 # doc-template-html
 
-Internal Harness document as a standalone `.html`, opened in the browser. Not a site page.
+Documento interno do Harness como um `.html` autônomo, aberto no navegador. Não é página de site.
 
-The stamp is portable: it inlines CSS/JS from its own skill folder, wherever the kit is installed.
+O carimbo é portátil: ele embute o CSS/JS da própria pasta da skill, onde quer que o kit esteja instalado.
 
-## Ask the agent
+## Peça ao agente
 
-In chat: `/dh:document` or “gera o plano/feature/bug/melhoria/catálogo/report em HTML interno”.
+No chat: `/dh:document` ou “gera o plano/feature/bug/melhoria/catálogo/report em HTML interno”.
 
-The agent reads `SKILL.md`, picks the type in `references/types.md`, runs the stamp and fills.
+O agente lê `SKILL.md`, escolhe o tipo em `references/types.md`, roda o carimbo e preenche.
 
-## Generate the shell (human)
+## Gere a casca (humano)
 
-Run the stamp by its path inside this skill folder (`<skill-folder>/scripts/stamp.sh`), resolved from wherever the kit is installed. `--out` takes an absolute path or one relative to the current directory.
+Rode o carimbo pelo caminho dele dentro da pasta desta skill (`<skill-folder>/scripts/stamp.sh`), resolvido a partir de onde o kit está instalado. `--out` aceita um caminho absoluto ou relativo ao diretório atual.
 
 ```bash
 bash <skill-folder>/scripts/stamp.sh \
@@ -21,11 +21,11 @@ bash <skill-folder>/scripts/stamp.sh \
   --out docs/slug.html
 ```
 
-Types: `catalogo` `plano` `feature` `melhoria` `bug` `report` `projeto` `aprovacao`.
+Tipos: `catalogo` `plano` `feature` `melhoria` `bug` `report` `projeto` `aprovacao`.
 
-`--type aprovacao` is the plan approval page: pass the plan as `--data plan.json` (contract in `references/types.md`); the page has its own script and no external one.
+`--type aprovacao` é a página de aprovação do plano: passe o plano como `--data plan.json` (contrato em `references/types.md`); a página tem script próprio e nenhum externo.
 
-`--type bug` already comes with `.banner.warn`.
+`--type bug` já vem com `.banner.warn`.
 
 ```bash
 bash <skill-folder>/scripts/stamp.sh \
@@ -37,7 +37,7 @@ bash <skill-folder>/scripts/stamp.sh \
   --out docs/bug-webhook-502.html
 ```
 
-Other flags: `--contato`, `--path`, `--date`, `--eyebrow`, `--banner-text`, `--banner-warn`, `--force`.
+Outras flags: `--contato`, `--path`, `--date`, `--eyebrow`, `--banner-text`, `--banner-warn`, `--force`.
 
 ```bash
 bash <skill-folder>/scripts/stamp.sh \
@@ -50,30 +50,30 @@ bash <skill-folder>/scripts/stamp.sh \
 bash <skill-folder>/scripts/stamp.sh --help
 ```
 
-Open the file in `file://`. Fill every “ainda não fechado”. A hole stays “ainda não fechado”.
+Abra o arquivo em `file://`. Preencha todo “ainda não fechado”. Uma lacuna continua “ainda não fechado”.
 
-## What is what
+## O que é cada coisa
 
-| file | role |
+| arquivo | papel |
 |---|---|
-| `SKILL.md` | agent contract |
-| `scripts/stamp.sh` | shell with inline CSS/JS |
-| `references/types.md` | recipes + primitive markup |
-| `assets/skeletons/<tipo>.html` | sections the stamp injects |
-| `assets/modelo.html` | filled feature |
-| `assets/catalogo-preview.html` | filled catalog (strip, price) |
-| `assets/projeto-modelo.html` | filled project overview, no shell needed |
-| `assets/shell.css` + `shell.js` | tokens; do not link, the stamp inlines |
+| `SKILL.md` | contrato do agente |
+| `scripts/stamp.sh` | casca com CSS/JS embutido |
+| `references/types.md` | receitas + markup das primitivas |
+| `assets/skeletons/<tipo>.html` | seções que o carimbo injeta |
+| `assets/modelo.html` | feature preenchida |
+| `assets/catalogo-preview.html` | catálogo preenchido (strip, price) |
+| `assets/projeto-modelo.html` | visão geral do projeto preenchida, sem precisar de casca |
+| `assets/shell.css` + `shell.js` | tokens; não linke, o carimbo embute |
 
-Palette: charcoal `#0C0D10`, paper `#F1EFE8`, neon `#3DFF9A` on highlights, sand `#E2D2A8` on links and banners. Stamp refuses to overwrite the skill examples without `--force`.
+Paleta: carvão `#0C0D10`, papel `#F1EFE8`, neon `#3DFF9A` nos destaques, areia `#E2D2A8` em links e banners. O carimbo se recusa a sobrescrever os exemplos da skill sem `--force`.
 
-After editing `shell.css` / `shell.js`:
+Depois de editar `shell.css` / `shell.js`:
 
 ```bash
 bash <skill-folder>/scripts/stamp.sh --sync
 ```
 
-## Do not use
+## Não use
 
-- Markdown only in chat, no file
-- publishing on a site or linking from a home page
+- Só Markdown no chat, sem arquivo
+- publicar em um site ou linkar a partir de uma home
