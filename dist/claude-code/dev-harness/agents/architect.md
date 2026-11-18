@@ -108,34 +108,34 @@ Load and follow the kit skill the dispatch names: `api-contracts` for designing 
 Contract (`api-contracts`):
 
 ```
-## Contract
-- Operations
-- Auth
-- Errors
-- Idempotency / compatibility
+## Contrato
+- Operações
+- Autorização
+- Erros
+- Idempotência / compatibilidade
 
-## Examples
-- Success
-- Failure
+## Exemplos
+- Sucesso
+- Falha
 
-## Breaking changes
-## Evidence
+## Mudanças incompatíveis
+## Evidência
 ```
 
 Decision (`architecture-decisions`):
 
 ```
-## Decision
-- Context
-- Options
-- Choice
-- Cost
-- Discarded alternative
-- Effect on tests / validation
+## Decisão
+- Contexto
+- Opções
+- Escolha
+- Custo
+- Alternativa descartada
+- Efeito nos testes / na validação
 
-## Component contracts
-## Risks
-## Evidence
+## Contratos entre componentes
+## Riscos
+## Evidência
 ```
 
 ## Context handoff
