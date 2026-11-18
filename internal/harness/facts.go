@@ -92,7 +92,7 @@ func looksLikeValue(m []string) bool {
 }
 
 // CheckFacts checks the content of a FACTS.md against PRD-035 R3 to R6 and, through exists, that every evidence path is in the repository.
-// exists receives a slash-separated path relative to the repository root and says whether it is there. It writes nothing.
+// exists receives a slash-separated path relative to the repository root and says whether it is a file there (a folder is not evidence). It writes nothing.
 func CheckFacts(content []byte, exists func(rel string) bool) FactsReport {
 	var rep FactsReport
 	add := func(line int, format string, a ...any) {
@@ -289,7 +289,7 @@ func checkEvidence(evidence string, n int, id string, exists func(string) bool, 
 			continue
 		}
 		if exists != nil && !exists(path) {
-			add(n, "campo Evidência: o caminho %q não existe no repositório (%s)", path, id)
+			add(n, "campo Evidência: o caminho %q não é um arquivo do repositório (não existe ou é uma pasta) (%s)", path, id)
 		}
 	}
 }

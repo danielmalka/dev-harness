@@ -175,7 +175,7 @@ func TestFactsCheckReportsViolations(t *testing.T) {
 	repo, facts := factsRepo(t, "")
 	cases := map[string]struct{ doc, want string }{
 		"missing field": {factsDocFor("## Testes", "- F-001 · frase · Evidência: src/a.go:3 · Visto: 2026-11-18, builder, T-1 · sha: abc1234"), "FACTS.md:6: campo Estado: ausente"},
-		"unknown path":  {factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "src/a.go", "src/b.go", 1)), `não existe no repositório`},
+		"unknown path":  {factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "src/a.go", "src/b.go", 1)), `não é um arquivo do repositório`},
 		"category name": {factsDocFor("## Outra coisa", fmt.Sprintf(cmdFact, "confirmado")), "não é uma das categorias"},
 		"secret":        {factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "O comando", "token: abc12345xyz O comando", 1)), "padrão de segredo"},
 		"ceiling":       {factsDocFor("## Mudanças") + strings.Repeat("- mudança\n", 150), "teto de linhas excedido"},
@@ -226,5 +226,41 @@ func TestFactsCheckGlobalMode(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "FACTS.md"), []byte(factsDocFor("## Testes", fmt.Sprintf(cmdFact, "confirmado"))), 0o644)
 	if code, out, e := dh(t, "facts", "check", repo); code != 0 || strings.TrimSpace(out) != "ok 1 fatos 0 candidatos" {
 		t.Fatalf("global: %d %q %q", code, out, e)
+	}
+}
+
+// R27 (review of F1): the evidence must be a FILE. A folder passes os.Stat but is not evidence; a symlink counts only when it points to a file inside the project.
+func TestFactsCheckEvidenceMustBeAFile(t *testing.T) {
+	repo, facts := factsRepo(t, "")
+	outside := filepath.Join(t.TempDir(), "outside.go")
+	os.WriteFile(outside, []byte("package outside\n"), 0o644)
+	linkOK := os.Symlink(filepath.Join(repo, "src", "a.go"), filepath.Join(repo, "src", "link-file.go")) == nil
+	os.Symlink(filepath.Join(repo, "src"), filepath.Join(repo, "link-dir"))
+	os.Symlink(outside, filepath.Join(repo, "src", "link-outside.go"))
+	check := func(evidence string) (int, string) {
+		doc := factsDocFor("## Testes", strings.Replace(fmt.Sprintf(cmdFact, "confirmado"), "src/a.go:3", evidence, 1))
+		os.WriteFile(facts, []byte(doc), 0o644)
+		code, _, e := dh(t, "facts", "check", repo)
+		return code, e
+	}
+	if code, e := check("src/a.go:3"); code != 0 {
+		t.Fatalf("a regular file must pass: %d %q", code, e)
+	}
+	for _, dir := range []string{"src:1", ".harness:2", "link-dir:1", "src/:1"} {
+		code, e := check(dir)
+		if code != 1 || !strings.Contains(e, "não é um arquivo do repositório") {
+			t.Errorf("folder %q must fail as not a file: %d %q", dir, code, e)
+		}
+	}
+	if linkOK {
+		if code, e := check("src/link-file.go:1"); code != 0 {
+			t.Errorf("a symlink to a file inside the project must pass: %d %q", code, e)
+		}
+		if code, e := check("src/link-outside.go:1"); code != 1 || !strings.Contains(e, "não é um arquivo do repositório") {
+			t.Errorf("a symlink to a file outside the project must fail: %d %q", code, e)
+		}
+	}
+	if code, e := check("src/nao-existe.go:1"); code != 1 || !strings.Contains(e, "não é um arquivo do repositório") {
+		t.Errorf("a missing path must fail: %d %q", code, e)
 	}
 }

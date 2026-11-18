@@ -284,10 +284,7 @@ func runFacts(args []string, stdout, stderr io.Writer) int {
 		printError(stderr, err.Error())
 		return 1
 	}
-	rep := harness.CheckFacts(content, func(rel string) bool {
-		_, err := os.Stat(filepath.Join(repo, filepath.FromSlash(rel)))
-		return err == nil
-	})
+	rep := harness.CheckFacts(content, func(rel string) bool { return isRepoFile(repo, rel) })
 	if len(rep.Problems) > 0 {
 		for _, p := range rep.Problems {
 			if p.Line > 0 {
@@ -301,6 +298,26 @@ func runFacts(args []string, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stdout, "ok %d fatos %d candidatos\n", rep.Facts, rep.Candidates)
 	return 0
+}
+
+// isRepoFile says whether rel (slash-separated, relative to repo) is a regular file inside the project folder. A folder is not evidence, and a symlink counts
+// only when what it points to is a file that is still inside the folder.
+func isRepoFile(repo, rel string) bool {
+	full := filepath.Join(repo, filepath.FromSlash(rel))
+	info, err := os.Stat(full)
+	if err != nil || !info.Mode().IsRegular() {
+		return false
+	}
+	real, err := filepath.EvalSymlinks(full)
+	if err != nil {
+		return false
+	}
+	root, err := filepath.EvalSymlinks(repo)
+	if err != nil {
+		return false
+	}
+	r, err := filepath.Rel(root, real)
+	return err == nil && r != ".." && !strings.HasPrefix(r, ".."+string(filepath.Separator))
 }
 
 // memoryDir resolves the harness dir of the optional project dir argument, like `dh harness-path`; mode none is an error.

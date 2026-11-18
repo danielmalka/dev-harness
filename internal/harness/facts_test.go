@@ -86,7 +86,7 @@ func TestCheckFactsFieldValues(t *testing.T) {
 	wantProblem(t, "evidence absolute", factsDoc("## Testes", mk(0, "/etc/passwd:1")), "6", "relativo ao repositório")
 	wantProblem(t, "evidence dotdot", factsDoc("## Testes", mk(0, "../x/README.md:1")), "6", "relativo ao repositório")
 	wantProblem(t, "evidence backslash", factsDoc("## Testes", mk(0, `cmd\dh\main.go:1`)), "6", "relativo ao repositório")
-	wantProblem(t, "evidence missing path", factsDoc("## Testes", mk(0, "cmd/dh/nao-existe.go:3")), "6", "não existe no repositório")
+	wantProblem(t, "evidence missing path", factsDoc("## Testes", mk(0, "cmd/dh/nao-existe.go:3")), "6", "não é um arquivo do repositório")
 	if r := check(factsDoc("## Testes", mk(0, "README.md:1, cmd/dh/main.go:2, internal/harness/memory.go:3"))); len(r.Problems) != 0 {
 		t.Errorf("three paths must pass: %s", messages(r))
 	}
