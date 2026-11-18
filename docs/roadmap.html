@@ -660,8 +660,8 @@ footer.doc-foot {
         <h1>Roadmap · Dev Harness</h1>
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
-           <span class="chip">data <b>2026-11-17</b></span>
-          <span class="chip">status <b>0.46.0 · vivo</b></span>
+           <span class="chip">data <b>2026-11-18</b></span>
+          <span class="chip">status <b>0.47.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -698,6 +698,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.47.0 · Arquivo de fatos do sistema, fatia F1: trava, mod e <code>dh facts check</code> (PRD-035)</h3>
+        <p><strong>Status:</strong> concluído (primeira de quatro fatias do PRD-035; o recurso só é declarado pronto depois da F4 e da eval paga da F5).</p>
+        <p><strong>Resumo:</strong> PRD-035 F1. <code>dh memory hash</code> e <code>dh memory write</code> ganham <code>--file</code> com uma lista fechada, <code>MEMORY.md</code> (padrão) e <code>FACTS.md</code>; outro nome sai com 1 e lista os dois. A trava de hash é a mesma, com o lock <code>FACTS.md.lock</code>. O novo <code>dh facts check [pasta]</code> (somente leitura) confere o <code>&lt;harness dir&gt;/FACTS.md</code>: formato da linha de fato, as 11 categorias, os tetos (150 linhas, 12 KB, 15 fatos por categoria, 300 caracteres por fato), padrões de segredo e de dado pessoal (sem imprimir o valor) e caminhos de evidência que existem no repositório; sem o arquivo imprime <code>absent</code>. O <code>dh doctor</code> avisa acima de 150 linhas ou 12 KB. O mod <code>runtime-guard</code> protege o <code>FACTS.md</code> contra <code>Edit</code> e <code>Write</code> de subagente, exceto o curador (um <code>docs-guide</code> despachado com o arquivo no conjunto de escrita). Nenhum agente grava ou lê o arquivo ainda: isso vem nas fatias F2 a F4.</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.47.0; <code>docs/prd/PRD-035-arquivo-de-fatos.md</code>; <code>internal/harness/memory.go</code>, <code>internal/harness/facts.go</code>; <code>cmd/dh/main.go</code>; <code>internal/doctor/harness.go</code>; <code>adapters/claude-code/plugin/hooks/runtime-guard.ts</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> (lista fechada, trava, conflito, concorrência em goroutines e em processos, cada violação do <code>dh facts check</code>, avisos do doctor), testes dos mods (288 passam; eram 255), <code>go vet ./...</code>, <code>dh validate .</code> e <code>go run ./cmd/dh build</code> sem diferença em <code>dist/</code>; prova de clone limpo (os binários mudaram: <code>cmd/</code> e <code>internal/</code>); sem eval nova (a eval paga é a F5).</p>
+      </div>
 
       <div class="card">
         <h3>0.46.0 · Trava contra o inglês e histórico completo em pt-BR (ADR-011, fatia S5)</h3>
@@ -1755,7 +1763,7 @@ profiles/"] --> B["dh build"]
           e o <code>qa-verifier</code> propõem; o Coordenador grava os candidatos com a trava de hash; o <code>docs-guide</code>, com a
           skill nova <code>facts-curation</code>, confere e poda; os especialistas leem as categorias da sua função no despacho.</p>
         <p><strong>Critérios de aceite:</strong> R1 a R37 do PRD-035, inclusive a eval paga da F5 (3 casos, 2 braços, 3 repetições, teto de US$ 80).</p>
-        <p><strong>Status:</strong> planejado, PRD aprovado em 2026-11-18; fatias F1 a F4 nas versões 0.47.0 a 0.50.0.</p>
+        <p><strong>Status:</strong> em andamento: F1 (trava, mod e <code>dh facts check</code>) entregue na 0.47.0; F2 a F4 nas versões 0.48.0 a 0.50.0; a F5 é a prova, com a eval paga.</p>
         <p><strong>Relações:</strong> <code>docs/prd/PRD-035-arquivo-de-fatos.md</code>; PRD-032; PRD-034; ADR-005; ADR-007.</p>
       </div>
 
@@ -1952,7 +1960,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.46.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.47.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
