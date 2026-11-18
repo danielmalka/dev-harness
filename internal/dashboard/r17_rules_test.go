@@ -196,7 +196,7 @@ func TestR14_OneCDNRule(t *testing.T) {
 			t.Errorf("%s does not name Mermaid and Google Fonts", f)
 		}
 	}
-	t.Log("docs/tutorial.html and docs/en/tutorial.html: not-run (docs step)")
+	t.Log("docs/tutorial.html: not-run (docs step)")
 }
 
 func TestR15_OutOfScope(t *testing.T) {
