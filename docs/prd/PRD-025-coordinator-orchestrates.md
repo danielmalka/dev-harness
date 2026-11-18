@@ -1,199 +1,201 @@
-# PRD-025 · Coordinator orchestrates, does not execute
+# PRD-025 · O Coordenador orquestra, não executa
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | delivered on 2026-10-16 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-10-16 / 2026-10-16 |
-| Tickets | T-2501, T-2502, T-2503 (planned) |
-| Origin | Owner chat, 2026-10-16 (roadmap card "Coordinator orchestrates, does not execute", PRD-024) |
-| Depends on | nothing |
-| Enables | nothing |
+| Status | entregue em 2026-10-16 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-10-16 / 2026-10-16 |
+| Tickets | T-2501, T-2502, T-2503 (planejados) |
+| Origem | Conversa com o dono, 2026-10-16 (card do roadmap `Coordinator orchestrates, does not execute`, PRD-024) |
+| Depende de | nada |
+| Habilita | nada |
 
-## 1. Problem
+## 1. Problema
 
-The Coordinator does hands-on work that a subagent can do. This costs main-session context and mixes two jobs: orchestration and execution. Fact: owner observation, 2026-10-16.
+O Coordenador faz trabalho braçal que um subagente pode fazer. Isso gasta contexto da sessão principal e mistura dois ofícios: orquestração e execução. Fato: observação do dono, 2026-10-16.
 
-Inventory of self-execution in `.agents/coordinator.md` (line numbers are on the base; the ticket author finds each line again by its text):
+Inventário da autoexecução em `.agents/coordinator.md` (os números de linha são os da base; o autor do ticket reencontra cada linha pelo texto):
 
-- Line 44: the Coordinator spot-checks a load-bearing claim of an unreviewed report.
-- Line 48: the Coordinator finds repository facts "by reading".
-- Line 50: the read-only phase explores the repository.
-- Line 56: for a trivial edit, the Coordinator "does the scoped work" and the checks.
-- Line 60: the Coordinator freezes the relevant state.
-- Line 65: the batch-end roadmap check has no runner named.
-- Line 69: the Coordinator flips the ticket status and fills `Concluído em` / `Done on`.
-- Line 70: the Coordinator writes the PRD "Executed summary".
-- Line 87: the Coordinator runs the call mechanics of an external CLI reviewer (resolve, assemble, clone, freeze, revert, classify) through `external-clis`.
-- Line 106: the Coordinator writes `<document>.review.md`.
-- Line 108: the Coordinator writes `local.yaml` and runs `git check-ignore`.
-- Line 143: the Coordinator writes the `wave-N/candidate-*.md` files of `/dh:plan-loop`.
-- Lines 145-150: the Coordinator runs consolidation.
+- Linha 44: o Coordenador confere por amostragem uma afirmação sustentadora de um relatório não revisado.
+- Linha 48: o Coordenador descobre fatos do repositório `by reading`.
+- Linha 50: a fase somente leitura explora o repositório.
+- Linha 56: numa edição trivial, o Coordenador `does the scoped work` e as checagens.
+- Linha 60: o Coordenador congela o estado relevante.
+- Linha 65: a checagem do roadmap no fim do lote não nomeia quem a executa.
+- Linha 69: o Coordenador muda o status do ticket e preenche `Concluído em` / `Done on`.
+- Linha 70: o Coordenador escreve o "Resumo executado" do PRD.
+- Linha 87: o Coordenador executa a mecânica de chamada de um revisor de CLI externo (resolver, montar, clonar, congelar, reverter, classificar) por meio de `external-clis`.
+- Linha 106: o Coordenador escreve `<document>.review.md`.
+- Linha 108: o Coordenador escreve `local.yaml` e roda `git check-ignore`.
+- Linha 143: o Coordenador escreve os arquivos `wave-N/candidate-*.md` do `/dh:plan-loop`.
+- Linhas 145-150: o Coordenador executa a consolidação.
 
-Other kit text with the same pattern: `.skills/external-clis/references/live-tree-freeze.md` (around line 340, "Coordinator reruns the check"), `.skills/context-handoff/SKILL.md` (around line 64), `.commands/setup.md` (record init), `.commands/release.md`. The ticket author checks each of them and changes only the ones that make the Coordinator run a command, a grep or a multi-line edit.
+Outros textos do kit com o mesmo padrão: `.skills/external-clis/references/live-tree-freeze.md` (em torno da linha 340, `Coordinator reruns the check`), `.skills/context-handoff/SKILL.md` (em torno da linha 64), `.commands/setup.md` (inicialização do registro), `.commands/release.md`. O autor do ticket confere cada um e muda só os que fazem o Coordenador rodar um comando, um grep ou uma edição de várias linhas.
 
-The runtime mod does not help. Fact (read of `adapters/claude-code/plugin/hooks/runtime-guard.ts`): `guardFile` acts only when the event has `agentId` (the line `const hit = e.agentId ? protectedHit(...) : undefined`), and `denySpawn` acts only when the event has `parentAgentId`. So the mod treats an event without `agentId` as the main session. Fact: `runtime-guard.test.ts` asserts this convention in the "without agentId passes" cases. Hypothesis: the real engine leaves `agentId` empty for the main session in the same way; the existing engine tests (`panel.engine.test.ts`) are the place to confirm it.
+O mod de runtime não ajuda. Fato (leitura de `adapters/claude-code/plugin/hooks/runtime-guard.ts`): `guardFile` só age quando o evento tem `agentId` (a linha `const hit = e.agentId ? protectedHit(...) : undefined`), e `denySpawn` só age quando o evento tem `parentAgentId`. Ou seja, o mod trata um evento sem `agentId` como a sessão principal. Fato: `runtime-guard.test.ts` afirma essa convenção nos casos `without agentId passes`. Hipótese: o motor real deixa `agentId` vazio para a sessão principal do mesmo jeito; os testes de motor existentes (`panel.engine.test.ts`) são o lugar para confirmar.
 
-Source location: the mod source is `adapters/claude-code/plugin/hooks/*.ts`. The copy in `dist/claude-code/dev-harness/hooks/` is generated by `go run ./cmd/dh build`. `AGENTS.md` writes `hooks/*.ts` as a short form of the first path.
+Local do código-fonte: o código-fonte do mod fica em `adapters/claude-code/plugin/hooks/*.ts`. A cópia em `dist/claude-code/dev-harness/hooks/` é gerada por `go run ./cmd/dh build`. O `AGENTS.md` escreve `hooks/*.ts` como forma curta do primeiro caminho.
 
-## 2. Solution
+## 2. Solução
 
-After delivery, the Coordinator decides and judges. Subagents execute and verify. The Coordinator writes only three kinds of file itself: its own records, one-line ticket status changes, and small corrections.
+Após a entrega, o Coordenador decide e julga. Os subagentes executam e verificam. O Coordenador escreve por conta própria só três tipos de arquivo: seus próprios registros, mudanças de status de ticket de uma linha e pequenas correções.
 
-Division of work:
+Divisão do trabalho:
 
-| Work | Who does it |
+| Trabalho | Quem faz |
 |---|---|
-| Read the repository, grep, map, find a fact | `repo-scout` |
-| Run a command or a check (build, `dh validate`, tests, `git check-ignore`) | `qa-verifier` |
-| Spot-check a load-bearing claim | A dispatch to `repo-scout` or `qa-verifier` |
-| CLI review call (resolve, assemble, clone, freeze, revert, classify) | A dispatched `qa-verifier`, or `builder` in lane `infra`. It returns the verdict line and the path of the raw output. The Coordinator merges the verdicts. |
-| Write the PRD "Executed summary" and persist `<document>.review.md` | `docs-guide`. The Coordinator judges the content. |
-| Write `wave-N/candidate-*.md` in `/dh:plan-loop` | `docs-guide`. The Coordinator judges the result. |
-| Consolidation (append to `EPOCHAL.md`, trim `MEMORY.md`) and `local.yaml` | The Coordinator (unchanged). Only the `git check-ignore` check on `local.yaml` goes to `qa-verifier`. |
-| Edit more than a few lines, or any new file | A dispatched specialist for the lane |
-| Write `MEMORY.md`, `EPOCHAL.md`, `RISKS.md` | The Coordinator (unchanged) |
-| Flip a ticket status and fill `Concluído em` / `Done on` (one line) | The Coordinator |
-| Small correction ("a few lines", defined in R3) | The Coordinator, directly |
+| Ler o repositório, grep, mapear, descobrir um fato | `repo-scout` |
+| Rodar um comando ou uma checagem (build, `dh validate`, testes, `git check-ignore`) | `qa-verifier` |
+| Conferir por amostragem uma afirmação sustentadora | Um despacho a `repo-scout` ou `qa-verifier` |
+| Chamada de revisão por CLI (resolver, montar, clonar, congelar, reverter, classificar) | Um `qa-verifier` despachado, ou `builder` na `lane` `infra`. Ele devolve a linha de veredito e o caminho da saída bruta. O Coordenador funde os vereditos. |
+| Escrever o "Resumo executado" do PRD e persistir `<document>.review.md` | `docs-guide`. O Coordenador julga o conteúdo. |
+| Escrever `wave-N/candidate-*.md` no `/dh:plan-loop` | `docs-guide`. O Coordenador julga o resultado. |
+| Consolidação (anexar a `EPOCHAL.md`, podar `MEMORY.md`) e `local.yaml` | O Coordenador (sem mudança). Só a checagem `git check-ignore` sobre `local.yaml` vai para o `qa-verifier`. |
+| Editar mais do que poucas linhas, ou qualquer arquivo novo | Um especialista despachado para a `lane` |
+| Escrever `MEMORY.md`, `EPOCHAL.md`, `RISKS.md` | O Coordenador (sem mudança) |
+| Mudar o status de um ticket e preencher `Concluído em` / `Done on` (uma linha) | O Coordenador |
+| Pequena correção ("poucas linhas", definida na R3) | O Coordenador, direto |
 
-"Judge" means: read the subagent report and the evidence it cites by relative path. The Coordinator may open a cited file. The Coordinator does not run a command and does not grep to judge.
+"Julgar" significa: ler o relatório do subagente e a evidência que ele cita por caminho relativo. O Coordenador pode abrir um arquivo citado. O Coordenador não roda comando e não faz grep para julgar.
 
-The freeze rule does not change: nothing writes to the tree or to the harness dir while a CLI call is in flight (RISK-002). It now binds the delegate too.
+A regra de congelamento não muda: nada escreve na árvore nem no harness dir enquanto uma chamada de CLI está em andamento (RISK-002). Agora ela vincula também o delegado.
 
-The mod gets a warn-only rule. When the main session calls `Edit` or `Write` on a file outside the allowlist (R5), the mod emits a warning. It never denies. `Bash` stays outside the rule (ADR-005). Specialists are not affected.
+O mod ganha uma regra que só avisa. Quando a sessão principal chama `Edit` ou `Write` sobre um arquivo fora da lista de permissão (R5), o mod emite um aviso. Ele nunca nega. O `Bash` fica fora da regra (ADR-005). Os especialistas não são afetados.
 
-`AGENTS.md` gets one line that states this scope rule for the repository. It prevails over the global rule "if the task is trivial, do it inline" in this repository.
+O `AGENTS.md` ganha uma linha que declara essa regra de escopo para o repositório. Ela prevalece, neste repositório, sobre a regra global "se a tarefa for trivial, faça direto".
 
-Release 0.31.0, one PR.
+Release 0.31.0, uma PR.
 
-## 3. Rules
+## 3. Regras
 
-Marks: R1-R10 and R18 are requirements of the owner decision of 2026-10-16. The exact numbers in R3 and R5 are the author's proposal. Each rule below states how to verify it.
+Marcação: R1-R10 e R18 são requisitos da decisão do dono de 2026-10-16. Os números exatos na R3 e na R5 são proposta do autor. Cada regra abaixo diz como verificá-la.
 
-- R1 The Coordinator does not read the repository, grep, build, validate or run checks itself. It dispatches `repo-scout` for reads and `qa-verifier` for commands and checks. Verifiable: `grep -n -i -E 'by reading|spot-check|do the scoped work|freeze the relevant|reruns the check' .agents/coordinator.md .skills/external-clis/references/live-tree-freeze.md` finds no sentence that tells the Coordinator to do these itself; each former hit names the role that does it.
-- R2 The Coordinator keeps its own records. It writes `MEMORY.md`, `EPOCHAL.md` and `RISKS.md` itself, and the ticket status flip with `Concluído em` / `Done on` (one line). Verifiable: `.agents/coordinator.md` still names the Coordinator as sole writer of the three records, and the status flip with the date still sits in the Coordinator text.
-- R3 Small correction (proposal): the Coordinator may edit directly, in any file, only when all three hold: one existing file; at most 5 changed lines (the larger of the old line count and the new line count); no new file. Anything else goes to a subagent. Verifiable: `.agents/coordinator.md` states these three conditions in one place, with the number 5, and the line "trivial edit" (line 56) refers to R3 and no longer says "do the scoped work".
-- R4 CLI review calls run in a dispatched `qa-verifier` or `builder` (lane `infra`). The delegate returns the verdict line and the relative path of the raw output. The Coordinator merges verdicts and does not run `command -v`, clone, freeze or revert. Verifiable: line 87 and the `external-clis` entry steps assign the mechanics to the delegate; `grep -n -i 'coordinator' .skills/external-clis/SKILL.md` shows no step where the Coordinator runs a mechanic.
-- R5 Mod warn rule. The rule applies when an `Edit` or `Write` event has no `agentId` (main session) and the target file is outside the allowlist. Trigger for `Edit`: more than 5 changed lines. Trigger for `Write`: content of more than 5 lines, or creation of a new file. The hook checks on disk whether the file exists; if it cannot know, it fails open (no warning). The mod then emits a warning and passes the event on. Allowlist: a dedicated check, not `protectedHit` (which matches only the three record files): any path inside the harness dir (`.harness/` in repo mode, `<home>/projects/<name>/` in global mode). No other path is excluded by name: a small `Edit` of 5 lines or fewer in any file gives no warning. Verifiable: new tests in `runtime-guard.test.ts` (or a new test file next to it) cover these cases, and each passes.
-- R6 The warn rule never denies and never changes the event. It fails open on malformed input, like `guardFile`. Verifiable: tests show that the result is never `{ deny }` for any input, that malformed input passes (as the existing R5 cases do), and that the existing deny tests for `MEMORY.md`, `EPOCHAL.md` and `RISKS.md` still pass unchanged.
-- R7 The warn rule does not act on specialists, and does not act on the setup and record flows. Verifiable: tests show no warning when `agentId` is present; no warning for `.harness/project.yaml`, `.harness/local.yaml`, `.harness/tasks/<id>/TASK.md` and the three records in the main session; and the `Bash` tool is not registered by the rule.
-- R8 PRD "Executed summary" and `<document>.review.md` persistence are written by `docs-guide`. Verifiable: `.agents/coordinator.md` (lines 70 and 106) and the `docs-guide` instructions name `docs-guide` as writer; the Coordinator text says it judges the content.
-- R9 "Judge" is defined once, with the words of section 2, in `.agents/coordinator.md`. The rule "spot-check a load-bearing claim" becomes a dispatch. Verifiable: `grep -n -i 'judge' .agents/coordinator.md` finds the definition; line 44 says dispatch.
-- R10 `AGENTS.md` gets exactly one new line in "Regras vigentes". The line states the scope rule of the Coordinator in this repository: what it writes, the 5-line bound, and the warn-only mod. It also says the line prevails over "if trivial, do it inline". Verifiable: `git diff main...HEAD -- AGENTS.md` shows one added line and no removed line.
-- R11 The freeze rule is unchanged and applies to the delegate. Verifiable: the sentence of line 107 stays, and the CLI delegate text says that nothing writes while a CLI call is in flight.
-- R12 Counts stay at 13 agents and 19 + 1 commands. No new agent, skill or command. Verifiable: `go run ./cmd/dh validate .` passes, and `git diff --name-status main...HEAD -- .agents .skills .commands` lists no added or deleted file.
-- R13 Release 0.31.0 in three places: `defaultVersion` in `internal/build/build.go`, `version` in `.claude-plugin/marketplace.json`, and the source `ref` (`v0.31.0`). Verifiable: `grep -n '0.31.0' internal/build/build.go .claude-plugin/marketplace.json` shows the three values.
-- R14 `dist/` is not edited by hand. Verifiable: `git diff --name-only main...HEAD -- dist` lists only files that `go run ./cmd/dh build` regenerates (`plugin.json`, `harness-manifest.json`, `bin/**`, and the copy of the changed kit files and of `hooks/`).
-- R15 `go run ./cmd/dh validate .` passes with 0 errors, `go test ./...` is green, the mod tests (`runtime-guard.test.ts` and the others in `hooks/`) pass with the command that `CONTRIBUTING.md` or the existing CI job uses, and a second build changes nothing in `dist/` except the `generated_at` line. Verifiable: run the commands and compare with `git diff`.
-- R16 Clean-clone proof applies, because the PR touches `internal/build/build.go` (a file under `internal/`) and `dist/*/bin`. The mod change alone would not trigger it: `hooks/` is a copy, not a binary. Verifiable: `git clone . <tmp>`, `go run ./cmd/dh build` there, `sha256sum` of the 5 binaries equals the tree: 5 of 5.
-- R17 No path of a private machine is written in this PRD, in a ticket, or in a test fixture. Verifiable: `go run ./cmd/dh validate .` (`checkPrivatePaths`) passes.
-- R18 Every external CLI call is a single shell command that starts with the binary name (`agy`, `codex`, `grok`, `opencode`, `mcode`, `claude`). No `timeout` or other wrapper goes before it. No `&&`, `;` or pipe chains it with the freeze or any other step. The binary's own flag bounds the time (`agy --print-timeout`). For a binary without such a flag, the recipe states what bounds time (the Bash tool timeout, or `run_in_background`). The pre-call snapshot and the post-call compare are separate commands. A clone call uses the binary's own working-directory flag (`--cwd`, `--dir`, `-C`), written inside the single command that starts with the binary name. T-2501 checks each clone-mode recipe (`grok`, `opencode`, `mcode`, `claude`) for such a flag in the binary's own help or docs. For a binary with no such flag, its clone recipe keeps `cd "$CLONE" && <binary> ...` as the only allowed exception. That recipe states that this form does not match a `Bash(<binary>:*)` allow rule, so the call may need the owner's approval or be not-run. Fact (measured 2026-10-16 by a dispatched `qa-verifier`): `cd /tmp` and then `pwd` in a separate Bash call printed the repository root, so the working directory of a subagent does not persist between Bash calls. The clone-mode status of `claude` does not change. Reason (fact, observed 2026-10-16): the owner's permission rule `Bash(agy:*)` matches only commands that start with `agy`. A subagent command `timeout 960 agy ...`, chained with a snapshot script, did not match and the auto-mode classifier denied it. The same call as a standalone `agy ...` command ran. Verifiable: each recipe in `.skills/external-clis/references/` shows the call starting with the binary name, and `grep -n -E '(timeout|&&|;).*(agy|codex|grok|opencode|mcode|claude) ' .skills/external-clis/references/*.md` finds no recipe that chains or wraps the call.
+- R1 O Coordenador não lê o repositório, não faz grep, não faz build, não valida nem roda checagens por conta própria. Ele despacha `repo-scout` para leituras e `qa-verifier` para comandos e checagens. Verificável: `grep -n -i -E 'by reading|spot-check|do the scoped work|freeze the relevant|reruns the check' .agents/coordinator.md .skills/external-clis/references/live-tree-freeze.md` não encontra frase que mande o Coordenador fazer isso por conta própria; cada ocorrência antiga nomeia o papel que a executa.
+- R2 O Coordenador mantém seus próprios registros. Ele escreve `MEMORY.md`, `EPOCHAL.md` e `RISKS.md` por conta própria, e a mudança de status do ticket com `Concluído em` / `Done on` (uma linha). Verificável: `.agents/coordinator.md` ainda nomeia o Coordenador como único escritor dos três registros, e a mudança de status com a data ainda está no texto do Coordenador.
+- R3 Pequena correção (proposta): o Coordenador pode editar direto, em qualquer arquivo, só quando as três condições valem: um arquivo existente; no máximo 5 linhas alteradas (o maior entre a contagem de linhas antigas e a de linhas novas); nenhum arquivo novo. Qualquer outra coisa vai para um subagente. Verificável: `.agents/coordinator.md` declara essas três condições num só lugar, com o número 5, e a linha `trivial edit` (linha 56) remete à R3 e não diz mais `do the scoped work`.
+- R4 As chamadas de revisão por CLI rodam num `qa-verifier` ou `builder` (`lane` `infra`) despachado. O delegado devolve a linha de veredito e o caminho relativo da saída bruta. O Coordenador funde os vereditos e não roda `command -v`, nem clona, nem congela, nem reverte. Verificável: a linha 87 e os passos de entrada de `external-clis` atribuem a mecânica ao delegado; `grep -n -i 'coordinator' .skills/external-clis/SKILL.md` não mostra passo em que o Coordenador execute uma mecânica.
+- R5 Regra de aviso do mod. A regra se aplica quando um evento `Edit` ou `Write` não tem `agentId` (sessão principal) e o arquivo-alvo está fora da lista de permissão. Gatilho para `Edit`: mais de 5 linhas alteradas. Gatilho para `Write`: conteúdo de mais de 5 linhas, ou criação de um arquivo novo. O hook confere em disco se o arquivo existe; se não puder saber, ele tem falha aberta (sem aviso). O mod então emite um aviso e repassa o evento. Lista de permissão: uma checagem dedicada, não `protectedHit` (que casa só os três arquivos de registro): qualquer caminho dentro do harness dir (`.harness/` no modo repo, `<home>/projects/<name>/` no modo global). Nenhum outro caminho é excluído por nome: um `Edit` pequeno de 5 linhas ou menos em qualquer arquivo não gera aviso. Verificável: testes novos em `runtime-guard.test.ts` (ou num arquivo de teste novo ao lado dele) cobrem esses casos, e cada um passa.
+- R6 A regra de aviso nunca nega e nunca muda o evento. Ela tem falha aberta diante de entrada malformada, como `guardFile`. Verificável: testes mostram que o resultado nunca é `{ deny }` para nenhuma entrada, que entrada malformada passa (como já fazem os casos R5 existentes), e que os testes de negação existentes para `MEMORY.md`, `EPOCHAL.md` e `RISKS.md` continuam passando sem mudança.
+- R7 A regra de aviso não age sobre especialistas e não age sobre os fluxos de setup e de registro. Verificável: testes mostram nenhum aviso quando `agentId` está presente; nenhum aviso para `.harness/project.yaml`, `.harness/local.yaml`, `.harness/tasks/<id>/TASK.md` e os três registros na sessão principal; e a ferramenta `Bash` não é registrada pela regra.
+- R8 O "Resumo executado" do PRD e a persistência de `<document>.review.md` são escritos pelo `docs-guide`. Verificável: `.agents/coordinator.md` (linhas 70 e 106) e as instruções do `docs-guide` nomeiam o `docs-guide` como escritor; o texto do Coordenador diz que ele julga o conteúdo.
+- R9 "Julgar" é definido uma só vez, com as palavras da seção 2, em `.agents/coordinator.md`. A regra `spot-check a load-bearing claim` vira um despacho. Verificável: `grep -n -i 'judge' .agents/coordinator.md` encontra a definição; a linha 44 diz despachar.
+- R10 O `AGENTS.md` ganha exatamente uma linha nova em "Regras vigentes". A linha declara a regra de escopo do Coordenador neste repositório: o que ele escreve, o limite de 5 linhas e o mod que só avisa. Ela diz também que prevalece sobre `if trivial, do it inline`. Verificável: `git diff main...HEAD -- AGENTS.md` mostra uma linha acrescentada e nenhuma removida.
+- R11 A regra de congelamento não muda e se aplica ao delegado. Verificável: a frase da linha 107 permanece, e o texto do delegado de CLI diz que nada escreve enquanto uma chamada de CLI está em andamento.
+- R12 As contagens continuam em 13 agentes e 19 + 1 comandos. Nenhum agente, skill ou comando novo. Verificável: `go run ./cmd/dh validate .` passa, e `git diff --name-status main...HEAD -- .agents .skills .commands` não lista arquivo acrescentado nem removido.
+- R13 Release 0.31.0 em três lugares: `defaultVersion` em `internal/build/build.go`, `version` em `.claude-plugin/marketplace.json` e o `ref` da fonte (`v0.31.0`). Verificável: `grep -n '0.31.0' internal/build/build.go .claude-plugin/marketplace.json` mostra os três valores.
+- R14 `dist/` não é editado à mão. Verificável: `git diff --name-only main...HEAD -- dist` lista só arquivos que `go run ./cmd/dh build` regenera (`plugin.json`, `harness-manifest.json`, `bin/**`, e a cópia dos arquivos do kit alterados e de `hooks/`).
+- R15 `go run ./cmd/dh validate .` passa com 0 erros, `go test ./...` fica verde, os testes do mod (`runtime-guard.test.ts` e os outros em `hooks/`) passam com o comando que o `CONTRIBUTING.md` ou o job de CI existente usa, e um segundo build não muda nada em `dist/` exceto a linha `generated_at`. Verificável: rode os comandos e compare com `git diff`.
+- R16 A prova de clone limpo se aplica, porque a PR toca `internal/build/build.go` (um arquivo sob `internal/`) e `dist/*/bin`. A mudança do mod sozinha não a acionaria: `hooks/` é uma cópia, não um binário. Verificável: `git clone . <tmp>`, `go run ./cmd/dh build` lá, o `sha256sum` dos 5 binários é igual ao da árvore: 5 de 5.
+- R17 Nenhum caminho de máquina privada é escrito neste PRD, num ticket ou numa fixture de teste. Verificável: `go run ./cmd/dh validate .` (`checkPrivatePaths`) passa.
+- R18 Toda chamada de CLI externa é um único comando de shell que começa com o nome do binário (`agy`, `codex`, `grok`, `opencode`, `mcode`, `claude`). Nenhum `timeout` nem outro invólucro vem antes dele. Nenhum `&&`, `;` ou pipe o encadeia com o congelamento ou com qualquer outro passo. A flag do próprio binário limita o tempo (`agy --print-timeout`). Para um binário sem essa flag, a receita declara o que limita o tempo (o timeout da ferramenta Bash, ou `run_in_background`). O instantâneo anterior à chamada e a comparação posterior são comandos separados. Uma chamada em clone usa a flag de diretório de trabalho do próprio binário (`--cwd`, `--dir`, `-C`), escrita dentro do único comando que começa com o nome do binário. O T-2501 confere, em cada receita em modo clone (`grok`, `opencode`, `mcode`, `claude`), se existe tal flag na ajuda ou nos docs do próprio binário. Para um binário sem essa flag, a receita de clone mantém `cd "$CLONE" && <binary> ...` como única exceção permitida. Essa receita declara que essa forma não casa com uma regra de permissão `Bash(<binary>:*)`, então a chamada pode precisar da aprovação do dono ou ficar não rodada. Fato (medido em 2026-10-16 por um `qa-verifier` despachado): `cd /tmp` e depois `pwd` numa chamada Bash separada imprimiu a raiz do repositório, então o diretório de trabalho de um subagente não persiste entre chamadas Bash. O status de modo clone do `claude` não muda. Motivo (fato, observado em 2026-10-16): a regra de permissão do dono `Bash(agy:*)` casa só comandos que começam com `agy`. Um comando de subagente `timeout 960 agy ...`, encadeado com um script de instantâneo, não casou e o classificador do modo automático o negou. A mesma chamada como comando `agy ...` isolado rodou. Verificável: cada receita em `.skills/external-clis/references/` mostra a chamada começando com o nome do binário, e `grep -n -E '(timeout|&&|;).*(agy|codex|grok|opencode|mcode|claude) ' .skills/external-clis/references/*.md` não encontra receita que encadeie ou embrulhe a chamada.
 
 ## 4. Docs
 
-Update:
+Atualizar:
 
 - `.agents/coordinator.md` (R1-R4, R8, R9, R11, R18).
-- `.skills/external-clis/SKILL.md`, `.skills/external-clis/references/live-tree-freeze.md`, and the recipes `references/agy.md`, `codex.md`, `grok.md`, `opencode.md`, `mcode.md`, `claude.md` where they show a wrapped or chained call (R4, R11, R18). The `agy.md` recipe also gains a fact: on 2026-10-16 an `agy --print` call wrote its full reply in about 2 minutes, but the process stayed alive past `--print-timeout 15m` and needed SIGKILL. The recipe tells the runner to treat a complete reply on disk with the verdict line as the result, and then stop the process. `references/clone-isolation.md` section 3 also changes: it replaces `cd "$CLONE" &&` with the binary's own cwd flag where one exists (R18).
-- `.agents/docs-guide.md`: it gains the writing of the PRD Executed summary, of `<document>.review.md`, and of the `/dh:plan-loop` candidate files (R8).
-- `.skills/document-review/SKILL.md`: its persistence steps (step 9 and the round protocol) name the Coordinator as the writer of `<document>.review.md`; they name `docs-guide` instead (R8).
-- `.skills/context-handoff/SKILL.md`, `.commands/setup.md`, `.commands/release.md`, `.commands/plan-loop.md` (only where the text makes the Coordinator run a command or a long edit; the ticket author checks each with `grep`).
+- `.skills/external-clis/SKILL.md`, `.skills/external-clis/references/live-tree-freeze.md`, e as receitas `references/agy.md`, `codex.md`, `grok.md`, `opencode.md`, `mcode.md`, `claude.md` onde mostram uma chamada embrulhada ou encadeada (R4, R11, R18). A receita `agy.md` ganha também um fato: em 2026-10-16 uma chamada `agy --print` escreveu a resposta completa em cerca de 2 minutos, mas o processo ficou vivo além de `--print-timeout 15m` e precisou de SIGKILL. A receita manda o executor tratar uma resposta completa em disco com a linha de veredito como o resultado, e então parar o processo. A seção 3 de `references/clone-isolation.md` também muda: ela troca `cd "$CLONE" &&` pela flag de cwd do próprio binário onde existir (R18).
+- `.agents/docs-guide.md`: ganha a escrita do Resumo executado do PRD, de `<document>.review.md` e dos arquivos candidatos do `/dh:plan-loop` (R8).
+- `.skills/document-review/SKILL.md`: seus passos de persistência (o passo 9 e o protocolo de rodadas) nomeiam o Coordenador como escritor de `<document>.review.md`; passam a nomear o `docs-guide` (R8).
+- `.skills/context-handoff/SKILL.md`, `.commands/setup.md`, `.commands/release.md`, `.commands/plan-loop.md` (só onde o texto faz o Coordenador rodar um comando ou uma edição longa; o autor do ticket confere cada um com `grep`).
 - `AGENTS.md` (R10).
-- `docs/tutorial.html` and `docs/en/tutorial.html` (the description of the Coordinator's duties; the ticket author finds the passages with `grep -n -i 'coordenador\|coordinator'`).
-- `README.md` and `README.en.md` only if `grep` finds a sentence that says the Coordinator reads, runs or edits itself. No version line exists to change (PRD-024 removed it).
-- `docs/roadmap.html` and `docs/en/roadmap.html`: move the card "Coordinator orchestrates, does not execute" / "O Coordenador orquestra, não executa" out of Planned; add a Delivered card for 0.31.0 in both files; update the status chip and the "releases 0.1.0 to 0.30.1" line to 0.31.0. `dh validate` checks the drift against `CHANGELOG.md`.
-- `CHANGELOG.md` (entry 0.31.0).
+- `docs/tutorial.html` e `docs/en/tutorial.html` (a descrição das atribuições do Coordenador; o autor do ticket encontra as passagens com `grep -n -i 'coordenador\|coordinator'`).
+- `README.md` e `README.en.md` só se o `grep` encontrar uma frase que diga que o Coordenador lê, roda ou edita por conta própria. Não existe linha de versão para mudar (o PRD-024 a removeu).
+- `docs/roadmap.html` e `docs/en/roadmap.html`: mover o card `Coordinator orchestrates, does not execute` / `O Coordenador orquestra, não executa` para fora de Planned; acrescentar um card Delivered para a 0.31.0 nos dois arquivos; atualizar o chip de status e a linha `releases 0.1.0 to 0.30.1` para 0.31.0. O `dh validate` confere a deriva contra o `CHANGELOG.md`.
+- `CHANGELOG.md` (entrada 0.31.0).
 - `.claude-plugin/marketplace.json`, `internal/build/build.go` (R13).
-- `adapters/claude-code/plugin/hooks/runtime-guard.ts` and its test (R5-R7).
+- `adapters/claude-code/plugin/hooks/runtime-guard.ts` e seu teste (R5-R7).
 
-Not affected (the ticket author checks with `grep`):
+Não afetados (o autor do ticket confere com `grep`):
 
-- `docs/plano-produto.html`: internal pt-br history; changed only if it states the Coordinator duties as current behavior.
-- `docs/adr/`: ADR-005 stays as history; the warn-only rule extends it and needs no new ADR unless the owner asks.
+- `docs/plano-produto.html`: histórico interno em pt-br; muda só se declarar as atribuições do Coordenador como comportamento atual.
+- `docs/adr/`: o ADR-005 fica como histórico; a regra que só avisa o estende e não precisa de ADR novo, a menos que o dono peça.
 - `docs/inicio-rapido.html`, `docs/en/quick-start.html`.
 
-## 5. Out of scope
+## 5. Fora de escopo
 
-- Any deny rule for the main session. The mod only warns.
-- A guard on `Bash` (ADR-005 keeps `Bash` outside).
-- A new agent, skill or command, and any change of the agent count.
-- A change to how specialists write, and any change to the ownership of the three records.
-- Changing the user's global rule outside this repository.
-- Paid evaluation. No eval case is added (`AGENTS.md`).
+- Qualquer regra de negação para a sessão principal. O mod só avisa.
+- Uma trava sobre o `Bash` (o ADR-005 mantém o `Bash` de fora).
+- Um agente, skill ou comando novo, e qualquer mudança na contagem de agentes.
+- Uma mudança em como os especialistas escrevem, e qualquer mudança na posse dos três registros.
+- Mudar a regra global do usuário fora deste repositório.
+- Avaliação paga. Nenhum caso de avaliação é acrescentado (`AGENTS.md`).
 
-## 6. Owner decisions
+## 6. Decisões do dono
 
-- Owner, 2026-10-16, Q1: the Coordinator does not execute work itself. It may make small corrections of a few lines in any file. It keeps its records. Repo reads, grep, builds, validate and checks go to subagents. The exact bound is the author's proposal (R3) and needs owner approval.
-- Owner, 2026-10-16, Q2: CLI review calls run in a dispatched `qa-verifier` or `builder` (lane `infra`), which returns the verdict line and the raw output path. The Coordinator merges verdicts. The freeze rule applies to the delegate.
-- Owner, 2026-10-16, Q3: wording in `.agents/coordinator.md` plus a warn-only mod rule on `Edit` and `Write` outside an allowlist. No deny. `Bash` stays out. Specialists, setup and records flows stay unaffected. Tests are required.
-- Owner, 2026-10-16, Q4: `docs-guide` writes the PRD Executed summary and persists `<document>.review.md`. The Coordinator judges the content. The ticket status flip and `Done on` stay with the Coordinator.
-- Owner, 2026-10-16, Q5: "judge" means read the report and the cited evidence. The Coordinator may open cited files and does not run commands or grep. Spot-check becomes a dispatch.
-- Pending decisions: the items in the Appendix.
+- Dono, 2026-10-16, Q1: o Coordenador não executa trabalho por conta própria. Ele pode fazer pequenas correções de poucas linhas em qualquer arquivo. Ele mantém seus registros. Leituras de repositório, grep, builds, validate e checagens vão para subagentes. O limite exato é proposta do autor (R3) e precisa de aprovação do dono.
+- Dono, 2026-10-16, Q2: as chamadas de revisão por CLI rodam num `qa-verifier` ou `builder` (`lane` `infra`) despachado, que devolve a linha de veredito e o caminho da saída bruta. O Coordenador funde os vereditos. A regra de congelamento se aplica ao delegado.
+- Dono, 2026-10-16, Q3: redação em `.agents/coordinator.md` mais uma regra de mod que só avisa sobre `Edit` e `Write` fora de uma lista de permissão. Sem negação. O `Bash` fica de fora. Especialistas e os fluxos de setup e de registros ficam sem afetação. Testes são obrigatórios.
+- Dono, 2026-10-16, Q4: o `docs-guide` escreve o Resumo executado do PRD e persiste `<document>.review.md`. O Coordenador julga o conteúdo. A mudança de status do ticket e o `Done on` ficam com o Coordenador.
+- Dono, 2026-10-16, Q5: "julgar" significa ler o relatório e a evidência citada. O Coordenador pode abrir arquivos citados e não roda comandos nem faz grep. A conferência por amostragem vira um despacho.
+- Decisões pendentes: os itens do Apêndice.
 
-## Appendix
+## Apêndice
 
-### Suggested tickets
+### Tickets sugeridos
 
-| Ticket | Lane | Executor | Scope |
+| Ticket | `lane` | Executor | Escopo |
 |---|---|---|---|
-| T-2501 | `backend` | `harness-maintainer` with `harness-authoring` | Kit text: R1-R4, R8-R12, R18 (CLI recipes); docs of section 4 |
-| T-2502 | `backend` | `builder` (TypeScript under `adapters/`) | First step: confirm the warning channel (see Appendix). Then the warn rule in `runtime-guard.ts`: R5-R7 |
-| T-2503 | `teste (unitário e integração)` | `qa-verifier` | Tests for R5-R7 in `runtime-guard.test.ts`; run of R15-R16 |
+| T-2501 | `backend` | `harness-maintainer` com `harness-authoring` | Texto do kit: R1-R4, R8-R12, R18 (receitas de CLI); docs da seção 4 |
+| T-2502 | `backend` | `builder` (TypeScript sob `adapters/`) | Primeiro passo: confirmar o canal do aviso (ver Apêndice). Depois a regra de aviso em `runtime-guard.ts`: R5-R7 |
+| T-2503 | `teste (unitário e integração)` | `qa-verifier` | Testes para R5-R7 em `runtime-guard.test.ts`; execução de R15-R16 |
 
-T-2502 and T-2503 write the same test file. Order: T-2502 first, then T-2503. Release files (R13) go with T-2501.
+T-2502 e T-2503 escrevem o mesmo arquivo de teste. Ordem: T-2502 primeiro, depois T-2503. Os arquivos de release (R13) vão com o T-2501.
 
-### Discarded alternatives
+### Alternativas descartadas
 
-| Alternative | Why not |
+| Alternativa | Por que não |
 |---|---|
-| Deny `Edit` and `Write` for the main session | The owner chose warn-only. A deny breaks setup and small fixes. |
-| Guard `Bash` too | ADR-005 keeps `Bash` outside; a shell command cannot be classified reliably. |
-| Wording only, no mod | The owner asked for a runtime signal as well. |
-| Count lines with an exact diff in the mod | Too costly. The count uses the larger of the old and the new line count of the `Edit` event. |
+| Negar `Edit` e `Write` para a sessão principal | O dono escolheu só avisar. Uma negação quebra o setup e as pequenas correções. |
+| Travar o `Bash` também | O ADR-005 mantém o `Bash` de fora; um comando de shell não pode ser classificado de forma confiável. |
+| Só redação, sem mod | O dono pediu também um sinal em runtime. |
+| Contar linhas com um diff exato no mod | Caro demais. A contagem usa o maior entre a contagem de linhas antigas e a de novas do evento `Edit`. |
 
-### Risks and pending decisions
+### Riscos e decisões pendentes
 
-- Risk: the real engine sets `agentId` for the main session, so the warn rule never fires or always fires · mitigation: T-2503 confirms it with an engine test (like `panel.engine.test.ts`) before the rule is called done.
-- Risk: the warning floods the main session during legitimate setup · mitigation: the allowlist (R5) and R7 tests.
-- Risk: more dispatches cost more tokens and time · mitigation: the 5-line bound keeps trivial fixes inline; the owner accepted the trade-off.
-- Decided: the bound of 5 changed lines (R3, R5) · owner approved, 2026-10-16.
-- Pending item (engine wiring only): the warning channel. Fact: no mod in `adapters/claude-code/plugin/hooks/` calls `$.ui`; `tool.call` handlers there return `{ deny }` or the result of `next(e)`. Fact: five mods in the sibling repo `malka-claude-mods` (`cleanscreen`, `menu`, `mode`, `permissions`, and others) call `$.ui.toast(text)` for a non-blocking notice. Hypothesis: a `tool.call` handler can call `$.ui.toast(text)` and then `return next(e)`. I did not confirm this in a type declaration of the engine. T-2502 starts with that read (the engine types, or a `panel.engine.test.ts`-style engine test). The test contract does not depend on it: R5-R7 are asserted on a pure function in `hooks/lib/` that takes the event, the harness home, the working dir and a file-exists callback, and returns the warning text or `undefined`. The wiring (toast, or another channel the read finds) is the only open item. If the engine has no channel, the Owner chooses · answered by: `builder` in T-2502 · blocks: the wiring of T-2502 only.
-- Pending decision: whether the kit-text sources outside `coordinator.md` (R1, Section 4) need a change, per the `grep` of the ticket author · answered by: T-2501 author, reported to the Coordinator · blocks: T-2501 scope.
+- Risco: o motor real define `agentId` para a sessão principal, então a regra de aviso nunca dispara ou sempre dispara · mitigação: o T-2503 confirma com um teste de motor (como `panel.engine.test.ts`) antes de a regra ser dada como pronta.
+- Risco: o aviso inunda a sessão principal durante um setup legítimo · mitigação: a lista de permissão (R5) e os testes da R7.
+- Risco: mais despachos custam mais tokens e tempo · mitigação: o limite de 5 linhas mantém as correções triviais diretas; o dono aceitou a troca.
+- Decidido: o limite de 5 linhas alteradas (R3, R5) · aprovado pelo dono, 2026-10-16.
+- Item pendente (só a ligação ao motor): o canal do aviso. Fato: nenhum mod em `adapters/claude-code/plugin/hooks/` chama `$.ui`; os handlers de `tool.call` ali devolvem `{ deny }` ou o resultado de `next(e)`. Fato: cinco mods do repositório vizinho `malka-claude-mods` (`cleanscreen`, `menu`, `mode`, `permissions` e outros) chamam `$.ui.toast(text)` para um aviso que não bloqueia. Hipótese: um handler de `tool.call` pode chamar `$.ui.toast(text)` e depois `return next(e)`. Não confirmei isso numa declaração de tipos do motor. O T-2502 começa por essa leitura (os tipos do motor, ou um teste de motor no estilo de `panel.engine.test.ts`). O contrato de teste não depende disso: R5-R7 são afirmadas sobre uma função pura em `hooks/lib/` que recebe o evento, o home do harness, o diretório de trabalho e um callback de existência de arquivo, e devolve o texto do aviso ou `undefined`. A ligação (`toast`, ou outro canal que a leitura achar) é o único item em aberto. Se o motor não tiver canal, o dono escolhe · respondido por: `builder` no T-2502 · bloqueia: só a ligação do T-2502.
+- Decisão pendente: se as fontes de texto do kit fora de `coordinator.md` (R1, Seção 4) precisam de mudança, conforme o `grep` do autor do ticket · respondido por: autor do T-2501, reportado ao Coordenador · bloqueia: o escopo do T-2501.
 
-R18 changed after validation round 2 (approved); owner accepted it without a new round, 2026-10-16.
+A R18 mudou depois da rodada 2 de validação (aprovada); o dono a aceitou sem nova rodada, 2026-10-16.
 
-## Executed summary
+## Resumo executado
 
-**Delivered**: The Coordinator now orchestrates and judges while specialists read, run commands and write documents, with a warn-only mod toast for direct edits past the 5-line bound and one-command external CLI calls with a cleanup step.
+**Entregue**: O Coordenador agora orquestra e julga enquanto os especialistas leem, rodam comandos e escrevem documentos, com um `toast` do mod que só avisa para edições diretas além do limite de 5 linhas e chamadas de CLI externa de um comando só com um passo de limpeza.
 
-**Rules**:
+**Regras**:
 
-- R1: Honored. `.agents/coordinator.md:47` sends reads to repo-scout and commands to qa-verifier; the PRD grep leaves one hit, which names the role (`.skills/external-clis/references/live-tree-freeze.md:353`).
-- R2: Honored. `.agents/coordinator.md:38` and `:49`.
-- R3: Honored. `.agents/coordinator.md:50`.
-- R4: Honored. `.skills/external-clis/SKILL.md:35` and `:37`.
-- R5: Honored. Tests in `adapters/claude-code/plugin/hooks/runtime-guard.test.ts` (235 pass, 0 fail); the `inHarness` fix was checked by the opencode reviewer.
-- R6: Honored. Same tests and reviewer check as R5.
-- R7: Honored. Same tests and reviewer check as R5.
-- R8: Honored. `.agents/coordinator.md:51` and `:113`, `.agents/docs-guide.md:56`, `.skills/document-review/SKILL.md`.
-- R9: Honored. `.agents/coordinator.md:47-48`.
-- R10: Honored. `AGENTS.md` diff is +1 line, -0.
-- R11: Honored. `.skills/external-clis/SKILL.md:37`, `.agents/coordinator.md:114`.
-- R12: Honored. `dh validate` shows 13 agents and 19 commands; no kit file created or removed.
-- R13: Honored: version 0.31.0 in `internal/build/build.go` (`defaultVersion`) and `.claude-plugin/marketplace.json` (`version`, `ref` v0.31.0); `dh build` regenerated `dist/` and `harness-manifest.json`.
-- R14: Honored. Only generated files differ.
-- R15: Honored. `dh validate` 0 errors, `go test` ok, plugin test 235/0, build idempotent.
-- R16: Honored: clean clone plus the exact working-tree state, `go run ./cmd/dh build`; sha256 of the 5 platform binaries (and `dh`, `dh.cmd`) equal the tree: 5 of 5.
-- R17: Honored. `checkPrivatePaths` passes in `dh validate`.
-- R18: Honored. Recipes start with the binary name (`grok --cwd`, `opencode run --dir`, `mcode exec --cwd`); `claude` keeps the documented `cd` exception.
-- Code review: entry 1 `cli:codex/gpt-6-luna` request changes (1 Major, fixed: `warn.ts` `inHarness`); entry 2 `cli:opencode/opencode-go/muse-spark-1.3-contributor` approve.
+- R1: Cumprida. `.agents/coordinator.md:47` manda as leituras para o repo-scout e os comandos para o qa-verifier; o grep do PRD deixa uma ocorrência, que nomeia o papel (`.skills/external-clis/references/live-tree-freeze.md:353`).
+- R2: Cumprida. `.agents/coordinator.md:38` e `:49`.
+- R3: Cumprida. `.agents/coordinator.md:50`.
+- R4: Cumprida. `.skills/external-clis/SKILL.md:35` e `:37`.
+- R5: Cumprida. Testes em `adapters/claude-code/plugin/hooks/runtime-guard.test.ts` (235 passam, 0 falham); a correção de `inHarness` foi conferida pelo revisor opencode.
+- R6: Cumprida. Mesmos testes e mesma conferência do revisor da R5.
+- R7: Cumprida. Mesmos testes e mesma conferência do revisor da R5.
+- R8: Cumprida. `.agents/coordinator.md:51` e `:113`, `.agents/docs-guide.md:56`, `.skills/document-review/SKILL.md`.
+- R9: Cumprida. `.agents/coordinator.md:47-48`.
+- R10: Cumprida. O diff de `AGENTS.md` é +1 linha, -0.
+- R11: Cumprida. `.skills/external-clis/SKILL.md:37`, `.agents/coordinator.md:114`.
+- R12: Cumprida. `dh validate` mostra 13 agentes e 19 comandos; nenhum arquivo do kit criado ou removido.
+- R13: Cumprida: versão 0.31.0 em `internal/build/build.go` (`defaultVersion`) e `.claude-plugin/marketplace.json` (`version`, `ref` v0.31.0); o `dh build` regenerou `dist/` e `harness-manifest.json`.
+- R14: Cumprida. Só os arquivos gerados diferem.
+- R15: Cumprida. `dh validate` 0 erros, `go test` ok, teste do plugin 235/0, build idempotente.
+- R16: Cumprida: clone limpo mais o estado exato da árvore de trabalho, `go run ./cmd/dh build`; o sha256 dos 5 binários de plataforma (e de `dh`, `dh.cmd`) é igual ao da árvore: 5 de 5.
+- R17: Cumprida. `checkPrivatePaths` passa no `dh validate`.
+- R18: Cumprida. As receitas começam com o nome do binário (`grok --cwd`, `opencode run --dir`, `mcode exec --cwd`); o `claude` mantém a exceção documentada do `cd`.
+- Revisão de código: entrada 1 `cli:codex/gpt-6-luna` `request changes` (1 `Major`, corrigido: `warn.ts` `inHarness`); entrada 2 `cli:opencode/opencode-go/muse-spark-1.3-contributor` `approve`.
 
 **Tickets**:
 
-- T-2501 backend, `harness-maintainer`: accepted after 2 reworks.
-- T-2502 backend, `builder`: accepted after review fix (`warn.ts` `inHarness`).
-- T-2503 teste (unitário e integração), `qa-verifier`: 9 tests, 235 pass.
+- T-2501 backend, `harness-maintainer`: aceito após 2 retrabalhos.
+- T-2502 backend, `builder`: aceito após a correção da revisão (`warn.ts` `inHarness`).
+- T-2503 teste (unitário e integração), `qa-verifier`: 9 testes, 235 passam.
 
-**Docs**: `CHANGELOG.md` (entry 0.31.0); `docs/roadmap.html` and `docs/en/roadmap.html` (Planned card moved to a Delivered 0.31.0 card, status chip and sources line); `docs/tutorial.html` and `docs/en/tutorial.html` (Coordinator duties and the warn-only mod); this Executed summary. `README.md` and `README.en.md`: no sentence said the Coordinator reads, runs or edits itself, and no version line exists, so no change.
+**Docs**: `CHANGELOG.md` (entrada 0.31.0); `docs/roadmap.html` e `docs/en/roadmap.html` (card Planned movido para um card Delivered da 0.31.0, chip de status e linha de fontes); `docs/tutorial.html` e `docs/en/tutorial.html` (atribuições do Coordenador e o mod que só avisa); este Resumo executado. `README.md` e `README.en.md`: nenhuma frase dizia que o Coordenador lê, roda ou edita por conta própria, e não existe linha de versão, então sem mudança.
 
-**Out of scope**: any deny rule for the main session; a guard on `Bash`; a new agent, skill or command and any change of the agent count; a change to how specialists write or to the ownership of the three records; changing the user's global rule outside this repository; paid evaluation (no eval case added).
+**Fora de escopo**: qualquer regra de negação para a sessão principal; uma trava sobre o `Bash`; um agente, skill ou comando novo e qualquer mudança na contagem de agentes; uma mudança em como os especialistas escrevem ou na posse dos três registros; mudar a regra global do usuário fora deste repositório; avaliação paga (nenhum caso de avaliação acrescentado).
