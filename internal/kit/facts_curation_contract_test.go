@@ -112,15 +112,18 @@ func TestCuratorDispatchLineIsTheSameInTheCoordinatorAndTheModTest(t *testing.T)
 func TestVerificationOfF3LocksAreDocumentedWhereTheyAreEnforced(t *testing.T) {
 	mustContain(t, ".agents/coordinator.md",
 		"que `dh facts check` imprime na segunda linha de saída (`sha <curto>`", "Nunca rode `git rev-parse` para isso", "`sha ausente`", "use `0000000`",
-		"Despache o curador com `model: sonnet`", "só reconhece como curador o agente que voltou num desses modelos", "o mod nega `Bash`, `PowerShell` e `Monitor` a ele durante a rodada", "`Read` e `Grep`")
+		"Despache o curador com `model: sonnet`", "só reconhece como curador o agente que voltou num desses modelos", "o mod nega `Bash`, `PowerShell` e `Monitor` a ele durante a rodada", "`Read` (e `Glob` ou `Grep`, se estiverem disponíveis")
 	mustNotContain(t, ".agents/coordinator.md", "obtenha-o uma vez por fluxo de um `qa-verifier`")
 	mustContain(t, ".skills/facts-curation/SKILL.md",
-		"que o Coordenador obteve de `dh facts check`", "o mod do Claude Code nega `Bash`, `PowerShell` e `Monitor` a você", "`Read` e `Grep`, não com `cat`, `grep` nem `wc`", "em `haiku` o mod nega a escrita",
+		"que o Coordenador obteve de `dh facts check`", "o mod do Claude Code nega `Bash`, `PowerShell` e `Monitor` a você", "`Read` (e `Glob` ou `Grep`, se estiverem disponíveis", "não com `cat`, `grep` nem `wc`", "O caminho garantido é ler com `Read` a linha da evidência", "em `haiku` o mod nega a escrita",
 		"removidos por teto: <motivo>", "podem ir numa linha agrupada")
 	mustContain(t, "docs/prd/PRD-035-arquivo-de-fatos.md",
-		"- E17 `dh facts check` imprime o sha curto do `HEAD` na segunda linha de saída", "- E18 O curador roda em `sonnet` ou mais forte", "- E19 O curador não tem shell", "- E20 O registro em `## Mudanças` aceita uma linha agrupada",
+		"- E17 `dh facts check` imprime o sha curto do `HEAD` na segunda linha de saída", "- E18 O curador roda em `sonnet` ou mais forte", "- E19 O curador não tem shell", "- E20 O registro em `## Mudanças` aceita uma linha agrupada", "- E21 (origem: rodada 2 da verificação da F3, 2026-11-18, decisão do dono)", "o mod não impede o Coordenador de chamar `git`",
 		"origem: verificação da F3, 2026-11-18")
 	// the mod carries the three locks the prose names
 	mustContain(t, "adapters/claude-code/plugin/hooks/runtime-guard.ts", "export function strongModel", "export function forceCuratorModel", "export function denyCuratorShell", "'Bash', 'PowerShell', 'Monitor'")
 	mustContain(t, "adapters/claude-code/plugin/hooks/panel.ts", "forceCuratorModel", "denyCuratorShell")
+	// the denial message names only tools the curator is sure to have: Read first, Glob or Grep only when the session has them
+	mustContain(t, "adapters/claude-code/plugin/hooks/runtime-guard.ts", "use Read (e Glob ou Grep, se estiverem disponíveis)")
+	mustContain(t, "CHANGELOG.md", "E21, origem: rodada 2 da verificação da F3")
 }

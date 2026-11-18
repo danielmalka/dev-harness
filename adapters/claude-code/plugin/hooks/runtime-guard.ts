@@ -76,7 +76,7 @@ export function noteSpawn(e: any, agentId: unknown, model?: unknown): void {
 // keeps them.
 export function denyCuratorShell(e: any): { deny: string } | undefined {
   try {
-    if (e?.agentId && curators.has(e.agentId)) return { deny: 'o curador do FACTS.md não roda comandos (trava de runtime do dev-harness): confira a evidência com Read e Grep, e devolva ao Coordinator o que precisar de um comando.' }
+    if (e?.agentId && curators.has(e.agentId)) return { deny: 'o curador do FACTS.md não roda comandos (trava de runtime do dev-harness): confira a evidência: use Read (e Glob ou Grep, se estiverem disponíveis); ler com Read a linha do caminho:linha basta. Devolva ao Coordinator o que precisar de um comando.' }
   } catch {} // fail open
   return undefined
 }
