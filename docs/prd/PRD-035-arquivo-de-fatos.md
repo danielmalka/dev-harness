@@ -63,6 +63,7 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
   6. `Estado:` com um de `candidato`, `confirmado` ou `hipótese`.
   - Formato exato da linha (fixado na F1, 2026-11-18, origem: a revisão da F1): `- F-<n> · <frase> · Evidência: <caminho:linha>[, <caminho:linha>...] · Visto: <AAAA-MM-DD>, <papel>, <tarefa> · sha: <sha curto> · Estado: <candidato|confirmado|hipótese>`. O separador entre os campos é ` · ` (espaço, ponto médio, espaço). O campo `sha` aceita também a forma sem os dois pontos. O sha curto tem de 7 a 40 hexadecimais minúsculos.
   - Cada evidência deve ser um arquivo regular do repositório, e não uma pasta: um caminho relativo, sem `..` nem barra invertida. Um link simbólico só vale quando aponta para um arquivo dentro do projeto.
+  - A `linha` de uma evidência é um número (`caminho:5`) ou um intervalo `caminho:N-M` (`caminho:5-6`), com N maior que zero e M maior ou igual a N (verificação da F2, 2026-11-18, origem: a verificação da F2, em sessão real). `caminho:5-5` vale; `6-5`, `0-3`, `5-` e `a-b` não valem. O verificador não confere se a linha existe no arquivo.
   - Quando uma linha não tem um desses campos, então `dh facts check` deve reportar a linha e o campo.
 - R4 As categorias são estas 11, nesta ordem: estilo de escrita, arquitetura, design system, dependências, ferramentas complementares, particularidades de código, testes, dados e esquema, build e CI, armadilhas, fronteiras.
   - Quando uma seção usa outro nome, então `dh facts check` deve reportá-la.
@@ -246,7 +247,7 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
 
 O revisor da F1 aceitou estas cinco escolhas, que o PRD não fechava, e pediu o registro aqui. Cada uma está também na regra que ela completa.
 
-- E1 Formato exato da linha de fato, com o separador ` · `, e as seções `## <categoria>`, `## Candidatos` e `## Mudanças` (R2, R3).
+- E1 Formato exato da linha de fato, com o separador ` · `, e as seções `## <categoria>`, `## Candidatos` e `## Mudanças` (R2, R3). A evidência aceita também o intervalo `caminho:N-M` (verificação da F2, 2026-11-18).
 - E2 A lista fixa de 12 padrões de segredo vive em `internal/harness/facts.go`, e não no `dream.md`, que não tinha lista (R6).
 - E3 O despacho do curador traz a linha `Arquivos permitidos:`, `Conjunto de escrita:` ou `Write set:` citando `FACTS.md`, para o mod reconhecer o curador (R12, F3).
 - E4 Os tetos: 150 linhas do arquivo, 12 KB = 12288 bytes, 15 fatos por categoria, 300 runas por linha de fato (R5).

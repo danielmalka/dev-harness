@@ -40,6 +40,10 @@ func TestScoutBuilderAndQAProposeCandidatesButNeverWriteTheFile(t *testing.T) {
 	mustContain(t, ".agents/builder.md", "`## Fatos candidatos` com no máximo 2 linhas", "papel `builder`", "Você não escreve o `FACTS.md`")
 	mustContain(t, ".agents/qa-verifier.md", "`## Fatos candidatos` com no máximo 2 linhas", "papel `qa-verifier`", "Você não escreve o `FACTS.md`")
 	mustContain(t, ".agents/docs-guide.md", "`Convenções: ver FACTS.md`", "no máximo 5", "nunca escreve o `FACTS.md`")
+	// the evidence may be a line or a range N-M, and the three places that tell an agent how to write it say both forms
+	for _, f := range []string{".skills/repository-mapping/SKILL.md", ".agents/builder.md", ".agents/qa-verifier.md"} {
+		mustContain(t, f, "um intervalo `N-M`", "`src/", ":5-6`")
+	}
 	mustContain(t, ".skills/repository-mapping/SKILL.md", "no máximo 5 num mapa do `repo-scout`", "no máximo 2 numa resposta do `builder` ou do `qa-verifier`", "## Fatos candidatos")
 }
 
@@ -107,5 +111,8 @@ func TestSetupReferenceLineAndBootstrapSeed(t *testing.T) {
 		mustContain(t, f, repoRefLine, globalRefLine, "`@import`", "<!-- dh:facts:inicio -->", "`Fatos do sistema:`", "`CLAUDE.md`", "`AGENTS.md`")
 	}
 	mustContain(t, ".commands/setup.md", "pergunte ao dono, uma vez", "Sem o sim do dono, não toque em arquivo nenhum", "O setup não cria o `FACTS.md`", "`Convenções: ver FACTS.md`", "no máximo 5", "`--expect absent`")
+	// the six parts of REPO-MAP.md have fixed titles, so the conventions part is always "## 6. Convenções"
+	mustContain(t, ".skills/project-onboarding/SKILL.md", "`## 2. Estrutura de nível superior`", "`## 3. Pontos de entrada e comandos`", "`## 4. Arquitetura`", "`## 5. Áreas de risco`", "`## 6. Convenções`")
+	mustContain(t, ".commands/setup.md", "`## 6. Convenções`")
 	mustContain(t, ".skills/project-onboarding/SKILL.md", "Sem o sim explícito do dono", "um `AGENTS.md` mínimo", "não acrescente outra", "`Convenções: ver FACTS.md`", "cada um com evidência")
 }
