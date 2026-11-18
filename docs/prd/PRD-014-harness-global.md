@@ -20,7 +20,7 @@ Fatos verificados em 2026-10-08 (leitura do repositório):
 
 - A trava de memória casa pelo sufixo `.harness/MEMORY.md|EPOCHAL.md|RISKS.md`
   (`adapters/claude-code/plugin/hooks/runtime-guard.ts`, constante `PROTECTED`); uma pasta externa não seria protegida.
-- O `doctor` olha só `<cwd>/.harness` e avisa "`.harness/` is ignored by git" (`internal/doctor/doctor.go`).
+- O `doctor` olha só `<cwd>/.harness` e avisa "`.harness/` está ignorado pelo git" (`internal/doctor/doctor.go`).
 - Os snapshots de sessão ficam em `~/.claude/dev-harness/sessions` (ou `$CLAUDE_CONFIG_DIR/dev-harness/sessions`, ou
   `DEV_HARNESS_SNAPSHOT_DIR`) (`internal/snapshot/snapshot.go`, `SnapshotDir`). O token de parada do dashboard fica em
   `<UserConfigDir>/dev-harness/dashboard` (`internal/dashboard/stop.go`).
@@ -161,7 +161,7 @@ Contrato com a extensão
 Doctor, setup e versionamento
 
 - R14 `.harness/` interno é versionado: `setup` e `doctor` não sugerem ignorá-lo nem commitá-lo por obrigação; o aviso
-  "`.harness/` is ignored by git" do `doctor` some para a pasta inteira e fica só para `local.yaml` (que deve ficar
+  "`.harness/` está ignorado pelo git" do `doctor` some para a pasta inteira e fica só para `local.yaml` (que deve ficar
   ignorado). O `doctor` mostra o modo e a pasta resolvidos (via o mesmo resolvedor de R5). Verificável: teste do `doctor`
   com `.harness/` ignorado (sem aviso), com `local.yaml` versionado (aviso) com modo `global` (mostra `mode: global` e o
   caminho), com as duas pastas presentes (modo `repo` e aviso) e com `<repo>/.harness/` presente e o caminho fora de

@@ -661,7 +661,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-11-17</b></span>
-          <span class="chip">status <b>0.45.0 · vivo</b></span>
+          <span class="chip">status <b>0.46.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -698,6 +698,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.46.0 · Trava contra o inglês e histórico completo em pt-BR (ADR-011, fatia S5)</h3>
+        <p><strong>Status:</strong> concluído (quinta e última fatia: a migração para o kit só pt-BR termina aqui).</p>
+        <p><strong>Resumo:</strong> ADR-011. O <code>dh validate</code> ganha a trava: uma lista fixa de marcadores do formato antigo em inglês (<code>Use when</code>, <code>Do not use when</code>, <code>templates/en</code>, <code>templates/pt-br</code>, <code>templates/&lt;lang&gt;</code>, <code>docs/en</code>, <code>README.en</code>, <code>language: en</code> e <code>language: pt-br</code>, e os títulos e rótulos antigos de plano e de relatório) é reprovada, com arquivo e linha, em <code>.agents/</code>, <code>.commands/</code>, <code>.skills/</code>, <code>templates/</code>, <code>profiles/</code> e <code>evals/cases/</code>; sem heurística de idioma. A leitura dupla dos rótulos (pt-BR e inglês), que valia desde a 0.43.0, termina: <code>/dh:plan</code>, <code>/dh:review</code>, <code>/dh:plan-loop</code>, o <code>coordinator</code> e a <code>external-clis</code> leem só pt-BR, e o <code>rotulos_test.go</code> passa a exigir a ausência da forma em inglês. Lote H4 do histórico: as 25 revisões <code>.review.md</code> que estavam em inglês (28.013 palavras no original) traduzidas, mais as citações em inglês que restavam em 28 arquivos de PRDs, ADRs, revisões já em pt-BR e <code>docs/discovery/renova.md</code>; o bloco da 0.1.0 do <code>CHANGELOG.md</code>, o caderno <code>.claude/napkin.md</code> e os nomes dos passos dos workflows também em pt-BR. O regex do grader do caso <code>code-reviewer-equivalent-form-miss</code> casa o veredito <code>request changes</code> com ou sem marcador de lista e com ou sem negrito, como a descrição dele diz.</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.46.0; <code>docs/adr/ADR-011-kit-so-ptbr.md</code>; <code>internal/kit/legacy_markers.go</code>; <code>internal/kit/rotulos_test.go</code>; <code>docs/glossario.md</code> seção 7; <code>docs/prd/*.review.md</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> (inclui um caso por marcador, em cada tipo de fonte, com e sem o marcador), testes dos mods, <code>go vet ./...</code>, <code>dh validate .</code> e <code>go run ./cmd/dh build</code> sem diferença em <code>dist/</code>; prova de clone limpo (os binários mudaram: <code>legacy_markers.go</code> e a versão); varredura de trechos em inglês no repositório inteiro e conferência estrutural dos 25 relatórios contra o original (títulos, linhas de tabela, itens e números); o regex do grader testado com 11 formas aceitas e 9 recusadas; as evals não rodaram (são pagas).</p>
+      </div>
 
       <div class="card">
         <h3>0.45.0 · Docs, evals e histórico em pt-BR; fim do espelho em inglês (ADR-011, fatia S4)</h3>
@@ -983,7 +991,7 @@ profiles/"] --> B["dh build"]
       <div class="card">
         <h3>0.18.0 · Dashboard local e validação de PRD/tickets por mod</h3>
         <p><strong>Status:</strong> concluído.</p>
-        <p><strong>Resumo:</strong> PRD-012 entregue. O plugin Claude Code ganha um comando <code>/dashboard</code> (registrado pelo mod <code>hooks/panel.ts</code> via <code>$.command.register</code> e <code>$.process.run</code>; sem arquivo em <code>.commands/</code>) que sobe <code>dh dashboard [--port N] [--stale D] [--done-decay D] [--detach]</code> desacoplado e devolve a URL. Página local em http://127.0.0.1:4747 (porta padrão, configurável com <code>--port</code>; porta ocupada dá erro claro). Mostra: projetos sob <code>DH_DASHBOARD_ROOTS</code> (caminhos separados por <code>;</code>), uma barra de progresso por PRD aberto (PRDs entregues contraem em contagem), sessões abertas do Claude Code por projeto com estado (trabalhando, parado, esperando, erro, pronto, atenção), avatar top-right com barras de limite 5h e semanal. Avatares: <code>DH_DASHBOARD_SPRITES</code> aponta para pasta em formato jevmon (<code>&lt;pose&gt;.png</code> ou frames <code>&lt;pose&gt;_NN.png</code>, <code>poses.json</code> opcional); kit envia 6 ícones exemplo; pose ausente cai no padrão do kit. Servidor serve sprite só por nome de pose conhecido (sem caminho livre). Snapshots de sessão (<code>~/.claude/dev-harness/sessions/&lt;id&gt;.json</code>, schema 2) ganham campos <code>activity</code>, <code>activity_at</code>, <code>rate_limits</code>, heartbeat a cada 30s; contrato VS Code (caminho, valores de <code>state</code>) fica igual. Validação (<code>dh validate</code>): novo check detecta ticket aberto sob PRD marcado <code>entregue em</code>, ou todos os tickets prontos mas PRD não marcado. Sem comando, agente ou skill nova. Os 19 comandos de arquivo continuam; 1 comando registrado pelo mod. Tamanho do binário: 3.5 MB → 7.3-8.1 MB por plataforma (stdlib net/http). Residuais aceitos: outro programa pode ocupar 4747; outro usuário local lê /api/state (loopback only, sem token); commit trap só confere diretório da sessão.</p>
+        <p><strong>Resumo:</strong> PRD-012 entregue. O plugin Claude Code ganha um comando <code>/dashboard</code> (registrado pelo mod <code>hooks/panel.ts</code> via <code>$.command.register</code> e <code>$.process.run</code>; sem arquivo em <code>.commands/</code>) que sobe <code>dh dashboard [--port N] [--stale D] [--done-decay D] [--detach]</code> desacoplado e devolve a URL. Página local em http://127.0.0.1:4747 (porta padrão, configurável com <code>--port</code>; porta ocupada dá erro claro). Mostra: projetos sob <code>DH_DASHBOARD_ROOTS</code> (caminhos separados por <code>;</code>), uma barra de progresso por PRD aberto (PRDs entregues contraem em contagem), sessões abertas do Claude Code por projeto com estado (trabalhando, parado, esperando, erro, pronto, atenção), avatar top-right com barras de limite 5h e semanal. Avatares: <code>DH_DASHBOARD_SPRITES</code> aponta para pasta em formato jevmon (<code>&lt;pose&gt;.png</code> ou frames <code>&lt;pose&gt;_NN.png</code>, <code>poses.json</code> opcional); kit envia 6 ícones exemplo; pose ausente cai no padrão do kit. Servidor serve sprite só por nome de pose conhecido (sem caminho livre). Snapshots de sessão (<code>~/.claude/dev-harness/sessions/&lt;id&gt;.json</code>, schema 2) ganham campos <code>activity</code>, <code>activity_at</code>, <code>rate_limits</code>, heartbeat a cada 30s; contrato VS Code (caminho, valores de <code>state</code>) fica igual. Validação (<code>dh validate</code>): novo check detecta ticket aberto sob PRD marcado <code>entregue em</code>, ou todos os tickets prontos mas PRD não marcado. Sem comando, agente ou skill nova. Os 19 comandos de arquivo continuam; 1 comando registrado pelo mod. Tamanho do binário: 3.5 MB → 7.3-8.1 MB por plataforma (stdlib net/http). Residuais aceitos: outro programa pode ocupar 4747; outro usuário local lê /api/state (só loopback, sem token); commit trap só confere diretório da sessão.</p>
         <p><strong>Relações:</strong> PRD-012 (<code>docs/prd/PRD-012-dashboard.md</code>);
           <code>adapters/claude-code/plugin/hooks/panel.ts</code>;
           <code>cmd/dh</code> (subcomando <code>dashboard</code>), <code>internal/kit/dashboard.go</code>.</p>
@@ -1190,7 +1198,7 @@ profiles/"] --> B["dh build"]
           fatia, uma revisão do lote e o release, a partir de uma ideia, de um PRD aprovado ou de um
           <code>PLAN.md</code> aprovado. O questionário tem sete itens; a v1 usa uma branch só. Branch por slice
           (AC-24, AC-40, AC-41, AC-47, AC-48, AC-51) fica adiado, decisão do dono em 26/09/2026. A revisão enxuta
-          troca o teto de documento de seis para duas rodadas e o painel de três revisores passa a ser opt-in
+          troca o teto de documento de seis para duas rodadas e o painel de três revisores passa a ser de adesão opcional
           (pedido do dono ou toque de segurança; no código, também contrato novo ou lógica).</p>
         <p><strong>Relações:</strong> PRD-006; PLAN-010. <code>CHANGELOG.md</code> 0.9.0.</p>
         <p><strong>Testado?</strong> <code>go run ./cmd/dh validate --source-only .</code> e a revisão de texto de
@@ -1621,8 +1629,7 @@ profiles/"] --> B["dh build"]
           Coordenador e os papéis de revisão a resolver um binário de CLI (<code>command -v</code> ou
           <code>.harness/local.yaml</code>), montar o prompt em disco, aplicar o modo somente-leitura do binário e
           distinguir falha de transporte de veredito real; campo opcional <code>reviewers:</code> em
-          <code>.harness/project.yaml</code>, documentado em <code>profiles/README.md</code> ("Consumer-only
-          fields") e ilustrado em <code>profiles/examples/project.yaml</code>, declara por etapa
+          <code>.harness/project.yaml</code>, documentado em <code>profiles/README.md</code> ("Campos só do consumidor") e ilustrado em <code>profiles/examples/project.yaml</code>, declara por etapa
           (<code>document</code>, <code>code</code>, <code>security</code>) a lista de revisores —
           <code>claude</code>, <code>"cli:&lt;binário&gt;/&lt;slug&gt;"</code> ou um mapa com
           <code>timeout_minutes</code>; <code>.agents/coordinator.md</code> ganha a seção "External CLI reviewers"
@@ -1693,7 +1700,7 @@ profiles/"] --> B["dh build"]
           os binários sejam idênticos entre a máquina do mantenedor e a CI.</p>
         <p><strong>Relações:</strong> corrige uma regressão de 0.2.0 encontrada pela própria CI; origem da regra do
           repositório "reproduzir o que a CI faz num clone limpo antes de commitar <code>dist/</code>".</p>
-        <p><strong>Testado?</strong> Mesmo step de CI "Package matches committed sources and binaries" reproduz o
+        <p><strong>Testado?</strong> Mesmo step de CI "Pacote igual às fontes e aos binários versionados" reproduz o
           build e compara os arquivos de <code>dist/</code> — execução registrada em CI a cada push/PR.</p>
       </div>
 
@@ -1763,15 +1770,14 @@ profiles/"] --> B["dh build"]
 
       <div class="card">
         <h3>Medir o modo somente-leitura do <code>mcode</code></h3>
-        <p><strong>Descrição:</strong> a tabela "Read-only mode by binary" de <code>.skills/external-clis/SKILL.md</code>
+        <p><strong>Descrição:</strong> a tabela "Modo somente leitura por binário" de <code>.skills/external-clis/SKILL.md</code>
           lista <code>mcode</code> como pendente de medição. Antes de poder planejar em <code>/dh:plan-loop</code>,
           precisa de uma sonda registrada com data — a CLI pedida para criar um arquivo e rodar um comando de
           shell, os dois recusados. Até essa medição, <code>mcode</code> segue fora da rotação de planejadoras.</p>
         <p><strong>Critérios de aceite:</strong> critérios a definir.</p>
         <p><strong>Status:</strong> planejado — critério de medição já fixado (T-801/ADR-002), falta rodar a
           sonda.</p>
-        <p><strong>Relações:</strong> ADR-002; <code>.skills/external-clis/SKILL.md</code> "Read-only mode by
-          binary"; <code>.commands/plan-loop.md</code> item 1 (checagem de disponibilidade e rotação).</p>
+        <p><strong>Relações:</strong> ADR-002; <code>.skills/external-clis/SKILL.md</code> "Modo somente leitura por binário"; <code>.commands/plan-loop.md</code> item 1 (checagem de disponibilidade e rotação).</p>
       </div>
 
       <div class="card">
@@ -1935,7 +1941,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.45.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.46.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>

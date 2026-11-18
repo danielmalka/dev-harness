@@ -1,28 +1,30 @@
-# Review: PRD-026
+# Revisão: PRD-026
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-026-review-guide.md |
-| Source | Owner request (2026-10-21), discovery brief DISC-006, owner decisions D1-D6 / A1-A2, the guideline synthesis of the video cited in the PRD (file removed from the repository, R19) |
-| Round | 1 of 2 |
-| Reviewer | cli:agy/gemini-3.8-flash-high |
-| Verdict | approved |
-| Updated | 2026-10-21 |
+| Documento | docs/prd/PRD-026-review-guide.md |
+| Fonte | Pedido do dono (2026-10-21), resumo de descoberta DISC-006, decisões do dono D1-D6 / A1-A2, a síntese de diretrizes do vídeo citado no PRD (arquivo removido do repositório, R19) |
+| Rodada | 1 de 2 |
+| Revisor | cli:agy/gemini-3.8-flash-high |
+| Veredito | `approved` |
+| Atualizado | 2026-10-21 |
 
-## Findings
+## Achados
 
-(No open findings.)
+(Nenhum achado em aberto.)
 
-## Not raised
+## Não levantado
 
-- Gaps: All 6 absent capabilities from DISC-006 and owner decisions D1-D6 / A1-A2 are mapped to verifiable rules (R1-R16, R19).
-- Ambiguities: Fail-closed PR argument parsing, re-entry review scope, setup idempotency states, and critical paths match calculation are unambiguously defined.
-- Conflicts: Invariants across AGENTS.md, kit command counts (19+1), agent counts (13), round cap (6), clean-clone proof obligations, and Coordinator write limits under PRD-025 hold without contradiction.
-- Excesses: Out-of-scope items from DISC-006 remain excluded; suggestions from source material not adopted by the owner are segregated into non-normative Appendix notes.
-- Weak criteria: All 22 rules (R1-R22) specify verifiable, deterministic check commands or file assertions.
-- Organization: Document follows `templates/en/PRD.md` structure, rule numbering is sequential and unique, and ASD-STE100 style constraints are met.
+- Lacunas: As 6 capacidades ausentes da DISC-006 e as decisões do dono D1-D6 / A1-A2 estão mapeadas para regras verificáveis (R1-R16, R19).
+- Ambiguidades: A análise de argumentos de PR com falha fechada, o escopo da revisão de reentrada, os estados de idempotência do setup e o cálculo de casamento de caminhos críticos estão definidos sem ambiguidade.
+- Conflitos: As invariantes do AGENTS.md, as contagens de comandos do kit (19+1), as contagens de agentes (13), o limite de rodadas (6), as obrigações de prova de clone limpo e os limites de escrita do Coordenador sob o PRD-025 se mantêm sem contradição.
+- Excessos: Os itens fora de escopo da DISC-006 continuam excluídos; as sugestões do material-fonte que o dono não adotou ficam separadas em notas não normativas do Apêndice.
+- Critérios fracos: Todas as 22 regras (R1-R22) especificam comandos de checagem determinísticos e verificáveis ou asserções sobre arquivos.
+- Organização: O documento segue a estrutura de `templates/en/PRD.md`, a numeração das regras é sequencial e única, e as restrições de estilo do ASD-STE100 são atendidas.
 
-## Round log
+## Registro de rodadas
 
-- Round 1 of 2, 2026-10-21: approved, 0 blocking findings. Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
-- Amendment revalidation (single round), 2026-10-21: approved, 0 blocking findings, no open findings. Amended after the implementation review: R5, R12, R13 changed; R23, R24, R25 added; section 4 and Appendix references synced. Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
+- Rodada 1 de 2, 2026-10-21: `approved`, 0 achados bloqueantes. Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.
+- Revalidação da emenda (rodada única), 2026-10-21: `approved`, 0 achados bloqueantes, nenhum achado em aberto. Emendado após a revisão da implementação: R5, R12, R13 mudaram; R23, R24, R25 foram acrescentadas; a seção 4 e as referências do Apêndice foram sincronizadas. Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.

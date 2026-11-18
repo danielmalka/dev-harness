@@ -84,7 +84,7 @@ Baselines antigos ficam como histórico.
 - R4 Eval paga só roda por pedido explícito do dono ou dentro de `/dh:improve`, que o dono invoca; nenhum outro comando,
   fluxo do Coordenador ou CI a dispara; a resposta do dono ao item de teto de eval do questionário do `/dh:auto` conta
   como pedido explícito (emenda de 2026-09-30, por delegação do dono); teto zero ou ausente = nenhuma eval. O job `evals` continua pulando sem chave. Verificável: `grep -rn "claude plugin
-  eval" .commands .agents` só encontra `improve.md`; o texto do Coordenador diz "only when the owner asks".
+  eval" .commands .agents` só encontra `improve.md`; o texto do Coordenador diz "só quando o dono pede".
 - R5 Existe `.agents/builder.md`, que recebe no despacho a lane (`backend`, `frontend`, `dados`, `infra`) e o modo
   (`build` ou `refactor`). Substitui `backend-builder`, `frontend-builder`, `data-engineer`, `devops-engineer` e
   `refactorer`; `debugger` fica. Roteamento de `.commands/build.md` preservado: lane vira `builder` com essa lane; sem
@@ -114,8 +114,8 @@ Baselines antigos ficam como histórico.
   na skill (`repository-mapping`, `delivery-readiness`, `regression-testing`), o agente (`repo-scout`,
   `release-manager`, `qa-verifier`) fica com papel, limites e formato de saída, e o comando (`understand`, `release`,
   `verify`) fica com o despacho e o critério de parada. Verificável: a soma de linhas dos 9 arquivos cai, e cada uma das
-  frases "Do not use for a whole-repo audit", "Do not publish because you were asked to prepare" e "You may write
-  tests; you do not patch production code" (ou o equivalente nos textos atuais, fixado no ticket) aparece em um só
+  frases "Não use para uma auditoria do repositório inteiro", "Não publique só porque pediram para preparar" e "Você pode escrever
+  testes; não corrija código de produção" (ou o equivalente nos textos atuais, fixado no ticket) aparece em um só
   arquivo; os 3 comandos seguem em `.commands/`.
 - R9 `AGENTS.md` fica com cerca de 15 regras vigentes, cada uma em 1 a 3 linhas, sem data nem "porquê" (datas de
   revisão pendentes, como "revisitar em 21/10/2026", ficam na regra vigente). Toda regra removida ou reescrita, com sua
@@ -132,7 +132,7 @@ Baselines antigos ficam como histórico.
   a mudança toca segurança. Não se criam casos de eval nem sondas novas sem pedido do dono; as sondas do PRD-008
   (`mcode`, `agy` H3) continuam autorizadas. O teto de rodadas de correção continua, mas a rodada termina quando não há
   achado bloqueante. A exceção do `/dh:plan-loop` (onda julgada pela lista completa de `reviewers.document`) continua.
-  Verificável: `AGENTS.md` traz a regra; o Coordenador diz "panel of three" só com essas duas
+  Verificável: `AGENTS.md` traz a regra; o Coordenador diz "painel de três" só com essas duas
   condições.
 - R12 A prova de clone limpo com sha256 só é exigida quando o PR toca `cmd/`, `internal/`, `go.mod` ou
   `dist/*/bin`. PR só de texto do kit e docs segue com `dh validate` e `go run ./cmd/dh build` sem diferença em `dist/`.

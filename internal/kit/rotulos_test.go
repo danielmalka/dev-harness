@@ -8,10 +8,11 @@ import (
 	"testing"
 )
 
-// Label contract (ADR-011, 0.43.0): the skills and the agents that produce a plan or a review report write the labels in pt-BR; whoever READS one of them
-// (commands, the coordinator, external-clis) also accepts the English form of a plan or report written before 0.43.0, until 0.46.0. docs/glossario.md section 7 is
-// the human-readable table; this test pins it to the files, so a rename in one place that forgets the readers fails here (the bug: implementation-planning wrote
-// "## Decisões necessárias" while .commands/plan.md still required "## Decisions needed", and the approval page was never generated).
+// Label contract (ADR-011): the skills and the agents that produce a plan or a review report write the labels in pt-BR, and whoever reads one of them (commands,
+// the coordinator, external-clis) reads only the pt-BR form. From 0.43.0 to 0.45.0 the readers also accepted the English form; 0.46.0 ended that and the validate lock
+// (legacy_markers.go) rejects the old English labels in the kit sources. docs/glossario.md section 7 is the human-readable table; this test pins it to the files, so a
+// rename in one place that forgets the readers fails here (the bug: implementation-planning wrote "## Decisões necessárias" while .commands/plan.md still required
+// "## Decisions needed", and the approval page was never generated).
 
 type rotuloPar struct {
 	pt, en     string
@@ -45,35 +46,27 @@ func lerDoRepo(t *testing.T, rel string) string {
 	return string(b)
 }
 
-func TestLabelContractReadersAcceptBothFormsAndWritersUsePtBR(t *testing.T) {
+func TestLabelContractReadersAndWritersUseOnlyPtBR(t *testing.T) {
 	for _, par := range paresDeRotulo {
-		for _, f := range par.leitores {
+		for _, f := range append(append([]string{}, par.leitores...), par.escritores...) {
 			text := lerDoRepo(t, f)
-			if !strings.Contains(text, par.pt) || !strings.Contains(text, strings.TrimSuffix(par.en, "\n")) {
-				t.Errorf("%s reads %q and must accept both forms (%q and %q)", f, par.pt, par.pt, par.en)
+			if !strings.Contains(text, par.pt) {
+				t.Errorf("%s uses the label %q and must write it in pt-BR: %q", f, par.en, par.pt)
 			}
-		}
-		for _, f := range par.escritores {
-			if !strings.Contains(lerDoRepo(t, f), par.pt) {
-				t.Errorf("%s writes %q and must use the pt-BR label %q", f, par.en, par.pt)
+			if rotuloEmIngles(par).MatchString(text) {
+				t.Errorf("%s still carries the old English label %q: since 0.46.0 only the pt-BR form %q is read and written", f, strings.TrimSuffix(par.en, "\n"), par.pt)
 			}
 		}
 	}
 }
 
-// A writer must not keep emitting the old English template: the English form may only appear in a line that says it is the legacy form.
-func TestLabelContractWritersDoNotTemplateTheEnglishLabels(t *testing.T) {
-	legacy := regexp.MustCompile(`(?i)0\.43\.0|older|legacy|antes da 0\.43|anterior à 0\.43|antigo`)
-	for _, par := range paresDeRotulo {
-		en := strings.TrimSuffix(par.en, "\n")
-		for _, f := range par.escritores {
-			for i, line := range strings.Split(lerDoRepo(t, f), "\n") {
-				if strings.Contains(line, en) && !strings.HasPrefix(en, "## Plan") && !legacy.MatchString(line) {
-					t.Errorf("%s:%d still writes the English label %q: %s", f, i+1, en, strings.TrimSpace(line))
-				}
-			}
-		}
+// rotuloEmIngles matches the English form of a pair; the "## Plan" title is matched as a whole word so that "## Plano" does not count.
+func rotuloEmIngles(par rotuloPar) *regexp.Regexp {
+	en := strings.TrimSuffix(par.en, "\n")
+	if en == "## Plan" {
+		return regexp.MustCompile(`## Plan\b`)
 	}
+	return regexp.MustCompile(regexp.QuoteMeta(en))
 }
 
 func TestDocumentStageBundleHasFourItemsEverywhere(t *testing.T) {
@@ -99,28 +92,24 @@ func TestDocumentStageBundleHasFourItemsEverywhere(t *testing.T) {
 	}
 }
 
-// Reference reader of the approval-page rule in .commands/plan.md: the headings the command text says it reads are taken FROM THE COMMAND FILE, so removing one
-// of the two forms from the command makes the matching plan below stop generating the page.
-var decisoesAceitas = regexp.MustCompile("leia a seção `(## [^`]+)` do `PLAN.md` \\(um plano escrito antes da 0\\.43\\.0 tem `(## [^`]+)`:")
+// Reference reader of the approval-page rule in .commands/plan.md: the heading the command text says it reads is taken FROM THE COMMAND FILE, so changing the heading in
+// the command makes the plans below stop generating the page. Since 0.46.0 only the pt-BR heading is read.
+var decisoesAceitas = regexp.MustCompile("leia a seção `(## [^`]+)` do `PLAN.md`")
 
-func titulosDoComando(t *testing.T) []string {
+func tituloDoComando(t *testing.T) string {
 	t.Helper()
 	m := decisoesAceitas.FindStringSubmatch(lerDoRepo(t, ".commands/plan.md"))
 	if m == nil {
-		t.Fatal(".commands/plan.md no longer states the two accepted headings of the approval-page rule")
+		t.Fatal(".commands/plan.md no longer states the heading of the approval-page rule")
 	}
-	return []string{m[1], m[2]}
+	return m[1]
 }
 
-// generatesApprovalPage is the rule of the command: at least one non-empty item (not just "none"/"nenhuma") under an accepted heading.
-func generatesApprovalPage(plan string, titulos []string) bool {
+// generatesApprovalPage is the rule of the command: at least one non-empty item (not just "nenhuma") under the heading.
+func generatesApprovalPage(plan string, titulo string) bool {
 	lines := strings.Split(plan, "\n")
 	for i, line := range lines {
-		accepted := false
-		for _, title := range titulos {
-			accepted = accepted || strings.TrimSpace(line) == title
-		}
-		if !accepted {
+		if strings.TrimSpace(line) != titulo {
 			continue
 		}
 		for _, next := range lines[i+1:] {
@@ -129,7 +118,7 @@ func generatesApprovalPage(plan string, titulos []string) bool {
 				break
 			}
 			item := strings.TrimSpace(strings.TrimPrefix(trimmed, "- "))
-			if strings.HasPrefix(trimmed, "- ") && item != "" && !strings.EqualFold(item, "none") && !strings.EqualFold(item, "nenhuma") {
+			if strings.HasPrefix(trimmed, "- ") && item != "" && !strings.EqualFold(item, "nenhuma") {
 				return true
 			}
 		}
@@ -137,10 +126,10 @@ func generatesApprovalPage(plan string, titulos []string) bool {
 	return false
 }
 
-func TestApprovalPageIsGeneratedForBothHeadingForms(t *testing.T) {
-	titulos := titulosDoComando(t)
-	if titulos[0] != "## Decisões necessárias" || titulos[1] != "## Decisions needed" {
-		t.Fatalf("headings read by the command: %q", titulos)
+func TestApprovalPageIsGeneratedOnlyForThePtBRHeading(t *testing.T) {
+	titulo := tituloDoComando(t)
+	if titulo != "## Decisões necessárias" {
+		t.Fatalf("heading read by the command: %q", titulo)
 	}
 	plan := func(heading, item string) string {
 		return "# PLAN\n## Plano: x\n### Fatia 1 (T-1): a\n- Objetivo: y\n" + heading + "\n" + item + "\n## Premissas\n- p\n"
@@ -151,19 +140,14 @@ func TestApprovalPageIsGeneratedForBothHeadingForms(t *testing.T) {
 		want bool
 	}{
 		{"pt-BR heading with an item", plan("## Decisões necessárias", "- D1: usar fila?, bloqueia a fatia 1, recomendado: sim"), true},
-		{"English heading with an item (plan written before 0.43.0)", plan("## Decisions needed", "- D1: use a queue?, blocks slice 1, recommended: yes"), true},
 		{"pt-BR heading with only 'nenhuma'", plan("## Decisões necessárias", "- nenhuma"), false},
-		{"English heading with only 'none'", plan("## Decisions needed", "- none"), false},
+		{"English heading of a plan written before 0.43.0 is no longer read", plan("## Decisions needed", "- D1: use a queue?, blocks slice 1, recommended: yes"), false},
 		{"no heading at all", "# PLAN\n## Plano: x\n- Objetivo: y\n", false},
 		{"another heading is not read", plan("## Decisões", "- D1: x"), false},
 	}
 	for _, c := range casos {
-		if got := generatesApprovalPage(c.plan, titulos); got != c.want {
+		if got := generatesApprovalPage(c.plan, titulo); got != c.want {
 			t.Errorf("%s: generates the page = %v, want %v", c.nome, got, c.want)
 		}
-	}
-	// The reference reader only knows what the command tells it: with the English form removed from the accepted list, an old plan stops generating the page.
-	if generatesApprovalPage(plan("## Decisions needed", "- D1: x"), titulos[:1]) {
-		t.Error("the reference reader must depend on the headings listed in the command")
 	}
 }

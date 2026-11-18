@@ -249,11 +249,11 @@ Outras skills, agentes e avaliações os casam literalmente; só mudam junto com
 
 Vale o que o projeto define (`AGENTS.md`, `CLAUDE.md`, `README.md`, depois `conventions.code_language` do `project.yaml`); sem definição, inglês (ADR-011). Este glossário não muda essa regra.
 
-## 7. Rótulos lidos por outros arquivos: escrita em pt-BR, leitura nas duas formas até a 0.46.0
+## 7. Rótulos lidos por outros arquivos: escrita e leitura só em pt-BR (desde a 0.46.0)
 
-Os rótulos e títulos abaixo são escritos em pt-BR pelas skills e pelos agentes que produzem o formato. Quem **lê** um deles (comandos, o `coordinator`, a `external-clis`) aceita também a forma em inglês, para não quebrar `PLAN.md` e relatórios escritos antes da 0.43.0. A leitura nas duas formas vale até a 0.46.0 (fatia S5, que trava o inglês); depois dela, só pt-BR.
+Os rótulos e títulos abaixo são escritos em pt-BR pelas skills e pelos agentes que produzem o formato. Quem **lê** um deles (comandos, o `coordinator`, a `external-clis`) lê só a forma em pt-BR. Da 0.43.0 à 0.45.0 os leitores aceitavam também a forma em inglês, para não quebrar `PLAN.md` e relatórios escritos antes da 0.43.0; a 0.46.0 encerrou essa leitura e o `dh validate` reprova a forma em inglês (coluna "Inglês") nas fontes do kit. Um `PLAN.md` ou um relatório com os rótulos antigos precisa ter os rótulos renomeados à mão.
 
-| pt-BR (escrita) | Inglês (também lido) | Quem lê | Quem escreve |
+| pt-BR (escrita e leitura) | Inglês (forma antiga, reprovada) | Quem lê | Quem escreve |
 |---|---|---|---|
 | `## Decisões necessárias` | `## Decisions needed` | `.commands/plan.md` (página de aprovação) | `implementation-planning`, `implementation-planner` |
 | `### Fatia <n> (<id>)` | `### Slice <n> (<id>)` | `.commands/review.md` | `implementation-planning`, `implementation-planner` |

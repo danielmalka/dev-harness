@@ -93,7 +93,7 @@ defeito está verde. -->
 
 - Conclusão: <o que foi entregue, em uma frase>
 - Arquivos alterados: `<caminho>`, `<caminho>`
-- Checks: `<comando>` → passou / falhou / não executado (<motivo>)
+- Checagens: `<comando>` → passou / falhou / não executado (<motivo>)
 - Limitações: <o que não foi verificado ou ficou pendente>
 - Pendências para o Coordenador: <decisão, incidente, atualização de memória>
 - Próximo passo: <ação concreta> · autorização necessária: <qual>

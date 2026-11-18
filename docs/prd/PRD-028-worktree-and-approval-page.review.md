@@ -1,54 +1,56 @@
-# Review: PRD-028
+# Revisão: PRD-028
 
-## Round 1
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
 
-| Field | Value |
+## Rodada 1
+
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-028-worktree-and-approval-page.md |
-| Source | ~/.harness/projects/dev-harness/tasks/AUTO-1/BRIEF.md |
-| Round | 1 of 2 |
-| Verdict | changes required |
-| Updated | 2026-10-28 |
+| Documento | docs/prd/PRD-028-worktree-and-approval-page.md |
+| Fonte | ~/.harness/projects/dev-harness/tasks/AUTO-1/BRIEF.md |
+| Rodada | 1 de 2 |
+| Veredito | changes required |
+| Atualizado | 2026-10-28 |
 
-Identifiers P1 to P3 are assigned in this file, since round 1 is its first record. The claims were checked by the Coordinator against `cmd/dh/main.go` and the runtime guard.
+Os identificadores P1 a P3 são atribuídos neste arquivo, pois a rodada 1 é o primeiro registro dele. O Coordenador conferiu as afirmações contra `cmd/dh/main.go` e a trava de runtime.
 
-## Findings
+## Achados
 
-- **P1** [applied] [category not recorded] (blocking) Rule R3 described the behaviour of `dh config unset` in a way the code does not match.
-  - Location: PRD-028 R3
-  - Resolution: corrected by product-discovery, round 1.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P2** [applied] [conflict] (blocking) R12 claimed the runtime guard blocks `git worktree`; the guard does not block it.
-  - Location: PRD-028 R12
-  - Evidence: the Coordinator's check of the guard code.
-  - Resolution: corrected by product-discovery, round 1.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P3** [applied] [ambiguity] (blocking) R10 used the word "slice" ambiguously.
-  - Location: PRD-028 R10
-  - Resolution: corrected by product-discovery, round 1.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- Four non-blocking findings were raised in round 1. Their text is not in the Coordinator's record, so they are not reproduced here. Corrected by product-discovery, round 1.
+- **P1** [applied] [categoria não registrada] (blocking) A regra R3 descrevia o comportamento de `dh config unset` de um jeito que o código não confirma.
+  - Local: PRD-028 R3
+  - Resolução: corrigido pelo product-discovery, rodada 1.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P2** [applied] [conflict] (blocking) R12 afirmava que a trava de runtime bloqueia `git worktree`; a trava não o bloqueia.
+  - Local: PRD-028 R12
+  - Evidência: a checagem do Coordenador no código da trava.
+  - Resolução: corrigido pelo product-discovery, rodada 1.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P3** [applied] [ambiguity] (blocking) R10 usava a palavra "fatia" de forma ambígua.
+  - Local: PRD-028 R10
+  - Resolução: corrigido pelo product-discovery, rodada 1.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- Quatro achados não bloqueantes foram levantados na rodada 1. O texto deles não está no registro do Coordenador, por isso não é reproduzido aqui. Corrigidos pelo product-discovery, rodada 1.
 
-## Not raised
+## Não levantado
 
-- Round 1 checks recorded by the Coordinator: the claims about `dh config unset` and the runtime guard were checked against the code.
+- Checagens da rodada 1 registradas pelo Coordenador: as afirmações sobre `dh config unset` e sobre a trava de runtime foram conferidas contra o código.
 
-## Round 2
+## Rodada 2
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-028-worktree-and-approval-page.md |
-| Source | ~/.harness/projects/dev-harness/tasks/AUTO-1/BRIEF.md |
-| Round | 2 of 2 (cap reached) |
-| Verdict | approved |
-| Updated | 2026-10-28 |
+| Documento | docs/prd/PRD-028-worktree-and-approval-page.md |
+| Fonte | ~/.harness/projects/dev-harness/tasks/AUTO-1/BRIEF.md |
+| Rodada | 2 de 2 (limite atingido) |
+| Veredito | approved |
+| Atualizado | 2026-10-28 |
 
-## Findings
+## Achados
 
-- P1 to P3 carried forward from round 1, all `applied`; closed in round 2.
-- No new blocking finding.
+- P1 a P3 levados da rodada 1, todos `applied`; fechados na rodada 2.
+- Nenhum achado bloqueante novo.
 
-## Not raised
+## Não levantado
 
-- Round 2 verdict from cli:agy/gemini-3.8-flash-high: 0 blocking findings.
-- Later amendments: after round 2 the PRD was amended three times, to R1 to R64. The owner approved the PRD on 2026-10-27. The amendments were checked in the ADR-008 rounds and in the PLAN rounds, not in a PRD review round.
+- Veredito da rodada 2 de cli:agy/gemini-3.8-flash-high: 0 achados bloqueantes.
+- Emendas posteriores: depois da rodada 2 o PRD foi emendado três vezes, até R1 a R64. O dono aprovou o PRD em 2026-10-27. As emendas foram conferidas nas rodadas da ADR-008 e nas rodadas do PLAN, não numa rodada de revisão do PRD.

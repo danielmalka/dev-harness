@@ -1,69 +1,71 @@
-# Review: PRD-023
+# Revisão: PRD-023
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-023-review-skills-from-pr-audit.md |
-| Source | Owner-approved scope, chat 2026-10-16 (Coordinator dispatch); owner decisions 2026-10-16 round 2 (copying allowed; security-audit amendment, items 7-13 + refuter + exclusions); AGENTS.md |
-| Round | 2 of 2 |
-| Verdict | approved |
-| Updated | 2026-10-16 |
+| Documento | docs/prd/PRD-023-review-skills-from-pr-audit.md |
+| Fonte | Escopo aprovado pelo dono, chat 2026-10-16 (despacho do Coordenador); decisões do dono 2026-10-16 rodada 2 (cópia permitida; emenda security-audit, itens 7-13 + refutador + exclusões); AGENTS.md |
+| Rodada | 2 de 2 |
+| Veredito | approved |
+| Atualizado | 2026-10-16 |
 
-## Findings
+## Achados
 
-- **P1** [closed by owner] [conflict] §2 sentences near-copied pr-audit.
-  - Resolution: owner released akitaonrails/my-skills for literal use (2026-10-16); license text removed; R14 provenance rule replaces "no copied text" (§6:134).
-  - Reported by: claude
-- **P2** [applied] [conflict] The version bump was optional and a pending decision.
-  - Resolution: §2:61, R21 and §4:96-99 set 0.30.0 per the AGENTS.md tag rule; §6:137 and Appendix:156 both "none".
-  - Reported by: claude
-- **P3** [applied] [weak criterion] R9 dist list, clean-clone proof, generated_at.
-  - Resolution: R16 lists the dist paths; R17 allows the generated_at line; R18 clean-clone proof.
-  - Reported by: claude
-- **P4** [applied] [ambiguity] Repo file names in the shipped skill text.
-  - Resolution: §2:30 and item 2 keep generic examples; R2 greps status-cases|fixture_parity absent from .skills.
-  - Reported by: claude
-- **P5** [applied] [weak criterion] Greps already hit; caps per item.
-  - Resolution: narrower patterns; R19 per-file caps; R20 covers the four files.
-  - Reported by: claude
-- **P6** [applied] [ambiguity] Item 5 overlap with the Dependencies and Configuration rows.
-  - Resolution: §2:43 extends checklist.md:42-43, no duplicate row; R5 checks.
-  - Reported by: claude
-- **P7** [applied in part] [organization] (non-blocking) Sentence length.
-  - Resolution: R10 wording fixed (R17). §2:57 still has a 22-word procedural sentence.
-  - Reported by: claude
-- **P8** [pending] [organization] (non-blocking) §2 items ordered 1-5, 7-13, 6; R5 "places that section 2 names" has no SKILL.md place for the item 5 security-fix, proof and refuter bullets.
-  - Location: §2, R5
-  - Suggestion: restore numeric order; name the step for each item 5 SKILL.md bullet
-  - Reported by: claude
-- **P9** [pending] [weak criterion] (non-blocking) R7, R8, R10, R13 grep one anchor; dismissal reason, no-gate, mocks hiding side effects, retrieved text as data, scoped cache/index keys are checked only by reading.
-  - Location: §3 R7, R8, R10, R13
-  - Suggestion: add "and the row also says ..." clauses
-  - Reported by: claude
-- **P10** [pending] [organization] (non-blocking) R5 note puts the existing "author's reasoning" hit in security-review, but it is in code-review/SKILL.md:178; R19 "at most" vs "stay under".
-  - Location: §3 R5, R19
-  - Reported by: claude
+- **P1** [fechado pelo dono] [conflict] As frases da §2 quase copiam o pr-audit.
+  - Resolução: o dono liberou akitaonrails/my-skills para uso literal (2026-10-16); texto de licença removido; a regra de procedência da R14 substitui "nenhum texto copiado" (§6:134).
+  - Reportado por: claude
+- **P2** [applied] [conflict] O aumento de versão era opcional e uma decisão em aberto.
+  - Resolução: §2:61, R21 e §4:96-99 fixam 0.30.0 pela regra de tag do AGENTS.md; §6:137 e Apêndice:156 dizem ambos "nenhuma".
+  - Reportado por: claude
+- **P3** [applied] [weak criterion] Lista de dist da R9, prova de clone limpo, generated_at.
+  - Resolução: a R16 lista os caminhos de dist; a R17 permite a linha generated_at; a R18 é a prova de clone limpo.
+  - Reportado por: claude
+- **P4** [applied] [ambiguity] Nomes de arquivo do repositório no texto da skill entregue.
+  - Resolução: §2:30 e o item 2 mantêm exemplos genéricos; a R2 faz grep de que `status-cases|fixture_parity` estão ausentes de .skills.
+  - Reportado por: claude
+- **P5** [applied] [weak criterion] Greps que já davam hit; limites por item.
+  - Resolução: padrões mais estreitos; a R19 tem limites por arquivo; a R20 cobre os quatro arquivos.
+  - Reportado por: claude
+- **P6** [applied] [ambiguity] Sobreposição do item 5 com as linhas Dependencies e Configuration.
+  - Resolução: a §2:43 estende checklist.md:42-43, sem linha duplicada; a R5 checa.
+  - Reportado por: claude
+- **P7** [aplicado em parte] [organization] (`non-blocking`) Tamanho das frases.
+  - Resolução: redação da R10 corrigida (R17). A §2:57 ainda tem uma frase procedural de 22 palavras.
+  - Reportado por: claude
+- **P8** [pending] [organization] (`non-blocking`) Os itens da §2 estão na ordem 1-5, 7-13, 6; os "lugares que a seção 2 nomeia" da R5 não têm lugar no SKILL.md para os itens de correção de segurança, prova e refutador do item 5.
+  - Local: §2, R5
+  - Sugestão: restaure a ordem numérica; nomeie o passo de cada item do SKILL.md do item 5
+  - Reportado por: claude
+- **P9** [pending] [weak criterion] (`non-blocking`) R7, R8, R10 e R13 fazem grep de uma âncora só; motivo de descarte, ausência de gate, mocks que escondem efeitos colaterais, texto recuperado como dado e chaves de cache/índice com escopo são checados só por leitura.
+  - Local: §3 R7, R8, R10, R13
+  - Sugestão: acrescente cláusulas "e a linha também diz ..."
+  - Reportado por: claude
+- **P10** [pending] [organization] (`non-blocking`) A nota da R5 põe o hit existente de `author's reasoning` em security-review, mas ele está em code-review/SKILL.md:178; R19 "no máximo" contra "ficam abaixo de".
+  - Local: §3 R5, R19
+  - Reportado por: claude
 
-## Not raised
+## Não levantado
 
-- Amendment mapping: item 7 -> R7, 8 -> R8, 9 -> R9, 10 -> R10, 11 -> R11, 12 -> R12 (step 10), 13 -> R13; refuter (Coordinator dispatch, finding + code evidence only, reviewer never spawns) -> §2:46 and R5.
-- security-audit exclusions all in §5:120-126 (6-phase audit, alert triage/PATCH, running scanners/test gate, ecosystem-checks.md, security-surface.sh / no dh subcommand, output template, disclosure policy); R22 checks script, subcommand, ecosystem-checks.
-- pr-audit items 1-6 and their exclusions still map (§2, R1-R6, §5:111-116); counts 13 / 19 + 1 in R15.
-- Pre-change greps return 0 in the three skill dirs for: sibling call, hand-maintained, belongs in the tree, new entry point, assertion failure, narrowed, baseline, weaken, hardening, tool policy, control case, fail closed, reporter, and author's reasoning in security-review. fingerprint hits only security-review/SKILL.md:117, while R11 greps checklist.md.
-- Caps fit the item count: code-review 14 for items 1-4 plus sources; regression-testing 4 for item 6 plus sources; security-review SKILL 18 for item 5 bullets, 7, 9, 12 plus sources; checklist 24 for the new and extended rows.
-- Release facts hold: defaultVersion build.go:20, marketplace.json version :14 and ref :24, dist plugin.json and harness-manifest.json versions come from the build. The root harness-manifest.json is regenerated by the build (build.go:238), not hand-edited. GENERATED.txt is static.
-- No licensing remnant; §6 and Appendix both say no pending decision; §4 Docs evidence unchanged and holds.
-- Shape follows templates/en/PRD.md plus the PRD-022 §5/§6 precedent; English; rules carry Verifiable lines.
+- Mapa da emenda: item 7 -> R7, 8 -> R8, 9 -> R9, 10 -> R10, 11 -> R11, 12 -> R12 (passo 10), 13 -> R13; refutador (despacho do Coordenador, só o achado e a evidência do código, o revisor nunca cria agentes) -> §2:46 e R5.
+- Todas as exclusões do security-audit estão em §5:120-126 (auditoria de 6 fases, triagem de alertas/PATCH, execução de scanners/gate de testes, ecosystem-checks.md, security-surface.sh / nenhum subcomando do dh, template de saída, política de divulgação); a R22 checa script, subcomando, ecosystem-checks.
+- Os itens 1-6 do pr-audit e suas exclusões continuam mapeados (§2, R1-R6, §5:111-116); contagens 13 / 19 + 1 na R15.
+- Os greps anteriores à mudança retornam 0 nos três diretórios de skill para: `sibling call`, `hand-maintained`, `belongs in the tree`, `new entry point`, `assertion failure`, `narrowed`, `baseline`, `weaken`, `hardening`, `tool policy`, `control case`, `fail closed`, `reporter` e `author's reasoning` em security-review. `fingerprint` dá hit só em security-review/SKILL.md:117, enquanto a R11 faz grep em checklist.md.
+- Os limites cabem na contagem de itens: code-review 14 para os itens 1-4 mais as fontes; regression-testing 4 para o item 6 mais as fontes; SKILL de security-review 18 para os itens do 5, 7, 9, 12 mais as fontes; checklist 24 para as linhas novas e estendidas.
+- Os fatos de release se sustentam: `defaultVersion` em build.go:20, `version` do marketplace.json em :14 e `ref` em :24; as versões de plugin.json e harness-manifest.json de dist vêm do build. O harness-manifest.json da raiz é regenerado pelo build (build.go:238), não editado à mão. GENERATED.txt é estático.
+- Nenhum resto de licenciamento; §6 e Apêndice dizem ambos que não há decisão em aberto; a evidência da §4 Documentação não mudou e se sustenta.
+- A forma segue templates/en/PRD.md mais o precedente da §5/§6 do PRD-022; em inglês; as regras trazem linhas Verificável.
 
-## Docs amendment, 1 of 1 (2026-10-16)
+## Emenda de docs, 1 de 1 (2026-10-16)
 
-- Review status: approved (0 blocking). Scope: §4 Docs and R16 only.
-- **P11** [pending] [organization] (non-blocking) §4:92 Evidence grep says it "lists these files only", but after this change README.md and README.en.md (line 20, PRD-023 summary) also match.
-  - Location: §4 line 92
-  - Suggestion: "on the base, before this change, lists these files only: ..."
-  - Reported by: claude
+- Status da revisão: `approved` (0 `blocking`). Escopo: só a §4 Documentação e a R16.
+- **P11** [pending] [organization] (`non-blocking`) O grep de Evidência da §4:92 diz que "lista só estes arquivos", mas depois desta mudança README.md e README.en.md (linha 20, resumo do PRD-023) também casam.
+  - Local: §4 linha 92
+  - Sugestão: "na base, antes desta mudança, lista só estes arquivos: ..."
+  - Reportado por: claude
 
-### Not raised
+### Não levantado
 
-- §4:100 adds README.md and README.en.md (line 20, version 0.30.0 / tag v0.30.0, summary naming PRD-023). This matches the release precedent and the working tree; the READMEs left "Not affected" (§4:106).
-- R16 stays consistent: "the release files in section 4" now includes the READMEs; they are not copied into dist/, so R16's dist path list is unchanged.
-- The Evidence grep is pre-change evidence, not a Verifiable rule; no other §4 line changed.
+- A §4:100 acrescenta README.md e README.en.md (linha 20, versão 0.30.0 / tag v0.30.0, resumo que nomeia o PRD-023). Isso casa com o precedente de release e com a árvore de trabalho; os READMEs saíram de "Não afetados" (§4:106).
+- A R16 continua consistente: "os arquivos de release da seção 4" agora inclui os READMEs; eles não são copiados para dist/, então a lista de caminhos de dist da R16 não muda.
+- O grep de Evidência é evidência anterior à mudança, não uma regra Verificável; nenhuma outra linha da §4 mudou.

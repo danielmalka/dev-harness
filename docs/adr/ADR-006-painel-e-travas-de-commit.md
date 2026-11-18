@@ -14,8 +14,8 @@
 - Pergunta: como entregar a todo consumidor a barra de status e as travas de commit que hoje só existem num mod pessoal do dono.
 - Fato: o mod pessoal não é portátil; só roda na máquina do dono.
 - Fato: o ADR-005 já estabeleceu mods TypeScript no plugin, com falha aberta.
-- Fato: o `hooks.json` aceita uma só entrada em `modules` (`claude plugin validate`: "names one hooks module per plugin; a second entry is refused"); por isso `panel.ts` é a entrada única e encadeia as travas do `runtime-guard.ts`. `runtime-guard.ts` continua dono da lógica das travas e do teste unitário delas; o encadeamento em `panel.ts` é coberto por `panel.engine.test.ts` (spawn com `parentAgentId` negado; `Write`/`Edit` em `.harness/MEMORY.md` com `agentId` negado).
-- Observado na implementação: um segundo `on("agent.spawn")` sem matcher no mesmo plugin também é recusado ("on(\"agent.spawn\") is registered twice without a matcher"), então o encadeamento é feito dentro do mesmo handler.
+- Fato: o `hooks.json` aceita uma só entrada em `modules` (`claude plugin validate`: `names one hooks module per plugin; a second entry is refused`); por isso `panel.ts` é a entrada única e encadeia as travas do `runtime-guard.ts`. `runtime-guard.ts` continua dono da lógica das travas e do teste unitário delas; o encadeamento em `panel.ts` é coberto por `panel.engine.test.ts` (spawn com `parentAgentId` negado; `Write`/`Edit` em `.harness/MEMORY.md` com `agentId` negado).
+- Observado na implementação: um segundo `on("agent.spawn")` sem matcher no mesmo plugin também é recusado (`on("agent.spawn") is registered twice without a matcher`), então o encadeamento é feito dentro do mesmo handler.
 
 ## 2. Decisão
 

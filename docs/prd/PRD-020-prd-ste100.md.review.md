@@ -1,88 +1,90 @@
-# Review: PRD-020
+# Revisão: PRD-020
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-020-prd-ste100.md (+ ~/.harness/projects/dev-harness/tasks/T-2001/TASK.md) |
-| Source | Owner decisions 2026-10-13 (Coordinator dispatch, points 1-7) |
-| Round | 2 of 2 |
-| Verdict | changes required |
-| Updated | 2026-10-13 |
+| Documento | docs/prd/PRD-020-prd-ste100.md (+ ~/.harness/projects/dev-harness/tasks/T-2001/TASK.md) |
+| Fonte | Decisões do dono 2026-10-13 (despacho do Coordenador, pontos 1-7) |
+| Rodada | 2 de 2 |
+| Veredito | `changes required` |
+| Atualizado | 2026-10-13 |
 
-## Findings
+## Achados
 
-- **P1** [pending] [conflict] Deleting `templates/pt-br/PRD.md` fails the mirror check in `checkTemplateRefs` (validate.go:501-521). A Go change is then needed, which contradicts R10 and source points 2 and 7.
-  - Location: §2 line 30, R4, R8, R10, §6 (c); T-2001 §3.2, R10, §8
-  - Evidence: validate.go:514-519; validate_test.go:39
-  - Suggestion: keep pt-br/PRD.md as a byte-identical copy of the English template (count stays 14), or get an owner decision for a PRD exception in `validate.go` and amend R10 and §5
-  - Reported by: claude
-- **P2** [pending] [conflict] `dh config set language` writes `<home>/config.yaml` (the global default), not `project.yaml`.
-  - Location: §2 line 33, R7, §6 (d); T-2001 §3.4
-  - Evidence: internal/harness/config_set.go:13-48; docs/tutorial.html:772
-  - Suggestion: the Coordinator proposes an edit of `language` in `<harness dir>/project.yaml` and writes it after the owner agrees
-  - Reported by: claude
-- **P3** [pending] [gap] `.commands/document.md:18` (`templates/<lang>/PRD.md`) and `.agents/docs-guide.md:59` (PRD written in `language`) are not in R6 or in T-2001's authorization.
-  - Location: R6; T-2001 Autorização
-  - Evidence: R6's grep over `.commands` fails; source point 1
-  - Suggestion: add both files to R6 and to the authorization
-  - Reported by: claude
-- **P4** [pending] [gap] The Docs list misses the roadmaps' line 678 ("7 templates espelhados por idioma"), the tutorials' line 740 and README.md/README.en.md line 69.
-  - Location: §4; T-2001 §5
-  - Evidence: source point 6; doc_counts.go:65-87 (a one-noun line is not checked)
-  - Suggestion: list these lines explicitly
-  - Reported by: claude
-- **P5** [pending] [ambiguity] The §6 line 79 sentence has about 70 words, above R11's 25-word limit (style only, non-blocking).
-  - Location: §6 line 79
-  - Evidence: R11
-  - Suggestion: one list item per assumption
-  - Reported by: claude
-- **P6** [pending] [weak criterion] The R7 grep does not cover `.commands/setup.md` (non-blocking).
-  - Location: R7
-  - Evidence: setup.md:22
-  - Suggestion: add setup.md to the grep
-  - Reported by: claude
+- **P1** [pending] [conflict] Apagar `templates/pt-br/PRD.md` falha na checagem de espelho de `checkTemplateRefs` (validate.go:501-521). Aí é preciso uma mudança em Go, o que contradiz R10 e os pontos 2 e 7 da fonte.
+  - Local: §2 linha 30, R4, R8, R10, §6 (c); T-2001 §3.2, R10, §8
+  - Evidência: validate.go:514-519; validate_test.go:39
+  - Sugestão: manter pt-br/PRD.md como cópia idêntica byte a byte do template em inglês (a contagem continua 14), ou obter uma decisão do dono para uma exceção de PRD em `validate.go` e emendar R10 e §5
+  - Reportado por: claude
+- **P2** [pending] [conflict] `dh config set language` grava `<home>/config.yaml` (o padrão global), não `project.yaml`.
+  - Local: §2 linha 33, R7, §6 (d); T-2001 §3.4
+  - Evidência: internal/harness/config_set.go:13-48; docs/tutorial.html:772
+  - Sugestão: o Coordenador propõe uma edição de `language` em `<harness dir>/project.yaml` e a grava depois que o dono concordar
+  - Reportado por: claude
+- **P3** [pending] [gap] `.commands/document.md:18` (`templates/<lang>/PRD.md`) e `.agents/docs-guide.md:59` (PRD escrito em `language`) não estão em R6 nem na autorização de T-2001.
+  - Local: R6; T-2001 Autorização
+  - Evidência: o `grep` de R6 sobre `.commands` falha; ponto 1 da fonte
+  - Sugestão: acrescentar os dois arquivos a R6 e à autorização
+  - Reportado por: claude
+- **P4** [pending] [gap] A lista de Docs não traz a linha 678 dos roadmaps ("7 templates espelhados por idioma"), a linha 740 dos tutoriais e a linha 69 de README.md/README.en.md.
+  - Local: §4; T-2001 §5
+  - Evidência: ponto 6 da fonte; doc_counts.go:65-87 (uma linha de um só substantivo não é conferida)
+  - Sugestão: listar essas linhas explicitamente
+  - Reportado por: claude
+- **P5** [pending] [ambiguity] A frase da linha 79 da §6 tem cerca de 70 palavras, acima do limite de 25 palavras de R11 (só de estilo, não bloqueante).
+  - Local: §6 linha 79
+  - Evidência: R11
+  - Sugestão: um item de lista por premissa
+  - Reportado por: claude
+- **P6** [pending] [weak criterion] O `grep` de R7 não cobre `.commands/setup.md` (não bloqueante).
+  - Local: R7
+  - Evidência: setup.md:22
+  - Sugestão: acrescentar setup.md ao `grep`
+  - Reportado por: claude
 
-## Not raised
+## Não levantado
 
-- Source points 1-7 each map to §2, R1-R14 and §5. No excess was found.
-- The named lines exist: project-onboarding:66, coordinator.md Language (73-74) and Executed summary (70), product-discovery:53, requirements-discovery:98.
-- The dashboard already parses `delivered on` (R9). The template count is 14 today, and doc_counts checks only anchored multi-noun lines (R8). No Go code names `PRD.md`.
-- R1-R14 IDs are unique. T-2001's lane and role match AGENTS.md.
+- Cada um dos pontos 1-7 da fonte corresponde a §2, R1-R14 e §5. Nenhum excesso foi encontrado.
+- As linhas citadas existem: project-onboarding:66, coordinator.md Language (73-74) e Executed summary (70), product-discovery:53, requirements-discovery:98.
+- O dashboard já lê `delivered on` (R9). A contagem de templates é 14 hoje, e doc_counts confere só as linhas ancoradas com vários substantivos (R8). Nenhum código em Go nomeia `PRD.md`.
+- Os ids R1-R14 são únicos. A lane e o papel de T-2001 batem com o AGENTS.md.
 
-## Coordinator disposition (round 1)
+## Disposição do Coordenador (rodada 1)
 
-- P1: Coordinator picked the no-Go path: `templates/pt-br/PRD.md` stays as a byte-identical copy of `templates/en/PRD.md`. Spot-checked `checkTemplateRefs` in `internal/kit/validate.go:501-521`.
-- P2-P6: returned to the author.
+- P1: o Coordenador escolheu o caminho sem Go: `templates/pt-br/PRD.md` continua como cópia idêntica byte a byte de `templates/en/PRD.md`. Conferência por amostragem de `checkTemplateRefs` em `internal/kit/validate.go:501-521`.
+- P2-P6: devolvidos ao autor.
 
-## Round 2 (2026-10-13)
+## Rodada 2 (2026-10-13)
 
-- Review status: changes required (1 blocking, new)
-- P1 [applied] pt-br PRD template stays a byte-identical copy (§2, R4, R8, R10, §6). No Go change.
-- P2 [applied] Coordinator edits `<harness dir>/project.yaml`; `dh config set` is only the machine default. Leftover text in R7 filed as P7.
-- P3 [applied] docs-guide.md:59 and document.md:18 added to R6 and to the T-2001 authorization.
-- P4 [applied] README lines 69-70, tutorial line 740 and roadmap line 678 added to §4 and T-2001 §5.
-- P5 [applied] §6 assumptions split into items.
-- P6 [applied] `setup.md` added to the R7 grep.
-- **P7** [pending] [conflict] R7 still said the Coordinator "proposes a `project.yaml` update", contradicting "no second confirmation" in §2, §6 and T-2001 §3.4.
-  - Location: §3 R7 (line 44)
-  - Suggestion: "on an explicit owner request to switch, edits `language` in `<harness dir>/project.yaml` with no second confirmation"; add `grep -n "switch only after agreement" .agents/coordinator.md` is empty.
-  - Reported by: claude
+- Status da revisão: `changes required` (1 bloqueante, novo)
+- P1 [applied] o template de PRD pt-br continua como cópia idêntica byte a byte (§2, R4, R8, R10, §6). Sem mudança em Go.
+- P2 [applied] o Coordenador edita `<harness dir>/project.yaml`; `dh config set` é só o padrão da máquina. O texto restante em R7 foi registrado como P7.
+- P3 [applied] docs-guide.md:59 e document.md:18 acrescentados a R6 e à autorização de T-2001.
+- P4 [applied] linhas 69-70 do README, linha 740 do tutorial e linha 678 do roadmap acrescentadas a §4 e a T-2001 §5.
+- P5 [applied] premissas da §6 divididas em itens.
+- P6 [applied] `setup.md` acrescentado ao `grep` de R7.
+- **P7** [pending] [conflict] R7 ainda dizia que o Coordenador "propõe uma atualização de `project.yaml`", contradizendo "sem segunda confirmação" em §2, §6 e T-2001 §3.4.
+  - Local: §3 R7 (linha 44)
+  - Sugestão: "a pedido explícito do dono para trocar, edita `language` em `<harness dir>/project.yaml` sem segunda confirmação"; acrescentar `grep -n "switch only after agreement" .agents/coordinator.md` vazio.
+  - Reportado por: claude
 
-## Coordinator disposition (round 2, cap reached)
+## Disposição do Coordenador (rodada 2, limite atingido)
 
-- P7: the owner delegated the batch and is absent. The fix only aligns R7 with §2 and §6, which the owner-delegated decisions already set. The author applied the validator's exact suggestion. No third validation round ran. Flagged to the owner in the batch report for later review.
+- P7: o dono delegou o lote e está ausente. A correção só alinha R7 a §2 e §6, que as decisões delegadas pelo dono já fixam. O autor aplicou a sugestão exata do validador. Nenhuma terceira rodada de validação rodou. Sinalizado ao dono no relatório do lote para revisão posterior.
 
-## Amendment revalidation (2026-10-13, one round)
+## Revalidação da emenda (2026-10-13, uma rodada)
 
-Amendment: R10 allows `internal/kit/status_drift.go` and `adapters/claude-code/plugin/hooks/status-drift.ts` (plus tests) to accept `delivered on`; R6 adds "Solution" and the AGENTS.md language bullet; R1/R2/R6/R7 split for R11. Found by code review (T-2001 round 1) and QA.
+Emenda: R10 permite que `internal/kit/status_drift.go` e `adapters/claude-code/plugin/hooks/status-drift.ts` (mais os testes) aceitem `delivered on`; R6 acrescenta `Solution` e o item de idioma do AGENTS.md; R1/R2/R6/R7 divididos para R11. Achada pela revisão de código (T-2001 rodada 1) e pelo QA.
 
-- Review status: changes required (1 blocking)
-- **P7** [applied] [conflict] R7 now says edit with no second confirmation, verified by the `switch only after agreement` grep.
-- **P8** [pending] [conflict] §2 line 30 ("no Go change is needed") and §6 line 107 ("No new code") contradict the amended R10. §6 has no record of the status-drift amendment decision.
-  - Location: §2 line 30, §6 line 107
-  - Evidence: R10 lines 69-74; status_drift.go:82; status-drift.ts:35
-  - Suggestion: scope line 30 to the template, add a §2 bullet for both forms, and add a §6 Coordinator decision line
-  - Reported by: claude
+- Status da revisão: `changes required` (1 bloqueante)
+- **P7** [applied] [conflict] R7 agora diz editar sem segunda confirmação, verificado pelo `grep` de `switch only after agreement`.
+- **P8** [pending] [conflict] §2 linha 30 ("nenhuma mudança em Go é necessária") e §6 linha 107 ("Nenhum código novo") contradizem o R10 emendado. A §6 não tem registro da decisão da emenda de status-drift.
+  - Local: §2 linha 30, §6 linha 107
+  - Evidência: R10 linhas 69-74; status_drift.go:82; status-drift.ts:35
+  - Sugestão: restringir a linha 30 ao template, acrescentar um item na §2 para as duas formas e acrescentar uma linha de decisão do Coordenador na §6
+  - Reportado por: claude
 
-## Coordinator disposition (amendment round)
+## Disposição do Coordenador (rodada da emenda)
 
-- P8: owner absent, batch delegated. The author applied the validator's exact text. No further round ran. Flagged to the owner in the batch report.
+- P8: dono ausente, lote delegado. O autor aplicou o texto exato do validador. Nenhuma outra rodada rodou. Sinalizado ao dono no relatório do lote.

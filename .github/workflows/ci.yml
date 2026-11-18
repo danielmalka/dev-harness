@@ -11,24 +11,24 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Test
+      - name: Testes
         run: go test ./...
-      - name: Validate sources
+      - name: Validar fontes
         run: go run ./cmd/dh validate --source-only .
-      - name: Rebuild package
+      - name: Regenerar pacote
         run: go run ./cmd/dh build
-      - name: Package matches committed sources and binaries
+      - name: Pacote igual às fontes e aos binários versionados
         run: |
           git diff --exit-code --stat -- dist ':(exclude)dist/claude-code/dev-harness/harness-manifest.json' ':(exclude)dist/claude-code/dev-harness/GENERATED.txt'
-      - name: Validate package
+      - name: Validar pacote
         run: go run ./cmd/dh validate .
       # The fixture starts red on purpose (the exercise is to fix it): it must fail
       # with exactly the 2 expected failures, not pass and not break another way.
-      - name: Fixture fails as expected
+      - name: Fixture falha como esperado
         working-directory: evals/fixtures/slice-01
         run: |
           if python3 -m unittest test_greet.py > "$RUNNER_TEMP/fixture.log" 2>&1; then
-            echo "::error::the fixture passes; it must start red"
+            echo "::error::a fixture passou; ela deve começar vermelha"
             exit 1
           fi
           tail -3 "$RUNNER_TEMP/fixture.log"
@@ -42,9 +42,9 @@ jobs:
       # access (ADR-005), and this job exists to catch a break when it changes.
       # It tests the committed package (what users install); the `kit` job proves
       # that package matches the sources.
-      - name: Install Claude Code CLI
+      - name: Instalar a CLI do Claude Code
         run: npm install -g @anthropic-ai/claude-code@latest
-      - name: Mod tests
+      - name: Testes dos mods
         run: |
           # The runner shell is `bash -e` without pipefail: without this line `tee`
           # hides the exit code of the CLI and a failed test still turns the job green.

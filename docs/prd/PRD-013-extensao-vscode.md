@@ -122,7 +122,7 @@ Entrega e limites
   runtime; `.vsix` sem arquivos `.exe`/ELF.
 - R16 CI do `dev-harness-vscode` roda lint, checagem de tipos, testes unitários e empacota o `.vsix` a cada push; a cada tag
   anotada `v*` o CI anexa o `.vsix` ao release do GitHub. Verificável: workflow verde em um push; release de teste com o
-  `.vsix` anexado e instalável por "Install from VSIX" numa janela limpa.
+  `.vsix` anexado e instalável por `Install from VSIX` numa janela limpa.
 - R17 Fora de escopo: publicação no Marketplace, OTEL, Agent SDK, interface de chat, controle ou envio de entrada a sessões
   (além de R12), runtimes que não são Claude Code, reimplementar o dashboard em TypeScript, notificações e toasts.
   Verificável: revisão final do PRD contra o diff.

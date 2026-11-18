@@ -1,59 +1,61 @@
-# Review: PRD-025
+# Revisão: PRD-025
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-025-coordinator-orchestrates.md |
-| Source | Owner decisions (2026-10-16) and roadmap card "O Coordenador orquestra, não executa" (docs/roadmap.html ~L1726) |
-| Round | 2 of 2 |
-| Reviewer | cli:agy/gemini-3.8-flash-high |
-| Verdict | approved |
-| Updated | 2026-10-16 |
+| Documento | docs/prd/PRD-025-coordinator-orchestrates.md |
+| Fonte | Decisões do dono (2026-10-16) e card do roadmap "O Coordenador orquestra, não executa" (docs/roadmap.html ~L1726) |
+| Rodada | 2 de 2 |
+| Revisor | cli:agy/gemini-3.8-flash-high |
+| Veredito | `approved` |
+| Atualizado | 2026-10-16 |
 
-## Findings
+## Achados
 
-- **P1** [applied] [conflict] Delegation of consolidation output and local.yaml in Solution contradicts memory ownership rules, R2, line 54, and R7
-  - Location: section 2, line 52
-  - Resolution: Author updated Section 2 Table, assigning candidate-*.md to docs-guide, while keeping consolidation and local.yaml writing with the Coordinator (dispatching only git check-ignore to qa-verifier per line 48), round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P2** [applied] [conflict] R5 allowlist reusing protectedHit excludes other harness files and contradicts R7
-  - Location: section 3, line 76 (Rule R5)
-  - Resolution: Author replaced protectedHit reuse with dedicated check covering any path inside the harness dir (.harness/ or <home>/projects/<name>/), round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P3** [applied] [ambiguity] Unspecified warning mechanism and Write new-file semantics produce incompatible implementations
-  - Location: section 3, line 76 (Rule R5) & Appendix line 156
-  - Resolution: Author defined Write triggers (>5 lines or creation of new file) and clarified the test contract as an observable pure function in hooks/lib/ returning warning text or undefined, round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P4** [applied] [gap] Section 4 Docs omits .agents/docs-guide.md and .skills/document-review/SKILL.md
-  - Location: section 4, lines 90-104 & section 3, line 79 (Rule R8)
-  - Resolution: Author added .agents/docs-guide.md and .skills/document-review/SKILL.md to the Section 4 update list, round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P5** [applied] [organization] Suggested ticket T-2503 uses placeholder lane teste (...)
-  - Location: section Appendix, line 137
-  - Resolution: Author replaced placeholder ellipsis with concrete lane teste (unitário e integração), round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P6** [applied] [organization] Descriptive sentences in R5 and R10 exceed ASD-STE100 word limits
-  - Location: section 3, lines 76 and 81
-  - Resolution: Author broke the descriptive sentences in R5 and R10 into concise sentences under 25 words, round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
+- **P1** [applied] [conflict] A delegação da saída de consolidação e do local.yaml na Solução contradiz as regras de posse da memória, a R2, a linha 54 e a R7
+  - Local: seção 2, linha 52
+  - Resolução: O autor atualizou a tabela da seção 2, atribuindo candidate-*.md ao docs-guide e mantendo a escrita da consolidação e do local.yaml com o Coordenador (despachando ao qa-verifier só o git check-ignore, conforme a linha 48), rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P2** [applied] [conflict] A lista de permissão da R5 que reusa protectedHit exclui outros arquivos do harness e contradiz a R7
+  - Local: seção 3, linha 76 (Regra R5)
+  - Resolução: O autor trocou o reúso de protectedHit por uma checagem dedicada que cobre qualquer caminho dentro do harness dir (.harness/ ou <home>/projects/<name>/), rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P3** [applied] [ambiguity] O mecanismo de aviso não especificado e a semântica de arquivo novo no Write produzem implementações incompatíveis
+  - Local: seção 3, linha 76 (Regra R5) e Apêndice, linha 156
+  - Resolução: O autor definiu os gatilhos do Write (mais de 5 linhas ou criação de arquivo novo) e esclareceu o contrato de teste como uma função pura observável em hooks/lib/ que devolve o texto do aviso ou undefined, rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P4** [applied] [gap] A seção 4 Docs omite .agents/docs-guide.md e .skills/document-review/SKILL.md
+  - Local: seção 4, linhas 90-104 e seção 3, linha 79 (Regra R8)
+  - Resolução: O autor acrescentou .agents/docs-guide.md e .skills/document-review/SKILL.md à lista de atualização da seção 4, rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P5** [applied] [organization] O ticket sugerido T-2503 usa a lane teste com um marcador (...)
+  - Local: seção Apêndice, linha 137
+  - Resolução: O autor trocou as reticências do marcador pela lane teste concreta (unitário e integração), rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P6** [applied] [organization] Frases descritivas na R5 e na R10 passam dos limites de palavras do ASD-STE100
+  - Local: seção 3, linhas 76 e 81
+  - Resolução: O autor quebrou as frases descritivas da R5 e da R10 em frases concisas de menos de 25 palavras, rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
 
-## Not raised
+## Não levantado
 
-- R1: Coordinator does not read repository, grep, build, validate or run checks itself; dispatches repo-scout and qa-verifier.
-- R2: Coordinator keeps own records (MEMORY.md, EPOCHAL.md, RISKS.md) and ticket status flip with Concluído em / Done on.
-- R3: 5 changed lines limit proposal for direct edits in existing files with no new file.
-- R4 & R11: CLI review mechanics dispatched to qa-verifier or builder lane infra, with freeze rule binding the delegate and Coordinator merging verdicts.
-- R5, R6 & R7: Mod warn rule specifications: warn-only, never denying, failing open, ignoring specialists (agentId present), excluding Bash, and preserving memory protection deny rules.
-- R8: docs-guide writes PRD Executed summary and persists <document>.review.md.
-- R9: Definition of "Judge" restricted to reading reports and cited evidence, with spot-checks converted to dispatches.
-- R10: One-line scope rule addition to AGENTS.md prevailing over inline trivial work.
-- R12: Invariant counts of 13 agents and 19 + 1 commands unchanged.
-- R13: Version 0.31.0 in internal/build/build.go, marketplace.json, and git ref.
-- R14: Invariant that dist/ is regenerated exclusively by go run ./cmd/dh build.
-- R15 & R16: Deterministic verification commands (dh validate, go test, clean-clone proof due to internal/build/build.go).
-- R17: Prohibition of private machine paths verified against checkPrivatePaths.
-- R18: External CLI calls executed as single standalone commands starting with binary name without wrappers or chaining.
+- R1: O Coordenador não lê o repositório, não faz grep, não faz build, não valida nem roda checagens por conta própria; despacha repo-scout e qa-verifier.
+- R2: O Coordenador mantém os próprios registros (MEMORY.md, EPOCHAL.md, RISKS.md) e a mudança de status do ticket com `Concluído em / Done on`.
+- R3: Proposta de limite de 5 linhas alteradas para edições diretas em arquivos existentes, sem arquivo novo.
+- R4 e R11: A mecânica de revisão por CLI é despachada ao qa-verifier ou à lane infra do builder, com a regra de congelamento obrigando o delegado e o Coordenador consolidando os vereditos.
+- R5, R6 e R7: Especificações da regra de aviso do mod: só avisa, nunca nega, falha aberta, ignora especialistas (agentId presente), exclui o Bash e preserva as regras de negação da proteção de memória.
+- R8: O docs-guide escreve o Resumo executado do PRD e persiste <document>.review.md.
+- R9: Definição de "Julgar" restrita a ler relatórios e a evidência citada, com as conferências por amostragem convertidas em despachos.
+- R10: Acréscimo de uma regra de escopo de uma linha ao AGENTS.md, que prevalece sobre o trabalho trivial feito em linha.
+- R12: Contagens invariantes de 13 agentes e 19 + 1 comandos sem mudança.
+- R13: Versão 0.31.0 em internal/build/build.go, marketplace.json e na ref do git.
+- R14: Invariante de que o dist/ é regenerado exclusivamente por go run ./cmd/dh build.
+- R15 e R16: Comandos de verificação determinísticos (dh validate, go test, prova de clone limpo por causa de internal/build/build.go).
+- R17: Proibição de caminhos privados da máquina, verificada contra checkPrivatePaths.
+- R18: Chamadas de CLI externa executadas como comandos únicos e isolados que começam pelo nome do binário, sem invólucros nem encadeamento.
 
-## Post-validation amendment (2026-10-16)
+## Emenda pós-validação (2026-10-16)
 
-- R18 changed after round 2 (approved). A dispatched qa-verifier measured that a subagent's working directory does not persist between Bash calls, so the three-command `cd` sequence for clone calls was replaced by the binary's own working-directory flag, with `cd "$CLONE" && <binary>` as the only exception for a binary without one. The agy recipe gained the rule to treat a complete reply on disk as the result and stop a process that outlives `--print-timeout`.
-- Not revalidated: the two-round cap is used. Owner disposition requested.
+- A R18 mudou depois da rodada 2 (`approved`). Um qa-verifier despachado mediu que o diretório de trabalho de um subagente não persiste entre chamadas do Bash; por isso a sequência de três comandos com `cd` para as chamadas de clone foi trocada pela flag de diretório de trabalho do próprio binário, com `cd "$CLONE" && <binary>` como a única exceção para um binário sem essa flag. A receita do agy ganhou a regra de tratar uma resposta completa em disco como o resultado e de parar um processo que sobrevive ao `--print-timeout`.
+- Não revalidado: o limite de duas rodadas está usado. Disposição do dono solicitada.

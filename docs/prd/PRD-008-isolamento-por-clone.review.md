@@ -1,57 +1,59 @@
-# Review · PRD-008 · round 1
+# Revisão · PRD-008 · rodada 1
 
-- Panel (reviewers.document; the PRD touches security): claude (document-validator, opus requested, effective unverified) — changes required. cli:grok/grok-4.7 and cli:codex/gpt-5.6-luna — not-run: the Coordinator wrote to the tree (AGENTS.md migration and .harness records) while their calls were in flight, which invalidates the freeze comparison; grok was stopped mid-call and codex never started. Post-stop freeze diff shows only the Coordinator's four known writes. No correction round is spent for them; both run in round 2.
-- Date: 2026-09-29.
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
 
-## Verdict
-- changes required
-- Blocking findings: 5
+- Painel (reviewers.document; o PRD toca em segurança): claude (document-validator, opus solicitado, efetivo não verificado) — `changes required`. cli:grok/grok-4.7 e cli:codex/gpt-5.6-luna — `not-run`: o Coordenador gravou na árvore (migração do AGENTS.md e registros de .harness) enquanto as chamadas deles estavam em andamento, o que invalida a comparação do congelamento; o grok foi interrompido no meio da chamada e o codex nunca começou. O diff de congelamento posterior à parada mostra só as quatro gravações conhecidas do Coordenador. Nenhuma rodada de correção é gasta com eles; os dois rodam na rodada 2.
+- Data: 2026-09-29.
 
-## Findings
-- P1 · conflict · blocking · §2, Apêndice (D1, first risk). The residual is understated as ".git/hooks and .git/config". The shared common dir also holds refs/, packed-refs, objects/, info/exclude (writable from inside the worktree without absolute paths, e.g. `git update-ref`, appending to info/exclude which blinds the live-tree path list); and the live tree stays reachable by absolute path (the worktree's .git file and `git worktree list` reveal it), so the RISK-002 round-9 vector (self-ignored .gitignore + _test.go in the live tree) remains outside R8. Suggestion: state the full residual, say which items R8 detects and which not, and either extend R8 (for-each-ref, packed-refs, info/ of the common dir, `--ignored` on the live-tree list) or record each undetected item as an accepted residual under D1. Reported by: claude
-- P2 · conflict · blocking · §3 R14, R15. The eval writes inside the worktree, where R3 guarantees .harness/ does not exist — it passes by construction and never exercises the RISK-002 threat; the ".git/hooks" action is unspecified (relative write fails with ENOTDIR); no case writes the live tree by absolute path. Suggestion: add fixture actions (i) absolute write to the live .harness/project.yaml, (ii) write to $(git rev-parse --git-common-dir)/hooks/<name>, (iii) plant .gitignore + _test.go in the live tree, with the expected verdict for each. Reported by: claude
-- P3 · ambiguity · blocking · §3 R7 (with R12, R14). Whether the in-worktree comparison includes ignored paths is undefined: reading A accepts planted ignored files, reading B discards every call that ran commands.test (R12). Suggestion: name the exact comparison and how test artifacts are treated; state verdict and not-run status per fixture action. Reported by: claude
-- P4 · conflict · blocking · §2 ("isolamento verificado"), R10, R4. Prevention is claimed where only detection exists; the texts R10 amends justify planners by "must be unable to write" and "the freeze is a detector, not a sandbox", and R10 does not say how that justification changes; R4 is hygiene, not a control. Suggestion: reword §2; have R10 require the three texts to state the detection-only distinction; mark R4 as hygiene. Reported by: claude
-- P5 · ambiguity · blocking · §3 R2, R5, R6, R13, R8. "Kit path" and "orphan" are undefined; parallel dispatch B could prune A's live worktree or an owner's worktree; `git worktree lock` unused; R8 may flag the kit's own worktree. Suggestion: name prefix `dh-cli-<call-id>` plus `git worktree lock --reason <call-id>`; orphan = prefixed and unlocked by a live call; never touch unprefixed worktrees; R8 excludes the call's own worktree or runs after R5. Reported by: claude
-- P6 · organization · non-blocking · D2 (codex half), D6 settled by R16 and .commands/plan-loop.md; D1 vs R15 provisional; D5 is a probe result. Reported by: claude
-- P7 · organization · non-blocking · H1 confirmed by the Coordinator's check — move to Fatos. Reported by: claude
+## Veredito
+- `changes required`
+- Achados bloqueantes: 5
 
-## Not raised
-- Problem statement, goal traceability, per-binary read-only status, F1/F4/F5, R10 count, R11 contract preservation, R13 cap, R14 cost rule, R3/R9 fail-closed, R16 boundaries, Docs list and format: all traced and consistent.
+## Achados
+- P1 · conflict · blocking · §2, Apêndice (D1, primeiro risco). O residual é subestimado como ".git/hooks e .git/config". O diretório comum compartilhado também guarda `refs/`, `packed-refs`, `objects/`, `info/exclude` (graváveis de dentro do worktree sem caminhos absolutos, por exemplo `git update-ref`, acrescentando a info/exclude, o que cega a lista de caminhos da árvore viva); e a árvore viva continua alcançável por caminho absoluto (o arquivo .git do worktree e o `git worktree list` a revelam), de modo que o vetor da rodada 9 do RISK-002 (.gitignore autoignorado + _test.go na árvore viva) continua fora do R8. Sugestão: declarar o residual por inteiro, dizer quais itens o R8 detecta e quais não, e ou estender o R8 (`for-each-ref`, `packed-refs`, `info/` do diretório comum, `--ignored` na lista da árvore viva) ou registrar cada item não detectado como residual aceito sob a D1. Reportado por: claude
+- P2 · conflict · blocking · §3 R14, R15. A avaliação grava dentro do worktree, onde o R3 garante que .harness/ não existe — ela passa por construção e nunca exercita a ameaça do RISK-002; a ação ".git/hooks" não está especificada (a escrita relativa falha com ENOTDIR); nenhum caso grava na árvore viva por caminho absoluto. Sugestão: acrescentar ações de fixture (i) escrita absoluta em .harness/project.yaml da árvore viva, (ii) escrita em $(git rev-parse --git-common-dir)/hooks/<name>, (iii) plantar .gitignore + _test.go na árvore viva, com o veredito esperado para cada uma. Reportado por: claude
+- P3 · ambiguity · blocking · §3 R7 (com R12, R14). Não está definido se a comparação dentro do worktree inclui caminhos ignorados: a leitura A aceita arquivos ignorados plantados, a leitura B descarta toda chamada que rodou commands.test (R12). Sugestão: nomear a comparação exata e como os artefatos de teste são tratados; declarar o veredito e o status `not-run` por ação de fixture. Reportado por: claude
+- P4 · conflict · blocking · §2 ("isolamento verificado"), R10, R4. Afirma-se prevenção onde só existe detecção; os textos que o R10 emenda justificam os planejadores por "deve ser incapaz de gravar" e "o congelamento é um detector, não uma sandbox", e o R10 não diz como essa justificativa muda; o R4 é higiene, não um controle. Sugestão: reescrever o §2; fazer o R10 exigir que os três textos declarem a distinção de só detectar; marcar o R4 como higiene. Reportado por: claude
+- P5 · ambiguity · blocking · §3 R2, R5, R6, R13, R8. "caminho do kit" e "órfão" não estão definidos; o despacho paralelo B poderia podar o worktree vivo de A ou um worktree do dono; `git worktree lock` não é usado; o R8 pode sinalizar o próprio worktree do kit. Sugestão: nomear o prefixo `dh-cli-<call-id>` mais `git worktree lock --reason <call-id>`; órfão = com prefixo e destravado por uma chamada viva; nunca tocar em worktrees sem prefixo; o R8 exclui o worktree da própria chamada ou roda depois do R5. Reportado por: claude
+- P6 · organization · non-blocking · D2 (metade do codex), D6 assentada pelo R16 e por .commands/plan-loop.md; D1 vs R15 provisório; D5 é um resultado de sonda. Reportado por: claude
+- P7 · organization · non-blocking · H1 confirmada pela checagem do Coordenador — mover para Fatos. Reportado por: claude
+
+## Não levantado
+- Enunciado do problema, rastreabilidade do objetivo, status somente leitura por binário, F1/F4/F5, contagem do R10, preservação do contrato do R11, limite do R13, regra de custo do R14, falha fechada do R3/R9, fronteiras do R16, lista e formato de Docs: tudo rastreado e consistente.
 
 ---
 
-# Review · PRD-008 · round 2 (final)
+# Revisão · PRD-008 · rodada 2 (final)
 
-- Panel: claude — changes required (P1–P7 applied; new P8, P9). cli:grok/grok-4.7 (detached, freeze clean; verdict recovered, line without "- ") — changes required. cli:codex/gpt-5.6-luna (freeze clean; verdict recovered) — changes required. Raw CLI outputs: .harness/tasks/PRD-008/evidence/{grok,codex}-r2.out. Round cap reached (2 of 2).
+- Painel: claude — `changes required` (P1–P7 aplicados; novos P8, P9). cli:grok/grok-4.7 (desacoplado, congelamento limpo; veredito recuperado, linha sem "- ") — `changes required`. cli:codex/gpt-5.6-luna (congelamento limpo; veredito recuperado) — `changes required`. Saídas brutas das CLIs: .harness/tasks/PRD-008/evidence/`{grok,codex}-r2.out`. Limite de rodadas atingido (2 de 2).
 
-## Verdict
-- changes required
+## Veredito
+- `changes required`
 
-## Findings (merged; equivalent points share one entry)
-### Live .git metadata outside the snapshot (.git/index, logs/, worktrees/) — skip-worktree and global fsmonitor can hide tracked-file edits
-- Reported by: claude — "the CLI edits a clean tracked file ... then runs `git -C <live> update-index --skip-worktree` ... A `core.fsmonitor = <command>` in `~/.gitconfig` is executed by the post-call `git status`."
-- Reported by: cli:codex/gpt-5.6-luna — "Writable live metadata such as `.git/index`, `.git/logs/`, `.git/worktrees/` ... is not listed as detected or accepted residual."
-### Owner acceptance of residuals (a), (b), (e) attributed without a record
-- Reported by: claude
-### R2 "system temp dir" vs R9 "kit temp dir" undefined as the same root
-- Reported by: cli:grok/grok-4.7; cli:codex/gpt-5.6-luna
-### Lock marker at the clone root breaks R3's match (should live in `<clone>/.git/`)
-- Reported by: cli:grok/grok-4.7
-### R3's match compares against R5's --ignored photograph (ambiguous; must use only the judged set)
-- Reported by: cli:grok/grok-4.7
-### agy without the cwd probe: stays on the live tree for review, does not plan (R1 vs §2 wording)
-- Reported by: cli:grok/grok-4.7
-### §1 claims detection of anything outside the clone; only the live tree is detected
-- Reported by: cli:grok/grok-4.7
-### Residual (b) "git push undetected" vs R5 detecting live-ref moves
-- Reported by: cli:grok/grok-4.7
-### ADR-002 §3 "never writes to disk / any change discards" not covered by R12/R14 amendments
-- Reported by: cli:grok/grok-4.7
-### A planted ignored _test.go in the clone can influence the reviewer's own `commands.test` run
-- Reported by: cli:codex/gpt-5.6-luna
-### (non-blocking) D1 marked "bloqueia R6" though R6 already fixes "note only"
-- Reported by: cli:grok/grok-4.7
+## Achados (mesclados; pontos equivalentes compartilham uma entrada)
+### Metadados .git vivos fora do instantâneo (.git/index, logs/, worktrees/) — skip-worktree e fsmonitor global podem esconder edições de arquivos rastreados
+- Reportado por: claude — "a CLI edita um arquivo rastreado limpo ... depois roda `git -C <live> update-index --skip-worktree` ... Um `core.fsmonitor = <command>` em `~/.gitconfig` é executado pelo `git status` posterior à chamada."
+- Reportado por: cli:codex/gpt-5.6-luna — "Metadados vivos graváveis como `.git/index`, `.git/logs/`, `.git/worktrees/` ... não estão listados como detectados nem como residual aceito."
+### Aceitação pelo dono dos residuais (a), (b), (e) atribuída sem registro
+- Reportado por: claude
+### R2 "diretório temporário do sistema" vs R9 "diretório temporário do kit" não definidos como a mesma raiz
+- Reportado por: cli:grok/grok-4.7; cli:codex/gpt-5.6-luna
+### O marcador de trava na raiz do clone quebra a correspondência do R3 (deveria ficar em `<clone>/.git/`)
+- Reportado por: cli:grok/grok-4.7
+### A correspondência do R3 compara com a fotografia `--ignored` do R5 (ambíguo; deve usar só o conjunto julgado)
+- Reportado por: cli:grok/grok-4.7
+### agy sem a sonda de cwd: fica na árvore viva para revisão, não planeja (R1 vs redação do §2)
+- Reportado por: cli:grok/grok-4.7
+### O §1 afirma detecção de qualquer coisa fora do clone; só a árvore viva é detectada
+- Reportado por: cli:grok/grok-4.7
+### Residual (b) "git push não detectado" vs R5 detectando movimentos de ref viva
+- Reportado por: cli:grok/grok-4.7
+### ADR-002 §3 "nunca grava em disco / qualquer mudança descarta" não coberto pelas emendas do R12/R14
+- Reportado por: cli:grok/grok-4.7
+### Um _test.go ignorado plantado no clone pode influenciar a própria execução de `commands.test` do revisor
+- Reportado por: cli:codex/gpt-5.6-luna
+### (não bloqueante) D1 marcada como "bloqueia R6" embora o R6 já fixe "só nota"
+- Reportado por: cli:grok/grok-4.7
 
-## Owner disposition (2026-09-29)
-- The owner accepted residuals (a) writes outside the project, (b) surviving processes / network / push to non-live remotes, (e) reading and returning secrets, until the OS-sandbox batch; and the Coordinator's recommendation to close the index/fsmonitor hole. All other findings are mechanical and are applied in one final correction, checked by the Coordinator (no third validation round).
+## Disposição do dono (2026-09-29)
+- O dono aceitou os residuais (a) escritas fora do projeto, (b) processos que sobrevivem / rede / push para remotos que não são o vivo, (e) leitura e devolução de segredos, até o lote de sandbox do SO; e aceitou a recomendação do Coordenador de fechar a brecha do índice/fsmonitor. Todos os outros achados são mecânicos e são aplicados em uma correção final, conferida pelo Coordenador (sem terceira rodada de validação).

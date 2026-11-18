@@ -102,7 +102,7 @@ Resumo: convites expirados devem ser recusados. Duas fatias.
 
 Papéis: `implementation-planner`, `coordinator`, `architect`, `builder`, `qa-verifier`. Comandos: `/dh:plan`, `/dh:plan-loop`. Skills: `requirements-discovery`, `repository-mapping`, `architecture-decisions`, `incremental-implementation`, `regression-testing`, `context-handoff`, `external-clis` (despacha um planejador de CLI contra este formato de saída; veja a "chamada de planejamento" dela).
 
-A resposta de um planejador de CLI segue o formato de saída por inteiro. O teste de falha de transporte da `external-clis` confere só um título `## Plano` (ou títulos `### Fatia N`; até a 0.46.0 casam também `## Plan` e `### Slice N`, de um plano escrito antes da 0.43.0) que nomeie um objetivo e uma fatia; uma resposta que passa nisso mas está incompleta é julgada pelos revisores da onda, não descartada.
+A resposta de um planejador de CLI segue o formato de saída por inteiro. O teste de falha de transporte da `external-clis` confere só um título `## Plano` (ou títulos `### Fatia N`) que nomeie um objetivo e uma fatia; uma resposta que passa nisso mas está incompleta é julgada pelos revisores da onda, não descartada.
 
 ## Caso de prova
 

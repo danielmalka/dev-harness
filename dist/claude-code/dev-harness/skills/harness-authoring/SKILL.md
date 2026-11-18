@@ -38,7 +38,7 @@ Este procedimento produz ou muda um ativo deste kit: um agente, uma skill, um co
 | A versão do kit ou a identidade do checkout do harness | Registre o estado do checkout de que você partiu e marque a versão como desconhecida em vez de adivinhá-la. |
 | Resultados de linha de base existentes para o ativo | Capture o estado anterior. Se rodadas em modelo não estiverem disponíveis, distinga a correção estática da melhora comportamental não medida e reporte esse limite. |
 | Procedência de qualquer material emprestado: origem e licença | Não o incorpore. Nomear uma fonte não torna o conteúdo dela disponível. Escreva o procedimento você mesmo ou deixe a lacuna registrada. |
-| Idioma dos fontes do kit | O kit é só pt-BR (ADR-011): prosa, títulos, `description`, exemplos e mensagens saem em pt-BR; fica em inglês só o identificador (chaves, comandos, nomes de agente e de arquivo, slugs de skill, código), entre crases quando citado no texto. Comentários de código e mensagens de commit do kit seguem o que o repositório define (`AGENTS.md`, `CONTRIBUTING.md`: inglês). |
+| Idioma dos fontes do kit | O kit é só pt-BR (ADR-011): prosa, títulos, `description`, exemplos e mensagens saem em pt-BR; fica em inglês só o identificador (chaves, comandos, nomes de agente e de arquivo, slugs de skill, código), entre crases quando citado no texto. Comentários de código e mensagens de commit do kit seguem o que o repositório define (`AGENTS.md`, `CONTRIBUTING.md`: inglês). Desde a 0.46.0 o `dh validate` reprova, com arquivo e linha, os marcadores do formato antigo em inglês (lista fixa em `internal/kit/legacy_markers.go`): uma fonte que os traga não passa. |
 
 ## Procedimento
 

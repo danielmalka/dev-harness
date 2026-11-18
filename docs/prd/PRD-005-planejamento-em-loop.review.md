@@ -1,199 +1,201 @@
-# Review: PRD-005 — round 1 (merged)
+# Revisão: PRD-005 — rodada 1 (mesclada)
 
-Evaluated state: the first draft of `docs/prd/PRD-005-planejamento-em-loop.md`. Source: `.harness/tasks/UND-003/GRILL.md` (G1–G17). Round cap: 6, owner decision of 2026-09-25.
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
 
-| Reviewer | Verdict |
+Estado avaliado: o primeiro rascunho de `docs/prd/PRD-005-planejamento-em-loop.md`. Fonte: `.harness/tasks/UND-003/GRILL.md` (G1–G17). Limite de rodadas: 6, decisão do dono de 2026-09-25.
+
+| Revisor | Veredito |
 |---|---|
-| `claude` (document-validator, opus requested, effective unverified) | changes required: 5 blocking, 2 non-blocking |
-| `cli:codex/gpt-5.6-luna` (`-s read-only`) | changes required: 4 blocking, 1 non-blocking |
-| `cli:grok/grok-4.7` | changes required: 6 blocking, 2 non-blocking |
+| `claude` (document-validator, opus solicitado, efetivo não verificado) | `changes required`: 5 bloqueantes, 2 não bloqueantes |
+| `cli:codex/gpt-5.6-luna` (`-s read-only`) | `changes required`: 4 bloqueantes, 1 não bloqueante |
+| `cli:grok/grok-4.7` | `changes required`: 6 bloqueantes, 2 não bloqueantes |
 
-## Verdict
-- changes required
+## Veredito
+- `changes required`
 
-## Findings (merged). Each item cites its reporters. The disposition follows the owner's answers in grill round 4 (G18–G23).
+## Achados (mesclados). Cada item cita quem o reportou. A disposição segue as respostas do dono na rodada 4 do grill (G18–G23).
 
-- R1: convergence is described as "zero blockers" and "without reservations", but the owner decided unanimous approval (G9). The PRD also does not say what happens when a reviewer is not-run.
-  - Reported by: claude (P1), cli:codex/gpt-5.6-luna (P2).
-  - Disposition: G9 + G22. The loop converges when every reviewer that ran returns `approved` for the winning plan and at least one of them is from another vendor. Non-blocking findings do not prevent convergence.
-- R2: the no-CLI fallback is described as the unchanged `/plan` with a cap of 6, but the kit text still says 2.
-  - Reported by: cli:codex/gpt-5.6-luna (P1).
-  - Disposition: the kit-wide 6-cap batch becomes an explicit prerequisite of this PRD's implementation. The fallback runs the post-migration `/plan`.
-- R3: a tie in blocking findings makes AC-07 untestable.
-  - Reported by: cli:codex/gpt-5.6-luna (P3).
-  - Disposition: G18. The plan with fewer total findings wins. If that also ties, Claude's plan wins.
-- R4: the PRD does not say that it authorizes no implementation, or that implementation is third in the queue.
-  - Reported by: cli:codex/gpt-5.6-luna (P4).
-  - Disposition: add both as a constraint.
-- R5: the CLI planner pool is treated as decided (`reviewers.document`) and is also listed as pending. The case of 3 or more CLIs is undefined.
-  - Reported by: claude (P3), cli:grok/grok-4.7 (P6, P7), cli:codex/gpt-5.6-luna (P5).
-  - Disposition: G19. Reuse `reviewers.document`, and cycle through the CLIs in list order. Remove the "reviewer-only CLI" clause.
-- R6: the PRD does not say what happens to a wave whose CLI plan was discarded.
-  - Reported by: claude (P4), cli:grok/grok-4.7 (P5).
-  - Disposition: G20. The turn passes to the next CLI in the same wave. If none is left, the wave continues with Claude's plan alone: no comparison, no stall, and the wave counts toward the cap.
-- R7: the dispatch-cap check timing is ambiguous, and so is whether failed dispatches count.
-  - Reported by: claude (P2).
-  - Disposition: G21. The cap is checked before opening a wave, an opened wave always finishes, and failed dispatches count.
-- R8: the planner prompt body does not carry the read-only / no-write instruction or the anti-delegation clause (RISK-001), and its source is undefined.
-  - Reported by: claude (P5).
-  - Disposition: the prompt is built from the `implementation-planner` body, the `implementation-planning` text and the wave context. Its body carries three things verbatim: the no-write instruction, an anti-delegation clause worded for planning (exact wording fixed in the implementation batch), and the reading-is-allowed block. Extend AC-05 to check that the prompt contains them.
-- R9: blind writing is attributed to the owner (G2), but it was a design choice.
-  - Reported by: claude (P6, non-blocking), cli:grok/grok-4.7 (P4).
-  - Disposition: G23 now makes it an owner decision. Wave 1 is blind; later waves refine from the winner without seeing the other's new draft. Cite G23.
-- R10: "teto atingido" is applied inconsistently. G11 is only about ending at a cap without convergence.
-  - Reported by: cli:grok/grok-4.7 (P3).
-  - Disposition: the "teto atingido" line appears only when the loop stops at the wave cap or the dispatch cap without converging.
-- R11: AC-01 says `PLAN.md` and its `TASK.md` files are the only artifacts, which conflicts with the per-wave persistence (G12), the dollar estimate (G8) and the open-blockers list (G11).
-  - Reported by: cli:grok/grok-4.7 (P8).
-  - Disposition: list every artifact. Per wave, under `wave-N/`: both plans, both reviews and the winner record. Final: the winning `PLAN.md`/`TASK.md` and a report with the stop reason, the dispatch count, the dollar estimate and any open blockers.
-- Non-blocking:
-  - The eval-coverage target in Sinal 1 goes beyond the grill. Reported by: cli:grok/grok-4.7 (P1). Disposition: soften it to an implementation-plan concern.
-  - A malformed table row. Reported by: cli:grok/grok-4.7 (P2). Disposition: fix it.
-  - The basis of the dollar estimate. Reported by: claude (P7). Disposition: leave the basis to the implementation batch and say so.
+- R1: a convergência é descrita como "zero bloqueadores" e "sem ressalvas", mas o dono decidiu a aprovação unânime (G9). O PRD também não diz o que acontece quando um revisor fica `not-run`.
+  - Reportado por: claude (P1), cli:codex/gpt-5.6-luna (P2).
+  - Disposição: G9 + G22. O loop converge quando todo revisor que rodou devolve `approved` para o plano vencedor e pelo menos um deles é de outro fornecedor. Achados não bloqueantes não impedem a convergência.
+- R2: o fallback sem CLI é descrito como o `/plan` inalterado com limite de 6, mas o texto do kit ainda diz 2.
+  - Reportado por: cli:codex/gpt-5.6-luna (P1).
+  - Disposição: o lote do limite de 6 em todo o kit passa a ser pré-requisito explícito da implementação deste PRD. O fallback roda o `/plan` pós-migração.
+- R3: um empate em achados bloqueantes torna o AC-07 intestável.
+  - Reportado por: cli:codex/gpt-5.6-luna (P3).
+  - Disposição: G18. Vence o plano com menos achados no total. Se isso também empatar, vence o plano do Claude.
+- R4: o PRD não diz que não autoriza nenhuma implementação, nem que a implementação é a terceira da fila.
+  - Reportado por: cli:codex/gpt-5.6-luna (P4).
+  - Disposição: acrescentar as duas coisas como restrição.
+- R5: o conjunto de CLIs planejadoras é tratado como decidido (`reviewers.document`) e também aparece como pendente. O caso de 3 ou mais CLIs não está definido.
+  - Reportado por: claude (P3), cli:grok/grok-4.7 (P6, P7), cli:codex/gpt-5.6-luna (P5).
+  - Disposição: G19. Reaproveitar `reviewers.document` e percorrer as CLIs em rodízio, na ordem da lista. Remover a cláusula da "CLI só de revisão".
+- R6: o PRD não diz o que acontece com uma onda cujo plano da CLI foi descartado.
+  - Reportado por: claude (P4), cli:grok/grok-4.7 (P5).
+  - Disposição: G20. A vez passa para a CLI seguinte na mesma onda. Se não sobrar nenhuma, a onda continua só com o plano do Claude: sem comparação, sem travar, e a onda conta para o limite.
+- R7: o momento da checagem do limite de despachos é ambíguo, e também é ambíguo se os despachos que falharam contam.
+  - Reportado por: claude (P2).
+  - Disposição: G21. O limite é checado antes de abrir uma onda, uma onda aberta sempre termina, e os despachos que falharam contam.
+- R8: o corpo do prompt do planejador não traz a instrução de somente leitura / de não gravar nem a cláusula anti-delegação (RISK-001), e a sua origem não está definida.
+  - Reportado por: claude (P5).
+  - Disposição: o prompt é montado a partir do corpo do `implementation-planner`, do texto da `implementation-planning` e do contexto da onda. O corpo carrega três coisas literalmente: a instrução de não gravar, uma cláusula anti-delegação redigida para planejamento (redação exata fixada no lote de implementação) e o bloco que permite leitura. Estender o AC-05 para checar que o prompt as contém.
+- R9: a escrita às cegas é atribuída ao dono (G2), mas foi uma escolha de design.
+  - Reportado por: claude (P6, não bloqueante), cli:grok/grok-4.7 (P4).
+  - Disposição: G23 agora a torna uma decisão do dono. A onda 1 é às cegas; as ondas seguintes refinam a partir do vencedor sem ver o novo rascunho do outro. Citar G23.
+- R10: "teto atingido" é aplicado de forma inconsistente. G11 trata só do caso de terminar em um limite sem convergência.
+  - Reportado por: cli:grok/grok-4.7 (P3).
+  - Disposição: a linha "teto atingido" aparece só quando o loop para no limite de ondas ou no limite de despachos sem convergir.
+- R11: o AC-01 diz que `PLAN.md` e seus arquivos `TASK.md` são os únicos artefatos, o que conflita com a persistência por onda (G12), a estimativa em dólares (G8) e a lista de bloqueantes em aberto (G11).
+  - Reportado por: cli:grok/grok-4.7 (P8).
+  - Disposição: listar todos os artefatos. Por onda, sob `wave-N/`: os dois planos, as duas revisões e o registro do vencedor. No final: o `PLAN.md`/`TASK.md` vencedor e um relatório com o motivo da parada, a contagem de despachos, a estimativa em dólares e os bloqueantes em aberto.
+- Não bloqueantes:
+  - A meta de cobertura de avaliações no Sinal 1 vai além do grill. Reportado por: cli:grok/grok-4.7 (P1). Disposição: suavizar para uma preocupação do plano de implementação.
+  - Uma linha de tabela malformada. Reportado por: cli:grok/grok-4.7 (P2). Disposição: corrigir.
+  - A base da estimativa em dólares. Reportado por: claude (P7). Disposição: deixar a base para o lote de implementação e dizer isso.
 
-# Review: PRD-005 — round 2 (merged)
+# Revisão: PRD-005 — rodada 2 (mesclada)
 
-Evaluated state: the correction 1 draft of the PRD. Source: GRILL.md G1–G23.
+Estado avaliado: o rascunho da correção 1 do PRD. Fonte: GRILL.md G1–G23.
 
-| Reviewer | Verdict |
+| Revisor | Veredito |
 |---|---|
-| `claude` (document-validator, opus requested, effective unverified) | changes required: R1–R11 applied; 3 blocking (S1–S3), 5 non-blocking (N1–N5) |
-| `cli:codex/gpt-5.6-luna` (`-s read-only`) | changes required: R1–R11 not reopened; 4 blocking (S1–S4) |
-| `cli:grok/grok-4.7` | not-run: the state was superseded by correction 2 before its wave ran |
+| `claude` (document-validator, opus solicitado, efetivo não verificado) | `changes required`: R1–R11 aplicados; 3 bloqueantes (S1–S3), 5 não bloqueantes (N1–N5) |
+| `cli:codex/gpt-5.6-luna` (`-s read-only`) | `changes required`: R1–R11 não reabertos; 4 bloqueantes (S1–S4) |
+| `cli:grok/grok-4.7` | `not-run`: o estado foi substituído pela correção 2 antes de a sua onda rodar |
 
-## Verdict
-- changes required
+## Veredito
+- `changes required`
 
-## Findings (merged). The Coordinator's dispositions derive from G19–G21.
+## Achados (mesclados). As disposições do Coordenador derivam de G19–G21.
 
-- T1: the rotation rule is undefined in two cases: when a configured CLI does not resolve on this machine, and when a hand-off inside a wave leaves the next wave's CLI unclear.
-  - Reported by: claude (S1), cli:codex/gpt-5.6-luna (S2).
-  - Disposition:
-    - The rotation list is the resolvable `cli:` entries of `reviewers.document`, in list order, taken from the check at loop start (RF-02).
-    - Wave N's primary CLI is entry ((N−1) mod k). A hand-off inside a wave (RF-15) tries the following entries in order. It does not move the cursor: the next wave's primary CLI still depends only on its wave number.
-    - An entry that stops resolving on its turn is handled as in RF-15.
-    - Add ACs for an unresolvable configured entry and for the cursor after a hand-off.
-- T2: the PRD never says how to decide whether a wave "fits" under the dispatch cap.
-  - Reported by: claude (S2), cli:codex/gpt-5.6-luna (S1).
-  - Disposition:
-    - A wave fits when the remaining cap ≥ 2 + 2 × R, where R is the number of reviewers configured in `reviewers.document`: 2 planners plus each reviewer judging both plans.
-    - Hand-off attempts beyond that reservation still run, because an opened wave always finishes. They count toward the cap.
-    - Put a worked example in AC-11 (for R = 3: a wave reserves 8).
-- T3: artifacts. AC-01 conflicts with AC-03, and the fallback persistence is incomplete.
-  - Reported by: claude (S3), cli:codex/gpt-5.6-luna (S4).
-  - Disposition:
-    - AC-01 applies to the loop path only, meaning at least one resolvable CLI.
-    - The fallback follows the complete current `/plan` persistence contract: `PLAN.md`, per-slice `TASK.md`, ADRs when applicable, `PLAN.review.md`, and memory updates by the Coordinator.
-    - Loop mode also writes a base-level `PLAN.review.md`: the merged review of the final winning plan, so `/plan` consumers still find it. RF-12 and AC-01 must say so.
-- T4: the status line says "rodada 1 de 2", and §9 says the 2-round cap covers "inclusive deste PRD".
-  - Reported by: cli:codex/gpt-5.6-luna (S3), claude (N2).
-  - Disposition: write "rodada 2 de 6", and remove "inclusive deste PRD".
-- Non-blocking:
-  - N1: §6 says the wave cap inherits the kit-wide cap. Disposition: state that `wave_cap` has its own default of 6.
-  - N3: AC-05's last clause contradicts itself. Disposition: reword it as "o Coordenador é o único gravador do plano".
-  - N4: the PRD gives no test for "conteúdo de plano reconhecível". Disposition: the minimum signal is the required sections of the `implementation-planning` format (goal and slices). The exact check is deferred to implementation.
-  - N5: the PRD labels decisions as "textual" quotes. Disposition: write "decisão do dono, Gxx (registro do grill)".
-  - All non-blocking items reported by claude.
+- T1: a regra de rotação não está definida em dois casos: quando uma CLI configurada não resolve nesta máquina, e quando um repasse dentro de uma onda deixa a CLI da onda seguinte pouco clara.
+  - Reportado por: claude (S1), cli:codex/gpt-5.6-luna (S2).
+  - Disposição:
+    - A lista de rotação são as entradas `cli:` resolvíveis de `reviewers.document`, na ordem da lista, tomadas da checagem do início do loop (RF-02).
+    - A CLI primária da onda N é a entrada ((N−1) mod k). Um repasse dentro de uma onda (RF-15) tenta as entradas seguintes, em ordem. Ele não move o cursor: a CLI primária da onda seguinte continua dependendo só do número da onda.
+    - Uma entrada que deixa de resolver na sua vez é tratada como no RF-15.
+    - Acrescentar ACs para uma entrada configurada que não resolve e para o cursor depois de um repasse.
+- T2: o PRD nunca diz como decidir se uma onda "cabe" sob o limite de despachos.
+  - Reportado por: claude (S2), cli:codex/gpt-5.6-luna (S1).
+  - Disposição:
+    - Uma onda cabe quando o limite restante ≥ 2 + 2 × R, onde R é o número de revisores configurados em `reviewers.document`: 2 planejadores mais cada revisor julgando os dois planos.
+    - As tentativas de repasse além dessa reserva ainda rodam, porque uma onda aberta sempre termina. Elas contam para o limite.
+    - Pôr um exemplo trabalhado no AC-11 (para R = 3: uma onda reserva 8).
+- T3: artefatos. O AC-01 conflita com o AC-03, e a persistência do fallback está incompleta.
+  - Reportado por: claude (S3), cli:codex/gpt-5.6-luna (S4).
+  - Disposição:
+    - O AC-01 vale só para o caminho do loop, isto é, pelo menos uma CLI resolvível.
+    - O fallback segue o contrato completo de persistência do `/plan` atual: `PLAN.md`, `TASK.md` por fatia, ADRs quando couber, `PLAN.review.md` e atualizações de memória pelo Coordenador.
+    - O modo loop também grava um `PLAN.review.md` no nível base: a revisão mesclada do plano vencedor final, para que os consumidores do `/plan` ainda o encontrem. O RF-12 e o AC-01 devem dizer isso.
+- T4: a linha de status diz "rodada 1 de 2", e o §9 diz que o limite de 2 rodadas cobre "inclusive deste PRD".
+  - Reportado por: cli:codex/gpt-5.6-luna (S3), claude (N2).
+  - Disposição: escrever "rodada 2 de 6" e remover "inclusive deste PRD".
+- Não bloqueantes:
+  - N1: o §6 diz que o limite de ondas herda o limite válido em todo o kit. Disposição: declarar que `wave_cap` tem padrão próprio de 6.
+  - N3: a última cláusula do AC-05 se contradiz. Disposição: reescrevê-la como "o Coordenador é o único gravador do plano".
+  - N4: o PRD não dá teste para "conteúdo de plano reconhecível". Disposição: o sinal mínimo são as seções exigidas do formato da `implementation-planning` (objetivo e fatias). A checagem exata fica adiada para a implementação.
+  - N5: o PRD rotula decisões como citações "textuais". Disposição: escrever "decisão do dono, Gxx (registro do grill)".
+  - Todos os itens não bloqueantes foram reportados pelo claude.
 
-## Round 2: correction 2 dispatched to product-discovery.
+## Rodada 2: correção 2 despachada ao `product-discovery`.
 
-# Review: PRD-005 — round 3 (merged)
+# Revisão: PRD-005 — rodada 3 (mesclada)
 
-Evaluated state: the correction 2 draft.
+Estado avaliado: o rascunho da correção 2.
 
-| Reviewer | Verdict |
+| Revisor | Veredito |
 |---|---|
-| `claude` (document-validator, opus requested, effective unverified) | changes required: T1–T4 and N-ids applied, no R-id regressed; 3 blocking (U1–U3), 1 non-blocking (U4) |
-| `cli:grok/grok-4.7` | changes required: 2 blocking plus R11 partial; 2 non-blocking |
-| `cli:codex/gpt-5.6-luna` | not-run: state superseded by correction 3 before its wave |
+| `claude` (document-validator, opus solicitado, efetivo não verificado) | `changes required`: T1–T4 e os ids N aplicados, nenhum id R regrediu; 3 bloqueantes (U1–U3), 1 não bloqueante (U4) |
+| `cli:grok/grok-4.7` | `changes required`: 2 bloqueantes mais o R11 parcial; 2 não bloqueantes |
+| `cli:codex/gpt-5.6-luna` | `not-run`: estado substituído pela correção 3 antes da sua onda |
 
-## Verdict
-- changes required
+## Veredito
+- `changes required`
 
-## Findings (merged)
-The Coordinator decided every disposition below, deriving each from the named owner decisions.
+## Achados (mesclados)
+O Coordenador decidiu cada disposição abaixo, derivando cada uma das decisões do dono citadas.
 
-- V1 — Hand-off does not say whether the scan wraps past the last rotation entry. Reported by: claude (U1), cli:grok/grok-4.7 (U2).
-  - Disposition (G20, "não trava"): the hand-off is circular. It starts at the entry after the wave's primary and tries each of the k entries at most once per wave. The wave runs without a comparison only when all k entries failed in it.
-  - Assert this in AC-17.
-- V2 — "Melhor vencedor até aquele ponto" (G11) could mean the last wave's winner or the best winner across waves. Reported by: claude (U2).
-  - Disposition (G11 + G18): the best plan so far is the winner with the fewest blocking findings across all waves run. A tie goes to fewer total findings, and a remaining tie goes to the most recent wave.
-  - RF-12 writes that plan as `PLAN.md`, and its merged review becomes the base `PLAN.review.md`.
-  - Assert this in AC-12.
-- V3 — The loop path does not record ADRs or MEMORY updates, and RF-01 still describes the output as only `PLAN.md` and `TASK.md`. Reported by: claude (U3), cli:grok/grok-4.7 (R11 partial).
-  - Disposition: the loop path also writes ADRs when applicable, and the Coordinator updates `.harness/MEMORY.md`, as in `/dev-harness:plan`.
-  - RF-01 describes the final artifact as the full `/plan` contract plus the loop's extra artifacts, with no conflicting "only".
-  - AC-01 lists them.
-- V4 — A wave could be read as one scoring pass or as a nested `/plan` correction cycle. Reported by: cli:grok/grok-4.7 (U1).
-  - Disposition (G5: each wave is one review round): each candidate is reviewed once per wave. No planner is re-dispatched inside a wave, and open blockers feed the next wave (RF-08). The `/plan` correction cycle applies only to the no-CLI fallback.
-  - Add a criterion: a `changes required` verdict does not re-dispatch the planner within the same wave, and a wave makes 2×R review dispatches, plus any RF-15 hand-off.
-- Non-blocking:
-  - The "Não entra" bullet about more than two CLIs is reworded as claude suggested. Reported by: claude (U4).
-  - The §8 risk wrongly says `document-review` has `type: llm` graders. Correct it or drop it. Reported by: cli:grok/grok-4.7 (U3).
-  - The reference that credits G18–G23 with extending the CLI's role should cite G6 and G15 instead. Reported by: cli:grok/grok-4.7 (U4).
+- V1 — O repasse não diz se a varredura dá a volta depois da última entrada da rotação. Reportado por: claude (U1), cli:grok/grok-4.7 (U2).
+  - Disposição (G20, "não trava"): o repasse é circular. Ele começa na entrada seguinte à primária da onda e tenta cada uma das k entradas no máximo uma vez por onda. A onda roda sem comparação só quando as k entradas falharam nela.
+  - Afirmar isso no AC-17.
+- V2 — "Melhor vencedor até aquele ponto" (G11) pode significar o vencedor da última onda ou o melhor vencedor entre as ondas. Reportado por: claude (U2).
+  - Disposição (G11 + G18): o melhor plano até então é o vencedor com menos achados bloqueantes entre todas as ondas rodadas. Um empate vai para o de menos achados no total, e um empate que restar vai para a onda mais recente.
+  - O RF-12 grava esse plano como `PLAN.md`, e a sua revisão mesclada vira o `PLAN.review.md` base.
+  - Afirmar isso no AC-12.
+- V3 — O caminho do loop não registra ADRs nem atualizações do MEMORY, e o RF-01 ainda descreve a saída como só `PLAN.md` e `TASK.md`. Reportado por: claude (U3), cli:grok/grok-4.7 (R11 parcial).
+  - Disposição: o caminho do loop também grava ADRs quando couber, e o Coordenador atualiza `.harness/MEMORY.md`, como no `/dev-harness:plan`.
+  - O RF-01 descreve o artefato final como o contrato completo do `/plan` mais os artefatos extras do loop, sem um "só" conflitante.
+  - O AC-01 os lista.
+- V4 — Uma onda pode ser lida como uma passada única de pontuação ou como um ciclo de correção aninhado do `/plan`. Reportado por: cli:grok/grok-4.7 (U1).
+  - Disposição (G5: cada onda é uma rodada de revisão): cada candidato é revisado uma vez por onda. Nenhum planejador é redespachado dentro de uma onda, e os bloqueantes em aberto alimentam a onda seguinte (RF-08). O ciclo de correção do `/plan` vale só para o fallback sem CLI.
+  - Acrescentar um critério: um veredito `changes required` não redespacha o planejador dentro da mesma onda, e uma onda faz 2×R despachos de revisão, mais qualquer repasse do RF-15.
+- Não bloqueantes:
+  - O item de "Não entra" sobre mais de duas CLIs é reescrito como o claude sugeriu. Reportado por: claude (U4).
+  - O risco do §8 diz por engano que o `document-review` tem avaliadores `type: llm`. Corrigir ou remover. Reportado por: cli:grok/grok-4.7 (U3).
+  - A referência que credita G18–G23 por ampliar o papel da CLI deve citar G6 e G15. Reportado por: cli:grok/grok-4.7 (U4).
 
-## Round 3 — correction 3 dispatched to product-discovery.
+## Rodada 3 — correção 3 despachada ao `product-discovery`.
 
-# Review: PRD-005 — round 4 (merged)
+# Revisão: PRD-005 — rodada 4 (mesclada)
 
-Evaluated state: the correction 3 draft.
+Estado avaliado: o rascunho da correção 3.
 
-| Reviewer | Verdict |
+| Revisor | Veredito |
 |---|---|
-| `claude` (document-validator, opus requested, effective unverified) | approved. V1–V4 applied, no regression. 3 non-blocking findings (W1–W3). |
-| `cli:codex/gpt-5.6-luna` (`-s read-only`) | changes required. 1 blocking finding. |
-| `cli:grok/grok-4.7` | not-run. Its wave never ran because correction 4 superseded the state first. |
+| `claude` (document-validator, opus solicitado, efetivo não verificado) | `approved`. V1–V4 aplicados, sem regressão. 3 achados não bloqueantes (W1–W3). |
+| `cli:codex/gpt-5.6-luna` (`-s read-only`) | `changes required`. 1 achado bloqueante. |
+| `cli:grok/grok-4.7` | `not-run`. A sua onda nunca rodou porque a correção 4 substituiu o estado antes. |
 
-## Verdict
-- changes required (one reviewer blocks)
+## Veredito
+- `changes required` (um revisor bloqueia)
 
-## Findings
-- X1: the RF-15 wording lets a reader retry the failed primary CLI within the same wave, including when it is the only configured CLI.
-  - Reported by: cli:codex/gpt-5.6-luna (W1).
-  - claude read the same text as correct ("counts the primary's own attempt"). The meaning is settled; this is ambiguous wording, not a disagreement about behavior.
-  - Disposition (G20): the hand-off tries each other resolvable CLI at most once and never retries the wave's failed primary within that wave. With k = 1, a failure goes straight to a single-candidate wave. Mirror this in AC-17.
-- Non-blocking (claude):
-  - W1: move the base `PLAN.review.md` in AC-01 into the list of files that make up the `/plan` contract.
-  - W2: in RF-12 and AC-14, say the Coordinator updates `.harness/MEMORY.md` outside the base directory.
-  - W3: in RF-06, a two-candidate wave spends 2×R reviews and a single-candidate wave spends R, plus any hand-off.
+## Achados
+- X1: a redação do RF-15 deixa um leitor tentar de novo a CLI primária que falhou dentro da mesma onda, inclusive quando ela é a única CLI configurada.
+  - Reportado por: cli:codex/gpt-5.6-luna (W1).
+  - O claude leu o mesmo texto como correto ("conta a tentativa da própria primária"). O sentido está assentado; isto é redação ambígua, não divergência sobre o comportamento.
+  - Disposição (G20): o repasse tenta cada outra CLI resolvível no máximo uma vez e nunca tenta de novo a primária que falhou da onda dentro dessa onda. Com k = 1, uma falha vai direto para uma onda de candidato único. Espelhar isso no AC-17.
+- Não bloqueantes (claude):
+  - W1: mover o `PLAN.review.md` base do AC-01 para a lista de arquivos que compõem o contrato do `/plan`.
+  - W2: no RF-12 e no AC-14, dizer que o Coordenador atualiza `.harness/MEMORY.md` fora do diretório base.
+  - W3: no RF-06, uma onda de dois candidatos gasta 2×R revisões e uma onda de candidato único gasta R, mais qualquer repasse.
 
-## Round 4: correction 4 dispatched to product-discovery.
+## Rodada 4: correção 4 despachada ao `product-discovery`.
 
-# Review: PRD-005 — round 5 (merged)
+# Revisão: PRD-005 — rodada 5 (mesclada)
 
-Evaluated state: the correction 4 draft.
+Estado avaliado: o rascunho da correção 4.
 
-| Reviewer | Verdict |
+| Revisor | Veredito |
 |---|---|
-| `cli:codex/gpt-5.6-luna` (`-s read-only`) | approved: X1 and W1–W3 applied |
-| `cli:grok/grok-4.7` | changes required: 1 blocking finding |
-| `claude` (document-validator) | not-run: correction 5 superseded the state before its wave; it approved round 4 |
+| `cli:codex/gpt-5.6-luna` (`-s read-only`) | `approved`: X1 e W1–W3 aplicados |
+| `cli:grok/grok-4.7` | `changes required`: 1 achado bloqueante |
+| `claude` (document-validator) | `not-run`: a correção 5 substituiu o estado antes da sua onda; ele aprovou a rodada 4 |
 
-## Verdict
-- changes required
+## Veredito
+- `changes required`
 
-## Findings
-- Z1: RF-01, RF-12 and AC-14 place ADRs, and in RF-01 `.harness/MEMORY.md`, inside `.harness/tasks/<id>/`. `/dev-harness:plan` writes ADRs to `.harness/adr/ADR-<n>.md` and memory to `.harness/MEMORY.md`, both outside that directory. The fallback (AC-03) would therefore write them to a different place than the loop path.
-  - Reported by: cli:grok/grok-4.7 (Y1). Confirmed against `.commands/plan.md` lines 9 and 22.
-  - Disposition: "sob `.harness/tasks/<id>/`" applies only to `PLAN.md`, the per-slice `TASK.md` files, the base `PLAN.review.md`, `wave-N/` and the final report. ADRs, when applicable, go to `.harness/adr/ADR-<n>.md`, and the Coordinator updates `.harness/MEMORY.md`. Both paths are the ones `/dev-harness:plan` already uses.
+## Achados
+- Z1: o RF-01, o RF-12 e o AC-14 põem os ADRs, e no RF-01 o `.harness/MEMORY.md`, dentro de `.harness/tasks/<id>/`. O `/dev-harness:plan` grava os ADRs em `.harness/adr/ADR-<n>.md` e a memória em `.harness/MEMORY.md`, ambos fora desse diretório. O fallback (AC-03) gravaria, portanto, em um lugar diferente do caminho do loop.
+  - Reportado por: cli:grok/grok-4.7 (Y1). Confirmado contra `.commands/plan.md`, linhas 9 e 22.
+  - Disposição: "sob `.harness/tasks/<id>/`" vale só para o `PLAN.md`, os arquivos `TASK.md` por fatia, o `PLAN.review.md` base, `wave-N/` e o relatório final. Os ADRs, quando couber, vão para `.harness/adr/ADR-<n>.md`, e o Coordenador atualiza `.harness/MEMORY.md`. Os dois caminhos são os que o `/dev-harness:plan` já usa.
 
-## Round 5: correction 5 dispatched. Round 6 is the last round under the cap of 6.
+## Rodada 5: correção 5 despachada. A rodada 6 é a última sob o limite de 6.
 
-# Review: PRD-005 — round 6 (merged, final round: cap of 6 reached)
+# Revisão: PRD-005 — rodada 6 (mesclada, rodada final: limite de 6 atingido)
 
-Evaluated state: the correction 5 draft.
+Estado avaliado: o rascunho da correção 5.
 
-| Reviewer | Verdict |
+| Revisor | Veredito |
 |---|---|
-| `claude` (document-validator, opus requested, effective unverified) | approved. Z1 applied, no regression, no new finding. |
-| `cli:grok/grok-4.7` | approved |
-| `cli:codex/gpt-5.6-luna` (`-s read-only`) | changes required. Z1 applied; 1 new blocking finding (AA1). |
+| `claude` (document-validator, opus solicitado, efetivo não verificado) | `approved`. Z1 aplicado, sem regressão, sem achado novo. |
+| `cli:grok/grok-4.7` | `approved` |
+| `cli:codex/gpt-5.6-luna` (`-s read-only`) | `changes required`. Z1 aplicado; 1 novo achado bloqueante (AA1). |
 
-## Verdict
-- changes required. One reviewer blocks, and the round cap is reached. Under the kit rule the document goes to the owner with the open point listed below.
+## Veredito
+- `changes required`. Um revisor bloqueia, e o limite de rodadas foi atingido. Pela regra do kit, o documento vai ao dono com o ponto em aberto listado abaixo.
 
-## Open point
-- AA1: the pool of candidate CLIs does not require a vendor other than Claude.
-  - Reported by: cli:codex/gpt-5.6-luna.
-  - Why it matters: G6 says the competing plan comes from an external CLI "from another vendor". `external-clis` also supports `claude` as a CLI binary, so a configured `cli:claude/<slug>` entry would let Claude compete against itself.
-  - Coordinator recommendation: exclude `cli:claude/...` entries from the planner rotation list in RF-05 and AC-06. If only same-vendor entries resolve, use the no-loop fallback (RF-02). This is a one-sentence change. It is left to the owner because the round cap is reached.
+## Ponto em aberto
+- AA1: o conjunto de CLIs candidatas não exige um fornecedor diferente do Claude.
+  - Reportado por: cli:codex/gpt-5.6-luna.
+  - Por que importa: G6 diz que o plano concorrente vem de uma CLI externa "de outro fornecedor". A `external-clis` também aceita `claude` como binário de CLI, então uma entrada `cli:claude/<slug>` configurada deixaria o Claude competir contra si mesmo.
+  - Recomendação do Coordenador: excluir as entradas `cli:claude/...` da lista de rotação dos planejadores no RF-05 e no AC-06. Se só resolverem entradas do mesmo fornecedor, usar o fallback sem loop (RF-02). É uma mudança de uma frase. Fica para o dono porque o limite de rodadas foi atingido.
