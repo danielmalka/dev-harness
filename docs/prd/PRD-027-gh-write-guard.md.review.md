@@ -1,39 +1,41 @@
-# Review: PRD-027
+# Revisão: PRD-027
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-027-gh-write-guard.md |
-| Source | Owner decisions D1-D12 (2026-10-21), discovery DISC-007, measurement M2 |
-| Round | 1 of 2 |
-| Reviewer | cli:agy/gemini-3.8-flash-high |
-| Verdict | approved |
-| Updated | 2026-10-21 |
+| Documento | docs/prd/PRD-027-gh-write-guard.md |
+| Fonte | Decisões do dono D1-D12 (2026-10-21), descoberta DISC-007, medição M2 |
+| Rodada | 1 de 2 |
+| Revisor | cli:agy/gemini-3.8-flash-high |
+| Veredito | `approved` |
+| Atualizado | 2026-10-21 |
 
-## Findings
+## Achados
 
-(No open findings.)
+(Nenhum achado em aberto.)
 
-## Not raised
+## Não levantado
 
-- Gaps: The three defects of batch 0.32.1 (`gh` write guard in subagent Bash, opencode v2.0.32 recipe, `pgrep`/`pkill -f` self-match gotcha) map from DISC-007, the owner's chat and M2 to problem descriptions G1-G3 and rules R1-R14.
-- Gaps: Decision D1 (kit subagents `dh:*` denied except `dh:release-manager`; fail-closed on an unknown `agentId`; main session and non-kit subagents unaffected) is covered in sections 2.1, D1, R4, R5 and R7. The cleanup scope of AGENTS.md ("Premissa de limpeza") is covered in R15 and section 4.
-- Ambiguities: Command-segment splitting at shell separators, skipping of environment assignments and wrappers (`env`, `command`, `exec`, `sudo`), and argument handling are defined in 2.3 and R2. The pure-function contract of `hooks/lib/` (R1) fixes input, output and zero I/O. The six execution contexts of the engine test (R5) do not overlap. Fail-open on a guard exception and fail-closed on an unknown `agentId` are kept separate (R7).
-- Conflicts: The ADR-005 amendment (R9) resolves the narrow exception for `gh` write verbs and `git push` against ADR-005's general rejection of command analysis. The `AGENTS.md` "Trava de `gh`" line matches 2.1, D1 and R5. Invariant counts (13 agents, 19 + 1 commands, 14 templates) match the inventory (R16). The version 0.32.1 synchronization (R17) and the clean-clone proof for Go changes agree with AGENTS.md. The critical-path merge stop (R18) matches the `REVIEW.md` entries touched by T-2701 and T-2702.
-- Excesses: Out-of-scope items (OS sandbox, curl and MCP blocking, restricting `qa-verifier` tools, `dh review run`, new evals or probes, `reviewers:` changes, non-Claude Code runtimes) stay in section 5. Known bypasses are documented in 2.4 and R9 without added scope.
-- Weak criteria: All rules R1-R19 state a deterministic, observable check. M1 (R8) has explicit pass and fail conditions under bypass permission mode.
-- Organization: The document follows `templates/en/PRD.md`. Rules R1-R19 are numbered in sequence. Suggested tickets T-2701 to T-2704 have correct lanes, write sets and dependencies (ADR-003, PRD-007).
-- PRD writing style: conforms to the ASD-STE100 rules in `.skills/requirements-discovery/SKILL.md`.
+- Lacunas: Os três defeitos do lote 0.32.1 (a trava de escrita do `gh` no Bash de subagente, a receita do opencode v2.0.32 e a pegadinha de autocasamento de `pgrep`/`pkill -f`) mapeiam, a partir da DISC-007, do chat do dono e da M2, para as descrições de problema G1-G3 e as regras R1-R14.
+- Lacunas: A decisão D1 (subagentes `dh:*` do kit negados, exceto `dh:release-manager`; falha fechada para um `agentId` desconhecido; sessão principal e subagentes fora do kit não afetados) está coberta nas seções 2.1, D1, R4, R5 e R7. O escopo de limpeza do AGENTS.md ("Premissa de limpeza") está coberto na R15 e na seção 4.
+- Ambiguidades: A divisão em segmentos de comando nos separadores de shell, o salto de atribuições de ambiente e de invólucros (`env`, `command`, `exec`, `sudo`) e o tratamento de argumentos estão definidos em 2.3 e R2. O contrato de função pura de `hooks/lib/` (R1) fixa entrada, saída e zero de E/S. Os seis contextos de execução do teste de motor (R5) não se sobrepõem. A falha aberta numa exceção da trava e a falha fechada num `agentId` desconhecido ficam separadas (R7).
+- Conflitos: A emenda da ADR-005 (R9) resolve a exceção estreita para os verbos de escrita do `gh` e para `git push` contra a rejeição geral de análise de comando da ADR-005. A linha "Trava de `gh`" do `AGENTS.md` casa com 2.1, D1 e R5. As contagens invariantes (13 agentes, 19 + 1 comandos, 14 templates) casam com o inventário (R16). A sincronização da versão 0.32.1 (R17) e a prova de clone limpo para mudanças em Go concordam com o AGENTS.md. A parada de merge de caminho crítico (R18) casa com as entradas do `REVIEW.md` tocadas por T-2701 e T-2702.
+- Excessos: Os itens fora de escopo (sandbox do SO, bloqueio de curl e de MCP, restrição das ferramentas do `qa-verifier`, `dh review run`, novos evals ou sondas, mudanças em `reviewers:`, runtimes que não sejam o Claude Code) ficam na seção 5. Os contornos conhecidos estão documentados em 2.4 e R9 sem escopo adicional.
+- Critérios fracos: Todas as regras R1-R19 declaram uma checagem determinística e observável. A M1 (R8) tem condições explícitas de passa e falha sob o modo de permissão de contorno.
+- Organização: O documento segue `templates/en/PRD.md`. As regras R1-R19 são numeradas em sequência. Os tickets sugeridos T-2701 a T-2704 têm lanes, conjuntos de escrita e dependências corretos (ADR-003, PRD-007).
+- Estilo de redação do PRD: conforme as regras do ASD-STE100 em `.skills/requirements-discovery/SKILL.md`.
 
-## Round log
+## Registro de rodadas
 
-- Round 1 of 2, 2026-10-21: approved, 0 blocking findings. Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
-- Coordinator clarification after round 1, 2026-10-21 (not revalidated, within D3): section 2.3 and R2 also skip global options between the binary and its subcommand (`gh -R`/`--repo`, `git -C`, `-c`, `--opt=value`); Status set to approved.
-- Amendment revalidation (single round), 2026-10-21: approved, 0 blocking findings, no open findings. Amended after security review round 1: sections 2.1-2.4, R1, R2, R3, R5, R6, R9, D1, D2, D3, D6 and the appendix risks (read allow-list for `gh`, two-pass matching, Bash/Monitor/PowerShell). Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
-- Amendment 2 revalidation (single round), 2026-10-21: approved, 0 blocking findings, no open findings. Amended after security review round 2: sections 2.2, 2.3, 2.4, R2, R9(a), D2, D3 and the appendix false-positive risk (two real passes, check at every `gh`/`git` word with a search/print exception, new `git` denies, method-override header). Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
-- Amendment 3 revalidation (single round), 2026-10-21: approved, 0 blocking findings (lexer with a context stack, recursion and size limits, narrower search exception, PowerShell no-string deny). Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean. Superseded by amendment 4 before implementation.
-- Amendment 4 revalidation (single round), 2026-10-21: approved, 0 blocking findings, no open findings. Owner decision: the shell parser is replaced by a short rule (trigger words, one plain gh read or one plain grep, no shell metacharacters). Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
-- Amendment 5 revalidation (single round), 2026-10-21: approved, 0 blocking findings, no open findings. Amended after security review round 4: gh read checked in order, `auth status` flag list, word boundaries, `git-<verb>` forms, PowerShell without exceptions, general false-positive rule. Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
-- Amendment 6 revalidation (single round), 2026-10-22: approved, 0 blocking findings, no open findings. Amended after security review round 5: lower-case trigger text, `\` handling per shell (PowerShell path separator), `git` ends before `-` (dash list removed), `gh api` without `--hostname` and without `://` tokens, upper-case gh read as an accepted false positive. Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
-- Coordinator correction after amendment 6, 2026-10-22 (not revalidated, wording only): the Windows path example in 2.3 and R2 uses a `<drive>` placeholder in place of a real drive letter, because `dh validate` rejects a drive-letter path as a private path; the rule and the case are unchanged.
-- Amendment 7 revalidation (single round), 2026-10-22: approved, 0 blocking findings, no open findings. Amended after security review round 6 (owner choice "a": one extra round): two Bash trigger texts (every backslash removed, or `\\` mapped to `/`), triggered when either triggers; gh read exception only when no text triggered on `git`; R2 backtick cases; 2.4 records the `GH_ENTERPRISE_TOKEN` hypothesis. Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
-- Amendment 8 revalidation (single round), 2026-10-22: approved, 0 blocking findings, no open findings. Amended after security review round 7 (owner choice "a"): 2.4 names the backslash-newline form inside a command name as an accepted bypass; header updated. Reviewer: cli:agy/gemini-3.8-flash-high. Workspace check: clean.
+- Rodada 1 de 2, 2026-10-21: `approved`, 0 achados bloqueantes. Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.
+- Esclarecimento do Coordenador após a rodada 1, 2026-10-21 (não revalidado, dentro da D3): a seção 2.3 e a R2 também saltam as opções globais entre o binário e o subcomando (`gh -R`/`--repo`, `git -C`, `-c`, `--opt=value`); status definido como `approved`.
+- Revalidação da emenda (rodada única), 2026-10-21: `approved`, 0 achados bloqueantes, nenhum achado em aberto. Emendado após a rodada 1 da revisão de segurança: seções 2.1-2.4, R1, R2, R3, R5, R6, R9, D1, D2, D3, D6 e os riscos do apêndice (lista de permissão de leitura para o `gh`, casamento em duas passagens, Bash/Monitor/PowerShell). Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.
+- Revalidação da emenda 2 (rodada única), 2026-10-21: `approved`, 0 achados bloqueantes, nenhum achado em aberto. Emendado após a rodada 2 da revisão de segurança: seções 2.2, 2.3, 2.4, R2, R9(a), D2, D3 e o risco de falso positivo do apêndice (duas passagens reais, checagem em cada palavra `gh`/`git` com uma exceção de busca/impressão, novas negações de `git`, cabeçalho de sobrescrita de método). Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.
+- Revalidação da emenda 3 (rodada única), 2026-10-21: `approved`, 0 achados bloqueantes (analisador léxico com pilha de contexto, limites de recursão e de tamanho, exceção de busca mais estreita, negação do PowerShell sem strings). Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo. Substituída pela emenda 4 antes da implementação.
+- Revalidação da emenda 4 (rodada única), 2026-10-21: `approved`, 0 achados bloqueantes, nenhum achado em aberto. Decisão do dono: o analisador de shell é substituído por uma regra curta (palavras de gatilho, uma leitura simples do gh ou um grep simples, sem metacaracteres de shell). Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.
+- Revalidação da emenda 5 (rodada única), 2026-10-21: `approved`, 0 achados bloqueantes, nenhum achado em aberto. Emendado após a rodada 4 da revisão de segurança: leitura do gh conferida em ordem, lista de flags de `auth status`, limites de palavra, formas `git-<verb>`, PowerShell sem exceções, regra geral de falso positivo. Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.
+- Revalidação da emenda 6 (rodada única), 2026-10-22: `approved`, 0 achados bloqueantes, nenhum achado em aberto. Emendado após a rodada 5 da revisão de segurança: texto de gatilho em minúsculas, tratamento de `\` por shell (separador de caminho do PowerShell), `git` termina antes de `-` (lista de hífens removida), `gh api` sem `--hostname` e sem tokens `://`, leitura do gh em maiúsculas como falso positivo aceito. Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.
+- Correção do Coordenador após a emenda 6, 2026-10-22 (não revalidada, só redação): o exemplo de caminho do Windows em 2.3 e na R2 usa um marcador `<drive>` no lugar de uma letra de unidade real, porque o `dh validate` rejeita um caminho com letra de unidade como caminho privado; a regra e o caso não mudam.
+- Revalidação da emenda 7 (rodada única), 2026-10-22: `approved`, 0 achados bloqueantes, nenhum achado em aberto. Emendado após a rodada 6 da revisão de segurança (escolha "a" do dono: uma rodada extra): dois textos de gatilho do Bash (toda barra invertida removida, ou `\\` mapeada para `/`), disparado quando qualquer um dispara; exceção de leitura do gh só quando nenhum texto disparou em `git`; casos de crase invertida na R2; 2.4 registra a hipótese `GH_ENTERPRISE_TOKEN`. Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.
+- Revalidação da emenda 8 (rodada única), 2026-10-22: `approved`, 0 achados bloqueantes, nenhum achado em aberto. Emendado após a rodada 7 da revisão de segurança (escolha "a" do dono): 2.4 nomeia como contorno aceito a forma barra invertida seguida de nova linha dentro de um nome de comando; cabeçalho atualizado. Revisor: cli:agy/gemini-3.8-flash-high. Checagem do workspace: limpo.
