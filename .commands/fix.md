@@ -1,32 +1,32 @@
 ---
 name: fix
-description: Reproduce, diagnose and fix a defect with evidence
+description: Reproduza, diagnostique e corrija um defeito com evidência
 author: malka
-argument-hint: "[symptom, error text or issue]"
+argument-hint: "[sintoma, texto do erro ou issue]"
 metadata:
   roles: [coordinator, debugger, qa-verifier, reviewer]
   skills: [systematic-debugging, regression-testing, code-review]
-  writes: authorized write set only
+  writes: só o conjunto de escrita autorizado
 ---
-## Role
-Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
+## Papel
+Atue como o `coordinator` do kit nesta sessão (leia a definição do agente `coordinator` incluída no kit se esta sessão não foi iniciada com ele). Leia `.harness/MEMORY.md`, se existir, antes de qualquer outra coisa.
 
-## Routing
-Symptom: $ARGUMENTS. In sequence: dispatch `debugger` with the Agent tool, model `sonnet`, requiring the kit skills `systematic-debugging` and `regression-testing`, and state whether it is diagnose-only or authorized to change files, with the write set. Once a fix is applied and the state is frozen, dispatch `qa-verifier` (model `sonnet`, skill `regression-testing`). Then dispatch `reviewer` in mode `code` (model `sonnet`, skill `code-review`) scoped to the fix, proportional to its blast radius. At most two specialists run concurrently and only on independent work.
+## Roteamento
+Sintoma: $ARGUMENTS. Em sequência: despache `debugger` com a ferramenta Agent, modelo `sonnet`, exigindo as skills `systematic-debugging` e `regression-testing` do kit, e diga se ele só diagnostica ou está autorizado a alterar arquivos, com o conjunto de escrita. Depois que uma correção for aplicada e o estado estiver congelado, despache `qa-verifier` (modelo `sonnet`, skill `regression-testing`). Em seguida despache `reviewer` no modo `code` (modelo `sonnet`, skill `code-review`) com escopo na correção, proporcional ao seu raio de impacto. No máximo dois especialistas rodam ao mesmo tempo, e só em trabalho independente.
 
-## Prerequisites
-The literal error text or observed behavior, and reproduction steps or the failing command. A paraphrased error points at the wrong component: ask for the exact output. Consult `.harness/RISKS.md` when the symptom touches a critical rule or a known incident area. Ask the owner only for the authorization to change files or the environment.
+## Pré-requisitos
+O texto literal do erro ou o comportamento observado, e os passos de reprodução ou o comando que falha. Um erro parafraseado aponta para o componente errado: peça a saída exata. Consulte `.harness/RISKS.md` quando o sintoma tocar uma regra crítica ou uma área de incidente conhecida. Pergunte ao dono só pela autorização para alterar arquivos ou o ambiente.
 
-## Output
-The `systematic-debugging` report: status, symptom, reproduction before and after, root cause marked fact or hypothesis with evidence paths and lines, call sites checked, fix or "not applied", regression protection, ruled-out causes and the incident report for the Coordinator. Persist evidence under `.harness/tasks/<id>/evidence/`. Record the incident with severity, cause, resolution and prevention in `.harness/RISKS.md`, and the current status in `.harness/MEMORY.md`.
+## Saída
+O relatório de `systematic-debugging`: status, sintoma, reprodução antes e depois, causa raiz marcada como fato ou hipótese com caminhos e linhas de evidência, pontos de chamada checados, correção ou "não aplicada", proteção contra regressão, causas descartadas e o relatório de incidente para o Coordenador. Grave a evidência em `.harness/tasks/<id>/evidence/`. Registre o incidente com severidade, causa, resolução e prevenção em `.harness/RISKS.md`, e o status atual em `.harness/MEMORY.md`.
 
-## Limits
-- Without a reproduction, report the gap and the inconclusive path; never present a proven fix.
-- A diagnosis request does not authorize source edits, instrumentation, installs or changes to external data.
-- Fix the origin of the bad value, not the line where it surfaced; report every sibling call site checked.
-- The regression guard counts only when it was observed failing before the fix and passing after; otherwise it is not-run with the reason.
-- Never commit, push, publish or deploy from this command.
-- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
+## Limites
+- Sem reprodução, reporte a lacuna e o caminho inconclusivo; nunca apresente uma correção comprovada.
+- Um pedido de diagnóstico não autoriza edições de código-fonte, instrumentação, instalações nem mudanças em dados externos.
+- Corrija a origem do valor ruim, não a linha onde ele apareceu; reporte cada ponto de chamada irmão checado.
+- A proteção contra regressão só conta quando foi observada falhando antes da correção e passando depois; do contrário fica `not-run`, com o motivo.
+- Nunca faça commit, push, publicação nem deploy a partir deste comando.
+- Só o Coordenador escreve `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md`.
 
-## Next
-`/dh:verify` to widen the acceptance matrix, or `/dh:release` when the fix is the deliverable.
+## Próximo
+`/dh:verify` para ampliar a matriz de aceite, ou `/dh:release` quando a correção for a entrega.
