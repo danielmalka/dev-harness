@@ -35,13 +35,50 @@ export function isCuratorSpawn(subagentType: unknown, prompt: unknown): boolean 
   return (subagentType === 'dh:docs-guide' || subagentType === 'docs-guide') && WRITE_SET_LINE.test(prompt)
 }
 
-// Called with the spawn event and the id the engine gave the new agent; remembers the curators of this session.
-export function noteSpawn(e: any, agentId: unknown): void {
+// Verification of F3: the curation needs a model of sonnet or above, and a docs-guide that runs on its own default (haiku) was dispatched as curator in 3 of 4
+// real sessions. The spawn event carries the Agent tool's `model` (undefined lets the agent's own model decide) and a hook may rewrite it; the answer of the spawn
+// carries the model the agent really runs on. So the mod (1) rewrites the model of a curator dispatch to `sonnet` unless the call already asks for sonnet or above,
+// and (2) recognizes the curator only when the model that came back is sonnet or above; otherwise the write is denied with a message that names the model.
+const weakCurators = new Map<string, string>() // curator-shaped agents that run on a weak model: id -> model
+
+// A model strong enough for the curation, as an alias (`sonnet`) or a full id (`claude-sonnet-5-5`): sonnet, opus or fable. haiku, an empty value and an unknown one are not.
+export function strongModel(model: unknown): boolean {
+  return typeof model === 'string' && /sonnet|opus|fable/i.test(model)
+}
+
+// The spawn event to pass on: a curator dispatch that does not ask for sonnet or above (no model, haiku, or `inherit` under a weak parent) runs on `sonnet`.
+// Any other spawn, a docs-guide without the write-set line included, goes through untouched.
+export function forceCuratorModel(e: any): any {
+  try {
+    if (!isCuratorSpawn(e?.subagentType, e?.prompt)) return e
+    if (strongModel(e.model) || (e.model === 'inherit' && strongModel(e.parentModel))) return e
+    return { ...e, model: 'sonnet' }
+  } catch {
+    return e // fail open
+  }
+}
+
+// Called with the spawn event, the id the engine gave the new agent and the model it answered with; remembers the curators of this session.
+export function noteSpawn(e: any, agentId: unknown, model?: unknown): void {
   try {
     if (typeof agentId !== 'string' || !agentId) return
-    if (isCuratorSpawn(e?.subagentType, e?.prompt)) curators.add(agentId)
-    else curators.delete(agentId) // an id that is reused by a non-curator loses the exception
+    curators.delete(agentId) // an id that is reused by a non-curator loses the exception
+    weakCurators.delete(agentId)
+    if (!isCuratorSpawn(e?.subagentType, e?.prompt)) return
+    const effective = model ?? e?.model
+    if (strongModel(effective)) curators.add(agentId)
+    else weakCurators.set(agentId, typeof effective === 'string' && effective ? effective : 'o padrão do agente (haiku)')
   } catch {} // fail open
+}
+
+// Verification of F3: the curator reads with Read and Grep and has no shell (the skill says so; 3 of 6 real rounds ran cat, grep and wc). The shell tools are Bash,
+// PowerShell and Monitor; the mod denies them to the agent recognized as curator, for as long as it lives. Any other agent, a docs-guide without the line included,
+// keeps them.
+export function denyCuratorShell(e: any): { deny: string } | undefined {
+  try {
+    if (e?.agentId && curators.has(e.agentId)) return { deny: 'o curador do FACTS.md não roda comandos (trava de runtime do dev-harness): confira a evidência com Read e Grep, e devolva ao Coordinator o que precisar de um comando.' }
+  } catch {} // fail open
+  return undefined
 }
 
 export function denySpawn($: any, e: any, next: any) {
@@ -76,7 +113,9 @@ export function protectedHit(home: string, filePath: unknown, cwd = '/', userHom
 export function guardFile(home: string, e: any, next: any, cwd = '/', userHome = '') {
   try {
     const hit = e.agentId ? protectedHit(home, e.file_path, cwd, userHome) : undefined
-    if (hit && /(^|\/)facts\.md$/i.test(hit) && curators.has(e.agentId)) return next(e) // PRD-035 R12: the curator may write FACTS.md
+    const facts = hit && /(^|\/)facts\.md$/i.test(hit)
+    if (facts && curators.has(e.agentId)) return next(e) // PRD-035 R12: the curator may write FACTS.md
+    if (facts && weakCurators.has(e.agentId)) return { deny: `${hit} só é escrito por um curador com o modelo sonnet ou mais forte (trava de runtime do dev-harness); este docs-guide rodou com ${weakCurators.get(e.agentId)}. Devolva a atualização proposta ao Coordinator, que redespacha a curadoria com o modelo sonnet.` }
     if (hit) return { deny: `${hit} só é escrito pelo Coordinator (trava de runtime do dev-harness); devolva a atualização proposta.` }
   } catch {} // fail open
   return next(e)
@@ -107,13 +146,15 @@ const guard = async ($: EngineInterface, e: any, next: any) => {
 }
 
 export const register: Register = on => {
-  on('agent.spawn', ($, e, next) => denySpawn($, e, (x: any) => {
+  on('agent.spawn', ($, e, next) => denySpawn($, e, (x0: any) => {
+    const x = forceCuratorModel(x0) // a curator dispatch that does not ask for sonnet or above runs on sonnet
     const r = next(x)
-    // sync result or promise, unchanged for the caller; the curator is noted when the engine answers with the new agent id
-    if (r && typeof (r as any).then === 'function') (r as any).then((v: any) => noteSpawn(x, v?.agentId), () => undefined)
-    else noteSpawn(x, (r as any)?.agentId)
+    // sync result or promise, unchanged for the caller; the curator is noted when the engine answers with the new agent id and the model it runs on
+    if (r && typeof (r as any).then === 'function') (r as any).then((v: any) => noteSpawn(x, v?.agentId, v?.model), () => undefined)
+    else noteSpawn(x, (r as any)?.agentId, (r as any)?.model)
     return r
   }))
   on('tool.call', { tool: 'Write' }, guard)
   on('tool.call', { tool: 'Edit' }, guard)
+  for (const tool of ['Bash', 'PowerShell', 'Monitor']) on('tool.call', { tool } as any, ($, e, next) => denyCuratorShell(e) ?? next(e))
 }
