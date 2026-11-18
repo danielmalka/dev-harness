@@ -195,7 +195,7 @@ func Build(root string, options Options, out io.Writer) error {
 	plugin := map[string]any{
 		"name":        "dh",
 		"version":     version,
-		"description": "Portable AI-assisted development kit: coordinator plus specialist agents, skills and work commands with owner-authorized delivery.",
+		"description": "Kit portátil de desenvolvimento assistido por IA: coordenador mais agentes especialistas, skills e comandos de trabalho, com entrega autorizada pelo dono.",
 		"author":      map[string]string{"name": "malka"},
 		"license":     "MIT",
 		"keywords":    []string{"development", "agents", "coordinator", "qa", "review"},
