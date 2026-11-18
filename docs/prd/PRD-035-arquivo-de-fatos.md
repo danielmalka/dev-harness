@@ -2,13 +2,13 @@
 
 | Campo | Valor |
 |---|---|
-| Status | aprovado em 2026-11-18 |
+| Status | entregue em 2026-11-18: F1 a F4 (0.47.0 a 0.50.0); a prova da F5, com eval paga, foi dispensada pelo dono (D12) |
 | Responsável | Daniel Malka |
 | Criado / atualizado | 2026-11-18 / 2026-11-18 |
 | Tickets | a definir pelo planejador |
-| Origem | Estudo de produto "Arquivo de fatos do sistema no dev-harness" v1.1 (2026-11-17), aprovado pelo dono em 2026-11-18 com as decisões D1 a D11 do apêndice |
+| Origem | Estudo de produto "Arquivo de fatos do sistema no dev-harness" v1.1 (2026-11-17), aprovado pelo dono em 2026-11-18 com as decisões D1 a D11 do apêndice; a D12 (mesma data) dispensou a eval paga |
 | Depende de | PRD-032 (`REPO-MAP.md`, escopo do Coordenador, arquivo de relatório), PRD-034 (trava de hash de `MEMORY.md`), ADR-005 (travas por prosa e por mod), ADR-007 (harness dir local ou global), ADR-011 (kit só pt-BR); versão base 0.46.0 |
-| Entrega | Quatro pull requests, das versões 0.47.0 a 0.50.0, um por fatia F1 a F4; a fatia F5 é a prova, com a eval paga (R31 a R37), e roda depois da F4 |
+| Entrega | Quatro pull requests, das versões 0.47.0 a 0.50.0, um por fatia F1 a F4. A fatia F5, a prova com eval paga (R31 a R37), não foi executada: o dono a dispensou (D12), e o recurso é entregue com F1 a F4 |
 
 ## 1. Problema
 
@@ -157,7 +157,9 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
 
 ### Parte G · Prova por eval paga (F5)
 
-- R31 A fatia F5 roda uma eval paga, com o sim do dono dado em 2026-11-18 (D11). A eval roda depois da F4 e antes de o card do roadmap ir para "Entregue". O recurso não é declarado pronto antes do resultado.
+> **Não executada.** O dono dispensou esta prova em 2026-11-18 (D12, origem: decisão do dono). R31 a R37 ficam registrados como o desenho que não rodou, e nenhum caso, runner ou resultado desta parte entrou na `main`. O recurso é entregue com F1 a F4 e com as verificações em sessão real de cada fatia.
+
+- R31 A fatia F5 roda uma eval paga, com o sim do dono dado em 2026-11-18 (D11). A eval roda depois da F4 e antes de o card do roadmap ir para "Entregue". O recurso não é declarado pronto antes do resultado. (Superado por D12: a eval foi dispensada e o recurso foi declarado entregue sem ela.)
 - R32 Desenho da medição:
   - casos: 3 casos novos em `evals/cases/`, cada um num projeto de teste com uma armadilha conhecida:
     1. `facts-frontend-design-system`: tarefa de tela que deve usar um componente do design system;
@@ -199,7 +201,7 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
 - `.commands/setup.md`: linha de referência (R22 a R24).
 - `internal/harness/memory.go`, `cmd/dh/main.go`, `internal/doctor/`, `adapters/claude-code/plugin/hooks/runtime-guard.ts`: trava, `dh facts check`, aviso e mod (R5, R11, R12, R27).
 - `AGENTS.md`, `README.md`, `docs/tutorial.html`, `CHANGELOG.md`, `docs/roadmap.html`: regras, contagens e versões (R28, R29).
-- `evals/cases/facts-*` (novos) e `evals/baselines/`: a eval da F5 (R32, R37).
+- `evals/cases/facts-*` (novos) e `evals/baselines/`: a eval da F5 (R32, R37). Dispensada (D12): nada disto foi criado na `main`.
 
 ## Apêndice
 
@@ -212,7 +214,7 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
 | F2 | escrita: bloco `Fatos candidatos` no scout, candidatos do builder e do QA, gravação pelo Coordenador, semente pelo `REPO-MAP.md`, linha de referência do setup | R1 a R4, R8 a R10, R22 a R26 | 0.48.0 |
 | F3 | curadoria: skill `facts-curation`, modo do `docs-guide`, gatilhos, seção `## Mudanças`; o despacho do curador deve trazer a linha `Arquivos permitidos:` (ou `Conjunto de escrita:` ou `Write set:`) citando `FACTS.md`, senão o mod nega a escrita (R12) | R7, R13 a R16 | 0.49.0 |
 | F4 | leitura: categorias por papel no despacho, rótulo do reviewer, linha `Fato contradito`; docs e contagens finais | R17 a R21, R28, R29 | 0.50.0 |
-| F5 | prova: um ciclo real num projeto de teste (setup, `bootstrap`, 2 tarefas, 1 curadoria), com o `qa-verifier` conferindo tetos, trava e ausência de segredo; e a eval paga de R31 a R37, com 3 casos, 2 braços e 3 repetições, teto de US$ 80 | R5, R6, R10, R15, R31 a R37 | depois da F4; o card vai para "Entregue" só com o veredito |
+| F5 | prova: um ciclo real num projeto de teste (setup, `bootstrap`, 2 tarefas, 1 curadoria), com o `qa-verifier` conferindo tetos, trava e ausência de segredo; e a eval paga de R31 a R37, com 3 casos, 2 braços e 3 repetições, teto de US$ 80 | R5, R6, R10, R15, R31 a R37 | dispensada pelo dono (D12): não executada; o card foi para "Entregue" sem o veredito |
 
 ### Linhas que cada fatia muda
 
@@ -222,7 +224,7 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
   - F3 acrescenta a curadoria e muda a contagem para 23 skills.
   - F4 acrescenta a leitura por categoria.
 - `CHANGELOG.md`: uma entrada datada por fatia, de 0.47.0 a 0.50.0.
-- `docs/roadmap.html`: esta mudança acrescenta o card em "Planejado". F1 a F3 atualizam o status do card. F4 move o card para "Entregue".
+- `docs/roadmap.html`: esta mudança acrescenta o card em "Planejado". F1 a F3 atualizam o status do card. F4 move o card para "Entregue" (a F4 não o moveu, E26; a D12 o moveu).
 
 ### Alternativas descartadas
 
@@ -294,8 +296,8 @@ A F4 completou o que o PRD não fechava assim. Cada escolha vale na regra que el
 - E23 A contradição de R20 fica registrada em `## Mudanças`, a seção de texto livre para o `dh facts check`, com a linha `- <AAAA-MM-DD> · contradito · F-<n>, <caminho:linha> · <papel>, <tarefa>`, gravada pelo Coordenador pela trava de hash, sem repetir uma contradição já aberta e sem inventar um id. O estado do fato não muda até a rodada seguinte. O curador confere primeiro os contraditos abertos (uma linha `contradito` sem `F-<n> saiu` nem `F-<n> mantido` depois dela), além das 10 reconferências, e registra `F-<n> saiu: …` ou `F-<n> mantido: <motivo>; evidência: <caminho:linha>`; se a leitura não basta, o fato volta a `## Candidatos` como `hipótese`. Um contradito não é um gatilho novo (R14): ele espera a próxima rodada.
 - E24 O pacote da etapa de documento tem 4 itens, não 5, desde o ADR-011 (a opção de idioma saiu, 0.42.0): R21 ("continua com 5 itens") herdou o número de antes. A regra de R21, `FACTS.md` fora do pacote, vale como está, e o texto do `coordinator` e dos validadores de documento não muda de número.
 - E25 O `reviewer` repete R19 em `## Limites`: o fato diz, no máximo, onde olhar; o achado cita local e cenário no código; o código que contradiz o fato vira a linha `Fato contradito`, nunca um achado.
-- E26 O card do PRD no `docs/roadmap.html` fica "em andamento" na F4, apesar da linha "F4 move o card para Entregue" de "Linhas que cada fatia muda": R31 e a linha da F5 dizem que o recurso só é declarado pronto depois da eval paga, e a regra mais específica e mais nova vence. O card da 0.50.0 entra como release concluído, e o card do PRD passa a "F1 a F4 entregues; falta a prova da F5".
-- E27 (origem: verificação da F4, 2026-11-18, decisão do dono) Na sessão real, o Coordenador abriu o `FACTS.md` com `cat` na primeira exploração para montar a linha `Fatos:` de E22, embora R17 diga para montá-la sem ler o arquivo. A linha não depende do conteúdo do arquivo, então a leitura só custa contexto. Fica aceito como resíduo conhecido, como o E21: o Coordenador pode ainda ler o `FACTS.md` ao montar a linha; R17 continua valendo como regra; não há trava para isso, e o Verificador não reprova a F4 por essa leitura. A eval paga da F5 mede o efeito no custo (R31 a R37).
+- E26 O card do PRD no `docs/roadmap.html` fica "em andamento" na F4, apesar da linha "F4 move o card para Entregue" de "Linhas que cada fatia muda": R31 e a linha da F5 dizem que o recurso só é declarado pronto depois da eval paga, e a regra mais específica e mais nova vence. O card da 0.50.0 entra como release concluído, e o card do PRD passa a "F1 a F4 entregues; falta a prova da F5". Superado por D12: o dono dispensou a F5, e o card do PRD foi para "Entregue".
+- E27 (origem: verificação da F4, 2026-11-18, decisão do dono) Na sessão real, o Coordenador abriu o `FACTS.md` com `cat` na primeira exploração para montar a linha `Fatos:` de E22, embora R17 diga para montá-la sem ler o arquivo. A linha não depende do conteúdo do arquivo, então a leitura só custa contexto. Fica aceito como resíduo conhecido, como o E21: o Coordenador pode ainda ler o `FACTS.md` ao montar a linha; R17 continua valendo como regra; não há trava para isso, e o Verificador não reprova a F4 por essa leitura. A eval paga da F5 mediria o efeito no custo (R31 a R37), mas foi dispensada (D12): o custo dessa leitura não foi medido.
 
 ### Decisões (fechadas em 2026-11-18, dono)
 
@@ -310,3 +312,4 @@ A F4 completou o que o PRD não fechava assim. Cada escolha vale na regra que el
 - D9 O `builder` e o `qa-verifier` podem propor até 2 fatos por resposta.
 - D10 A implementação pode começar: a migração pt-BR terminou na 0.46.0 (`b7bd4ae`).
 - D11 Q1 fechada: o dono aprova a eval paga na F5, depois da F4 e antes de declarar o recurso pronto ("Pode testar a avaliação paga, mas acho que vai dar bom o uso do facts"). O desenho está em R31 a R37.
+- D12 (origem: decisão do dono, 2026-11-18) A prova com eval paga da F5 (parte G, R31 a R37, D11) foi dispensada pelo dono. O recurso do arquivo de fatos é declarado entregue com as fatias F1 a F4 (v0.47.0 a v0.50.0) e as verificações em sessão real de cada fatia (F1 a F4 passaram por revisão e verificação independentes). A parte G fica registrada como não executada: o efeito do `FACTS.md` no resultado e no custo dos agentes não foi medido, e a regra de escrita segue revisável depois do primeiro uso real (D4). A preparação da eval (3 casos com e sem `FACTS.md`, o runner e a estimativa de custo) ficou na branch `feat/facts-f5`, parada e fora da `main`; ela só volta se o dono pedir a medição. O card do PRD no `docs/roadmap.html` foi para "Entregue" com a nota de que a eval foi dispensada.
