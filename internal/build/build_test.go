@@ -201,9 +201,9 @@ func minimalRoot(t *testing.T) string {
 			t.Fatal(err)
 		}
 	}
-	writeBuildFixture(t, root, ".agents/alpha.md", "---\nname: alpha\ndescription: Use when testing\nauthor: test\nmodel: haiku\ntools:\n  - Read\n---\nagent\n", 0o644)
+	writeBuildFixture(t, root, ".agents/alpha.md", "---\nname: alpha\ndescription: Use quando testando\nauthor: test\nmodel: haiku\ntools:\n  - Read\n---\nagent\n", 0o644)
 	writeBuildFixture(t, root, ".commands/run.md", "---\nname: run\ndescription: Run test\nauthor: test\nargument-hint: \"\"\nmetadata:\n  roles: [alpha]\n  skills: [sample]\n  writes: none\n---\ncommand\n", 0o644)
-	writeBuildFixture(t, root, ".skills/sample/SKILL.md", "---\nname: sample\ndescription: Use when testing\nauthor: test\nmetadata:\n  provenance: test\n---\nskill\n", 0o644)
+	writeBuildFixture(t, root, ".skills/sample/SKILL.md", "---\nname: sample\ndescription: Use quando testando\nauthor: test\nmetadata:\n  provenance: test\n---\nskill\n", 0o644)
 	writeBuildFixture(t, root, "profiles/base.yaml", "id: base\n", 0o644)
 	writeBuildFixture(t, root, "templates/TASK.md", "# Task\n", 0o644)
 	writeBuildFixture(t, root, "adapters/claude-code/plugin/settings.json", "{}\n", 0o644)

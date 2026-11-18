@@ -25,24 +25,25 @@ func TestSyntheticKitMutations(t *testing.T) {
 			want: "author ausente",
 		},
 		{
-			name: "skill description",
+			name: "skill description with another opening",
 			mutate: func(t *testing.T, root string) {
 				path := filepath.Join(root, ".skills", "sample", "SKILL.md")
 				text := readFixture(t, path)
-				writeFixture(t, path, strings.Replace(text, "Use when", "Apply when", 1))
+				writeFixture(t, path, strings.Replace(text, "Use quando", "Aplique quando", 1))
 			},
 			want: "description deve começar com",
 		},
 		{
-			name: "skill description in pt-BR passes",
+			name: "skill description in the old English form is rejected",
 			mutate: func(t *testing.T, root string) {
 				path := filepath.Join(root, ".skills", "sample", "SKILL.md")
 				text := readFixture(t, path)
-				writeFixture(t, path, strings.Replace(text, "Use when", "Use quando", 1))
+				writeFixture(t, path, strings.Replace(text, "Use quando", "Use when", 1))
 			},
+			want: `description deve começar com "Use quando"`,
 		},
 		{
-			name:   "skill description still in the old English form passes during the transition",
+			name:   "skill description in pt-BR passes",
 			mutate: func(t *testing.T, root string) {},
 		},
 		{
@@ -271,9 +272,9 @@ func TestAntiDelegationClauseParity(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			root := syntheticRoot(t)
-			writeFixture(t, filepath.Join(root, ".agents", "coordinator.md"), "---\nname: coordinator\ndescription: Use when testing\nauthor: test\nmodel: haiku\n---\n"+test.coordinator)
+			writeFixture(t, filepath.Join(root, ".agents", "coordinator.md"), "---\nname: coordinator\ndescription: Use quando testando\nauthor: test\nmodel: haiku\n---\n"+test.coordinator)
 			if test.writeSkillFile {
-				writeFixture(t, filepath.Join(root, ".skills", "external-clis", "SKILL.md"), "---\nname: external-clis\ndescription: Use when testing\nauthor: test\n---\n"+test.skill)
+				writeFixture(t, filepath.Join(root, ".skills", "external-clis", "SKILL.md"), "---\nname: external-clis\ndescription: Use quando testando\nauthor: test\n---\n"+test.skill)
 			}
 			report, err := Validate(root, Options{SkipMinimumCounts: true})
 			if err != nil {
@@ -397,7 +398,7 @@ func syntheticRoot(t *testing.T) string {
 }
 
 func agentFixture(name string) string {
-	return "---\nname: " + name + "\ndescription: Use when testing\nauthor: test\nmodel: haiku\n---\nagent\n"
+	return "---\nname: " + name + "\ndescription: Use quando testando\nauthor: test\nmodel: haiku\n---\nagent\n"
 }
 
 func commandFixture() string {
@@ -409,7 +410,7 @@ func commandFixtureWithName(name string) string {
 }
 
 func skillFixture() string {
-	return "---\nname: sample\ndescription: Use when testing\nauthor: test\nmetadata:\n  provenance: test\n---\nskill\n"
+	return "---\nname: sample\ndescription: Use quando testando\nauthor: test\nmetadata:\n  provenance: test\n---\nskill\n"
 }
 
 func readFixture(t *testing.T, path string) string {
