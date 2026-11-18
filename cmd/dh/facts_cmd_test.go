@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -28,6 +29,26 @@ func factsRepo(t *testing.T, content string) (repo, facts string) {
 		}
 	}
 	return repo, facts
+}
+
+// firstLine is the first stdout line of `dh facts check`: `ok …` or `absent` (the second line is `sha …`).
+func firstLine(out string) string { return strings.TrimSpace(strings.SplitN(out, "\n", 2)[0]) }
+
+// gitCommit makes repo a git work tree with one commit and returns the short sha git itself reports for HEAD.
+func gitCommit(t *testing.T, repo string) string {
+	t.Helper()
+	git := func(args ...string) string {
+		cmd := exec.Command("git", append([]string{"-C", repo, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false"}, args...)...)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Skipf("git is not usable here: %v %s", err, out)
+		}
+		return strings.TrimSpace(string(out))
+	}
+	git("init", "-q")
+	git("add", "-A")
+	git("commit", "-q", "-m", "x")
+	return git("rev-parse", "--short", "HEAD")
 }
 
 func factsDocFor(sections ...string) string {
@@ -151,14 +172,14 @@ func TestFactsConcurrentProcesses(t *testing.T) {
 // R27: absent exits 0 and says `absent`; a good file exits 0 and says `ok`, the facts and the candidates; nothing is written.
 func TestFactsCheckOKAndAbsent(t *testing.T) {
 	repo, facts := factsRepo(t, "")
-	if code, out, e := dh(t, "facts", "check", repo); code != 0 || strings.TrimSpace(out) != "absent" {
-		t.Fatalf("absent: %d %q %q", code, out, e)
+	if code, out, e := dh(t, "facts", "check", repo); code != 0 || out != "absent\nsha ausente\n" {
+		t.Fatalf("absent (no git here: `sha ausente`): %d %q %q", code, out, e)
 	}
 	doc := factsDocFor("## Testes", fmt.Sprintf(cmdFact, "confirmado"), "## Candidatos", strings.Replace(fmt.Sprintf(cmdFact, "candidato"), "F-001", "F-002", 1))
 	os.WriteFile(facts, []byte(doc), 0o644)
 	before, _ := os.ReadDir(filepath.Dir(facts))
 	code, out, e := dh(t, "facts", "check", repo)
-	if code != 0 || strings.TrimSpace(out) != "ok 2 fatos 1 candidatos" || e != "" {
+	if code != 0 || out != "ok 2 fatos 1 candidatos\nsha ausente\n" || e != "" {
 		t.Fatalf("ok: %d %q %q", code, out, e)
 	}
 	after, _ := os.ReadDir(filepath.Dir(facts))
@@ -183,7 +204,7 @@ func TestFactsCheckReportsViolations(t *testing.T) {
 	for name, c := range cases {
 		os.WriteFile(facts, []byte(c.doc), 0o644)
 		code, out, e := dh(t, "facts", "check", repo)
-		if code != 1 || !strings.Contains(e, c.want) || !strings.Contains(e, "reprovado") || out != "" {
+		if code != 1 || !strings.Contains(e, c.want) || !strings.Contains(e, "reprovado") || out != "sha ausente\n" {
 			t.Errorf("%s: %d out=%q err=%q (want %q)", name, code, out, e, c.want)
 		}
 		if strings.Contains(e, "abc12345xyz") {
@@ -224,7 +245,7 @@ func TestFactsCheckGlobalMode(t *testing.T) {
 		t.Fatal(err)
 	}
 	os.WriteFile(filepath.Join(dir, "FACTS.md"), []byte(factsDocFor("## Testes", fmt.Sprintf(cmdFact, "confirmado"))), 0o644)
-	if code, out, e := dh(t, "facts", "check", repo); code != 0 || strings.TrimSpace(out) != "ok 1 fatos 0 candidatos" {
+	if code, out, e := dh(t, "facts", "check", repo); code != 0 || firstLine(out) != "ok 1 fatos 0 candidatos" {
 		t.Fatalf("global: %d %q %q", code, out, e)
 	}
 }
@@ -274,7 +295,7 @@ func TestFactsCheckAcceptsLineRanges(t *testing.T) {
 		return dh(t, "facts", "check", repo)
 	}
 	for _, ok := range []string{"src/a.go:1-3", "src/a.go:2-2", "src/a.go:3", "src/a.go:1-3, src/a.go:2"} {
-		if code, out, e := check(ok); code != 0 || strings.TrimSpace(out) != "ok 1 fatos 0 candidatos" {
+		if code, out, e := check(ok); code != 0 || firstLine(out) != "ok 1 fatos 0 candidatos" {
 			t.Errorf("%q must pass: %d %q %q", ok, code, out, e)
 		}
 	}
@@ -286,4 +307,61 @@ func TestFactsCheckAcceptsLineRanges(t *testing.T) {
 	if code, _, e := check("src:1-3"); code != 1 || !strings.Contains(e, "não é um arquivo do repositório") {
 		t.Errorf("a range on a folder must fail as not a file: %d %q", code, e)
 	}
+}
+
+// R15 (verification of F3): the second stdout line is `sha <short sha of HEAD>`, the one the Coordinator uses, in the three outcomes that print it (ok, absent and
+// violations), and `sha ausente` when there is no commit. The first line keeps its contract. Mode none and usage errors print no sha.
+func TestFactsCheckPrintsTheHeadSha(t *testing.T) {
+	repo, facts := factsRepo(t, "")
+	// a git work tree without a commit has no HEAD yet
+	if out := exec.Command("git", "-C", repo, "init", "-q"); out.Run() != nil {
+		t.Skip("git is not usable here")
+	}
+	if code, out, _ := dh(t, "facts", "check", repo); code != 0 || out != "absent\nsha ausente\n" {
+		t.Fatalf("no commit yet: %d %q", code, out)
+	}
+	head := gitCommit(t, repo)
+	if matched, _ := regexp.MatchString(`^[0-9a-f]{7,40}$`, head); !matched {
+		t.Fatalf("git reported %q", head)
+	}
+	if code, out, e := dh(t, "facts", "check", repo); code != 0 || out != "absent\nsha "+head+"\n" || e != "" {
+		t.Fatalf("absent with a commit: %d %q %q", code, out, e)
+	}
+	os.WriteFile(facts, []byte(factsDocFor("## Testes", fmt.Sprintf(cmdFact, "confirmado"))), 0o644)
+	if code, out, e := dh(t, "facts", "check", repo); code != 0 || out != "ok 1 fatos 0 candidatos\nsha "+head+"\n" || e != "" {
+		t.Fatalf("ok with a commit: %d %q %q", code, out, e)
+	}
+	// a violation: the problems stay on stderr and stdout is only the sha line
+	os.WriteFile(facts, []byte(factsDocFor("## Testes", "- F-001 · frase · Evidência: src/a.go:3")), 0o644)
+	if code, out, e := dh(t, "facts", "check", repo); code != 1 || out != "sha "+head+"\n" || !strings.Contains(e, "campo Visto: ausente") {
+		t.Fatalf("violation with a commit: %d %q %q", code, out, e)
+	}
+	// the sha follows HEAD: a new commit changes it
+	os.WriteFile(filepath.Join(repo, "src", "b.go"), []byte("package b\n"), 0o644)
+	next := gitCommit2(t, repo)
+	if next == head {
+		t.Fatalf("the new commit must change the sha, got %q twice", head)
+	}
+	if _, out, _ := dh(t, "facts", "check", repo); !strings.HasSuffix(out, "sha "+next+"\n") {
+		t.Fatalf("after a new commit: %q (want sha %s)", out, next)
+	}
+	// mode none and a usage error print no sha at all
+	_, none := env(t)
+	if code, out, _ := dh(t, "facts", "check", none); code != 1 || out != "" {
+		t.Fatalf("mode none: %d %q", code, out)
+	}
+	if code, out, _ := dh(t, "facts", "nope"); code != 1 || out != "" {
+		t.Fatalf("usage: %d %q", code, out)
+	}
+}
+
+func gitCommit2(t *testing.T, repo string) string {
+	t.Helper()
+	for _, args := range [][]string{{"add", "-A"}, {"-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", "commit", "-q", "-m", "y"}} {
+		if out, err := exec.Command("git", append([]string{"-C", repo}, args...)...).CombinedOutput(); err != nil {
+			t.Skipf("git is not usable here: %v %s", err, out)
+		}
+	}
+	out, _ := exec.Command("git", "-C", repo, "rev-parse", "--short", "HEAD").Output()
+	return strings.TrimSpace(string(out))
 }
