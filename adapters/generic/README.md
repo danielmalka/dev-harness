@@ -11,7 +11,7 @@ Como usar este kit com um runtime de IA que não é o Claude Code. Não há inte
 | `.skills/<id>/SKILL.md` | Procedimento a carregar quando esse trabalho começar. Siga os links relativos dentro da pasta da skill. |
 | `.commands/<id>.md` | Receita voltada ao usuário. Digite os passos; não há menu de comandos de barra. |
 | `templates/` | Copie para o `.harness/` do consumidor quando a configuração estiver autorizada. |
-| `profiles/` | Mesmas regras de correspondência do Claude. YAML em inglês. |
+| `profiles/` | Mesmas regras de correspondência do Claude. |
 
 ## O que não é transferido
 
