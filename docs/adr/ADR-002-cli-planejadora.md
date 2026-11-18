@@ -5,7 +5,7 @@
 | Status | aceito |
 | Data | 2026-09-28 (emendado em 2026-09-29) |
 | Decisor | Daniel Malka (dono) |
-| Origem | PRD-005 (RF-04); PLAN-011 Decisions needed #1; emenda de 2026-09-29: PRD-008 (R14) |
+| Origem | PRD-005 (RF-04); PLAN-011 Decisões necessárias #1; emenda de 2026-09-29: PRD-008 (R14) |
 | Reversibilidade | cara ou com muitos dependentes: `.commands/plan-loop.md`, `.skills/external-clis/SKILL.md` e `.agents/coordinator.md` passam a citar esta fronteira |
 
 ## 1. Contexto
@@ -68,7 +68,7 @@ Forma decidida (o que os construtores recebem, sem menu):
 ## 7. Referências
 
 - `docs/prd/PRD-005-planejamento-em-loop.md` (RF-02, RF-03, RF-04, RF-05, RF-13, AC-05, AC-15, §6 Contratos e Segurança)
-- `.harness/tasks/PRD-005/PLAN.md` (PLAN-011: Decisions needed #1, fatia 1)
+- `.harness/tasks/PRD-005/PLAN.md` (PLAN-011: Decisões necessárias #1, fatia 1)
 - `.harness/tasks/UND-003/GRILL.md` (G6, G15, G19)
 - `.harness/RISKS.md` RISK-001, RISK-002
 - `.skills/external-clis/SKILL.md` ("A cláusula anti-delegação", "Ler é permitido", passo 7 do Procedimento)

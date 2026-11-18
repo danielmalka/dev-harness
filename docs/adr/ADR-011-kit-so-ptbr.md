@@ -45,7 +45,8 @@
 - O plugin atualizado por cima perde `templates/en/` e `templates/pt-br/` do `dist`; nenhum registro de projeto aponta para esses caminhos.
 - A extensão VS Code não quebra: os campos de `/api/state` não mudam. O texto dela é outro trabalho, fora deste repositório.
 - Os mods passam a ter uma mensagem só (pt-BR) onde havia pares por idioma; nenhuma decisão de negar, perguntar ou avisar muda, só o texto.
-- Transição: da 0.42.0 à 0.44.0 o `dh validate` aceitou `description` de skill que comece com "Use when" **ou** "Use quando", e aceita citações antigas `templates/<lang>/` nas fontes (confere o arquivo em `templates/`). Desde a 0.45.0 aceita só "Use quando" (o teste `validate_test` reprova "Use when"), e a 0.46.0 reprova por lista fixa os marcadores do formato antigo, inclusive `templates/<lang>/`.
+- Transição: da 0.42.0 à 0.44.0 o `dh validate` aceitou `description` de skill que comece com "Use when" **ou** "Use quando", e aceitou citações antigas `templates/<lang>/` nas fontes (conferia o arquivo em `templates/`). Desde a 0.45.0 aceita só "Use quando" (o teste `validate_test` reprova "Use when"), e desde a 0.46.0 reprova por lista fixa, com arquivo e linha, os marcadores do formato antigo nas fontes do kit, inclusive `templates/<lang>/` (`internal/kit/legacy_markers.go`).
+- Leitores duplos de rótulo: da 0.43.0 à 0.45.0, `/dh:plan`, `/dh:review`, `/dh:plan-loop`, o `coordinator` e a `external-clis` leram os rótulos de plano e de relatório em pt-BR e também em inglês, para não quebrar `PLAN.md` e relatórios escritos antes da 0.43.0. A 0.46.0 encerrou a leitura em inglês (a trava e a leitura dupla não convivem: a trava reprova a forma antiga no texto dos leitores). Quem tem um `PLAN.md` ou um relatório antigo renomeia os rótulos à mão; o painel continua lendo `Done on` e `Created / updated` de tickets antigos (leitura no código, sem texto em inglês nas fontes).
 
 ## 4. Fatias
 
@@ -55,7 +56,7 @@
 | 0.43.0 | As 22 skills em pt-BR, as regras de escrita do PRD e o lote H1 do histórico (ADR-009 e ADR-010) |
 | 0.44.0 | Agentes, comandos e perfis em pt-BR, regra do Coordenador e lote H2 (PRD-020 a PRD-027) |
 | 0.45.0 | Docs e restos, `docs/en/` e `README.en.md` removidos, evals traduzidas, `validate` só com "Use quando" e lote H3 (PRD-028 a PRD-034) |
-| 0.46.0 | Trava contra o inglês voltar no `dh validate` e lote H4 (as revisões `.review.md`) |
+| 0.46.0 | Trava contra o inglês voltar no `dh validate` (lista fixa de marcadores), fim da leitura dupla de rótulos, lote H4 (as 25 revisões `.review.md` em inglês) e as citações em inglês que restavam em PRDs e ADRs antigos; a migração termina aqui |
 
 ## 5. Alternativas recusadas
 
