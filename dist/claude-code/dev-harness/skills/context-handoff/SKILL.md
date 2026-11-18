@@ -1,230 +1,230 @@
 ---
 name: context-handoff
-description: Use when work must survive a session boundary, when resuming from a prior record, or when explicitly asked to consolidate operational memory into raw history. Growing memory may trigger a suggestion to consolidate. Do not use for ordinary progress notes, user-facing documentation or task specifications.
+description: Use quando o trabalho precisar sobreviver a uma fronteira de sessão, ao retomar a partir de um registro anterior, ou quando houver pedido explícito para consolidar a memória operacional em histórico bruto. Uma memória crescente pode disparar uma sugestão de consolidar. Não use para notas de progresso comuns, documentação voltada ao usuário nem especificações de tarefa.
 author: malka
 metadata:
   provenance: authorial
   sources: ["dev-harness plan 4.6 and AC-19..AC-24", "dev-harness memory templates", "dev-harness coordinator agent", " context-manager role"]
 ---
 
-# Context Handoff
+# Handoff de contexto
 
-## Overview
+## Visão geral
 
-This procedure keeps a task alive across sessions through three operations: writing a handoff another session can act on, resuming from one by reconciling it against the current tree, and consolidating operational memory so the archive keeps the raw text and the memory keeps only what execution still needs. The governing principle is that the handoff orients but the tree decides. A record is a claim about the past; the files, the checks and the history are the evidence, and where they disagree the evidence wins.
+Este procedimento mantém uma tarefa viva entre sessões por três operações: escrever um handoff em que outra sessão consiga agir, retomar a partir de um reconciliando-o com a árvore atual, e consolidar a memória operacional para que o arquivo histórico guarde o texto bruto e a memória guarde só o que a execução ainda precisa. O princípio que governa é que o handoff orienta, mas a árvore decide. Um registro é uma afirmação sobre o passado; os arquivos, as checagens e o histórico são a evidência, e onde discordam a evidência vence.
 
-Only the Coordinator writes `<harness dir>/MEMORY.md`, `<harness dir>/EPOCHAL.md` and `<harness dir>/RISKS.md`. Every other role, including documentation and QA roles, reports facts, evidence, pending items and incidents back to the Coordinator, who records them. One Coordinator session holds that write role per project; two sessions must not update or consolidate these records in parallel. For `MEMORY.md` the rule has a technical check, the memory write guard below; `EPOCHAL.md` and `RISKS.md` keep the organizational rule only.
+Só o Coordenador escreve `<harness dir>/MEMORY.md`, `<harness dir>/EPOCHAL.md` e `<harness dir>/RISKS.md`. Todos os outros papéis, inclusive os de documentação e de QA, reportam ao Coordenador fatos, evidência, itens pendentes e incidentes, e ele os registra. Uma sessão do Coordenador detém esse papel de escrita por projeto; duas sessões não devem atualizar nem consolidar esses registros em paralelo. Para o `MEMORY.md` a regra tem uma checagem técnica, a trava de escrita da memória abaixo; `EPOCHAL.md` e `RISKS.md` mantêm só a regra organizacional.
 
-### Memory write guard
+### Trava de escrita da memória
 
-Every write of `<harness dir>/MEMORY.md` by the kit is a compare-and-swap through the `dh` binary (the bundled `bin/dh`, `bin\dh.cmd` on Windows, from the loaded plugin directory, as in `.commands/doctor.md`), so a write never replaces what someone else wrote since you read it. (origem: PRD-034, 2026-11-16, decisão do dono)
+Toda escrita de `<harness dir>/MEMORY.md` pelo kit é uma operação de comparar e trocar feita pelo binário `dh` (o `bin/dh` empacotado, `bin\dh.cmd` no Windows, a partir do diretório do plugin carregado, como em `.commands/doctor.md`), de modo que uma escrita nunca substitui o que outra pessoa escreveu depois que você leu. (origem: PRD-034, 2026-11-16, decisão do dono)
 
-1. When you read `MEMORY.md`, take its hash with `dh memory hash` and keep it as the expected hash.
-2. Edit a draft copy outside the harness dir (a copy in the system temporary folder), never the file itself.
-3. Write with `dh memory write --expect <hash> --from <draft>`. On success it prints `written <new hash>`, the expected hash of your next write. The first write of a new harness dir (initialization from the template) uses `--expect absent`.
-4. On exit 3 the file changed since you read it and nothing was written. Do not retry the same content: read `MEMORY.md` again, redo the edit on the new content and write once more. A second exit 3 goes to the owner as one numbered question.
-5. Any other failure (exit 1) wrote nothing: report it, and do not fall back to editing the file in place. A runtime without the binary compares `sha256sum` of the file when it reads and again right before it writes, and stops if the two differ.
+1. Ao ler o `MEMORY.md`, tire o hash dele com `dh memory hash` e guarde-o como o hash esperado.
+2. Edite uma cópia de rascunho fora do harness dir (uma cópia na pasta temporária do sistema), nunca o arquivo em si.
+3. Escreva com `dh memory write --expect <hash> --from <rascunho>`. Em caso de sucesso, ele imprime `written <novo hash>`, o hash esperado da sua próxima escrita. A primeira escrita de um harness dir novo (inicialização a partir do template) usa `--expect absent`.
+4. No código de saída 3, o arquivo mudou desde que você o leu e nada foi escrito. Não repita o mesmo conteúdo: leia o `MEMORY.md` de novo, refaça a edição sobre o novo conteúdo e escreva mais uma vez. Um segundo código de saída 3 vai ao dono como uma pergunta numerada.
+5. Qualquer outra falha (código de saída 1) não escreveu nada: reporte-a e não recorra a editar o arquivo no local. Um runtime sem o binário compara o `sha256sum` do arquivo ao ler e de novo logo antes de escrever, e para se os dois diferirem.
 
-Residual, stated: the guard protects the callers of `dh memory write`. A writer that edits the file directly is detected only when its write lands before the compare, and the Claude Code mod does not force the use of the command. The guard covers `MEMORY.md` only.
+Resíduo, declarado: a trava protege os chamadores de `dh memory write`. Um escritor que edita o arquivo diretamente só é detectado quando a escrita dele cai antes da comparação, e o mod do Claude Code não força o uso do comando. A trava cobre só o `MEMORY.md`.
 
-## When to use
+## Quando usar
 
-- A session is ending, running out of context, or passing work to another person or agent.
-- A new session must continue a task started elsewhere, and the tree may have moved since.
-- A prior record and the current files disagree, and the next step depends on which is true.
-- The operational memory has grown past the state execution actually needs and the history must be preserved before trimming.
-- A consolidation was interrupted and it is unclear whether the batch was archived.
+- Uma sessão está terminando, ficando sem contexto, ou passando o trabalho a outra pessoa ou agente.
+- Uma sessão nova precisa continuar uma tarefa iniciada em outro lugar, e a árvore pode ter se movido desde então.
+- Um registro anterior e os arquivos atuais discordam, e o próximo passo depende de qual é verdadeiro.
+- A memória operacional cresceu além do estado de que a execução realmente precisa e o histórico deve ser preservado antes de podar.
+- Uma consolidação foi interrompida e não está claro se o lote foi arquivado.
 
-## When not to use
+## Quando não usar
 
-- Ordinary progress inside one continuous session that already holds the state.
-- Documentation aimed at a user or an operator. That is delivery-readiness.
-- Authoring a design decision record or a specification. The handoff carries decisions by summary and reference; the ADR or spec itself belongs under `<harness dir>/adr/` or `<harness dir>/tasks/<id>/`.
-- Registering a serious incident. That is a RISKS record, written by the Coordinator, and consolidation never touches it.
-- A role other than the Coordinator wanting to edit the three memory files. Report instead.
+- Progresso comum dentro de uma sessão contínua que já tem o estado.
+- Documentação voltada a um usuário ou a um operador. Isso é `delivery-readiness`.
+- Redigir um registro de decisão de design ou uma especificação. O handoff carrega decisões por resumo e referência; o ADR ou a especificação em si pertence a `<harness dir>/adr/` ou `<harness dir>/tasks/<id>/`.
+- Registrar um incidente grave. Isso é um registro de RISKS, escrito pelo Coordenador, e a consolidação nunca o toca.
+- Um papel diferente do Coordenador querendo editar os três arquivos de memória. Reporte em vez disso.
 
-## Inputs
+## Entradas
 
-| Input | If missing |
+| Entrada | Se faltar |
 | --- | --- |
-| The objective and the authorized scope of the task | Stop. A handoff without an objective transfers activity, not work. In the main session, ask the owner. As a dispatched specialist, return the missing input to the Coordinator and stop; never proceed on an assumed value. |
-| Current operational memory `<harness dir>/MEMORY.md` | If absent, only the main-session Coordinator may initialize it from the `templates/` folder bundled with the kit (`templates/<lang>/MEMORY.md`) within authorized scope, with `dh memory write --expect absent`. Other roles report its absence. Never overwrite existing records or invent past state. |
-| Files touched, decisions taken, evidence produced | Record only what you can source. Mark anything unverified as hypothesis. |
-| Constraints and prohibitions stated by the owner | Carry sourced constraints forward verbatim. Preserve a recorded constraint with unknown provenance as unresolved until clarified; missing provenance does not revoke it. Never invent a constraint. |
-| The next authorized step | Check existing authorization first. State what is already covered; mark only actions outside that scope as awaiting authorization. |
-| For consolidation: confirmation that no other session is writing the records | Confirmed only by an explicit statement from the owner in this session. The absence of evidence of another writer is not confirmation; when in doubt, ask and do not consolidate. |
+| O objetivo e o escopo autorizado da tarefa | Pare. Um handoff sem objetivo transfere atividade, não trabalho. Na sessão principal, pergunte ao dono. Como especialista despachado, devolva a entrada que falta ao Coordenador e pare; nunca prossiga com um valor presumido. |
+| A memória operacional atual `<harness dir>/MEMORY.md` | Se ausente, só o Coordenador da sessão principal pode inicializá-la a partir da pasta `templates/` que acompanha o kit (`templates/MEMORY.md`) dentro do escopo autorizado, com `dh memory write --expect absent`. Os outros papéis reportam a ausência. Nunca sobrescreva registros existentes nem invente estado passado. |
+| Arquivos tocados, decisões tomadas, evidência produzida | Registre só o que você consegue fundamentar em fonte. Marque como hipótese tudo que não foi verificado. |
+| Restrições e proibições declaradas pelo dono | Leve adiante, literalmente, as restrições com fonte. Preserve como não resolvida uma restrição registrada de procedência desconhecida até ela ser esclarecida; a falta de procedência não a revoga. Nunca invente uma restrição. |
+| O próximo passo autorizado | Confira primeiro a autorização existente. Declare o que já está coberto; marque como aguardando autorização só as ações fora desse escopo. |
+| Para consolidação: confirmação de que nenhuma outra sessão está escrevendo os registros | Confirmada só por uma declaração explícita do dono nesta sessão. A ausência de evidência de outro escritor não é confirmação; na dúvida, pergunte e não consolide. |
 
-## Procedure
+## Procedimento
 
-### A. Handoff: write a portable record
+### A. Handoff: escrever um registro portátil
 
-1. **State the objective and the authorization separately.** What the task is for, and what may currently be written, committed or published. Approval of a plan is not authorization to publish.
-2. **List the files in the write set with relative paths.** Absolute paths, machine names and user directories make the record unusable elsewhere. Note which files are modified and which are only read.
-3. **Record decisions with their reason and their source.** Each decision carries what was decided, why, and what would justify revisiting it. A decision without a reason gets re-litigated or, worse, reversed by accident.
-4. **Record evidence as it stands.** Each check with its command and its result as passed, failed or not-run. Never promote a not-run to a pass because it passed earlier on a different tree.
-5. **Carry constraints forward verbatim.** Prohibitions, scope limits, style rules, forbidden files, deadlines. These are the first thing lost across a boundary and the most expensive to lose.
-6. **Name what is pending and what is blocked, with the blocker.** Distinguish work not yet started from work waiting on someone.
-7. **Write exactly one next step.** Concrete enough to start without interpretation, with authorization marked already granted (source and scope) or pending. Preserve any correction-round count and the default, requested and effective model (or unverified) needed to resume; neither a handoff nor a model change resets the correction budget.
-8. **Remove secrets.** No tokens, keys, connection strings, private hostnames or personal paths. Name the variable and its purpose instead.
-9. **Hand the record to the Coordinator.** Store the record under `<harness dir>/tasks/<id>/` and let the Coordinator fold the durable state into `<harness dir>/MEMORY.md`. Other roles do not write that file.
+1. **Declare o objetivo e a autorização separadamente.** Para que serve a tarefa, e o que pode ser escrito, commitado ou publicado no momento. A aprovação de um plano não é autorização para publicar.
+2. **Liste os arquivos do conjunto de escrita com caminhos relativos.** Caminhos absolutos, nomes de máquina e diretórios de usuário tornam o registro inutilizável em outro lugar. Anote quais arquivos são modificados e quais só são lidos.
+3. **Registre as decisões com o motivo e a fonte.** Cada decisão traz o que foi decidido, por quê e o que justificaria revisitá-la. Uma decisão sem motivo é rediscutida ou, pior, revertida por acidente.
+4. **Registre a evidência como ela está.** Cada checagem com o comando e o resultado, como `passed`, `failed` ou `not-run`. Nunca promova um `not-run` a `passed` porque passou antes em outra árvore.
+5. **Leve as restrições adiante, literalmente.** Proibições, limites de escopo, regras de estilo, arquivos proibidos, prazos. São a primeira coisa que se perde ao cruzar uma fronteira e a mais cara de perder.
+6. **Nomeie o que está pendente e o que está bloqueado, com o bloqueio.** Distinga o trabalho ainda não iniciado do trabalho que espera alguém.
+7. **Escreva exatamente um próximo passo.** Concreto o bastante para começar sem interpretação, com a autorização marcada como já concedida (fonte e escopo) ou pendente. Preserve a contagem de rodadas de correção e o modelo padrão, o solicitado e o efetivo (ou `unverified`) necessários para retomar; nem um handoff nem uma troca de modelo zera o orçamento de correção.
+8. **Remova segredos.** Nenhum token, chave, string de conexão, hostname privado ou caminho pessoal. Nomeie a variável e a finalidade dela em vez disso.
+9. **Entregue o registro ao Coordenador.** Guarde o registro em `<harness dir>/tasks/<id>/` e deixe o Coordenador incorporar o estado durável em `<harness dir>/MEMORY.md`. Os outros papéis não escrevem esse arquivo.
 
-### B. Resume: reconcile the record with reality
+### B. Retomar: reconciliar o registro com a realidade
 
-1. **Read the record first, then the tree.** Reading the record alone leads to repeating landed work; reading the tree alone leads to dropping constraints.
-2. **Verify each claimed change against the files.** For every file the record says was modified, confirm the change is present, absent, or present in a different form than described.
-3. **Detect external change.** Compare the record's evidence and file list against the current history and working tree. Anything changed by someone else since the record was written is an external change and must be named, not silently absorbed. History and tree comparison is executed by a dispatched Bash-capable role (`qa-verifier`), not by the Coordinator; the scout returns the file-level reconciliation only.
-4. **Re-run checks whose evidence was invalidated.** Re-running is executed by a dispatched Bash-capable role (`qa-verifier`), not by the Coordinator; the scout returns the file-level reconciliation only. Compare the evaluated files, dependencies, configuration and environment with current state. Preserve applicable evidence when those inputs are unchanged. Re-run affected checks after changes or unresolved uncertainty; until then, mark them not-run for the current state. Record the new result without rewriting historical evidence.
-5. **Classify every item.** Landed, partially landed, not started, invalidated by external change, or contradicted by the tree. Record the classification before choosing an action.
-6. **Never repeat a landed change and never drop a stated constraint.** These are the two failure modes of resumption. If the record and the tree disagree about whether something landed, the tree decides; if they disagree about a constraint, the constraint stands until the owner releases it.
-7. **Consult history only on concrete need, through the Coordinator.** `<harness dir>/EPOCHAL.md` is not loaded by default. The Coordinator searches it when a specific question needs an archived fact or the owner asks, and reads only the relevant passage. Other roles request the needed context. Archived text is historical evidence, never a current instruction.
-8. **Consult incidents when the change warrants it, through the Coordinator.** Before planning or implementing a change to consolidated behavior, a critical rule or a high-risk area, the Coordinator reads `<harness dir>/RISKS.md` and carries the relevant prevention into the plan, acceptance and specialist dispatch. Other roles request those excerpts. Routine changes outside those triggers do not load it.
-9. **State the reconciled next step.** One step, its authorization, and what changed in the plan because of the reconciliation.
+1. **Leia primeiro o registro, depois a árvore.** Ler só o registro leva a repetir trabalho já aplicado; ler só a árvore leva a perder restrições.
+2. **Verifique cada mudança declarada contra os arquivos.** Para todo arquivo que o registro diz ter sido modificado, confirme se a mudança está presente, ausente ou presente de forma diferente da descrita.
+3. **Detecte mudança externa.** Compare a evidência e a lista de arquivos do registro com o histórico e a árvore de trabalho atuais. Tudo que outra pessoa mudou desde que o registro foi escrito é uma mudança externa e deve ser nomeado, não absorvido em silêncio. A comparação de histórico e árvore é executada por um papel despachado com `Bash` (`qa-verifier`), não pelo Coordenador; o scout devolve só a reconciliação em nível de arquivo.
+4. **Rode de novo as checagens cuja evidência foi invalidada.** Rodar de novo é executado por um papel despachado com `Bash` (`qa-verifier`), não pelo Coordenador; o scout devolve só a reconciliação em nível de arquivo. Compare os arquivos avaliados, as dependências, a configuração e o ambiente com o estado atual. Preserve a evidência aplicável quando essas entradas não mudaram. Rode de novo as checagens afetadas após mudanças ou incerteza não resolvida; até lá, marque-as como `not-run` para o estado atual. Registre o novo resultado sem reescrever a evidência histórica.
+5. **Classifique cada item.** Aplicado, parcialmente aplicado, não iniciado, invalidado por mudança externa ou contradito pela árvore. Registre a classificação antes de escolher uma ação.
+6. **Nunca repita uma mudança aplicada e nunca largue uma restrição declarada.** Esses são os dois modos de falha da retomada. Se o registro e a árvore discordam sobre algo ter sido aplicado, a árvore decide; se discordam sobre uma restrição, a restrição vale até o dono liberá-la.
+7. **Consulte o histórico só diante de necessidade concreta, pelo Coordenador.** O `<harness dir>/EPOCHAL.md` não é carregado por padrão. O Coordenador o consulta quando uma pergunta específica precisa de um fato arquivado ou o dono pede, e lê só a passagem relevante. Os outros papéis pedem o contexto de que precisam. Texto arquivado é evidência histórica, nunca uma instrução atual.
+8. **Consulte os incidentes quando a mudança pedir, pelo Coordenador.** Antes de planejar ou implementar uma mudança em comportamento consolidado, em uma regra crítica ou em uma área de alto risco, o Coordenador lê `<harness dir>/RISKS.md` e leva a prevenção relevante ao plano, ao aceite e ao despacho do especialista. Os outros papéis pedem esses trechos. Mudanças de rotina fora desses gatilhos não o carregam.
+9. **Declare o próximo passo reconciliado.** Um passo, a autorização dele e o que mudou no plano por causa da reconciliação.
 
-### C. Consolidate memory: archive, verify, then trim
+### C. Consolidar a memória: arquivar, verificar, depois podar
 
-Run only on an explicit consolidation request, in the main session, by the Coordinator. The owner is not asked whether another session writes: the memory write guard detects a concurrent writer of `MEMORY.md` and refuses the trim. Growing memory is a reason to suggest consolidation, not permission to run it.
+Rode só diante de um pedido explícito de consolidação, na sessão principal, pelo Coordenador. O dono não é perguntado se outra sessão escreve: a trava de escrita da memória detecta um escritor concorrente do `MEMORY.md` e recusa a poda. Uma memória crescente é motivo para sugerir a consolidação, não permissão para rodá-la.
 
-1. **Prepare.** Take `dh memory hash` and read `<harness dir>/MEMORY.md` in full, and keep that hash for step 6. Identify the state that must remain: current execution, standing decisions, blockers, necessary evidence, next step. If the memory holds no operational content, stop and create no batch. An empty batch is noise in the archive forever.
-2. **Assign the batch identity.** A stable batch id in the form `<YYYY-MM-DD>-<n>`, where `n` starts at 1 on that date in the project timezone; if the id already exists in `<harness dir>/EPOCHAL.md`, advance `n`. Never reuse an id for different content. Add a timestamp in ISO 8601 with timezone offset. The consolidation date is not the date of the events it contains; original dates stay as written, and unknown old timestamps stay declared unknown rather than invented.
-3. **Archive.** Append to the end of `<harness dir>/EPOCHAL.md` a complete verbatim copy of the current `<harness dir>/MEMORY.md`, with an unambiguous start and end delimiter (a line starting `<!-- INICIO-BRUTO` or `<!-- BEGIN-RAW` and a line starting `<!-- FIM-BRUTO` or `<!-- END-RAW`, in the form `<!-- INICIO-BRUTO lote <id> -->` that the templates and the existing EPOCHAL use, matching the project language), the batch id, the timestamp, the source, and the tasks and date range covered. Do not summarize, reorder, reformat or quietly correct the raw text. Do not load the whole archive to append one batch; append at the end.
-4. **Keep commentary outside the raw block.** Coordinator notes and later corrections go outside the archived block, labeled as commentary and dated. A correction is a new linked record, never an edit inside the batch.
-5. **Verify before touching the source.** Re-read the written batch and compare it integrally with the memory it came from, and take `dh memory hash` again: it must equal the hash of step 1. On any failure, divergence, changed hash, or invalid destination file, leave `<harness dir>/MEMORY.md` untouched and report the situation. This and the guard of step 6 are the gates that protect the memory.
-6. **Trim, only after the archive is confirmed.** Write the trimmed memory with `dh memory write --expect <hash of step 1>`; on exit 3 the memory changed since step 1, so leave it intact, report the operation as incomplete with the stored batch id, and let a new run start a new batch from the current memory. Keep the current execution, standing decisions, blockers, necessary evidence, the next step and a brief recent history. Record the batch id and the consolidation date in the memory's last-consolidation section. Closed events remain reachable in the archive. An open serious incident stays visible in the memory as a blocker even though it is also recorded in the incident file.
-7. **Resume safely after an interruption.** The operation spans two files and is not atomic. Locate the prior batch by its stable id before appending anything. If complete, verify it and the unchanged source before trimming; if MEMORY already records that completed consolidation, do not trim again. If the batch is partial, malformed, ambiguous, or differs from current MEMORY, leave MEMORY intact and report recovery as blocked. Do not blindly restart with a new id, duplicate a batch, or edit historical raw content. Never remove from memory anything not proven preserved.
-8. **Leave the incident record alone.** `<harness dir>/RISKS.md` is not consolidated, trimmed, updated or moved into the archive. Resolved incidents and their prevention remain intact; incident updates belong to a separate Coordinator operation.
-9. **Deliver.** Report the batch created, what stayed active in memory, and any pending item. Consolidation is an explicit command. The Coordinator may suggest it when the memory loses concision, and never performs a silent cleanup.
+1. **Prepare.** Tire o `dh memory hash`, leia o `<harness dir>/MEMORY.md` por inteiro e guarde esse hash para o passo 6. Identifique o estado que deve permanecer: execução atual, decisões vigentes, bloqueios, evidência necessária, próximo passo. Se a memória não tem conteúdo operacional, pare e não crie lote. Um lote vazio é ruído no arquivo histórico para sempre.
+2. **Atribua a identidade do lote.** Um id de lote estável no formato `<AAAA-MM-DD>-<n>`, em que `n` começa em 1 naquela data no fuso horário do projeto; se o id já existir em `<harness dir>/EPOCHAL.md`, avance `n`. Nunca reutilize um id para conteúdo diferente. Acrescente um timestamp em ISO 8601 com deslocamento de fuso horário. A data da consolidação não é a data dos eventos que ela contém; as datas originais ficam como foram escritas, e timestamps antigos desconhecidos continuam declarados desconhecidos em vez de inventados.
+3. **Arquive.** Anexe ao fim de `<harness dir>/EPOCHAL.md` uma cópia literal completa do `<harness dir>/MEMORY.md` atual, com um delimitador inequívoco de início e de fim (uma linha começando com `<!-- INICIO-BRUTO` ou `<!-- BEGIN-RAW` e uma linha começando com `<!-- FIM-BRUTO` ou `<!-- END-RAW`, no formato `<!-- INICIO-BRUTO lote <id> -->` que os templates e o EPOCHAL existente usam, conforme o idioma do projeto), o id do lote, o timestamp, a fonte, e as tarefas e o intervalo de datas cobertos. Não resuma, reordene, reformate nem corrija em silêncio o texto bruto. Não carregue o arquivo histórico inteiro para anexar um lote; anexe ao fim.
+4. **Mantenha o comentário fora do bloco bruto.** Notas do Coordenador e correções posteriores ficam fora do bloco arquivado, rotuladas como comentário e datadas. Uma correção é um novo registro ligado, nunca uma edição dentro do lote.
+5. **Verifique antes de tocar na fonte.** Releia o lote escrito e compare-o na íntegra com a memória de onde veio, e tire o `dh memory hash` de novo: ele deve ser igual ao hash do passo 1. Em qualquer falha, divergência, hash alterado ou arquivo de destino inválido, deixe o `<harness dir>/MEMORY.md` intocado e reporte a situação. Este e a trava do passo 6 são os gates que protegem a memória.
+6. **Poda, só depois de confirmado o arquivamento.** Escreva a memória podada com `dh memory write --expect <hash do passo 1>`; no código de saída 3 a memória mudou desde o passo 1, então deixe-a intacta, reporte a operação como incompleta com o id do lote armazenado, e deixe uma nova execução começar um novo lote a partir da memória atual. Mantenha a execução atual, as decisões vigentes, os bloqueios, a evidência necessária, o próximo passo e um histórico recente breve. Registre o id do lote e a data da consolidação na seção de última consolidação da memória. Os eventos encerrados continuam acessíveis no arquivo histórico. Um incidente grave aberto continua visível na memória como bloqueio, mesmo estando também registrado no arquivo de incidentes.
+7. **Retome com segurança após uma interrupção.** A operação abrange dois arquivos e não é atômica. Localize o lote anterior pelo id estável antes de anexar qualquer coisa. Se estiver completo, verifique-o e confira que a fonte não mudou antes de podar; se a MEMORY já registra essa consolidação concluída, não pode de novo. Se o lote estiver parcial, malformado, ambíguo ou diferir da MEMORY atual, deixe a MEMORY intacta e reporte a recuperação como bloqueada. Não reinicie às cegas com um id novo, não duplique um lote nem edite conteúdo bruto histórico. Nunca remova da memória nada que não esteja provado preservado.
+8. **Deixe o registro de incidentes em paz.** O `<harness dir>/RISKS.md` não é consolidado, podado, atualizado nem movido para o arquivo histórico. Os incidentes resolvidos e a prevenção deles permanecem intactos; atualizações de incidente pertencem a uma operação separada do Coordenador.
+9. **Entregue.** Reporte o lote criado, o que permaneceu ativo na memória e qualquer item pendente. A consolidação é um comando explícito. O Coordenador pode sugeri-la quando a memória perde concisão, e nunca faz uma limpeza silenciosa.
 
-## Output format
+## Formato de saída
 
-Handoff record.
+Registro de handoff.
 
 ```
-# Handoff: <task id>
+# Handoff: <id da tarefa>
 
-## Objective
-- Goal:
-- Authorization: <what may be written, committed, published>
+## Objetivo
+- Meta:
+- Autorização: <o que pode ser escrito, commitado, publicado>
 
-## Constraints
-- <constraint, carried forward verbatim>
+## Restrições
+- <restrição, levada adiante literalmente>
 
-## Write set
-- <relative path> | modified | read-only
+## Conjunto de escrita
+- <caminho relativo> | modificado | somente leitura
 
-## Decisions
-- <decision> | reason | source | revisit if <condition>
+## Decisões
+- <decisão> | motivo | fonte | rever se <condição>
 
-## Evidence
-| Check | Command | Result |
+## Evidência
+| Checagem | Comando | Resultado |
 | --- | --- | --- |
-| <name> | <command from the project profile> | passed / failed / not-run (<reason>) |
+| <nome> | <comando do perfil do projeto> | passed / failed / `not-run` (<motivo>) |
 
-## Pending and blocked
-- <item> | owner | blocker | completion condition
+## Pendentes e bloqueados
+- <item> | responsável | bloqueio | condição de conclusão
 
-## Next authorized step
-- <one concrete step> | authorization: already granted (<source and scope>) | pending (<what>)
+## Próximo passo autorizado
+- <um passo concreto> | autorização: já concedida (<fonte e escopo>) | pendente (<o quê>)
 ```
 
-Resume reconciliation.
+Reconciliação da retomada.
 
 ```
-# Resume: <task id>
+# Retomada: <id da tarefa>
 
-## Reconciliation
-| Item from handoff | State in tree | Classification | Action |
+## Reconciliação
+| Item do handoff | Estado na árvore | Classificação | Ação |
 | --- | --- | --- | --- |
-| <item> | <observed> | landed / partial / not started / invalidated / contradicted | <action> |
+| <item> | <observado> | aplicado / parcial / não iniciado / invalidado / contradito | <ação> |
 
-## External changes detected
-- <change> | source | effect on the plan
+## Mudanças externas detectadas
+- <mudança> | fonte | efeito no plano
 
-## Constraints still in force
-- <constraint>
+## Restrições ainda em vigor
+- <restrição>
 
-## Checks re-run
-| Check | Command | Result |
+## Checagens rodadas de novo
+| Checagem | Comando | Resultado |
 
-## Next step
-- <step> | authorization: already granted (<source and scope>) | pending (<what>)
+## Próximo passo
+- <passo> | autorização: já concedida (<fonte e escopo>) | pendente (<o quê>)
 ```
 
-Consolidation report.
+Relatório de consolidação.
 
 ```
-# Consolidation: <batch id>
+# Consolidação: <id do lote>
 
-- Timestamp: <ISO 8601 with offset>
-- Source: MEMORY.md
-- Tasks covered: <ids> | date range: <known range>
-- Verification: batch re-read and compared integrally; source unchanged: yes / no
-- Kept active in memory: execution, decisions, blockers, evidence, next step, brief history
-- Pending after consolidation: <items>
-- RISKS.md: untouched
+- Timestamp: <ISO 8601 com deslocamento>
+- Fonte: MEMORY.md
+- Tarefas cobertas: <ids> | intervalo de datas: <intervalo conhecido>
+- Verificação: lote relido e comparado na íntegra; fonte inalterada: sim / não
+- Mantido ativo na memória: execução, decisões, bloqueios, evidência, próximo passo, histórico breve
+- Pendente após a consolidação: <itens>
+- RISKS.md: intocado
 ```
 
-## Quick reference
+## Referência rápida
 
-Read policy for the three records.
+Política de leitura dos três registros.
 
-| File | Written by | Read when |
+| Arquivo | Escrito por | Lido quando |
 | --- | --- | --- |
-| `<harness dir>/MEMORY.md` | Coordinator only | Every execution start, every resume, before every dispatch |
-| `<harness dir>/EPOCHAL.md` | Coordinator only | Only on a concrete historical need or an explicit request; search by task, batch, date or subject and read only the passage |
-| `<harness dir>/RISKS.md` | Coordinator only | Before changing consolidated behavior, a critical rule or a high-risk area; and to register or update a serious incident |
+| `<harness dir>/MEMORY.md` | Só o Coordenador | Todo início de execução, toda retomada, antes de todo despacho |
+| `<harness dir>/EPOCHAL.md` | Só o Coordenador | Só diante de uma necessidade histórica concreta ou de um pedido explícito; busque por tarefa, lote, data ou assunto e leia só a passagem |
+| `<harness dir>/RISKS.md` | Só o Coordenador | Antes de mudar comportamento consolidado, uma regra crítica ou uma área de alto risco; e para registrar ou atualizar um incidente grave |
 
-Consolidation gates, in order. A gate that is not met stops the operation with the memory intact.
+Gates da consolidação, em ordem. Um gate não atendido interrompe a operação com a memória intacta.
 
-| Gate | Met when |
+| Gate | Atendido quando |
 | --- | --- |
-| Request | Explicit consolidation request, not inferred from memory size |
-| Sole writer | The owner stated in this session that no other session is writing the records |
-| Content | The memory holds operational content; otherwise no batch is created |
-| Identity | Batch id `<YYYY-MM-DD>-<n>` not already in the archive, plus ISO 8601 timestamp with offset |
-| Archive | Complete verbatim copy appended with unambiguous delimiters |
-| Verification | Batch re-read, compared integrally, and the source confirmed unchanged |
-| Trim | Runs only after verification passed |
-| Incidents | The incident record is untouched |
+| Pedido | Pedido explícito de consolidação, não inferido do tamanho da memória |
+| Escritor único | O dono declarou nesta sessão que nenhuma outra sessão está escrevendo os registros |
+| Conteúdo | A memória tem conteúdo operacional; senão nenhum lote é criado |
+| Identidade | Id de lote `<AAAA-MM-DD>-<n>` ainda não presente no arquivo histórico, mais timestamp ISO 8601 com deslocamento |
+| Arquivamento | Cópia literal completa anexada com delimitadores inequívocos |
+| Verificação | Lote relido, comparado na íntegra, e a fonte confirmada como inalterada |
+| Poda | Roda só depois de a verificação passar |
+| Incidentes | O registro de incidentes está intocado |
 
-## Common mistakes
+## Erros comuns
 
-| Excuse | Reality |
+| Desculpa | Realidade |
 | --- | --- |
-| "The handoff says it was done, so it is done" | The handoff is a claim. Confirm it in the files before building on it. |
-| "The tree looks different, the handoff must be stale, I will start over" | Some of it landed. Classify item by item; starting over repeats landed work and loses decisions. |
-| "That constraint was probably from an earlier phase" | A constraint stands until the owner releases it. Silently dropping one is the exact failure resumption must prevent. |
-| "The memory is long, I will tidy it and archive later" | Trimming before the archive is verified destroys the only copy. Archive, verify, then trim, in that order. |
-| "Summarizing the old memory makes the archive readable" | The archive is raw history. A summary replaces evidence with interpretation and cannot be undone. |
-| "The consolidation timestamp can stand in for the event dates" | It cannot. Original dates stay; unknown ones stay declared unknown. |
-| "The run was interrupted, safest is to archive again" | A duplicate batch corrupts the history. Locate and verify the same batch first. |
-| "I am the documentation role, updating the memory is part of my job" | Only the Coordinator writes the three records. Report facts and evidence instead. |
-| "Loading the whole history gives me better context" | The archive enters context only on a concrete need. Default loading buries the operational state. |
-| "The incident is resolved, consolidation can clear it" | Consolidation never touches the incident record. Resolved incidents stay with their prevention. |
-| "Checks passed before the break, I can carry the result over" | Preserve them only if evaluated inputs remain unchanged; otherwise re-run affected checks or mark not-run. |
-| "Two of us can split the consolidation to go faster" | One Coordinator session writes per project. Parallel writers lose state that no archive holds. |
+| "O handoff diz que foi feito, então foi feito" | O handoff é uma afirmação. Confirme nos arquivos antes de construir em cima dele. |
+| "A árvore parece diferente, o handoff deve estar velho, vou recomeçar" | Parte dele foi aplicada. Classifique item por item; recomeçar repete trabalho aplicado e perde decisões. |
+| "Essa restrição provavelmente era de uma fase anterior" | Uma restrição vale até o dono liberá-la. Largar uma em silêncio é exatamente a falha que a retomada deve impedir. |
+| "A memória está longa, vou arrumá-la e arquivar depois" | Podar antes de o arquivamento ser verificado destrói a única cópia. Arquive, verifique, depois pode, nessa ordem. |
+| "Resumir a memória antiga deixa o arquivo histórico legível" | O arquivo histórico é história bruta. Um resumo troca evidência por interpretação e não dá para desfazer. |
+| "O timestamp da consolidação pode valer pelas datas dos eventos" | Não pode. As datas originais ficam; as desconhecidas continuam declaradas desconhecidas. |
+| "A execução foi interrompida, o mais seguro é arquivar de novo" | Um lote duplicado corrompe o histórico. Localize e verifique primeiro o mesmo lote. |
+| "Eu sou o papel de documentação, atualizar a memória faz parte do meu trabalho" | Só o Coordenador escreve os três registros. Reporte fatos e evidência em vez disso. |
+| "Carregar o histórico inteiro me dá um contexto melhor" | O arquivo histórico entra no contexto só diante de necessidade concreta. Carregá-lo por padrão enterra o estado operacional. |
+| "O incidente está resolvido, a consolidação pode limpá-lo" | A consolidação nunca toca o registro de incidentes. Incidentes resolvidos ficam com a prevenção deles. |
+| "As checagens passaram antes da quebra, posso levar o resultado adiante" | Preserve-as só se as entradas avaliadas continuam inalteradas; senão rode de novo as checagens afetadas ou marque `not-run`. |
+| "Nós dois podemos dividir a consolidação para ir mais rápido" | Uma sessão do Coordenador escreve por projeto. Escritores em paralelo perdem estado que nenhum arquivo histórico guarda. |
 
-## Example
+## Exemplo
 
-Interrupted consolidation, resumed in a new session.
+Consolidação interrompida, retomada em uma sessão nova.
 
 ```
-Memory holds: 2 open blockers, 1 decision, 11 history entries.
-Archive tail shows batch 2026-04-02-1, delimiters present, end marker present.
+A memória tem: 2 bloqueios abertos, 1 decisão, 11 entradas de histórico.
+O fim do arquivo histórico mostra o lote 2026-04-02-1, delimitadores presentes, marcador de fim presente.
 
-1. Locate batch 2026-04-02-1 in EPOCHAL.md.
-2. Compare it line by line with the current MEMORY.md: identical.
-3. Confirm MEMORY.md unchanged since the batch timestamp: yes.
-   -> The archive step completed. Do not create a second batch.
-4. Trim MEMORY.md: keep the 2 blockers, the decision, the next step,
-   3 recent history entries; record "last consolidation: 2026-04-02-1".
-5. Report: batch 2026-04-02-1 verified, 8 history entries now archive-only,
-   2 blockers still active, RISKS.md untouched.
+1. Localize o lote 2026-04-02-1 no EPOCHAL.md.
+2. Compare-o linha a linha com o MEMORY.md atual: idênticos.
+3. Confirme que o MEMORY.md não mudou desde o timestamp do lote: sim.
+   -> O passo de arquivamento foi concluído. Não crie um segundo lote.
+4. Pode o MEMORY.md: mantenha os 2 bloqueios, a decisão, o próximo passo,
+   3 entradas recentes de histórico; registre "última consolidação: 2026-04-02-1".
+5. Reporte: lote 2026-04-02-1 verificado, 8 entradas de histórico agora só no arquivo histórico,
+   2 bloqueios ainda ativos, RISKS.md intocado.
 ```
 
-## Related
+## Relacionado
 
-Roles: coordinator, docs-guide, repo-scout. Commands: `/dh:handoff`, `/dh:resume`, `/dh:consolidate-memory`, `/dh:document`. Skills: delivery-readiness, project-onboarding, repository-mapping. Templates: the `templates/` folder bundled with the kit (`templates/<lang>/MEMORY.md`, `templates/<lang>/EPOCHAL.md`, `templates/<lang>/RISKS.md`).
+Papéis: `coordinator`, `docs-guide`, `repo-scout`. Comandos: `/dh:handoff`, `/dh:resume`, `/dh:consolidate-memory`, `/dh:document`. Skills: `delivery-readiness`, `project-onboarding`, `repository-mapping`. Templates: a pasta `templates/` que acompanha o kit (`templates/MEMORY.md`, `templates/EPOCHAL.md`, `templates/RISKS.md`).
 
-## Proof case
+## Caso de prova
 
-A new session resumes a task whose tree was changed by someone else after the handoff was written. It names the external change, does not reapply a change that already landed, and carries every stated constraint forward. A consolidation run produces an archive batch whose content matches the prior memory integrally, with timestamp and timezone, and leaves standing decisions, blockers and the next step in the memory. Interrupting the run before the archive is verified leaves the memory unchanged; interrupting it after the batch is written and resuming verifies that same batch instead of creating a second one. A routine execution completes without the archive ever entering context, and the incident record is byte-identical before and after consolidation.
+Uma sessão nova retoma uma tarefa cuja árvore foi alterada por outra pessoa depois que o handoff foi escrito. Ela nomeia a mudança externa, não reaplica uma mudança que já foi aplicada e leva adiante toda restrição declarada. Uma execução de consolidação produz um lote de arquivo histórico cujo conteúdo corresponde integralmente à memória anterior, com timestamp e fuso horário, e deixa na memória as decisões vigentes, os bloqueios e o próximo passo. Interromper a execução antes de o arquivamento ser verificado deixa a memória inalterada; interrompê-la depois de o lote ser escrito e retomar verifica esse mesmo lote em vez de criar um segundo. Uma execução de rotina termina sem que o arquivo histórico jamais entre no contexto, e o registro de incidentes é idêntico byte a byte antes e depois da consolidação.

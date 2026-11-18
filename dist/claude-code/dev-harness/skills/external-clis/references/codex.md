@@ -1,63 +1,63 @@
 # codex
 
-Binary: `codex`. Reviewer; planner (documented, measured read-only mode). Hands: yes, via `codex exec`, unless run under `-s read-only`.
+Binário: `codex`. Revisor; planejador (modo somente leitura documentado e medido). Mãos: sim, via `codex exec`, a menos que rode sob `-s read-only`.
 
-## Invocation
+## Invocação
 
 ```bash
 codex exec --skip-git-repo-check -s read-only -m <slug> - < "$PROMPT"
 ```
 
-One shell command whose first word is `codex`, with the stdin redirection part of it: no `timeout`, `&&`, `;` or pipe in front of or after it. `exec` is the non-interactive path; bare `codex` is the TUI and is never started from an orchestrator turn.
+Um comando de shell cuja primeira palavra é `codex`, com o redirecionamento de `stdin` como parte dele: nenhum `timeout`, `&&`, `;` ou pipe antes ou depois dele. `exec` é o caminho não interativo; `codex` sozinho é a TUI e nunca é iniciado a partir de um turno de orquestrador.
 
-| Flag | Why |
+| Flag | Por quê |
 |---|---|
-| `exec` | one-shot |
-| `-` | read prompt from stdin |
-| `-m` / `--model` | pin the slug |
-| `--skip-git-repo-check` | required outside a trusted git repo; otherwise exit 0 with empty stdout |
-| `-C` / `--cd` | workspace root |
-| `--add-dir` | extra writable dirs |
+| `exec` | disparo único |
+| `-` | lê o prompt do `stdin` |
+| `-m` / `--model` | fixa o slug |
+| `--skip-git-repo-check` | obrigatória fora de um repositório git confiável; senão, saída 0 com `stdout` vazio |
+| `-C` / `--cd` | raiz do espaço de trabalho |
+| `--add-dir` | diretórios extras graváveis |
 | `-s` / `--sandbox` | `read-only` / `workspace-write` / `danger-full-access` |
-| `--ephemeral` | do not persist the session |
+| `--ephemeral` | não persiste a sessão |
 
-`codex review` (also `codex exec review`) is the dedicated review path; prefer it when the job is only a verdict on the current tree:
+`codex review` (também `codex exec review`) é o caminho dedicado de revisão; prefira-o quando o trabalho é só um veredito sobre a árvore atual:
 
 ```bash
 codex review --uncommitted -c model="<slug>"
 ```
 
-`--uncommitted` covers staged, unstaged and untracked changes. `--base BRANCH` reviews against that branch; `--commit SHA` reviews that commit. `-m`/`-C` are not valid on the `review` subcommand, and `--uncommitted` does not combine with a `[PROMPT]` / `-` argument.
+`--uncommitted` cobre alterações preparadas para commit, não preparadas e não rastreadas. `--base BRANCH` revisa contra essa branch; `--commit SHA` revisa esse commit. `-m`/`-C` não são válidos no subcomando `review`, e `--uncommitted` não se combina com um argumento `[PROMPT]` / `-`.
 
-## Prompt input
+## Entrada do prompt
 
-Stdin (`-`). If stdin is piped and a prompt argv is set, stdin is appended as a `<stdin>` block. `$PROMPT` is defined in [clone-isolation.md](clone-isolation.md), Terms.
+`stdin` (`-`). Se o `stdin` é canalizado e há um argumento de prompt, o `stdin` é acrescentado como um bloco `<stdin>`. `$PROMPT` é definido em [clone-isolation.md](clone-isolation.md), Termos.
 
-## Isolation
+## Isolamento
 
-Read-only flag: `-s read-only`. No clone; the live tree is compared as [live-tree-compare.md](live-tree-compare.md) says. Under `-s read-only`, `/tmp` is mounted read-only, so a Go-toolchain `go test` and similar compile-in-tmp checks fail inside it. Treat the call as read and reasoning only, not behavioral validation: run the project's own test and lint gate on the host if a real result is needed. This is why the `commands.test`/`commands.lint` permission in the anti-delegation clause is inert in practice for this binary. `-s workspace-write` also blocks outbound network from the sandbox, so a suite that needs a live service will not run there either.
+Flag somente leitura: `-s read-only`. Sem clone; a árvore viva é comparada como [live-tree-compare.md](live-tree-compare.md) diz. Sob `-s read-only`, `/tmp` é montado como somente leitura, então um `go test` da cadeia de ferramentas Go e checagens parecidas que compilam em tmp falham lá dentro. Trate a chamada como somente leitura e raciocínio, não como validação de comportamento: rode o gate de testes e de lint do próprio projeto no host se for preciso um resultado real. É por isso que a permissão de `commands.test`/`commands.lint` na cláusula anti-delegação é inerte na prática para este binário. `-s workspace-write` também bloqueia a rede de saída do sandbox, então uma suíte que precisa de um serviço ativo também não roda lá.
 
-## Model flag
+## Flag de modelo
 
-`-m` / `--model <slug>`, the slug from `models.codex` in `.harness/local.yaml`. Codex has no `models` subcommand: the slug list is refreshed by hand when the operator measures a new one.
+`-m` / `--model <slug>`, o slug de `models.codex` em `.harness/local.yaml`. O Codex não tem subcomando `models`: a lista de slugs é atualizada à mão quando o operador mede um novo.
 
 ## Timeout
 
-`codex exec` has no wall-clock flag. The Bash tool timeout (set to the reviewer's timeout) or `run_in_background` bounds the time.
+`codex exec` não tem flag de tempo real. O timeout da ferramenta Bash (ajustado ao timeout do revisor) ou `run_in_background` limita o tempo.
 
-## Output capture
+## Captura da saída
 
-Reply on stdout.
+Resposta no `stdout`.
 
-## Failure signals
+## Sinais de falha
 
-- Exit 0 with empty stdout: `--skip-git-repo-check` missing outside a trusted git repo.
-- A `go test` that cannot compile under `-s read-only` (see Isolation).
+- Saída 0 com `stdout` vazio: falta `--skip-git-repo-check` fora de um repositório git confiável.
+- Um `go test` que não consegue compilar sob `-s read-only` (ver Isolamento).
 
-## Known gotchas
+## Pegadinhas conhecidas
 
-See [gotchas.md](gotchas.md), kinds `no_signal` and `tree_changed`.
+Ver [gotchas.md](gotchas.md), classes `no_signal` e `tree_changed`.
 
-## Measured on
+## Medido em
 
-2026-09-22 (verdict formatting run). The date of the read-only probe that qualifies `codex` as a planner: unknown.
+2026-09-22 (execução de formatação do veredito). A data da sondagem somente leitura que qualifica `codex` como planejador: desconhecida.

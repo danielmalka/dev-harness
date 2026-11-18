@@ -1,57 +1,57 @@
 # claude (Claude Code)
 
-Binary: `claude`. Usable as a CLI reviewer, distinct from a Coordinator dispatching a Claude agent in-process: this path shells out to a separate `claude` process. Not a planner: `cli:claude/<slug>` stays excluded from `/dh:plan-loop` while the kit runs on Claude.
+Binário: `claude`. Utilizável como revisor de CLI, distinto de um Coordenador que despacha um agente Claude no mesmo processo: este caminho chama um processo `claude` separado. Não é planejador: `cli:claude/<slug>` fica excluído de `/dh:plan-loop` enquanto o kit roda sobre o Claude.
 
-## Invocation
+## Invocação
 
 ```bash
 cd "$CLONE" && claude -p --dangerously-skip-permissions --model <slug> --effort high \
   "$(cat "$PROMPT")"
 ```
 
-`claude --help` lists no working-directory flag (only `--add-dir`, which adds roots and does not set the cwd), so this recipe keeps `cd "$CLONE" && claude ...` as the first of two named exceptions (with `opencode`, [opencode.md](opencode.md)) to the rule that a call is one command starting with the binary name. A Bash call does not keep its cwd for the next call, so the `cd` stays inside the same command. That form does not match a `Bash(claude:*)` allow rule: the call may need the owner's approval, or is not-run if it is refused. No `timeout` wrapper goes before it. The call never passes `--add-dir` for the live tree. `-p` / `--print` prints and exits. `--dangerously-skip-permissions` bypasses the permission prompt, needed for an unattended call; `--permission-mode bypassPermissions` is the named equivalent.
+`claude --help` não lista nenhuma flag de diretório de trabalho (só `--add-dir`, que acrescenta raízes e não define o cwd), então esta receita mantém `cd "$CLONE" && claude ...` como a primeira de duas exceções nomeadas (com `opencode`, [opencode.md](opencode.md)) à regra de que uma chamada é um comando que começa com o nome do binário. Uma chamada Bash não conserva o cwd para a chamada seguinte, então o `cd` fica dentro do mesmo comando. Essa forma não casa com uma regra de permissão `Bash(claude:*)`: a chamada pode precisar da aprovação do dono, ou é `not-run` se for recusada. Nenhum invólucro `timeout` vai antes dele. A chamada nunca passa `--add-dir` para a árvore viva. `-p` / `--print` imprime e sai. `--dangerously-skip-permissions` contorna o prompt de permissão, necessário para uma chamada sem supervisão; `--permission-mode bypassPermissions` é o equivalente nomeado.
 
-| Flag | Why |
+| Flag | Por quê |
 |---|---|
-| `-p` / `--print` | one-shot; bare `claude` is the TUI |
-| `--dangerously-skip-permissions` | unattended |
-| `--model` | an alias (`haiku`, `sonnet`, `opus`, `fable`, …) or a full model id |
+| `-p` / `--print` | disparo único; `claude` sozinho é a TUI |
+| `--dangerously-skip-permissions` | sem supervisão |
+| `--model` | um alias (`haiku`, `sonnet`, `opus`, `fable`, …) ou um id de modelo completo |
 | `--effort` | `low` / `medium` / `high` / `xhigh` / `max` |
-| `--fallback-model` | pin a fallback if the default is unavailable |
-| `--add-dir` | extra workspace roots (never the live tree in a clone call) |
-| `--output-format` | print-only: `text` / `json` / `stream-json` |
-| `--input-format` | print-only: `text` or `stream-json` |
+| `--fallback-model` | fixa um modelo de reserva se o padrão estiver indisponível |
+| `--add-dir` | raízes extras do espaço de trabalho (nunca a árvore viva numa chamada em clone) |
+| `--output-format` | só com print: `text` / `json` / `stream-json` |
+| `--input-format` | só com print: `text` ou `stream-json` |
 
-Do not start the interactive TUI from an orchestrator turn.
+Não inicie a TUI interativa a partir de um turno de orquestrador.
 
-## Prompt input
+## Entrada do prompt
 
-Last argv, or expanded from a file as above. `$CLONE` and `$PROMPT` are defined in [clone-isolation.md](clone-isolation.md), Terms.
+Último argumento, ou expandido a partir de um arquivo como acima. `$CLONE` e `$PROMPT` são definidos em [clone-isolation.md](clone-isolation.md), Termos.
 
-## Isolation
+## Isolamento
 
-No documented read-only flag as a CLI process: disposable clone ([clone-isolation.md](clone-isolation.md)), compared as [live-tree-freeze.md](live-tree-freeze.md) says.
+Nenhuma flag somente leitura documentada como processo de CLI: clone descartável ([clone-isolation.md](clone-isolation.md)), comparado como [live-tree-freeze.md](live-tree-freeze.md) diz.
 
-## Model flag
+## Flag de modelo
 
-`--model <slug>`: an alias or a full model id.
+`--model <slug>`: um alias ou um id de modelo completo.
 
 ## Timeout
 
-No wall-clock flag. The Bash tool timeout or `run_in_background` bounds the time.
+Nenhuma flag de tempo real. O timeout da ferramenta Bash ou `run_in_background` limita o tempo.
 
-## Output capture
+## Captura da saída
 
-Reply on stdout; `--output-format` selects `text`, `json` or `stream-json`.
+Resposta no `stdout`; `--output-format` seleciona `text`, `json` ou `stream-json`.
 
-## Failure signals
+## Sinais de falha
 
-A long run that never emits the stage's verdict signal is `no_signal`.
+Uma execução longa que nunca emite o sinal de veredito da etapa é `no_signal`.
 
-## Known gotchas
+## Pegadinhas conhecidas
 
-None recorded in [gotchas.md](gotchas.md). The verdict format is the one in `SKILL.md`, "The verdict contract"; this recipe defines no other.
+Nenhuma registrada em [gotchas.md](gotchas.md). O formato de veredito é o de `SKILL.md`, "O contrato de veredito"; esta receita não define outro.
 
-## Measured on
+## Medido em
 
-2026-10-16 (`claude --help`: no cwd flag). The call itself: unknown (not measured on this kit).
+2026-10-16 (`claude --help`: sem flag de cwd). A chamada em si: desconhecida (não medida neste kit).
