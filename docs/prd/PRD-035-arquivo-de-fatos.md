@@ -265,6 +265,17 @@ A F2 completou o que o PRD não fechava assim. Cada escolha está também na reg
 - E9 O `bootstrap` devolve no máximo 5 convenções como candidatos, como o `repo-scout` (R8); a parte 6 do `REPO-MAP.md` é só a linha `Convenções: ver FACTS.md` (R26).
 - E10 A linha de referência do setup é escrita por um `builder` (`lane` `infra`), com o arquivo de instruções como único conjunto de escrita; "já existe" é uma linha que começa com `Fatos do sistema:`, qualquer que seja o texto dela, e o setup não cria o `FACTS.md` (R22, R23).
 
+### Escolhas da implementação da F3 (registradas em 2026-11-18, origem: a implementação da F3)
+
+A F3 completou o que o PRD não fechava assim. Cada escolha vale na regra que ela completa, e o teste de contrato `internal/kit/facts_curation_contract_test.go` fixa os textos.
+
+- E11 Um candidato que a leitura não basta para confirmar vira `hipótese` e continua em `## Candidatos`; o curador o confere de novo a cada rodada, e ele não conta para o teto de 15 fatos de uma categoria (R15, passo 4).
+- E12 "Do sha mais antigo para o mais novo" (R15, passo 5) é lido como o `Visto:` mais antigo, porque o curador não roda git e não ordena shas; em empate, o menor id. Confirmar ou reconferir um fato atualiza o `sha:` para o sha do despacho e o `Visto:` para `<hoje>, docs-guide, <tarefa>`.
+- E13 Se um teto continua excedido depois de fundir e de encurtar as frases, saem primeiro as hipóteses mais antigas e depois os confirmados de `Visto:` mais antigo, cada um registrado como "removido por teto" (R15, passo 8).
+- E14 O ponto de entrada da curadoria é o Coordenador: nenhum comando novo (a contagem de comandos fica em 20 + 1) e nenhum agente novo. O pedido do dono é uma frase na conversa. Os gatilhos 1 e 2 se medem com `dh facts check` (candidatos e tetos), sem o Coordenador ler o arquivo (R14).
+- E15 O curador não tem shell, então quem roda `dh facts check` é o Coordenador, depois da rodada; se reprovar, as linhas do erro voltam uma vez ao curador, e uma segunda reprovação vai ao dono. Enquanto o curador roda, ele é o único escritor, e o Coordenador não grava candidatos (R15, última linha; R12).
+- E16 O registro em `## Mudanças` tem uma linha da rodada, `<data> · sha <sha> · entraram <n> · saíram <n> · fundidos <n>`, e uma linha por fato que saiu (`F-<n> saiu: <motivo>; evidência: <caminho:linha>`) ou foi fundido (`F-<n> fundido em F-<m>`) (R7, R15, passo 9).
+
 ### Decisões (fechadas em 2026-11-18, dono)
 
 - D1 Arquivo separado, `<harness dir>/FACTS.md`, ao lado do `REPO-MAP.md`; a parte 6 do mapa aponta para ele.
