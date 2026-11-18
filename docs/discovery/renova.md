@@ -27,7 +27,7 @@ Hoje nada do Renova existe. O dono usa o perfil `go-api` nos projetos Go e, para
 
 ### O que existe (fatos)
 
-- Profiles: `base`, `go-api`, `typescript-web`, `php` (`profiles/README.md:9-15`). `typescript-web` é só UI ("TypeScript applications with a rendered user interface", `profiles/typescript-web.yaml:3`); não há profile de TypeScript backend.
+- Profiles: `base`, `go-api`, `typescript-web`, `php` (`profiles/README.md:9-15`). `typescript-web` é só UI ("Aplicações TypeScript com interface de usuário renderizada", `profiles/typescript-web.yaml:3`); não há profile de TypeScript backend.
 - Schema fixo: `id`, `name`, `summary`, `extends`, `stack`, `commands`, `conventions`, `limits` (`profiles/README.md:19-37`). Não há campo de framework. `extends` só funde `conventions` e `limits`.
 - Comando só entra em `project.yaml` quando observado no repositório consumidor (`profiles/README.md:42`); `php.yaml:14-15` já usa o padrão "valores típicos, gravados só com evidência".
 - `profiles/README.md:17` diz que Python e outras stacks ficam fora da v1 "até um consumidor real precisar". Os projetos de trabalho do dono são esse consumidor.
@@ -75,7 +75,7 @@ Proposta: **derivar no momento da leitura, sem armazenamento novo**. Uma linha n
 | Incidentes (RISKS) por projeto | contagem de itens com ID em `## Incidentes` do RISKS.md |
 | Memória e consolidação | linhas/bytes do MEMORY.md, número de lotes e data do último lote no EPOCHAL.md |
 
-Granularidade: **dia**. As datas são escritas à mão pelos agentes; o que o dono quer ver é "quantos dias", não "quantas horas". Ticket aberto e fechado no mesmo dia aparece como "< 1 dia". Se um dia a granularidade de hora for necessária, o passo seguinte é um `events.jsonl` append-only por projeto gravado pelo Go ao detectar mudança de status, não SQLite. Fica registrado como caminho de evolução, não como escopo.
+Granularidade: **dia**. As datas são escritas à mão pelos agentes; o que o dono quer ver é "quantos dias", não "quantas horas". Ticket aberto e fechado no mesmo dia aparece como "< 1 dia". Se um dia a granularidade de hora for necessária, o passo seguinte é um `events.jsonl` só de acréscimo por projeto gravado pelo Go ao detectar mudança de status, não SQLite. Fica registrado como caminho de evolução, não como escopo.
 
 Gráficos: sem biblioteca e sem CDN (PRD-012 R5 continua valendo). Barras e linha simples em SVG gerado por JavaScript puro na página, a partir dos números já prontos em `/api/state`. Para manter `index.html` abaixo de 500 linhas, o JavaScript dos gráficos vai num segundo arquivo embutido (`web/metrics.js`), servido por rota própria.
 
@@ -136,7 +136,7 @@ Cada PRD repete as suas. Aqui a lista inteira, numerada. Todas decididas pelo do
 1. **Um profile por linguagem ou um por framework?** (PRD-015) A: por linguagem, framework por evidência (3 arquivos). B: por framework (7 arquivos, `extends: kotlin`). C: só por linguagem, sem seção de framework (mais barato, não atende "padrões mais usados"). Recomendo A. Decidido conforme a recomendação (dono, 2026-10-09).
 2. **TypeScript backend: profile próprio ou dentro de `typescript-web`?** (PRD-015) A: `typescript-api.yaml` novo, espelhando `go-api`. B: ampliar `typescript-web` com seção de backend (um arquivo tenta cobrir UI e API; o matching por "UI presente" fica ambíguo). Recomendo A. Decidido conforme a recomendação (dono, 2026-10-09).
 3. **Os três profiles novos entram na lista obrigatória do `dh validate`?** (PRD-015) A: sim, mesma garantia dos atuais. B: não, continuam opcionais. Recomendo A (uma linha, `validate.go:343`). Decidido conforme a recomendação (dono, 2026-10-09).
-4. **Armazenamento de métricas.** (PRD-016) A: derivar dos arquivos, sem armazenamento novo, granularidade de dia. B: `events.jsonl` append-only por projeto gravado pelo Go (hora, mas alguém tem de observar a transição). C: SQLite (dependência nova, engorda 5 binários, contraria ADR-001 e PRD-012 R22). Recomendo A. Decidido conforme a recomendação (dono, 2026-10-09).
+4. **Armazenamento de métricas.** (PRD-016) A: derivar dos arquivos, sem armazenamento novo, granularidade de dia. B: `events.jsonl` só de acréscimo por projeto gravado pelo Go (hora, mas alguém tem de observar a transição). C: SQLite (dependência nova, engorda 5 binários, contraria ADR-001 e PRD-012 R22). Recomendo A. Decidido conforme a recomendação (dono, 2026-10-09).
 5. **Tickets antigos sem `Concluído em`.** (PRD-016) A: ficam fora das médias com contador "sem data". B: preencher à mão neste repositório, como a limpeza de PRD-012 R21. C: usar `atualizado` como aproximação, marcada. Recomendo A (B pode ser feito depois pelo dono, sem mudar código). Decidido conforme a recomendação (dono, 2026-10-09).
 6. **Quais arquivos de memória o dashboard mostra.** (PRD-016) A: só `MEMORY.md`. B: `MEMORY.md` e `RISKS.md`. C: os três, EPOCHAL truncado a 1 MiB. Recomendo B. Decidido conforme a recomendação (dono, 2026-10-09).
 7. **Onde ficam os pdocs.** (PRD-017) A: `<home>/projects/<nome>/pdocs/` (texto do dono; exige o `doctor` ignorar pasta de projeto que só tem `pdocs/`). B: `<home>/pdocs/<nome>/` (sem tocar resolvedor nem `doctor`). Recomendo A, por ser a forma pedida e o custo ser uma condição no `doctor`. Decidido conforme a recomendação (dono, 2026-10-09).

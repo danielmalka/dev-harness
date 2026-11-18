@@ -1,11 +1,11 @@
-# Review: PRD-003
+# Revisão: PRD-003
 
 | Campo | Valor |
 |---|---|
 | Documento | docs/prd/PRD-003-revisao-em-pares-por-cli.md |
-| Fonte | pedido do dono de 2026-09-21 (verbatim no despacho DISC-003) + brief de discovery do Coordenador + skill pessoal `~/.claude/skills/fleet-clis/` + restrições do kit (`profiles/README.md`, `.agents/`, `.skills/`, `.commands/`, `CLAUDE.md`, `templates/pt-br/PRD.md`) |
+| Fonte | pedido do dono de 2026-09-21 (literal no despacho DISC-003) + resumo de discovery do Coordenador + skill pessoal `~/.claude/skills/fleet-clis/` + restrições do kit (`profiles/README.md`, `.agents/`, `.skills/`, `.commands/`, `CLAUDE.md`, `templates/pt-br/PRD.md`) |
 | Rodada | 2 de 2 |
-| Veredito | approved |
+| Veredito | `approved` |
 | Revisor | claude (document-validator, opus) |
 | Estado avaliado | sha256 b125a95417adfa0970dd92339cd77024e176814d1c2e25dd6a6675ba6d7f52c2 (rodada 1: 9062b376c1502e584de4a24e109e1d5c42da3ef1581254a692bf6d535b31b25c) |
 | Atualizado | 2026-09-21T17:05-03:00 — P10–P12 e as quatro decisões pendentes fechados pelo dono e aplicados pelo Coordenador (edição cirúrgica; não revalidada pelo validador, teto de rodadas atingido) |
@@ -41,12 +41,12 @@
   - Resolução: seção 6 Contratos (linha 71) lista a emenda a `.commands/secure.md` e `.agents/coordinator.md`, rodada 2.
 - **P10** [applied] [organização] A contagem e o intervalo de datas de `gotchas.md` estão desatualizados.
   - Local: seção 1 (linha 14); seção 8, primeiro risco (linha 88)
-  - Evidência: "37 entradas de 2026-08-18 a 2026-09-17" — o arquivo tem hoje 45 entradas, a última de 2026-09-20 (linhas 43–50, incluindo a delegação codex→opencode de 2026-09-17 e dois incidentes de brief somente-leitura do opencode em 2026-09-20). O número veio da linha de "Não levantado" da rodada 1 do próprio validador, baseada numa leitura truncada do arquivo; o intervalo original do PRD (até 2026-09-20) estava certo. Cosmético: não muda requisito.
+  - Evidência: "37 entradas de 2026-08-18 a 2026-09-17" — o arquivo tem hoje 45 entradas, a última de 2026-09-20 (linhas 43–50, incluindo a delegação codex→opencode de 2026-09-17 e dois incidentes de resumo somente leitura do opencode em 2026-09-20). O número veio da linha de "Não levantado" da rodada 1 do próprio validador, baseada numa leitura truncada do arquivo; o intervalo original do PRD (até 2026-09-20) estava certo. Cosmético: não muda requisito.
   - Sugestão: "45 entradas de 2026-08-18 a 2026-09-20".
   - Resolução: contagem corrigida para "45 entradas de 2026-08-18 a 2026-09-20" na seção 1 e no primeiro risco (Coordenador, 2026-09-21T17:05-03:00).
 - **P11** [applied] [ambiguidade] Não está dito se "somente-leitura" (RF-10) e a proibição no prompt (RF-01) também cobrem executar scripts e comandos do repositório.
   - Local: seção 4, RF-01 (linha 34); RF-10 (linha 43)
-  - Evidência: gotchas.md 2026-09-20 (linha 49): um `opencode run` com brief READ-ONLY executou `bash scripts/build-claude-code.sh --help` por conta própria e reconstruiu `dist/`; a regra registrada é "brief read-only deve proibir explicitamente rodar scripts do repositório, não só editar". RF-01 proíbe invocar outra CLI; RF-10 proíbe editar e reverte. Não bloqueia: onde o binário tem modo somente-leitura técnico nada persiste, e onde não tem, o `git status` e a reversão de RF-10 limitam o dano; só efeitos fora da árvore (rede, caches) escapam.
+  - Evidência: gotchas.md 2026-09-20 (linha 49): um `opencode run` com resumo SOMENTE LEITURA executou `bash scripts/build-claude-code.sh --help` por conta própria e reconstruiu `dist/`; a regra registrada é "o resumo somente leitura deve proibir explicitamente rodar scripts do repositório, não só editar". RF-01 proíbe invocar outra CLI; RF-10 proíbe editar e reverte. Não bloqueia: onde o binário tem modo somente-leitura técnico nada persiste, e onde não tem, o `git status` e a reversão de RF-10 limitam o dano; só efeitos fora da árvore (rede, caches) escapam.
   - Sugestão: estender a proibição de RF-01 para "…invoque outro binário de CLI ou execute scripts e comandos de build/teste do repositório por conta própria (gotchas.md 2026-09-17 e 2026-09-20)".
   - Resolução: decisão do dono — revisor CLI não executa scripts do repositório; pode rodar apenas `commands.test`/`commands.lint` de `.harness/project.yaml` (ex.: `make test`). RF-01 estendido e AC-15 criado (Coordenador, 2026-09-21T17:05-03:00).
 - **P12** [applied] [ambiguidade / critério fraco] RF-02 não diz se `.harness/local.yaml` é gravado mesmo quando o caminho não está ignorado, e o comportamento de `check-ignore` não tem AC.
@@ -66,7 +66,7 @@
 - O mapeamento de severidade em RF-05/AC-06 continua fiel a `code-review` (Critical/Major bloqueiam), `document-review` (lacuna/conflito/critério fraco bloqueiam) e `security-review` (vulnerabilidade demonstrada/exposição confirmada).
 - "A alteração é revertida" em AC-12 é bem definido porque a revisão roda sobre estado congelado (`.agents/coordinator.md` linhas 59 e 61).
 - "Quando ele existe" em RF-10 delimita corretamente o modo somente-leitura técnico aos binários que o oferecem (`codex -s read-only`, `mcode --permission off`) e cai na conferência pós-execução para os demais.
-- Todos os pontos do pedido do dono e do brief seguem mapeados (ver rodada 1); RF-01..RF-10 e AC-01..AC-13 únicos e sequenciais; todo AC ligado a um RF; nove seções do template presentes; sem excesso — cada frase nova rastreia a um achado da rodada 1, ao pedido do dono ou a uma entrada da fleet-clis.
+- Todos os pontos do pedido do dono e do resumo seguem mapeados (ver rodada 1); RF-01..RF-10 e AC-01..AC-13 únicos e sequenciais; todo AC ligado a um RF; nove seções do template presentes; sem excesso — cada frase nova rastreia a um achado da rodada 1, ao pedido do dono ou a uma entrada da fleet-clis.
 
 ## Evidência
 
