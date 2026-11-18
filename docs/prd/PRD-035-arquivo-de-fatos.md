@@ -6,9 +6,9 @@
 | Responsável | Daniel Malka |
 | Criado / atualizado | 2026-11-18 / 2026-11-18 |
 | Tickets | a definir pelo planejador |
-| Origem | Estudo de produto "Arquivo de fatos do sistema no dev-harness" v1.1 (2026-11-17), aprovado pelo dono em 2026-11-18 com as decisões D1 a D10 do apêndice |
+| Origem | Estudo de produto "Arquivo de fatos do sistema no dev-harness" v1.1 (2026-11-17), aprovado pelo dono em 2026-11-18 com as decisões D1 a D11 do apêndice |
 | Depende de | PRD-032 (`REPO-MAP.md`, escopo do Coordenador, arquivo de relatório), PRD-034 (trava de hash de `MEMORY.md`), ADR-005 (travas por prosa e por mod), ADR-007 (harness dir local ou global), ADR-011 (kit só pt-BR); versão base 0.46.0 |
-| Entrega | Quatro pull requests, das versões 0.47.0 a 0.50.0, um por fatia F1 a F4; a fatia F5 é a prova e fecha na F4 |
+| Entrega | Quatro pull requests, das versões 0.47.0 a 0.50.0, um por fatia F1 a F4; a fatia F5 é a prova, com a eval paga (R31 a R37), e roda depois da F4 |
 
 ## 1. Problema
 
@@ -146,6 +146,41 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
 - R29 Cada fatia define a versão em `internal/build/build.go`, em `.claude-plugin/marketplace.json` e em `harness-manifest.json`. Cada fatia tem uma entrada datada em `CHANGELOG.md` e move o card deste PRD no `docs/roadmap.html` de "Planejado" para "Entregue" na última fatia.
 - R30 As checagens passam em cada fatia: `go test ./...`, `go vet ./...`, `go run ./cmd/dh validate .` e `go run ./cmd/dh build` sem diferença em `dist/`. A prova de clone limpo é obrigatória na F1, porque a F1 toca `cmd/` e `internal/`.
 
+### Parte G · Prova por eval paga (F5)
+
+- R31 A fatia F5 roda uma eval paga, com o sim do dono dado em 2026-11-18 (D11). A eval roda depois da F4 e antes de o card do roadmap ir para "Entregue". O recurso não é declarado pronto antes do resultado.
+- R32 Desenho da medição:
+  - casos: 3 casos novos em `evals/cases/`, cada um num projeto de teste com uma armadilha conhecida:
+    1. `facts-frontend-design-system`: tarefa de tela que deve usar um componente do design system;
+    2. `facts-backend-dependencia`: tarefa de backend que deve evitar uma dependência ou um esquema com regra;
+    3. `facts-qa-teste-unico`: tarefa de teste que deve rodar um teste só, com um teste instável conhecido;
+  - braços: cada caso roda com `FACTS.md` (fatos `confirmado` que cobrem a armadilha) e sem `FACTS.md`, no mesmo sha e com o mesmo modelo;
+  - repetições: 3 por braço, então 3 casos × 2 braços × 3 repetições = 18 rodadas;
+  - papéis medidos: `builder` nos 3 casos, e `qa-verifier` no caso 3.
+- R33 Métricas por rodada, lidas do registro da eval (`numTurns`, tokens de entrada e saída, `costUsd`):
+  1. resultado: o critério "Pronto quando" do caso passa ou falha;
+  2. armadilha: o papel caiu ou não na armadilha do caso, por uma checagem determinística do caso;
+  3. passos: `numTurns`;
+  4. tokens: entrada mais saída;
+  5. custo: `costUsd`.
+  - A comparação usa a mediana das 3 repetições de cada braço.
+- R34 Critério de decisão:
+  - "deu bom": em nenhum caso o braço com `FACTS.md` tem menos resultados que passam, e pelo menos uma destas vale: armadilhas caem em 2 de 3 casos, ou a mediana de passos cai pelo menos 10% em 2 de 3 casos; a mediana de custo sobe no máximo 15%;
+  - piora: num caso, o braço com `FACTS.md` tem pelo menos 1 resultado que passa a menos, ou a mediana de custo sobe mais de 20% sem ganho de resultado nem de armadilha;
+  - neutro: nenhum dos dois; o dono decide se o recurso segue.
+- R35 Quando a eval dá piora, a F5 aplica estes passos, um por vez, e roda de novo só os casos que pioraram, dentro do teto de R36:
+  1. reduzir as categorias lidas por papel a armadilhas e fronteiras;
+  2. baixar o teto para 80 linhas e 6 KB;
+  3. desligar a leitura do `builder` e manter só `repo-scout` e `implementation-planner`.
+  - Quando os três passos não tiram a piora, então o Coordenador para e apresenta o resultado ao dono, que decide.
+- R36 Custo da eval:
+  - base: os registros em `evals/baselines/` dão de US$ 0,25 a US$ 1,48 por rodada nos casos de um papel (por exemplo, `2026-09-30-external-clis-clone-isolation.json`: 9 rodadas, US$ 8,60), e até US$ 3,84 numa rodada de vários papéis (`2026-09-25-risk-001-0.7.1.json`);
+  - estimativa: uma rodada de tarefa com `builder` custa entre US$ 1,50 e US$ 4,00; 18 rodadas custam entre US$ 27 e US$ 72;
+  - teto: US$ 80 para a F5 inteira, inclusive as rodadas de R35;
+  - o Coordenador mostra a estimativa ao dono antes da primeira rodada, e a eval para quando o gasto acumulado chega ao teto;
+  - a estimativa é hipótese: os casos de tarefa completa ainda não têm registro em `evals/`.
+- R37 O resultado vai para `evals/baselines/<data>-facts-<versão>.json` e `.md`, com as 18 rodadas, as medianas e o veredito de R34. O workflow `evals` continua manual (`workflow_dispatch`) e não vira check de PR.
+
 Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a curadoria sem fim de fluxo; leitura de transcrições de sessão; fato sobre o repositório do próprio kit fora do dogfooding; qualquer agente novo.
 
 ## 4. Docs
@@ -155,6 +190,7 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
 - `.commands/setup.md`: linha de referência (R22 a R24).
 - `internal/harness/memory.go`, `cmd/dh/main.go`, `internal/doctor/`, `adapters/claude-code/plugin/hooks/runtime-guard.ts`: trava, `dh facts check`, aviso e mod (R5, R11, R12, R27).
 - `AGENTS.md`, `README.md`, `docs/tutorial.html`, `CHANGELOG.md`, `docs/roadmap.html`: regras, contagens e versões (R28, R29).
+- `evals/cases/facts-*` (novos) e `evals/baselines/`: a eval da F5 (R32, R37).
 
 ## Apêndice
 
@@ -167,7 +203,7 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
 | F2 | escrita: bloco `Fatos candidatos` no scout, candidatos do builder e do QA, gravação pelo Coordenador, semente pelo `REPO-MAP.md`, linha de referência do setup | R1 a R4, R8 a R10, R22 a R26 | 0.48.0 |
 | F3 | curadoria: skill `facts-curation`, modo do `docs-guide`, gatilhos, seção `## Mudanças` | R7, R13 a R16 | 0.49.0 |
 | F4 | leitura: categorias por papel no despacho, rótulo do reviewer, linha `Fato contradito`; docs e contagens finais | R17 a R21, R28, R29 | 0.50.0 |
-| F5 | prova: um ciclo real num projeto de teste (setup, `bootstrap`, 2 tarefas, 1 curadoria); o `qa-verifier` confere tetos, trava e ausência de segredo | R5, R6, R10, R15 | fecha na F4 |
+| F5 | prova: um ciclo real num projeto de teste (setup, `bootstrap`, 2 tarefas, 1 curadoria), com o `qa-verifier` conferindo tetos, trava e ausência de segredo; e a eval paga de R31 a R37, com 3 casos, 2 braços e 3 repetições, teto de US$ 80 | R5, R6, R10, R15, R31 a R37 | depois da F4; o card vai para "Entregue" só com o veredito |
 
 ### Linhas que cada fatia muda
 
@@ -196,7 +232,7 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
 - Risco: um segredo ou dado pessoal entra no arquivo, que é versionado no modo `repo`. Mitigação: R6, a redação do curador (R15 passo 7) e `dh facts check` (R27).
 - Risco: o custo de tokens cresce. Mitigação: tetos de R5, categorias por papel (R17) e proibição de `@import` (R24).
 - Risco: o Coordenador grava candidatos sem a trava. Mitigação: R10, mais o mod que nega o subagente (R12). O mod não obriga o Coordenador a usar o comando, como no PRD-034.
-- Decisão pendente Q1: medir antes de espalhar? Proposta do autor: um ciclo num projeto de teste, comparando passos e tokens do `builder` com e sem `FACTS.md`; eval paga só com o sim do dono. Respondida por: o dono. Bloqueia: nenhuma fatia; a resposta pode mudar F5.
+- Risco: a eval dá piora ou fica neutra. Mitigação: os passos de R35 e a decisão do dono; o custo fica dentro do teto de R36.
 
 ### Decisões (fechadas em 2026-11-18, dono)
 
@@ -210,3 +246,4 @@ Fora de escopo: o bloco gerado do modo `global` (R25); uma agenda que rode a cur
 - D8 Tetos: 150 linhas, 15 fatos por categoria, 300 caracteres por fato, revistos depois de 30 dias de uso.
 - D9 O `builder` e o `qa-verifier` podem propor até 2 fatos por resposta.
 - D10 A implementação pode começar: a migração pt-BR terminou na 0.46.0 (`b7bd4ae`).
+- D11 Q1 fechada: o dono aprova a eval paga na F5, depois da F4 e antes de declarar o recurso pronto ("Pode testar a avaliação paga, mas acho que vai dar bom o uso do facts"). O desenho está em R31 a R37.
