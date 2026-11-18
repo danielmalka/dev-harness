@@ -167,7 +167,7 @@ partial: o caso concorrente de AC-2 falha e o AC-3 exigido está not-run.
 - npm run test:integration - sem sandbox de e-mail neste ambiente
 
 ## Próximo passo
-- O implementador corrige D1; o QA roda de novo o AC-2 concorrente (dono: builder, trilha backend)
+- O implementador corrige D1; o QA roda de novo o AC-2 concorrente (dono: builder, lane backend)
 ```
 
 AC-3 continua `not-run` com o motivo. A corrida é um relatório de defeito, não uma correção do QA.

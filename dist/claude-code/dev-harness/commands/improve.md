@@ -1,32 +1,32 @@
 ---
 name: improve
-description: Diagnose and evaluate an improvement to this kit
+description: Diagnostique e avalie uma melhoria deste kit
 author: malka
-argument-hint: "[reproducible case: prompt, expected, observed]"
+argument-hint: "[caso reproduzível: prompt, esperado, observado]"
 metadata:
   roles: [coordinator, harness-maintainer, qa-verifier]
   skills: [harness-authoring, harness-evaluation]
-  writes: harness checkout sources only, never dist/
+  writes: só as fontes do checkout do harness, nunca dist/
 disable-model-invocation: true
 ---
-## Role
-Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
+## Papel
+Atue como o `coordinator` do kit nesta sessão (leia a definição do agente `coordinator` incluída no kit se esta sessão não foi iniciada com ele). Leia `.harness/MEMORY.md`, se existir, antes de qualquer outra coisa.
 
-## Routing
-Case: $ARGUMENTS. Dispatch `harness-maintainer` with the Agent tool, model `sonnet`, and require it to load the kit skills `harness-authoring` for the diagnosis and the edit and `harness-evaluation` for the before-and-after measurement. Instruct it to name the owning asset before editing anything: which trigger fired, which file was loaded, which instruction produced the output.
+## Roteamento
+Caso: $ARGUMENTS. Despache `harness-maintainer` com a ferramenta Agent, modelo `sonnet`, e exija que ele carregue as skills `harness-authoring` do kit para o diagnóstico e a edição e `harness-evaluation` para a medição de antes e depois. Instrua-o a nomear o ativo responsável antes de editar qualquer coisa: qual gatilho disparou, qual arquivo foi carregado, qual instrução produziu a saída.
 
-## Prerequisites
-A concrete case with prompt, expected behavior and observed behavior; for a repair, a reproduced failure or a cited contract contradiction between two instructions. An isolated preferred answer is not evidence, so ask the owner for the reproduction and stop. A harness checkout to work in, with its state recorded, and a clear authorized scope before any edit. The cases live under `evals/cases/` with their rubrics and fixtures; a baseline must be captured before the asset changes.
+## Pré-requisitos
+Um caso concreto com prompt, comportamento esperado e comportamento observado; para um reparo, uma falha reproduzida ou uma contradição de contrato citada entre duas instruções. Uma resposta preferida isolada não é evidência, então peça a reprodução ao dono e pare. Um checkout do harness para trabalhar, com o estado registrado, e um escopo autorizado claro antes de qualquer edição. Os casos ficam em `evals/cases/` com suas rubricas e fixtures; uma linha de base deve ser capturada antes de o ativo mudar.
 
-## Output
-The `harness-authoring` asset-change report (case, owning asset, smallest edit, what deliberately did not change, contract check, positive and negative test cases, provenance) together with the `harness-evaluation` before-and-after report with its conditions, static checks, model-graded results and variance. Record the change, the measured effect and its limits in `.harness/MEMORY.md`.
+## Saída
+O relatório de mudança de ativo de `harness-authoring` (caso, ativo responsável, menor edição, o que deliberadamente não mudou, checagem de contrato, casos de teste positivos e negativos, procedência) junto com o relatório de antes e depois de `harness-evaluation`, com suas condições, checagens estáticas, resultados avaliados por modelo e variância. Registre a mudança, o efeito medido e seus limites em `.harness/MEMORY.md`.
 
-## Limits
-- Apply changes only with a clear authorized scope in the harness checkout; without one, propose the edit and stop.
-- Never edit `dist/` by hand; it is generated from the source assets.
-- With no runner available, model-graded criteria are not-run and the result is a static correction, never a measured improvement; a changed asset is never its own before baseline.
-- Do not incorporate borrowed material; naming a source does not make its content available.
-- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
+## Limites
+- Aplique mudanças só com um escopo autorizado claro no checkout do harness; sem ele, proponha a edição e pare.
+- Nunca edite `dist/` à mão; ele é gerado a partir dos ativos-fonte.
+- Sem um executor disponível, os critérios avaliados por modelo ficam `not-run` e o resultado é uma correção estática, nunca uma melhoria medida; um ativo alterado nunca é a sua própria linha de base de antes.
+- Não incorpore material emprestado; nomear uma fonte não torna o conteúdo dela disponível.
+- Só o Coordenador escreve `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md`.
 
-## Next
-`/dh:doctor` to confirm the kit still resolves, then re-run the failing case to confirm the fix.
+## Próximo
+`/dh:doctor` para confirmar que o kit ainda resolve, depois rode de novo o caso que falhava para confirmar a correção.

@@ -1,29 +1,29 @@
 ---
 name: release
-description: Assemble a release readiness package for decision
+description: Monte um pacote de prontidão de release para decisão
 author: malka
-argument-hint: "[change, slice or version]"
+argument-hint: "[mudança, fatia ou versão]"
 metadata:
   roles: [coordinator, release-manager, builder]
   skills: [delivery-readiness]
-  writes: readiness record and notes only; no remote action
+  writes: somente o registro de prontidão e as notas; nenhuma ação remota
 disable-model-invocation: true
 ---
-## Role
-Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
+## Papel
+Atue como o `coordinator` do kit nesta sessão (leia a definição do agente `coordinator` que acompanha o kit se esta sessão não foi iniciada com ele). Leia `.harness/MEMORY.md`, se existir, antes de qualquer coisa.
 
-## Routing
-Change or version: $ARGUMENTS. Dispatch `release-manager` with the Agent tool, model `sonnet`, and require it to load the kit skill `delivery-readiness`. When the package needs clean-checkout pipeline or packaging evidence, also dispatch `builder` in lane `infra`, mode `design` (model `sonnet`, same skill), with no product write, to reproduce the build from a fresh checkout; it installs nothing, provisions nothing and reaches no live server. Both work on the same frozen state.
+## Roteamento
+Mudança ou versão: $ARGUMENTS. Despache `release-manager` com a ferramenta Agent, modelo `sonnet`, e exija que ele carregue a skill `delivery-readiness` do kit. Quando o pacote precisar de evidência de pipeline ou de empacotamento a partir de um checkout limpo, despache também `builder` na lane `infra`, modo `design` (modelo `sonnet`, mesma skill), sem escrita de produto, para reproduzir o build a partir de um checkout novo; ele não instala nada, não provisiona nada e não alcança nenhum servidor ativo. Os dois trabalham sobre o mesmo estado congelado.
 
-## Prerequisites
-The verified change, its QA result and its independent review. Stop and report the gap when QA is missing (`/dh:verify` produces it) or the review is missing (`/dh:review` produces it); every other missing input follows `delivery-readiness`'s Inputs table.
+## Pré-requisitos
+A mudança verificada, o resultado do QA dela e a revisão independente dela. Pare e reporte a lacuna quando o QA faltar (`/dh:verify` o produz) ou a revisão faltar (`/dh:review` a produz); toda outra entrada ausente segue a tabela de Entradas do `delivery-readiness`.
 
-## Output
-The package in `delivery-readiness`'s Output format, persisted under `.harness/tasks/<id>/`. Record the verdict, the residual risks and the pending decision in `.harness/MEMORY.md`.
+## Saída
+O pacote no Formato de saída do `delivery-readiness`, persistido em `.harness/tasks/<id>/`. Registre o veredito, os riscos residuais e a decisão pendente em `.harness/MEMORY.md`.
 
-## Limits
-- No commit, push, tag, publish or deploy runs from this command; `release-manager`'s Limits govern an existing publish authorization.
-- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
+## Limites
+- Nenhum commit, push, tag, publicação ou deploy roda a partir deste comando; os Limites do `release-manager` regem uma autorização de publicação existente.
+- Só o Coordenador escreve `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md`.
 
-## Next
-`/dh:handoff` once the owner has the package, or `/dh:fix` when a blocking finding remains.
+## Próximo
+`/dh:handoff` quando o dono tiver o pacote, ou `/dh:fix` quando restar um achado bloqueante.

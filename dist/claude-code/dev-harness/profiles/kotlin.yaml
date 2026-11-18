@@ -1,6 +1,6 @@
 id: kotlin
 name: Kotlin
-summary: Kotlin services on the JVM built with Gradle or Maven, including Spring Boot, Quarkus and Micronaut backends, with tests next to the code they cover.
+summary: Serviços Kotlin na JVM construídos com Gradle ou Maven, incluindo backends Spring Boot, Quarkus e Micronaut, com testes ao lado do código que cobrem.
 extends: base
 stack:
   - kotlin
@@ -11,21 +11,21 @@ commands:
   build: null
   run: null
 conventions:
-  - Read the build files first (settings.gradle.kts, build.gradle.kts, pom.xml) and any Makefile; a repo-defined task outranks the raw invocation and is the value recorded in .harness/project.yaml. Use the Gradle or Maven wrapper in the repo (./gradlew, ./mvnw), never a global install.
-  - Typical observed values, recorded only with evidence: test ./gradlew test or ./mvnw test; build ./gradlew build or ./mvnw package; lint ./gradlew ktlintCheck or ./gradlew detekt only when that plugin appears in the build files; run per framework: ./gradlew bootRun or ./mvnw spring-boot:run (Spring Boot), ./gradlew quarkusDev or ./mvnw quarkus:dev (Quarkus), ./gradlew run (Micronaut).
-  - Style source is the Kotlin Coding Conventions (kotlinlang.org/docs/coding-conventions.html), and the repo's .editorconfig or ktlint/detekt configuration when present, which outranks it. Apply to the files the slice touches, not to untouched code.
-  - Follow the package layout, names and source sets (src/main/kotlin, src/test/kotlin) already present. Do not introduce a new module, package or layer for a one-file change.
-  - Per the Kotlin Coding Conventions, prefer val over var, immutable data classes for values, and null-safety over the !! operator; use !! or lateinit only with a stated reason.
-  - Only when the slice changes a public endpoint, HTTP or RPC changes go through the architect contract (skill api-contracts) before implementation.
-  - Tests live in src/test/kotlin mirroring the main package, using the framework the build already declares (JUnit 5, Kotest); when the repo has tests, a new behavior ships with a test at the level the repo already uses.
-  - Spring Boot section, applies only when org.springframework.boot appears in the build files: use constructor injection, follow the layering already present (thin controllers when that is the repo's pattern), bind configuration with @ConfigurationProperties, and keep profile-specific settings in the application-<profile> files already present. Commands from this section are recorded only with evidence.
-  - Quarkus section, applies only when io.quarkus appears in the build files: use CDI beans and the extensions already declared, keep settings in the application.properties or application.yaml already present, and write integration tests with @QuarkusTest as the repo already does. Commands from this section are recorded only with evidence.
-  - Micronaut section, applies only when io.micronaut appears in the build files: use compile-time dependency injection and the annotations the project already uses, keep settings in the application.properties or application.yaml already present, and write tests with @MicronautTest as the repo already does. Commands from this section are recorded only with evidence.
-  - When the slice changes dependencies, build.gradle.kts, settings.gradle.kts, gradle/libs.versions.toml or pom.xml stay in its write set.
-  - Database work uses the builder role in lane dados and the data-migrations skill; migrations (Flyway, Liquibase) run only against a disposable database during verification.
+  - Leia primeiro os arquivos de build (settings.gradle.kts, build.gradle.kts, pom.xml) e qualquer Makefile; uma tarefa definida pelo repositório prevalece sobre a invocação direta e é o valor registrado em .harness/project.yaml. Use o wrapper do Gradle ou do Maven do repositório (./gradlew, ./mvnw), nunca uma instalação global.
+  - Valores típicos observados, registrados só com evidência: test ./gradlew test ou ./mvnw test; build ./gradlew build ou ./mvnw package; lint ./gradlew ktlintCheck ou ./gradlew detekt só quando esse plugin aparece nos arquivos de build; run por framework: ./gradlew bootRun ou ./mvnw spring-boot:run (Spring Boot), ./gradlew quarkusDev ou ./mvnw quarkus:dev (Quarkus), ./gradlew run (Micronaut).
+  - A fonte de estilo é o Kotlin Coding Conventions (kotlinlang.org/docs/coding-conventions.html) e, quando presente, a configuração .editorconfig ou ktlint/detekt do repositório, que prevalece sobre ele. Aplique aos arquivos que a fatia toca, não ao código intocado.
+  - Siga o layout de pacotes, os nomes e os source sets (src/main/kotlin, src/test/kotlin) que já existem. Não introduza um novo módulo, pacote ou camada para uma mudança de um arquivo.
+  - Conforme o Kotlin Coding Conventions, prefira val a var, data classes imutáveis para valores e null-safety ao operador !!; use !! ou lateinit só com um motivo declarado.
+  - Só quando a fatia muda um endpoint público, as mudanças de HTTP ou RPC passam pelo contrato do architect (skill api-contracts) antes da implementação.
+  - Os testes ficam em src/test/kotlin, espelhando o pacote principal, e usam o framework que o build já declara (JUnit 5, Kotest); quando o repositório tem testes, um comportamento novo é entregue com um teste no nível que o repositório já usa.
+  - Seção Spring Boot, vale só quando org.springframework.boot aparece nos arquivos de build: use injeção por construtor, siga as camadas que já existem (controllers enxutos quando esse é o padrão do repositório), vincule a configuração com @ConfigurationProperties e mantenha as configurações específicas de perfil nos arquivos application-<profile> que já existem. Os comandos desta seção são registrados só com evidência.
+  - Seção Quarkus, vale só quando io.quarkus aparece nos arquivos de build: use beans CDI e as extensões já declaradas, mantenha as configurações no application.properties ou application.yaml que já existe e escreva testes de integração com @QuarkusTest como o repositório já faz. Os comandos desta seção são registrados só com evidência.
+  - Seção Micronaut, vale só quando io.micronaut aparece nos arquivos de build: use injeção de dependência em tempo de compilação e as anotações que o projeto já usa, mantenha as configurações no application.properties ou application.yaml que já existe e escreva testes com @MicronautTest como o repositório já faz. Os comandos desta seção são registrados só com evidência.
+  - Quando a fatia muda dependências, build.gradle.kts, settings.gradle.kts, gradle/libs.versions.toml ou pom.xml ficam no conjunto de escrita dela.
+  - Trabalho de banco de dados usa o papel builder na lane dados e a skill data-migrations; as migrações (Flyway, Liquibase) rodam só em um banco descartável durante a verificação.
 limits:
-  - Do not install or switch the JDK, Gradle, Maven or the wrapper version, and do not run a dependency upgrade, without authorization recorded for the slice.
-  - Do not assume ktlint, detekt, Docker or a Makefile are present; probe the build files and repo root and record unknown.
-  - Do not edit build/, .gradle/ or generated sources; fixes go in the project sources or build configuration.
-  - Out of scope: Kotlin Android and Multiplatform projects, and frameworks beyond the three named; use base conventions and record none, custom for those.
-  - Do not apply migrations against a non-disposable database.
+  - Não instale nem troque o JDK, o Gradle, o Maven ou a versão do wrapper, e não rode atualização de dependências, sem autorização registrada para a fatia.
+  - Não suponha que ktlint, detekt, Docker ou um Makefile estejam presentes; sonde os arquivos de build e a raiz do repositório e registre unknown.
+  - Não edite build/, .gradle/ nem fontes geradas; as correções vão nas fontes do projeto ou na configuração de build.
+  - Fora de escopo: projetos Kotlin Android e Multiplatform, e frameworks além dos três citados; use as convenções do base e registre none, custom para esses.
+  - Não aplique migrações em um banco que não seja descartável.

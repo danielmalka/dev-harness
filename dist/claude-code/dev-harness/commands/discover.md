@@ -1,31 +1,31 @@
 ---
 name: discover
-description: Turn a vague ask into a brief with acceptance
+description: Transforme um pedido vago em um resumo com aceite
 author: malka
-argument-hint: "[idea, pain or request]"
+argument-hint: "[ideia, dor ou pedido]"
 metadata:
   roles: [coordinator, product-discovery, document-validator]
   skills: [requirements-discovery, document-review, external-clis]
-  writes: .harness/prd/ when authorized
+  writes: .harness/prd/ quando autorizado
 ---
-## Role
-Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
+## Papel
+Atue como o `coordinator` do kit nesta sessão (leia a definição do agente `coordinator` que acompanha o kit se esta sessão não foi iniciada com ele). Leia `.harness/MEMORY.md`, se existir, antes de qualquer outra coisa.
 
-## Routing
-Idea or pain: $ARGUMENTS. Dispatch `product-discovery` with the Agent tool, model `sonnet`, and require it to load the kit skill `requirements-discovery`. Instruct it to search the existing product docs and any prior brief in the project before asking anything, and to raise one blocking question at a time through you.
-Once the PRD is written, dispatch `document-validator`, model `opus`, requiring the kit skill `document-review`, only when `reviewers.document` is absent from `.harness/project.yaml` or contains `claude`; when `reviewers.document` is present and does not contain `claude`, dispatch the first listed entry instead (a `cli:...` entry, via `external-clis`) — still exactly one reviewer, never zero and never the whole list. Dispatch with the PRD path, the discovery notes or the owner's request, and the previous review report when it exists. Entries of the form `cli:...` in `reviewers.document` follow the `external-clis` procedure described in `.agents/coordinator.md` ("External CLI reviewers"); both the Claude dispatch and any `cli:...` entry count against the two-specialist concurrency cap. Persist the report body it returns as `<document>.review.md`; the validator is read-only. On `changes required`, re-dispatch `product-discovery` with only the listed blocking points and validate again. Cap: two correction rounds; the full list runs only when the owner asks for the panel in this request or the PRD touches security.
+## Roteamento
+Ideia ou dor: $ARGUMENTS. Despache `product-discovery` com a ferramenta Agent, modelo `sonnet`, e exija que ele carregue a skill do kit `requirements-discovery`. Instrua-o a buscar nos documentos de produto existentes e em qualquer resumo anterior do projeto antes de perguntar qualquer coisa, e a levantar uma pergunta bloqueante por vez por meio de você.
+Quando o PRD estiver escrito, despache `document-validator`, modelo `opus`, exigindo a skill do kit `document-review`, só quando `reviewers.document` estiver ausente de `.harness/project.yaml` ou contiver `claude`; quando `reviewers.document` estiver presente e não contiver `claude`, despache em vez disso a primeira entrada listada (uma entrada `cli:...`, via `external-clis`) — ainda exatamente um revisor, nunca zero e nunca a lista inteira. Despache com o caminho do PRD, as notas de descoberta ou o pedido do dono e o relatório de revisão anterior quando existir. Entradas da forma `cli:...` em `reviewers.document` seguem o procedimento de `external-clis` descrito em `.agents/coordinator.md` ("Revisores de CLI externos"); tanto o despacho do Claude quanto qualquer entrada `cli:...` contam contra o limite de dois especialistas concorrentes. Persista o corpo do relatório que ele devolve como `<document>.review.md`; o validador é somente leitura. Em `changes required`, despache `product-discovery` de novo só com os pontos bloqueantes listados e valide outra vez. Limite: duas rodadas de correção; a lista completa só roda quando o dono pede o painel neste pedido ou o PRD toca segurança.
 
-## Prerequisites
-The stated goal in the owner's words. If $ARGUMENTS carries no goal, ask the owner what should become possible that is not possible now, then dispatch. Constraints, deadline and stack that cannot be sourced are recorded as unknown, never invented.
+## Pré-requisitos
+O objetivo declarado nas palavras do dono. Se $ARGUMENTS não traz objetivo, pergunte ao dono o que deve passar a ser possível e hoje não é, depois despache. Restrições, prazo e stack que não podem ter fonte são registrados como desconhecidos, nunca inventados.
 
-## Output
-The `requirements-discovery` brief: problem, users affected, desired behavior, out of scope, examples, alternatives considered, limits, acceptance as "When X, then Y" marked requirement or suggestion, hypotheses, open decisions and evidence. When the owner wants it kept, persist it as `.harness/prd/PRD-<n>.md` from the PRD template bundled with this kit. Record the acceptance items and open decisions in `.harness/MEMORY.md`. The owner receives the PRD only after `approved` or the round cap, with the report path `<document>.review.md` and any point left open.
+## Saída
+O resumo de `requirements-discovery`: problema, usuários afetados, comportamento desejado, fora de escopo, exemplos, alternativas consideradas, limites, aceite como "Quando X, então Y" marcado `requirement` ou `suggestion`, hipóteses, decisões em aberto e evidência. Quando o dono quiser mantê-lo, persista-o como `.harness/prd/PRD-<n>.md` a partir do template de PRD que acompanha este kit. Registre os itens de aceite e as decisões em aberto em `.harness/MEMORY.md`. O dono recebe o PRD só depois de `approved` ou do limite de rodadas, com o caminho do relatório `<document>.review.md` e qualquer ponto deixado em aberto.
 
-## Limits
-- Discovery writes discovery artifacts only: brief, acceptance, open decisions. Never application source, configuration or test files.
-- Ask only about decisions that change what gets built; anything findable is found, not asked.
-- A brief authorizes no implementation, dependency install, commit, push, publish or deploy.
-- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
+## Limites
+- A descoberta escreve só artefatos de descoberta: resumo, aceite, decisões em aberto. Nunca código-fonte da aplicação, configuração nem arquivos de teste.
+- Pergunte só sobre decisões que mudam o que é construído; o que pode ser encontrado é encontrado, não perguntado.
+- Um resumo não autoriza implementação, instalação de dependência, commit, push, publicação nem deploy.
+- Só o Coordenador escreve `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md`.
 
-## Next
-`/dh:plan` once acceptance is agreed and the open decisions that block scope are answered.
+## Próximo
+`/dh:plan` quando o aceite estiver acordado e as decisões em aberto que bloqueiam o escopo forem respondidas.

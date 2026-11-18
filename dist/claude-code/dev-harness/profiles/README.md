@@ -1,79 +1,79 @@
-# Profiles
+# Perfis
 
-Shared, portable project conventions. English. No secrets, no absolute paths, no machine-specific binaries.
+Convenções de projeto compartilhadas e portáteis. Sem segredos, sem caminhos absolutos, sem binários específicos de uma máquina.
 
-A profile is a starting point for `.harness/project.yaml` in a consumer project. The consumer file has no language option (ADR-011); it may carry the optional `conventions.code_language: en | pt-br` (language of commit messages and code comments). `/dh:setup` names the closest match and copies only fields that have evidence in the repository. When nothing matches, the recorded profile is `none, custom`.
+Um perfil é um ponto de partida para o `.harness/project.yaml` de um projeto consumidor. O arquivo do consumidor não tem opção de idioma (ADR-011); ele pode trazer o opcional `conventions.code_language: en | pt-br` (idioma das mensagens de commit e dos comentários de código). O `/dh:setup` indica a correspondência mais próxima e copia só os campos que têm evidência no repositório. Quando nada corresponde, o perfil registrado é `none, custom`.
 
-## Files
+## Arquivos
 
-| File | When it applies |
+| Arquivo | Quando se aplica |
 | --- | --- |
-| `base.yaml` | Every project. Shared harness rules. |
-| `go-api.yaml` | Go modules that expose an HTTP or RPC API. |
-| `typescript-web.yaml` | TypeScript apps with a rendered user interface. |
-| `php.yaml` | PHP projects managed by Composer, with or without a framework or CMS. |
-| `kotlin.yaml` | Kotlin services on the JVM (Gradle or Maven), with Spring Boot, Quarkus or Micronaut sections gated by build evidence. |
-| `python.yaml` | Python services and packages, with Django and FastAPI sections gated by dependency evidence. |
-| `typescript-api.yaml` | TypeScript or Node services without a rendered UI. |
-| `examples/project.yaml` | Shape of a consumer `.harness/project.yaml`. Not a stack profile. |
+| `base.yaml` | Todo projeto. Regras compartilhadas do harness. |
+| `go-api.yaml` | Módulos Go que expõem uma API HTTP ou RPC. |
+| `typescript-web.yaml` | Apps TypeScript com interface de usuário renderizada. |
+| `php.yaml` | Projetos PHP gerenciados pelo Composer, com ou sem framework ou CMS. |
+| `kotlin.yaml` | Serviços Kotlin na JVM (Gradle ou Maven), com seções Spring Boot, Quarkus ou Micronaut condicionadas a evidência no build. |
+| `python.yaml` | Serviços e pacotes Python, com seções Django e FastAPI condicionadas a evidência nas dependências. |
+| `typescript-api.yaml` | Serviços TypeScript ou Node sem UI renderizada. |
+| `examples/project.yaml` | Formato de um `.harness/project.yaml` de consumidor. Não é um perfil de stack. |
 
-Electron and other stacks are out until a real consumer needs them. `php` entered on 2026-09-20 for the first PHP consumer (a Craft CMS site). `kotlin`, `python` and `typescript-api` entered on 2026-10-09 for the owner's work projects, the first Kotlin, Python and TypeScript backend consumers.
+Electron e outras stacks ficam de fora até um consumidor real precisar delas. O `php` entrou em 2026-09-20 para o primeiro consumidor PHP (um site Craft CMS). `kotlin`, `python` e `typescript-api` entraram em 2026-10-09 para os projetos de trabalho do dono, os primeiros consumidores Kotlin, Python e backend TypeScript.
 
-## Schema
+## Esquema
 
 ```yaml
-id: kebab-case-id          # must match the filename without .yaml
-name: Human label
-summary: One sentence
-extends: base              # optional; omitted on base
-stack:                     # hints used to match a repo; not install instructions
+id: kebab-case-id          # deve coincidir com o nome do arquivo sem .yaml
+name: Rótulo legível
+summary: Uma frase
+extends: base              # opcional; omitido no base
+stack:                     # dicas usadas para casar com um repositório; não são instruções de instalação
   - go
-commands:                  # null means "do not guess"
+commands:                  # null significa "não adivinhe"
   test: go test ./...
   lint: null
   build: go build ./...
   run: go run .
-conventions:               # bullets the coordinator and specialists must follow
+conventions:               # itens que o Coordenador e os especialistas devem seguir
   - ...
-limits:                    # hard stops
+limits:                    # paradas obrigatórias
   - ...
 ```
 
-Rules:
+Regras:
 
-- `id` equals the filename stem.
-- Command values are copied into `.harness/project.yaml` only when the same command is observed in the consumer repo (Makefile, `package.json`, `go.mod` scripts). Otherwise leave the field unset and label it unknown.
-- `extends` merges conventions and limits; a child field replaces a parent field of the same name. It does not install tools.
-- Profiles never list author-machine paths, tokens, or MCP servers.
+- `id` é igual ao nome do arquivo sem a extensão.
+- Os valores de comando são copiados para o `.harness/project.yaml` só quando o mesmo comando é observado no repositório consumidor (Makefile, `package.json`, scripts do `go.mod`). Caso contrário, deixe o campo sem valor e rotule-o como desconhecido.
+- `extends` mescla convenções e limites; um campo do filho substitui o campo do pai de mesmo nome. Não instala ferramentas.
+- Os perfis nunca listam caminhos da máquina do autor, tokens nem servidores MCP.
 
-## Matching
+## Correspondência
 
-1. Read the consumer tree (manifests, languages, UI presence).
-2. Pick `go-api`, `typescript-web`, `php`, `kotlin`, `python` or `typescript-api` when the stack evidence is direct.
-   - `package.json` with a rendered UI present (UI framework dependency such as react, vue, svelte, next, nuxt or angular, `index.html`, or a `public/` folder): `typescript-web`. A service without a UI: `typescript-api`.
-   - Monorepo with a UI and an API: one rule. `setup` run at the root picks `typescript-web` and records in `notes:` of `project.yaml` the API folder and the profile `typescript-api`; `setup` run inside the API folder picks `typescript-api`.
-3. Otherwise use `base` and record `none, custom` for stack-specific commands.
-4. Existing project instructions outrank the profile.
+1. Leia a árvore do consumidor (manifestos, linguagens, presença de UI).
+2. Escolha `go-api`, `typescript-web`, `php`, `kotlin`, `python` ou `typescript-api` quando a evidência de stack é direta.
+   - `package.json` com UI renderizada presente (dependência de framework de UI como react, vue, svelte, next, nuxt ou angular, `index.html` ou uma pasta `public/`): `typescript-web`. Um serviço sem UI: `typescript-api`.
+   - Monorepo com UI e API: uma regra só. O `setup` rodado na raiz escolhe `typescript-web` e registra em `notes:` do `project.yaml` a pasta da API e o perfil `typescript-api`; o `setup` rodado dentro da pasta da API escolhe `typescript-api`.
+3. Caso contrário, use `base` e registre `none, custom` para os comandos específicos de stack.
+4. As instruções existentes do projeto prevalecem sobre o perfil.
 
-## Consumer-only fields in `.harness/project.yaml`
+## Campos só do consumidor em `.harness/project.yaml`
 
-These fields exist only in a consumer's `.harness/project.yaml`, never in a `profiles/*.yaml` stack profile — `base.yaml`, `go-api.yaml`, `typescript-web.yaml`, `php.yaml`, `kotlin.yaml`, `python.yaml` and `typescript-api.yaml` never carry them.
+Estes campos existem só no `.harness/project.yaml` de um consumidor, nunca em um perfil de stack `profiles/*.yaml` — `base.yaml`, `go-api.yaml`, `typescript-web.yaml`, `php.yaml`, `kotlin.yaml`, `python.yaml` e `typescript-api.yaml` nunca os trazem.
 
-`reviewers:` is optional. Absent, the flow is Claude-only and there is no other CLI to rotate. When present, it maps a stage to a list of reviewers for that stage. On the `code` stage the first entry of a task is `claude` when that list includes it, otherwise the first entry; each later entry of the same task advances one entry. The `security` stage still runs its full list. The full `code` list runs only when the owner asks for that stage.
+`reviewers:` é opcional. Ausente, o fluxo é só Claude e não há outra CLI para rotacionar. Quando presente, mapeia uma etapa para uma lista de revisores dessa etapa. Na etapa `code`, a primeira entrada de uma tarefa é `claude` quando a lista o inclui, senão a primeira entrada; cada entrada seguinte da mesma tarefa avança uma entrada. A etapa `security` continua rodando a lista inteira. A lista `code` inteira só roda quando o dono pede essa etapa.
 
 ```yaml
-reviewers:                       # optional; absent = flow today, Claude only
+reviewers:                       # opcional; ausente = fluxo de hoje, só Claude
   document: [claude, "cli:agy/gemini-3.1-pro-high"]
   code: [claude, "cli:codex/gpt-5.6-sol"]
   security: [claude]
 ```
 
-Valid stages: `document`, `code`, `security`. `verify` is out of v1.
+Etapas válidas: `document`, `code`, `security`. `verify` fica fora da v1.
 
-Each entry in a stage's list is one of exactly three forms — no fourth form:
+Cada entrada da lista de uma etapa é de exatamente uma de três formas — não existe quarta forma:
 
-- `claude` — dispatches the kit's own agent for the stage; the model is already fixed in `.agents/<role>.md`.
-- `"cli:<binary>/<slug>"` — a string; an external CLI reviewer with the default timeout of 15 minutes.
-- `{reviewer: "cli:<binary>/<slug>", timeout_minutes: <n>}` — a map; the same CLI reviewer with a custom timeout.
+- `claude` — despacha o agente do próprio kit para a etapa; o modelo já está fixado em `.agents/<role>.md`.
+- `"cli:<binary>/<slug>"` — uma string; um revisor de CLI externo com o timeout padrão de 15 minutos.
+- `{reviewer: "cli:<binary>/<slug>", timeout_minutes: <n>}` — um mapa; o mesmo revisor de CLI com um timeout personalizado.
 
-`internal/kit/validate.go` does not change for this field: it validates the kit's own source tree (`.agents/`, `.skills/`, `.commands/`, `profiles/`), not a consumer's `.harness/project.yaml`, so it has nothing to check here.
+`internal/kit/validate.go` não muda para este campo: ele valida a árvore de fontes do próprio kit (`.agents/`, `.skills/`, `.commands/`, `profiles/`), não o `.harness/project.yaml` de um consumidor, então não há nada a conferir aqui.

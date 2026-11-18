@@ -1,6 +1,6 @@
 id: php
 name: PHP
-summary: PHP projects managed by Composer, including framework or CMS codebases (Laravel, Symfony, Craft) where business logic lives in a dedicated namespace and tests run with Pest or PHPUnit.
+summary: Projetos PHP gerenciados pelo Composer, incluindo bases de código de framework ou CMS (Laravel, Symfony, Craft) em que a lógica de negócio fica em um namespace dedicado e os testes rodam com Pest ou PHPUnit.
 extends: base
 stack:
   - php
@@ -11,18 +11,18 @@ commands:
   build: null
   run: null
 conventions:
-  - Read composer.json scripts and any Makefile first; a repo-defined target such as make check outranks the raw vendor/bin invocation and is the value recorded in .harness/project.yaml.
-  - Typical observed values, recorded only with evidence: test vendor/bin/pest or vendor/bin/phpunit; lint vendor/bin/phpstan analyse; format check vendor/bin/php-cs-fixer fix --dry-run --diff; run docker compose up -d when the repo ships a compose file.
-  - When PHP runs inside a container, every check command is executed through the container (docker compose exec or the Makefile EXEC variable); a host without php or composer reports checks as not-run, never as passed.
-  - Strict rules (declare(strict_types=1), PSR-12, phpstan at the configured level) apply to the namespaces the project marks as business logic, typically src/, app/ or modules/, plus tests/. Framework or CMS configuration, templates, migrations and public/ stay out unless the project says otherwise.
-  - New business-logic files start with declare(strict_types=1); controllers stay thin and delegate to services; no @ error suppression and no mixed without a stated reason.
-  - A phpstan baseline file, when present, covers pre-existing findings only; new code is held to the configured level and the baseline is not regenerated to hide a new finding.
-  - Tests go in tests/ following the existing split (Unit, Feature); a new behavior ships with a test at the same level the repo already uses.
-  - composer.json and composer.lock stay in the write set of any slice that adds, updates or removes a package; the lock file is committed with the change.
-  - Database work uses the builder role in lane dados and the data-migrations skill; framework migrations run only against a disposable database during verification.
+  - Leia primeiro os scripts do composer.json e qualquer Makefile; um alvo definido pelo repositório, como make check, prevalece sobre a invocação direta de vendor/bin e é o valor registrado em .harness/project.yaml.
+  - Valores típicos observados, registrados só com evidência: test vendor/bin/pest ou vendor/bin/phpunit; lint vendor/bin/phpstan analyse; checagem de formato vendor/bin/php-cs-fixer fix --dry-run --diff; run docker compose up -d quando o repositório traz um arquivo compose.
+  - Quando o PHP roda dentro de um contêiner, todo comando de checagem é executado pelo contêiner (docker compose exec ou a variável EXEC do Makefile); um host sem php ou composer reporta as checagens como not-run, nunca como passed.
+  - As regras estritas (declare(strict_types=1), PSR-12, phpstan no nível configurado) valem para os namespaces que o projeto marca como lógica de negócio, tipicamente src/, app/ ou modules/, mais tests/. A configuração de framework ou CMS, os templates, as migrações e public/ ficam de fora, salvo se o projeto disser o contrário.
+  - Arquivos novos de lógica de negócio começam com declare(strict_types=1); os controllers ficam enxutos e delegam a serviços; nada de supressão de erro com @ e nada de mixed sem um motivo declarado.
+  - Um arquivo de baseline do phpstan, quando presente, cobre só achados preexistentes; o código novo responde ao nível configurado e a baseline não é regenerada para esconder um achado novo.
+  - Os testes ficam em tests/ seguindo a divisão existente (Unit, Feature); um comportamento novo é entregue com um teste no mesmo nível que o repositório já usa.
+  - composer.json e composer.lock ficam no conjunto de escrita de toda fatia que adiciona, atualiza ou remove um pacote; o arquivo de lock vai no commit junto com a mudança.
+  - Trabalho de banco de dados usa o papel builder na lane dados e a skill data-migrations; as migrações do framework rodam só em um banco descartável durante a verificação.
 limits:
-  - Do not run composer require, composer update or change the PHP version without authorization recorded for the slice.
-  - Do not assume Pest, PHPUnit, phpstan, php-cs-fixer, Docker or a Makefile are present; probe vendor/bin and the repo root and record unknown.
-  - Do not edit vendor/ or generated framework files; fixes go in the project namespace or configuration.
-  - Do not start, stop or rebuild containers on your own; report the stack state and ask when a check depends on it.
-  - Do not apply migrations, seeders or CMS project-config syncs against a non-disposable database.
+  - Não rode composer require nem composer update, nem mude a versão do PHP, sem autorização registrada para a fatia.
+  - Não suponha que Pest, PHPUnit, phpstan, php-cs-fixer, Docker ou um Makefile estejam presentes; sonde vendor/bin e a raiz do repositório e registre unknown.
+  - Não edite vendor/ nem arquivos gerados do framework; as correções vão no namespace do projeto ou na configuração.
+  - Não inicie, pare nem reconstrua contêineres por conta própria; reporte o estado da stack e pergunte quando uma checagem depender disso.
+  - Não aplique migrações, seeders nem sincronizações de project-config do CMS em um banco que não seja descartável.
