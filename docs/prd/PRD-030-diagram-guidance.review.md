@@ -1,107 +1,109 @@
-# Review: PRD-030
+# Revisão: PRD-030
 
-## Round 1
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
 
-| Field | Value |
+## Rodada 1
+
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-030-diagram-guidance.md |
-| Source | docs/roadmap.html:1726-1741, docs/en/roadmap.html:1726-1741, .agents/docs-guide.md, .skills/doc-template-html/SKILL.md, .skills/doc-template-html/scripts/stamp.sh, AGENTS.md, docs/prd/PRD-029-independent-review-and-drift-report.md, owner's words |
-| Round | 1 of 2 |
-| Verdict | changes required |
-| Updated | 2026-10-28 |
+| Documento | docs/prd/PRD-030-diagram-guidance.md |
+| Fonte | docs/roadmap.html:1726-1741, docs/en/roadmap.html:1726-1741, .agents/docs-guide.md, .skills/doc-template-html/SKILL.md, .skills/doc-template-html/scripts/stamp.sh, AGENTS.md, docs/prd/PRD-029-independent-review-and-drift-report.md, palavras do dono |
+| Rodada | 1 de 2 |
+| Veredito | changes required |
+| Atualizado | 2026-10-28 |
 
-Reviewer: cli:agy/gemini-3.8-flash-high (document stage). Blocking findings: 1. Raw reply: `tasks/AUTO-3/evidence/validation-prd-r1/reply.md` (harness dir).
+Revisor: cli:agy/gemini-3.8-flash-high (etapa de documento). Achados bloqueantes: 1. Resposta bruta: `tasks/AUTO-3/evidence/validation-prd-r1/reply.md` (harness dir).
 
-## Comprehension
-- What the document proposes: The document establishes concise guidance in docs-guide to write Mermaid diagrams inside `<pre class="mermaid">` blocks and link Excalidraw diagrams as separate `.excalidraw` files without embedding. It updates four hand-written HTML pages to replace floating Mermaid version imports with a pinned reference to version 11.17.2, matching the version pinned in `stamp.sh`. It ensures no untracked floating Mermaid references remain outside distribution outputs and historical records, and updates the roadmap diagram card to reflect the delivered scope. Finally, it aligns version identifiers to 0.35.0, regenerates package distribution files, and confirms that agent, command, and skill counts remain unchanged.
-- How the current system works, as the document states it: The roadmap contains a planned card for specialized Excalidraw and Mermaid diagram skills, but `docs-guide` currently provides no rules on when or how to draw diagrams. While `stamp.sh` and dashboard `pdocs` already pin Mermaid to version 11.17.2, four hand-written HTML documentation pages still load Mermaid via a floating major-version tag. In addition, the roadmap card text describes Mermaid as the only permitted CDN exception, lagging behind `AGENTS.md` where Google Fonts is recognized as a second exception. An external diagram design skill was evaluated but rejected because its inline SVG emission and external runtime dependencies conflict with kit principles.
-- Sections not paraphrased: none
+## Compreensão
+- O que o documento propõe: O documento estabelece, no docs-guide, uma orientação concisa para escrever diagramas Mermaid dentro de blocos `<pre class="mermaid">` e linkar diagramas Excalidraw como arquivos `.excalidraw` separados, sem embuti-los. Ele atualiza quatro páginas HTML escritas à mão para trocar as importações flutuantes de versão do Mermaid por uma referência fixada na versão 11.17.2, igual à versão fixada no `stamp.sh`. Ele garante que nenhuma referência flutuante ao Mermaid sem rastreio fique fora das saídas de distribuição e dos registros históricos, e atualiza o card de diagrama do roadmap para refletir o escopo entregue. Por fim, alinha os identificadores de versão em 0.35.0, regenera os arquivos de distribuição do pacote e confirma que as contagens de agentes, comandos e skills continuam as mesmas.
+- Como o sistema atual funciona, como o documento o declara: O roadmap tem um card planejado para skills especializadas de diagrama em Excalidraw e Mermaid, mas o `docs-guide` hoje não traz regra sobre quando nem como desenhar diagramas. Embora o `stamp.sh` e os `pdocs` do dashboard já fixem o Mermaid na versão 11.17.2, quatro páginas HTML de documentação escritas à mão ainda carregam o Mermaid por uma tag flutuante de versão maior. Além disso, o texto do card do roadmap descreve o Mermaid como a única exceção de CDN permitida, atrasado em relação ao `AGENTS.md`, onde o Google Fonts é reconhecido como segunda exceção. Uma skill externa de design de diagramas foi avaliada, mas rejeitada, porque a emissão de SVG inline e as dependências externas de runtime conflitam com os princípios do kit.
+- Seções não parafraseadas: nenhuma
 
-## Findings
+## Achados
 
-- **P1** [applied] [conflict] (blocking) Acceptance criterion "all say 0.35.0" contradicts ref "v0.35.0" and leaves the five version places undefined.
-  - Location: docs/prd/PRD-030-diagram-guidance.md section 3, R5 (lines 46-47)
-  - Evidence: R5 line 46 specifies `ref v0.35.0` in `.claude-plugin/marketplace.json`, while the criterion on line 47 claims all five version places say `0.35.0`. Moreover, R5 describes 7 distinct version targets across the repository.
-  - Suggestion: Explicitly name each target location and its exact expected string (`0.35.0` vs `v0.35.0`) in the acceptance criteria.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P2** [applied] [ambiguity] Instruction placement after Procedure step 2 leaves step numbering and the line 75 cross-reference ambiguous.
-  - Location: docs/prd/PRD-030-diagram-guidance.md section 3, R1 (line 29)
-  - Evidence: Renumbering Procedure steps desynchronizes the reference in `.agents/docs-guide.md:75` ("Procedure step 5").
-  - Suggestion: Clarify that the instruction is placed as an unnumbered paragraph or sub-item within step 2 without renumbering steps 1 through 5.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P3** [applied] [organization] Section 4 Docs omits the two tutorial files modified by R2 from its bulleted list.
-  - Location: docs/prd/PRD-030-diagram-guidance.md section 4 (lines 57-63)
-  - Evidence: `docs/tutoriais/templates.html` and `docs/en/tutorials/templates.html` are modified in R2 and mentioned in prose, but missing from the list.
-  - Suggestion: Add both tutorial files to the bulleted list in Section 4.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P4** [pending] [organization] Header Status field is marked approved prior to validation completion.
-  - Location: docs/prd/PRD-030-diagram-guidance.md line 5
-  - Evidence: `templates/en/PRD.md` prescribes `in review` or `draft` while undergoing validation.
-  - Suggestion: Change `Status` to `in review`.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P5** [applied] [organization] Sentences in R4 and R5 exceed the 25-word limit of ASD-STE100 rules.
-  - Location: docs/prd/PRD-030-diagram-guidance.md section 3, R4 (line 42) and R5 (line 46)
-  - Evidence: Descriptive sentences in R4 and R5 each contain 28 words.
-  - Suggestion: Split each sentence into two shorter sentences under 25 words.
-  - Reported by: cli:agy/gemini-3.8-flash-high
+- **P1** [applied] [conflict] (blocking) O critério de aceite "todos dizem 0.35.0" contradiz o ref "v0.35.0" e deixa indefinidos os cinco lugares da versão.
+  - Local: docs/prd/PRD-030-diagram-guidance.md seção 3, R5 (linhas 46-47)
+  - Evidência: R5 linha 46 especifica `ref v0.35.0` em `.claude-plugin/marketplace.json`, enquanto o critério da linha 47 afirma que os cinco lugares da versão dizem `0.35.0`. Além disso, R5 descreve 7 alvos distintos de versão no repositório.
+  - Sugestão: Nomear de forma explícita cada local de alvo e a string exata esperada (`0.35.0` ou `v0.35.0`) nos critérios de aceite.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P2** [applied] [ambiguity] A posição da instrução depois do passo 2 do Procedimento deixa ambíguos a numeração dos passos e a referência cruzada da linha 75.
+  - Local: docs/prd/PRD-030-diagram-guidance.md seção 3, R1 (linha 29)
+  - Evidência: Renumerar os passos do Procedimento tira de sincronia a referência em `.agents/docs-guide.md:75` ("passo 5 do Procedimento").
+  - Sugestão: Esclarecer que a instrução entra como parágrafo sem número ou subitem dentro do passo 2, sem renumerar os passos 1 a 5.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P3** [applied] [organization] A seção 4 Docs omite da lista de itens os dois arquivos de tutorial modificados por R2.
+  - Local: docs/prd/PRD-030-diagram-guidance.md seção 4 (linhas 57-63)
+  - Evidência: `docs/tutoriais/templates.html` e `docs/en/tutorials/templates.html` são modificados em R2 e citados na prosa, mas faltam na lista.
+  - Sugestão: Acrescentar os dois arquivos de tutorial à lista de itens da Seção 4.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P4** [pending] [organization] O campo Status do cabeçalho está marcado como aprovado antes de a validação terminar.
+  - Local: docs/prd/PRD-030-diagram-guidance.md linha 5
+  - Evidência: `templates/en/PRD.md` prescreve `in review` ou `draft` enquanto o documento passa por validação.
+  - Sugestão: Mudar `Status` para `in review`.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P5** [applied] [organization] Frases de R4 e R5 passam do limite de 25 palavras das regras da ASD-STE100.
+  - Local: docs/prd/PRD-030-diagram-guidance.md seção 3, R4 (linha 42) e R5 (linha 46)
+  - Evidência: Frases descritivas de R4 e R5 têm 28 palavras cada uma.
+  - Sugestão: Dividir cada frase em duas frases mais curtas, abaixo de 25 palavras.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
 
-## Not raised
+## Não levantado
 
-- Gaps: All points from `docs/roadmap.html:1726-1741`, `docs/en/roadmap.html:1726-1741`, owner's words, and `AGENTS.md:29` mapped to R1-R5 and Out of scope.
-- Excesses: No unrequested agents, skills, or commands introduced.
-- Diagram rules (R1): Mermaid in `<pre class="mermaid">` as default and Excalidraw as a separate linked `.excalidraw` file with no script or embed correctly honors the owner's 2026-09-25 decision and `doc-template-html` rules.
-- Pinned imports (R2): Version 11.17.2 accurately matches `stamp.sh:89` and `internal/dashboard/pdocs.go:18`, and correctly targets all four hand-written HTML pages with floating tags.
-- Floating reference purge (R3): Clean tree verification via `grep` correctly excludes generated files under `dist/` and historical archives in `docs/prd/`.
-- Roadmap card sync (R4): Updating status to delivered in 0.35.0, removing "única exceção de CDN" in favor of the two exceptions in `AGENTS.md:29`, and keeping pt and en in sync correctly honors roadmap maintenance rules.
-- Deterministic checks (R6): Running `dh validate`, `go test ./...`, and `dh build` while preserving invariant counts (13 agents, 19+1 commands, 22 skills) accurately matches repository verification standards.
+- Lacunas: Todos os pontos de `docs/roadmap.html:1726-1741`, `docs/en/roadmap.html:1726-1741`, das palavras do dono e de `AGENTS.md:29` estão mapeados em R1-R5 e em Fora do escopo.
+- Excessos: Nenhum agente, skill ou comando não pedido foi introduzido.
+- Regras de diagrama (R1): O Mermaid em `<pre class="mermaid">` como padrão e o Excalidraw como arquivo `.excalidraw` separado e linkado, sem script nem embutido, honram corretamente a decisão do dono de 2026-09-25 e as regras da `doc-template-html`.
+- Importações fixadas (R2): A versão 11.17.2 confere com `stamp.sh:89` e `internal/dashboard/pdocs.go:18` e mira corretamente as quatro páginas HTML escritas à mão com tags flutuantes.
+- Expurgo das referências flutuantes (R3): A verificação de árvore limpa por `grep` exclui corretamente os arquivos gerados em `dist/` e os arquivos históricos em `docs/prd/`.
+- Sincronia do card do roadmap (R4): Atualizar o status para entregue na 0.35.0, remover "única exceção de CDN" em favor das duas exceções de `AGENTS.md:29` e manter pt e en em sincronia honra corretamente as regras de manutenção do roadmap.
+- Checagens determinísticas (R6): Rodar `dh validate`, `go test ./...` e `dh build` e preservar as contagens invariantes (13 agentes, 19+1 comandos, 22 skills) confere com os padrões de verificação do repositório.
 
-## Round 2
+## Rodada 2
 
-| Field | Value |
+| Campo | Valor |
 |---|---|
-| Document | docs/prd/PRD-030-diagram-guidance.md |
-| Source | docs/roadmap.html:1726-1741, docs/en/roadmap.html:1726-1741, .agents/docs-guide.md, .skills/doc-template-html/SKILL.md, .skills/doc-template-html/scripts/stamp.sh, AGENTS.md, docs/prd/PRD-029-independent-review-and-drift-report.md, owner's words |
-| Round | 2 of 2 |
-| Verdict | approved |
-| Updated | 2026-10-28 |
+| Documento | docs/prd/PRD-030-diagram-guidance.md |
+| Fonte | docs/roadmap.html:1726-1741, docs/en/roadmap.html:1726-1741, .agents/docs-guide.md, .skills/doc-template-html/SKILL.md, .skills/doc-template-html/scripts/stamp.sh, AGENTS.md, docs/prd/PRD-029-independent-review-and-drift-report.md, palavras do dono |
+| Rodada | 2 de 2 |
+| Veredito | approved |
+| Atualizado | 2026-10-28 |
 
-Reviewer: cli:agy/gemini-3.8-flash-high (document stage). Blocking findings: 0. Raw reply: `tasks/AUTO-3/evidence/validation-prd-r2/reply.md` (harness dir). PRD corrections between the rounds were made by product-discovery.
+Revisor: cli:agy/gemini-3.8-flash-high (etapa de documento). Achados bloqueantes: 0. Resposta bruta: `tasks/AUTO-3/evidence/validation-prd-r2/reply.md` (harness dir). As correções do PRD entre as rodadas foram feitas pelo product-discovery.
 
-## Comprehension
-- What the document proposes: The PRD adds a concise instruction to `docs-guide` establishing Mermaid inside `<pre class="mermaid">` as the default diagram format and restricting Excalidraw diagrams to linked external `.excalidraw` files. It updates four hand-written HTML documentation files by replacing floating Mermaid imports with a reference pinned to exact version 11.17.2, matching `stamp.sh`. It ensures no floating Mermaid imports remain tracked across the codebase and updates the roadmap diagram card to reflect the delivered scope under version 0.35.0. It updates repository version identifiers and changelog entries to 0.35.0, regenerates package distribution files, and verifies that agent, command, and skill counts remain strictly unchanged.
-- How the current system works, as the document states it: The roadmap lists a planned card for specialized Excalidraw and Mermaid diagram skills, while `docs-guide` currently contains no instructions on when or how diagrams should be included. Although `stamp.sh` and dashboard `pdocs` pin Mermaid to version 11.17.2, four hand-written HTML documentation files continue to import Mermaid using a floating major-version tag. The roadmap card still describes Mermaid as the only allowed CDN exception, trailing `AGENTS.md` which specifies two CDN exceptions including Google Fonts. An external diagram design skill was evaluated but rejected by the owner because its inline SVG emission and external dependencies contradict kit architecture and ADR-003.
-- Sections not paraphrased: none
+## Compreensão
+- O que o documento propõe: O PRD acrescenta ao `docs-guide` uma instrução concisa que estabelece o Mermaid dentro de `<pre class="mermaid">` como formato padrão de diagrama e restringe os diagramas Excalidraw a arquivos `.excalidraw` externos linkados. Ele atualiza quatro arquivos HTML de documentação escritos à mão, trocando as importações flutuantes do Mermaid por uma referência fixada na versão exata 11.17.2, igual à do `stamp.sh`. Ele garante que nenhuma importação flutuante do Mermaid continue rastreada no código e atualiza o card de diagrama do roadmap para refletir o escopo entregue na versão 0.35.0. Ele atualiza os identificadores de versão do repositório e as entradas do changelog para 0.35.0, regenera os arquivos de distribuição do pacote e verifica que as contagens de agentes, comandos e skills continuam estritamente as mesmas.
+- Como o sistema atual funciona, como o documento o declara: O roadmap lista um card planejado para skills especializadas de diagrama em Excalidraw e Mermaid, enquanto o `docs-guide` hoje não traz instruções sobre quando nem como incluir diagramas. Embora o `stamp.sh` e os `pdocs` do dashboard fixem o Mermaid na versão 11.17.2, quatro arquivos HTML de documentação escritos à mão continuam importando o Mermaid por uma tag flutuante de versão maior. O card do roadmap ainda descreve o Mermaid como a única exceção de CDN permitida, atrás do `AGENTS.md`, que especifica duas exceções de CDN, entre elas o Google Fonts. Uma skill externa de design de diagramas foi avaliada, mas rejeitada pelo dono, porque a emissão de SVG inline e as dependências externas contradizem a arquitetura do kit e a ADR-003.
+- Seções não parafraseadas: nenhuma
 
-## Findings
+## Achados
 
-- **P1** [applied] [conflict] (blocking) Acceptance criterion "all say 0.35.0" contradicts ref "v0.35.0" and leaves the five version places undefined.
-  - Location: docs/prd/PRD-030-diagram-guidance.md section 3, R5 (lines 46-47)
-  - Resolution: The author updated the acceptance criterion to explicitly reference the files named in R5 and accounted for the `v0.35.0` prefix in marketplace ref ("When the files named in this rule are read, then each version field says 0.35.0 (the marketplace ref says v0.35.0)"), round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P2** [applied] [ambiguity] Instruction placement after Procedure step 2 leaves step numbering and the line 75 cross-reference ambiguous.
-  - Location: docs/prd/PRD-030-diagram-guidance.md section 3, R1 (line 29)
-  - Resolution: The author clarified that the instruction is added at the end of Procedure step 2 within the same list item, explicitly asserting that step numbers remain unchanged, round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P3** [applied] [organization] Section 4 Docs omits the two tutorial files modified by R2 from its bulleted list.
-  - Location: docs/prd/PRD-030-diagram-guidance.md section 4, line 62
-  - Resolution: The author added both tutorial files to the Section 4 list ("docs/tutoriais/templates.html and docs/en/tutorials/templates.html: import pin only (R2)"), round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P4** [pending] [organization] Header Status field is marked approved prior to validation completion.
-  - Location: docs/prd/PRD-030-diagram-guidance.md line 5
-  - Evidence: Header table declares `Status: approved (...)`, whereas `templates/en/PRD.md` prescribes `draft` or `in review` while the document is undergoing validation.
-  - Suggestion: Keep as a non-blocking organization record; the status will formally transition upon coordinator acceptance. Note (Coordinator, after this round): the header Status row was set to `delivered on 2026-10-28` at the end of the PRD cycle; the reviewer's state for P4 is unchanged.
-  - Reported by: cli:agy/gemini-3.8-flash-high
-- **P5** [applied] [organization] Sentences in R4 and R5 exceed the 25-word limit of ASD-STE100 rules.
-  - Location: docs/prd/PRD-030-diagram-guidance.md section 3, R4 (line 42) and R5 (line 46)
-  - Resolution: The author split the descriptive sentences in R4 and R5 into concise statements under 25 words each, round 2.
-  - Reported by: cli:agy/gemini-3.8-flash-high
+- **P1** [applied] [conflict] (blocking) O critério de aceite "todos dizem 0.35.0" contradiz o ref "v0.35.0" e deixa indefinidos os cinco lugares da versão.
+  - Local: docs/prd/PRD-030-diagram-guidance.md seção 3, R5 (linhas 46-47)
+  - Resolução: O autor atualizou o critério de aceite para citar de forma explícita os arquivos nomeados em R5 e levou em conta o prefixo `v0.35.0` no ref do marketplace ("Quando os arquivos citados nesta regra são lidos, então cada campo de versão diz 0.35.0 (o ref do marketplace diz v0.35.0)"), rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P2** [applied] [ambiguity] A posição da instrução depois do passo 2 do Procedimento deixa ambíguos a numeração dos passos e a referência cruzada da linha 75.
+  - Local: docs/prd/PRD-030-diagram-guidance.md seção 3, R1 (linha 29)
+  - Resolução: O autor esclareceu que a instrução é acrescentada no fim do passo 2 do Procedimento, no mesmo item da lista, e afirmou de forma explícita que os números dos passos não mudam, rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P3** [applied] [organization] A seção 4 Docs omite da lista de itens os dois arquivos de tutorial modificados por R2.
+  - Local: docs/prd/PRD-030-diagram-guidance.md seção 4, linha 62
+  - Resolução: O autor acrescentou os dois arquivos de tutorial à lista da Seção 4 ("docs/tutoriais/templates.html e docs/en/tutorials/templates.html: só a fixação da importação (R2)"), rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P4** [pending] [organization] O campo Status do cabeçalho está marcado como aprovado antes de a validação terminar.
+  - Local: docs/prd/PRD-030-diagram-guidance.md linha 5
+  - Evidência: A tabela do cabeçalho declara `Status: approved (...)`, enquanto `templates/en/PRD.md` prescreve `draft` ou `in review` enquanto o documento passa por validação.
+  - Sugestão: Manter como registro de organização não bloqueante; o status muda formalmente quando o Coordenador aceitar. Nota (Coordenador, depois desta rodada): a linha Status do cabeçalho foi definida como `delivered on 2026-10-28` no fim do ciclo do PRD; o estado de P4 para o revisor não mudou.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
+- **P5** [applied] [organization] Frases de R4 e R5 passam do limite de 25 palavras das regras da ASD-STE100.
+  - Local: docs/prd/PRD-030-diagram-guidance.md seção 3, R4 (linha 42) e R5 (linha 46)
+  - Resolução: O autor dividiu as frases descritivas de R4 e R5 em afirmações concisas, de menos de 25 palavras cada uma, rodada 2.
+  - Reportado por: cli:agy/gemini-3.8-flash-high
 
-## Not raised
+## Não levantado
 
-- Gaps: All source points from `docs/roadmap.html:1726-1741`, `docs/en/roadmap.html:1726-1741`, `AGENTS.md:29`, and the owner's request ("Vamos seguir com a B e pode fixar a versão do mermaid junto") are traced to R1-R6 and Out of scope.
-- Ambiguities: All instructions and rules provide unambiguous single implementations. Placement of the docs-guide instruction at the end of Procedure step 2 preserves step numbering and `.agents/docs-guide.md:75` cross-references.
-- Conflicts: Target version string specifications in R5 match Git tag requirements (`v0.35.0` for marketplace ref vs `0.35.0` for package versions). Pinned version `11.17.2` matches `stamp.sh:89` and `internal/dashboard/pdocs.go:18`. CDN exception statements match `AGENTS.md:29`.
-- Excesses: No new agents, skills, or commands are introduced; out of scope explicitly rejects embedding, SVG export, and external diagram dependencies in accordance with owner decision B and ADR-003.
-- Weak criteria: All acceptance criteria under R1-R6 use deterministic "When ..., then ..." structures verifiable by exact string matching, HTTP status, file contents, or tool execution.
-- Organization: Requirements and documentation impact lists are properly structured and categorized.
-- PRD writing style: All descriptive sentences conform to the 25-word limit specified by ASD-STE100 guidelines.
+- Lacunas: Todos os pontos de origem de `docs/roadmap.html:1726-1741`, `docs/en/roadmap.html:1726-1741`, `AGENTS.md:29` e do pedido do dono ("Vamos seguir com a B e pode fixar a versão do mermaid junto") são rastreados até R1-R6 e Fora do escopo.
+- Ambiguidades: Todas as instruções e regras trazem implementações únicas e sem ambiguidade. A posição da instrução do docs-guide no fim do passo 2 do Procedimento preserva a numeração dos passos e as referências cruzadas de `.agents/docs-guide.md:75`.
+- Conflitos: As especificações de string de versão em R5 conferem com as exigências de tag do Git (`v0.35.0` para o ref do marketplace e `0.35.0` para as versões do pacote). A versão fixada `11.17.2` confere com `stamp.sh:89` e `internal/dashboard/pdocs.go:18`. As afirmações sobre as exceções de CDN conferem com `AGENTS.md:29`.
+- Excessos: Nenhum agente, skill ou comando novo é introduzido; o Fora do escopo rejeita de forma explícita embutir, exportar SVG e depender de diagramas externos, de acordo com a decisão B do dono e com a ADR-003.
+- Critérios fracos: Todos os critérios de aceite sob R1-R6 usam estruturas determinísticas "Quando ..., então ...", verificáveis por casamento exato de string, status HTTP, conteúdo de arquivo ou execução de ferramenta.
+- Organização: As listas de requisitos e de impacto na documentação estão bem estruturadas e categorizadas.
+- Estilo de escrita do PRD: Todas as frases descritivas respeitam o limite de 25 palavras especificado pelas diretrizes da ASD-STE100.
