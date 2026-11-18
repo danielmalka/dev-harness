@@ -1,5 +1,5 @@
 import type { EngineInterface, Register } from 'claude-code'
-import { denySpawn, guardFile, homeFrom, noteSpawn, resolvePath, warnThenNext } from './runtime-guard.ts'
+import { denyCuratorShell, denySpawn, forceCuratorModel, guardFile, homeFrom, noteSpawn, resolvePath, warnThenNext } from './runtime-guard.ts'
 import { DASHBOARD_COMMAND, registerDashboard } from './dashboard-command.ts'
 import { applyEvent, iso, limitsFrom, type Ev, type Limits, type Snap } from './snapshot-writer.ts'
 import { driftMessage, findDrift, statusValue } from './status-drift.ts'
@@ -329,9 +329,10 @@ export const register: Register = on => {
     return r
   })
 
-  on('agent.spawn', ($, e, next) => denySpawn({}, e, async (x: typeof e) => {
+  on('agent.spawn', ($, e, next) => denySpawn({}, e, async (x0: typeof e) => {
+    const x = forceCuratorModel(x0) // verification of F3: a curator dispatch that does not ask for sonnet or above runs on sonnet
     const r = await next(x)
-    if (r.agentId) { agentTypes.set(r.agentId, String(x.subagentType)); noteSpawn(x, r.agentId); recordSpawn($, x.subagentType, r.agentId) }
+    if (r.agentId) { agentTypes.set(r.agentId, String(x.subagentType)); noteSpawn(x, r.agentId, r.model); recordSpawn($, x.subagentType, r.agentId) }
     return r
   })).catch(failOpen)
 
@@ -363,6 +364,8 @@ export const register: Register = on => {
   // PRD-027 R3: the other tools that take a shell command get the gh guard only, on their command field.
   for (const tool of ['Monitor', 'PowerShell']) {
     on('tool.call', { tool } as any, async ($, e: any, next) => {
+      const shell = denyCuratorShell(e) // verification of F3: the curator has no shell
+      if (shell) return shell
       const ok = typeof e.command === 'string'
       // a PowerShell call without a readable command is denied for a kit subagent; a Monitor without one is not a shell command
       const denied = ok || tool === 'PowerShell' ? await guardGh($, ok ? e.command : '', e.agentId, !ok, tool === 'PowerShell').catch(() => undefined) : undefined
@@ -382,6 +385,8 @@ export const register: Register = on => {
   }
 
   on('tool.call', { tool: 'Bash' }, async ($, e, next) => {
+    const shell = denyCuratorShell(e) // verification of F3: the curator has no shell
+    if (shell) return shell
     const denied = await guardBash($, e.command, e.agentId).catch(() => undefined)
     if (denied) return { deny: denied }
     const r = await next(e)
