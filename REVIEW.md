@@ -1,47 +1,47 @@
-# Review guide
+# Guia de revisão
 
-## How to use
+## Como usar
 
-This file tells the reviewer what to look for in this project. The owner fills it. The reviewer reads it first and ties each finding to one rule below, or says no rule applies. Keep entries few and concrete. Always write it in English.
+Este arquivo diz ao revisor o que procurar neste projeto. O dono o preenche. O revisor o lê primeiro e liga cada achado a uma regra abaixo, ou diz que nenhuma regra se aplica. Mantenha poucas entradas e concretas.
 
-## Rules
+## Regras
 
-One entry per recurring problem. Copy the block for each new rule.
+Uma entrada por problema recorrente. Copie o bloco para cada regra nova.
 
-### Generated dist edited by hand
+### `dist/` gerado editado à mão
 
-- Symptom: the diff changes a file under `dist/` without a matching change in a canonical source (`.agents/`, `.skills/`, `.commands/`, `templates/`, `profiles/`).
-- Why it matters: `dist/` comes from `go run ./cmd/dh build`. A hand edit is lost at the next build, or makes CI fail on the `dist` diff check. The rule is in `AGENTS.md` ("Fontes canônicas").
-- Example: `dist/claude-code/dev-harness/agents/coordinator.md:2`
+- Sintoma: o diff muda um arquivo em `dist/` sem uma mudança correspondente em uma fonte canônica (`.agents/`, `.skills/`, `.commands/`, `templates/`, `profiles/`).
+- Por que importa: `dist/` vem de `go run ./cmd/dh build`. Uma edição à mão se perde no próximo build, ou faz o CI falhar na checagem de diff do `dist`. A regra está no `AGENTS.md` ("Fontes canônicas").
+- Exemplo: `dist/claude-code/dev-harness/agents/coordinator.md:2`
 
-### Count in docs drifts from the real count
+### Contagem nos docs deriva da contagem real
 
-- Symptom: a doc, README or tutorial states a count (13 agents; 20 commands in files plus 1 registered by the mod) that no longer matches the sources, or one language states a different number than its mirror.
-- Why it matters: the owner trusts the stated counts; `AGENTS.md` fixes them ("Agentes (13)"). A stale number says the kit lost or gained capability when it did not.
-- Example: `docs/tutorial.html:781`
+- Sintoma: um doc, README ou tutorial afirma uma contagem (13 agentes; 20 comandos em arquivos mais 1 registrado pelo mod) que não bate mais com as fontes.
+- Por que importa: o dono confia nas contagens declaradas; o `AGENTS.md` as fixa ("Agentes (13)"). Um número desatualizado diz que o kit perdeu ou ganhou capacidade quando isso não aconteceu.
+- Exemplo: `docs/tutorial.html:781`
 
-### Private path in a PRD, review report or doc
+### Caminho privado em um PRD, relatório de revisão ou doc
 
-- Symptom: text contains an expanded home path or another concrete machine path, instead of `<harness dir>` or `<home>`.
-- Why it matters: it leaks the author's machine into a shared repository. `dh validate` (`checkPrivatePaths`) rejects it and blocks the delivery.
-- Example: `internal/kit/validate.go:577`
+- Sintoma: o texto contém um caminho de home expandido ou outro caminho concreto de máquina, em vez de `<harness dir>` ou `<home>`.
+- Por que importa: vaza a máquina do autor para um repositório compartilhado. O `dh validate` (`checkPrivatePaths`) o rejeita e bloqueia a entrega.
+- Exemplo: `internal/kit/validate.go:577`
 
-### Change leaves stale references
+### Mudança deixa referências obsoletas
 
-- Symptom: a file, count, link or copy is removed or renamed, but references to it remain in docs, templates or the pt-br/en mirror.
-- Why it matters: `AGENTS.md` ("Premissa de limpeza") blocks delivery when a change leaves obsolete leftovers.
-- Example: `AGENTS.md:12`
+- Sintoma: um arquivo, contagem, link ou cópia é removido ou renomeado, mas referências a ele permanecem em docs ou templates.
+- Por que importa: o `AGENTS.md` ("Premissa de limpeza") bloqueia a entrega quando uma mudança deixa sobras obsoletas.
+- Exemplo: `AGENTS.md:12`
 
-## Ignore
+## Ignorar
 
-One entry per pattern that is noise. Each entry reads "ignore this pattern in this kind of file". A finding that matches an entry is reported as ignored-by-rule and does not spend a round.
+Uma entrada por padrão que é ruído. Cada entrada diz "ignore este padrão neste tipo de arquivo". Um achado que casa com uma entrada é reportado como ignorado por regra e não gasta uma rodada.
 
-- Ignore the `generated_at` line in `dist/claude-code/dev-harness/harness-manifest.json`. It differs between builds, and CI tolerates it.
-- Ignore a finding inside a `dist/` copy when the same finding exists in its canonical source. Review the source, not the copy (for example `dist/claude-code/dev-harness/agents/coordinator.md` against `.agents/coordinator.md`).
+- Ignore a linha `generated_at` em `dist/claude-code/dev-harness/harness-manifest.json`. Ela difere entre builds, e o CI a tolera.
+- Ignore um achado dentro de uma cópia em `dist/` quando o mesmo achado existe na fonte canônica dela. Revise a fonte, não a cópia (por exemplo `dist/claude-code/dev-harness/agents/coordinator.md` contra `.agents/coordinator.md`).
 
-## Critical paths
+## Caminhos críticos
 
-Path globs in `.gitignore` style. A pull request that touches a match stops before the merge, and the owner decides. Leave the list empty for no stop.
+Globs de caminho no estilo `.gitignore`. Um pull request que toca um caminho que casa para antes do merge, e o dono decide. Deixe a lista vazia para não ter parada.
 
-- `adapters/claude-code/plugin/hooks/**`: runtime guard of the memory lock and the dispatch rule.
-- `.skills/external-clis/**`: isolation of external CLI reviewers.
+- `adapters/claude-code/plugin/hooks/**`: trava em tempo de execução da trava de memória e da regra de despacho.
+- `.skills/external-clis/**`: isolamento dos revisores de CLI externos.

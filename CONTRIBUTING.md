@@ -1,14 +1,14 @@
-# Contributing
+# Contribuindo
 
-## Sources and package
+## Fontes e pacote
 
-The canonical sources are `.agents/`, `.skills/`, `.commands/`, `templates/` and `profiles/`. Edit these, never the generated package.
+As fontes canônicas são `.agents/`, `.skills/`, `.commands/`, `templates/` e `profiles/`. Edite essas pastas, nunca o pacote gerado.
 
-`dist/` comes from `go run ./cmd/dh build` and is never edited by hand. Run the build after a source change and commit the regenerated `dist/` with it.
+`dist/` vem de `go run ./cmd/dh build` e nunca é editado à mão. Rode o build depois de mudar uma fonte e faça o commit do `dist/` regenerado junto com ela.
 
-## Checks
+## Checagens
 
-Run all three before you open a pull request:
+Rode as três antes de abrir um pull request:
 
 ```bash
 go test ./...
@@ -16,16 +16,16 @@ go run ./cmd/dh validate .
 go run ./cmd/dh build
 ```
 
-After the build, `git diff dist/` must show only the files the build regenerates.
+Depois do build, `git diff dist/` deve mostrar só os arquivos que o build regenera.
 
 ## Commits
 
-Use Conventional Commits in English (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `build`, `ci`). Keep the message short and do not mention AI in commits, pull requests or release notes.
+Use Conventional Commits em inglês (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `build`, `ci`). Mantenha a mensagem curta e não mencione IA em commits, pull requests nem notas de release.
 
-## Rules file
+## Arquivo de regras
 
-`AGENTS.md` is the canonical rules file of the repository. It is written in Portuguese (pt-br). `CLAUDE.md` only imports it.
+`AGENTS.md` é o arquivo de regras canônico do repositório. Ele é escrito em português (pt-br). `CLAUDE.md` apenas o importa.
 
-## Tools
+## Ferramentas
 
-The kit is a plugin for Claude Code. Its marketplace file is `.claude-plugin/marketplace.json`.
+O kit é um plugin para o Claude Code. O arquivo de marketplace dele é `.claude-plugin/marketplace.json`.
