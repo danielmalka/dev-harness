@@ -270,3 +270,50 @@ Os rótulos e títulos abaixo são escritos em pt-BR pelas skills e pelos agente
 O pacote de contexto da etapa de documento tem **quatro** itens (documento, material-fonte, relatório anterior, harness dir). O `coordinator` e o `document-validator` não citam mais o item "idioma do projeto".
 
 O contrato desta tabela é conferido por `internal/kit/rotulos_test.go`.
+
+## 8. Agentes, comandos e perfis (0.44.0)
+
+Termos de prosa: agent → agente; command → comando; subagent → subagente; mod → mod; hook → hook; dashboard → dashboard; lane → `lane` (como o `AGENTS.md` já usa, entre crases quando é o valor do ticket: `backend`, `frontend`, `dados`, `infra`); frontmatter → frontmatter; tool (do agente) → ferramenta; reply cap → limite de resposta; dispatch → despacho; context handoff → handoff de contexto; executed summary → resumo executado; model (haiku, sonnet, opus) → modelo (os nomes ficam).
+
+Títulos de seção que se repetem nos arquivos de agente e de comando (um nome só, em todos):
+
+| Inglês | pt-BR |
+|---|---|
+| Mission | Missão |
+| When to use | Quando usar |
+| When not to use | Quando não usar |
+| Do not use | Não use |
+| Minimum inputs | Entradas mínimas |
+| Procedure | Procedimento |
+| Output format | Formato de saída |
+| Shared contract | Contrato compartilhado |
+| Shared contract and limits | Contrato compartilhado e limites |
+| Limits | Limites |
+| Skills | Skills |
+| Context handoff | Handoff de contexto |
+| Stop when | Pare quando |
+| Proof case / Proof cases | Caso de prova / Casos de prova |
+| Evidence | Evidência |
+| Routing | Roteamento |
+| Role | Papel |
+| Prerequisites | Pré-requisitos |
+| Output | Saída |
+| Next | Próximo |
+| Worktree | Worktree |
+| External CLI reviewers | Revisores de CLI externos |
+| External CLI planners | Planejadores de CLI externos |
+| Orchestration scope | Escopo de orquestração |
+| Model selection | Seleção de modelo |
+| Memory ownership | Posse da memória |
+| Moved sections | Seções movidas |
+| Proportional review and paid evaluation | Revisão proporcional e avaliação paga |
+| Consolidation on explicit request | Consolidação a pedido explícito |
+| Drift report | Relatório de deriva |
+| Dispatches | Despachos |
+| Continuity | Continuidade |
+| State | Estado |
+| Verification | Verificação |
+
+Estas seções são lidas por outros arquivos e mudam juntas: `Roteamento`, `Pré-requisitos` e `Limites` de cada comando (o `/dh:auto` lê só elas, pela tabela de etapas, com um orçamento em bytes que acompanha o tamanho do texto em pt-BR) e `Revisores de CLI externos` do `coordinator` (lida pelo `evals.go` junto com a cláusula da skill `external-clis`).
+
+Perfis (`profiles/`): ficam em inglês as chaves, os `id`, os nomes de ferramenta e os comandos; traduzem-se `summary`, os itens de `conventions`, de `limits` e os comentários.

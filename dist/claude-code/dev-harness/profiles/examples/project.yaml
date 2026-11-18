@@ -1,37 +1,37 @@
-# Example of a consumer .harness/project.yaml produced by /dh:setup.
-# Copy is not automatic: setup writes this file only when it is absent and writing is authorized.
-# This example is documentation. It is not a stack profile.
+# Exemplo de um .harness/project.yaml de consumidor produzido pelo /dh:setup.
+# A cópia não é automática: o setup escreve este arquivo só quando ele não existe e a escrita está autorizada.
+# Este exemplo é documentação. Não é um perfil de stack.
 
 profile: go-api
 profile_source: profiles/go-api.yaml
 commands:
   test:
     value: go test ./...
-    source: observed Makefile target "test"
+    source: alvo "test" do Makefile observado
   lint:
     value: null
     source: unknown
   build:
     value: go build ./...
-    source: observed Makefile target "build"
+    source: alvo "build" do Makefile observado
   run:
     value: go run ./cmd/server
-    source: observed cmd/server
+    source: cmd/server observado
 conventions_applied:
   - profiles/base.yaml
   - profiles/go-api.yaml
 conflicts: []
 notes:
-  - Existing AGENTS.md (canonical) and CLAUDE.md outrank this file.
-# conventions.code_language is optional: the language of commit messages and code comments (en or pt-br).
-# Without it, and without a definition in AGENTS.md, CLAUDE.md or README.md, English applies. dh doctor rejects any other value.
-# Setup writes it only when it finds the definition in one of those files.
+  - O AGENTS.md existente (canônico) e o CLAUDE.md prevalecem sobre este arquivo.
+# conventions.code_language é opcional: o idioma das mensagens de commit e dos comentários de código (en ou pt-br).
+# Sem ele, e sem definição no AGENTS.md, CLAUDE.md ou README.md, vale o inglês. O dh doctor rejeita qualquer outro valor.
+# O setup só o escreve quando encontra a definição em um desses arquivos.
 # conventions:
 #   code_language: en
-# reviewers: is optional; absent means Claude only, with no other CLI to rotate.
-# When reviewers.code is set, the first code entry of a task is claude if listed,
-# otherwise the first entry; a later entry of the same task advances one entry.
-# Not written by setup — the owner adds it by hand when opting into external CLI review.
+# reviewers: é opcional; ausente significa só Claude, sem outra CLI para rotacionar.
+# Quando reviewers.code está definido, a primeira entrada code de uma tarefa é claude se listado,
+# senão a primeira entrada; uma entrada seguinte da mesma tarefa avança uma entrada.
+# Não é escrito pelo setup — o dono o acrescenta à mão ao optar pela revisão por CLI externa.
 # reviewers:
 #   document: [claude, "cli:agy/gemini-3.1-pro-high"]
 #   code: [claude, "cli:codex/gpt-5.6-sol"]

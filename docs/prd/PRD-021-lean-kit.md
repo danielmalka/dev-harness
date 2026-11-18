@@ -1,138 +1,140 @@
-# PRD-021 · Lean kit: faster hot path, dashboard parse cache, English-only PRD template and a cleanup rule
+# PRD-021 · Kit enxuto: caminho quente mais rápido, cache de parse do dashboard, template de PRD só em inglês e uma regra de limpeza
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | delivered on 2026-10-13 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-10-13 / 2026-10-13 |
+| Status | entregue em 2026-10-13 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-10-13 / 2026-10-13 |
 | Tickets | T-2101, T-2102 |
-| Origin | Owner chat, 2026-10-13 (the owner delegated: "follow your recommendations as long as you follow my premises") |
-| Depends on | PRD-020 (English PRD), PRD-019 (version and `ref` pattern) |
-| Enables | nothing |
+| Origem | Chat com o dono, 2026-10-13 (o dono delegou: "siga suas recomendações desde que siga as minhas premissas") |
+| Depende de | PRD-020 (PRD em inglês), PRD-019 (padrão de versão e `ref`) |
+| Habilita | nada |
 
-## 1. Problem
+## 1. Problema
 
-Facts measured on 2026-10-13 with Go pprof on the 0.27.0 tree, linux/amd64:
+Fatos medidos em 2026-10-13 com o pprof do Go na árvore 0.27.0, linux/amd64:
 
-- The `dh` binary is 7.65 MB (flags `-s -w -trimpath`). Only `internal/dashboard` imports `net/http`. The binary has no external module.
-- `dh snapshot event` runs on every hook event. It takes about 3.96 ms per call. An empty process takes about 1.07 ms. 200 calls take 0.793 s.
-- The work of `dh snapshot event` is 62 µs and 46 allocations. Package init adds about 0.55 ms.
-- The init cost is: `internal/kit` 0.24 ms (854 allocs), `internal/dashboard` 0.20 ms (599 allocs), `internal/harness` 0.11 ms (77 allocs).
-- There are 34 package-level `regexp.MustCompile` calls in the three packages: kit 20, dashboard 12, harness 2. `internal/doctor` has 1 and `internal/snapshot` has none. `internal/kit` also compiles 3 regexps inside functions (`validate.go` lines 445, 459, 482).
-- Dashboard `buildState` on the owner's real data takes 55.8 ms and 12.9 MB per call, with 11,573 allocs.
-- 85% of that CPU is in `projectProgress`. 56% is regexp `FindStringSubmatch` in `internal/dashboard/projects.go`. 18% is `snapshot.ReadCapped`.
-- Every refresh (cache TTL 1 s) re-reads and re-parses every ticket and PRD file, even when the file is unchanged.
-- `dh validate` takes about 0.25 s and allocates 81 MB. 70 MB is `io.ReadAll` and `readText`, because each check re-reads the same files. This item is a follow-up candidate. It is out of scope.
-- `templates/pt-br/PRD.md` is a byte-identical copy of the English PRD template (PRD-020). It adds a file, a mirror rule and a count claim for no reader.
-- The mirror check `checkTemplateRefs` in `internal/kit/validate.go` (lines about 501-521) is the only blocker to delete that copy.
-- No rule says that a change must remove the leftovers it makes obsolete.
+- O binário `dh` tem 7.65 MB (flags `-s -w -trimpath`). Só `internal/dashboard` importa `net/http`. O binário não tem nenhum módulo externo.
+- `dh snapshot event` roda em todo evento de hook. Ele leva cerca de 3.96 ms por chamada. Um processo vazio leva cerca de 1.07 ms. 200 chamadas levam 0.793 s.
+- O trabalho de `dh snapshot event` é 62 µs e 46 alocações. A inicialização dos pacotes soma cerca de 0.55 ms.
+- O custo da inicialização é: `internal/kit` 0.24 ms (854 alocações), `internal/dashboard` 0.20 ms (599 alocações), `internal/harness` 0.11 ms (77 alocações).
+- Há 34 chamadas `regexp.MustCompile` em nível de pacote nos três pacotes: kit 20, dashboard 12, harness 2. `internal/doctor` tem 1 e `internal/snapshot` não tem nenhuma. `internal/kit` também compila 3 regexps dentro de funções (`validate.go` linhas 445, 459, 482).
+- O `buildState` do dashboard nos dados reais do dono leva 55.8 ms e 12.9 MB por chamada, com 11,573 alocações.
+- 85% dessa CPU está em `projectProgress`. 56% é o `FindStringSubmatch` de regexp em `internal/dashboard/projects.go`. 18% é `snapshot.ReadCapped`.
+- Todo refresh (TTL do cache de 1 s) relê e reparseia todo arquivo de ticket e de PRD, mesmo quando o arquivo não mudou.
+- O `dh validate` leva cerca de 0.25 s e aloca 81 MB. 70 MB são `io.ReadAll` e `readText`, porque cada checagem relê os mesmos arquivos. Este item é um candidato a continuação. Está fora de escopo.
+- `templates/pt-br/PRD.md` é uma cópia idêntica byte a byte do template de PRD em inglês (PRD-020). Ele acrescenta um arquivo, uma regra de espelho e uma afirmação de contagem, sem nenhum leitor.
+- A checagem de espelho `checkTemplateRefs` em `internal/kit/validate.go` (linhas cerca de 501-521) é o único bloqueio para apagar essa cópia.
+- Nenhuma regra diz que uma mudança deve remover os restos que ela torna obsoletos.
 
-## 2. Solution
+## 2. Solução
 
-- The dashboard stays in the single `dh` binary. The whole binary is analysed with pprof to improve and optimise it, never to remove a part.
-- Package-level regexps in `internal/kit`, `internal/dashboard` and `internal/harness` compile on first use. `dh snapshot event` then pays no init for them.
-- The dashboard keeps a parse cache keyed by file path, size and modification time. Unchanged ticket and PRD files are not re-read on each refresh.
-- `templates/pt-br/PRD.md` is deleted. `checkTemplateRefs` has one list of English-only templates with the entry `PRD.md`. Every claim that depends on the mirror is corrected.
-- `.agents/coordinator.md` "Model selection" gets a short ruler for model and effort.
-- `AGENTS.md` gets the cleanup premise: every change removes the leftovers it makes obsolete. Leftover junk blocks delivery.
-- `AGENTS.md` states that all 5 binaries are generated and committed on each release. It states that pprof optimises the binary and does not trim it.
-- Version 0.28.0.
+- O dashboard continua no binário único `dh`. O binário inteiro é analisado com o pprof para melhorá-lo e otimizá-lo, nunca para remover uma parte.
+- As regexps em nível de pacote em `internal/kit`, `internal/dashboard` e `internal/harness` compilam no primeiro uso. `dh snapshot event` então não paga a inicialização delas.
+- O dashboard mantém um cache de parse com chave por caminho, tamanho e data de modificação do arquivo. Os arquivos de ticket e de PRD que não mudaram não são relidos a cada refresh.
+- `templates/pt-br/PRD.md` é apagado. `checkTemplateRefs` tem uma lista de templates só em inglês com a entrada `PRD.md`. Toda afirmação que depende do espelho é corrigida.
+- `.agents/coordinator.md` "Seleção de modelo" ganha uma régua curta de modelo e esforço.
+- `AGENTS.md` ganha a premissa de limpeza: toda mudança remove os restos que ela torna obsoletos. Lixo remanescente bloqueia a entrega.
+- `AGENTS.md` declara que os 5 binários são gerados e commitados a cada release. Declara que o pprof otimiza o binário e não o poda.
+- Versão 0.28.0.
 
-## 3. Rules
+## 3. Regras
 
-- R1 `templates/pt-br/PRD.md` is deleted. `checkTemplateRefs` has one list of English-only templates with the single entry `PRD.md`.
-  - A template in that list may exist only in `templates/en/`. The same name in another language folder is an error.
-  - Any other template missing in one language stays an error.
+- R1 `templates/pt-br/PRD.md` é apagado. `checkTemplateRefs` tem uma lista de templates só em inglês com a entrada única `PRD.md`.
+  - Um template dessa lista só pode existir em `templates/en/`. O mesmo nome em outra pasta de idioma é um erro.
+  - Qualquer outro template ausente em um idioma continua sendo um erro.
 
-  Verifiable: `ls templates/pt-br` shows no `PRD.md`; Go tests cover three cases (PRD only in en passes; PRD also in pt-br fails; TASK only in en fails); `go test ./internal/kit` is green.
-- R2 Every claim that depends on the mirror is correct.
-  - `harness-manifest.json` lists 13 templates after `go run ./cmd/dh build`. `checkDocumentedCounts` reads the count from disk. `internal/kit/doc_counts.go` gets no count change. Only its two regexps compile on first use (R3).
-  - `docs/roadmap.html` and `docs/en/roadmap.html` say 13 templates (line about 685) and "7 templates in `en/`, 6 in `pt-br/`" (line about 678).
-  - The first bullet of `AGENTS.md`, the templates tutorials (html and md, pt and en), the README lines on templates and `docs/dev-harness-mapa.excalidraw` are correct.
-  - No leftover remains.
+  Verificável: `ls templates/pt-br` não mostra `PRD.md`; testes em Go cobrem três casos (PRD só em `en` passa; PRD também em `pt-br` falha; TASK só em `en` falha); `go test ./internal/kit` verde.
+- R2 Toda afirmação que depende do espelho está correta.
+  - `harness-manifest.json` lista 13 templates depois de `go run ./cmd/dh build`. `checkDocumentedCounts` lê a contagem do disco. `internal/kit/doc_counts.go` não ganha nenhuma mudança de contagem. Só as suas duas regexps compilam no primeiro uso (R3).
+  - `docs/roadmap.html` e `docs/en/roadmap.html` dizem 13 templates (linha cerca de 685) e "7 templates em `en/`, 6 em `pt-br/`" (linha cerca de 678).
+  - O primeiro item do `AGENTS.md`, os tutoriais de templates (html e md, pt e en), as linhas do README sobre templates e `docs/dev-harness-mapa.excalidraw` estão corretos.
+  - Nenhum resto permanece.
 
-  Verifiable: `grep -rniE "espelhad|mirrored|cópia idêntica|identical copy" README.md README.en.md AGENTS.md docs --include=*.html --include=*.md --include=*.excalidraw` has only hits that are history (`docs/adr`, `docs/prd`, `CHANGELOG.md`, roadmap release cards) or that name only other templates; `dh validate` is green; `go run ./cmd/dh build` leaves no `pt-br/PRD.md` in `dist/`.
-- R3 Package-level `regexp.MustCompile` in `internal/kit`, `internal/dashboard` and `internal/harness` compile on first use, for example with `sync.OnceValue`. Verifiable: `GODEBUG=inittrace=1 dh snapshot event < /dev/null 2>&1 | grep -E "internal/(kit|dashboard|harness)"` shows each of the three below 0.05 ms and below 100 allocs; the 200-call loop is not slower than 0.793 s on the same machine (report before and after); all existing tests are green.
-- R4 The dashboard keeps a parse cache keyed by file path, size and modification time.
-  - An unchanged ticket or PRD file is not re-read or re-parsed on a refresh.
-  - A changed file is re-parsed.
-  - The cache lookup runs after the same `os.Lstat`, regular-file and size checks that `snapshot.ReadCapped` runs. A refused file gives the same "skipped" warning with and without the cache.
+  Verificável: `grep -rniE "espelhad|mirrored|cópia idêntica|identical copy" README.md README.en.md AGENTS.md docs --include=*.html --include=*.md --include=*.excalidraw` só tem hits que são histórico (`docs/adr`, `docs/prd`, `CHANGELOG.md`, cards de release do roadmap) ou que nomeiam só outros templates; `dh validate` verde; `go run ./cmd/dh build` não deixa nenhum `pt-br/PRD.md` em `dist/`.
+- R3 As `regexp.MustCompile` em nível de pacote em `internal/kit`, `internal/dashboard` e `internal/harness` compilam no primeiro uso, por exemplo com `sync.OnceValue`. Verificável: `GODEBUG=inittrace=1 dh snapshot event < /dev/null 2>&1 | grep -E "internal/(kit|dashboard|harness)"` mostra cada um dos três abaixo de 0.05 ms e abaixo de 100 alocações; o laço de 200 chamadas não fica mais lento que 0.793 s na mesma máquina (reporte antes e depois); todos os testes existentes verdes.
+- R4 O dashboard mantém um cache de parse com chave por caminho, tamanho e data de modificação do arquivo.
+  - Um arquivo de ticket ou de PRD que não mudou não é relido nem reparseado em um refresh.
+  - Um arquivo que mudou é reparseado.
+  - A consulta ao cache roda depois das mesmas checagens de `os.Lstat`, de arquivo regular e de tamanho que `snapshot.ReadCapped` roda. Um arquivo recusado dá o mesmo aviso `skipped` com e sem o cache.
 
-  Verifiable: one Go test shows that a changed file is re-parsed, an unchanged file comes from the cache, and a ticket replaced by a symlink is refused with the same warning; `buildState` returns the same result with and without the cache on the same data; a scratch benchmark (not committed) shows at least 3x lower ns/op on repeated calls with unchanged data; the PR body reports before and after.
-- R5 The PR body and `CHANGELOG.md` give the measured before and after of R3 and R4. They name the follow-up candidate: a shared read cache for `validate`. No new committed benchmark and no new eval exist. Verifiable: `grep -n "validate" CHANGELOG.md` finds the follow-up in the 0.28.0 entry; `git diff main...HEAD -- '*.go' | grep -c '^+func Benchmark'` is 0; `git diff --name-only main...HEAD -- evals/` is empty.
-- R6 `.agents/coordinator.md` "Model selection" gets at most 10 new lines. The lines state these rules:
-  - (a) Raise the model or the effort when ambiguity, coupling or consequence is high. The default is the cheap choice.
-  - (b) Change the effort on the current model before you change the model.
-  - (c) Do not delegate a dependent chain or work that fits one context.
-  - (d) Do not use Haiku for security recon.
-  - (e) The dispatch states the effort when it is raised. The log records it.
+  Verificável: um teste em Go mostra que um arquivo que mudou é reparseado, um arquivo que não mudou vem do cache, e um ticket trocado por um symlink é recusado com o mesmo aviso; `buildState` devolve o mesmo resultado com e sem o cache nos mesmos dados; um benchmark descartável (não commitado) mostra ns/op pelo menos 3x menor em chamadas repetidas com dados que não mudaram; o corpo do PR reporta antes e depois.
+- R5 O corpo do PR e o `CHANGELOG.md` dão o antes e o depois medidos da R3 e da R4. Eles nomeiam o candidato a continuação: um cache de leitura compartilhado para o `validate`. Nenhum benchmark novo commitado e nenhum eval novo existem. Verificável: `grep -n "validate" CHANGELOG.md` encontra a continuação na entrada 0.28.0; `git diff main...HEAD -- '*.go' | grep -c '^+func Benchmark'` é 0; `git diff --name-only main...HEAD -- evals/` é vazio.
+- R6 `.agents/coordinator.md` "Seleção de modelo" ganha no máximo 10 linhas novas. As linhas declaram estas regras:
+  - (a) Eleve o modelo ou o esforço quando a ambiguidade, o acoplamento ou a consequência é alta. O padrão é a escolha barata.
+  - (b) Mude o esforço no modelo atual antes de mudar o modelo.
+  - (c) Não delegue uma cadeia dependente nem um trabalho que cabe em um contexto.
+  - (d) Não use o Haiku para reconhecimento de segurança.
+  - (e) O despacho informa o esforço quando ele é elevado. O log o registra.
 
-  The lines hold no benchmark number, no model release number, no machine slug and no absolute path. Verifiable: `grep -n -i "effort" .agents/coordinator.md` finds the lines; `git diff --stat` shows at most 10 added lines in that file; `dh validate` is green.
-- R7 `AGENTS.md` gets three edits. It stays in Portuguese.
-  - One bullet with the cleanup premise.
-  - One bullet or edit states three things. The 5 binaries are generated and committed on each release. The dashboard stays. pprof optimises the binary and does not trim it.
-  - The first bullet drops the identical-copy sentence for the PRD template and says that the PRD template exists only in `templates/en/`.
+  As linhas não têm nenhum número de benchmark, nenhum número de release de modelo, nenhum slug de máquina e nenhum caminho absoluto. Verificável: `grep -n -i "effort" .agents/coordinator.md` encontra as linhas; `git diff --stat` mostra no máximo 10 linhas acrescentadas nesse arquivo; `dh validate` verde.
+- R7 `AGENTS.md` ganha três edições. Ele continua em português.
+  - Um item com a premissa de limpeza.
+  - Um item ou edição declara três coisas. Os 5 binários são gerados e commitados a cada release. O dashboard continua. O pprof otimiza o binário e não o poda.
+  - O primeiro item perde a frase da cópia idêntica para o template de PRD e diz que o template de PRD existe só em `templates/en/`.
 
-  Verifiable: `grep -n "lixo\|limpeza" AGENTS.md` finds the premise; `grep -n "pprof" AGENTS.md` finds the binary bullet; `grep -n "cópia idêntica" AGENTS.md` is empty.
-- R8 Version 0.28.0. `defaultVersion` in `internal/build/build.go`, `version` in `.claude-plugin/marketplace.json` and the source `ref` (`v0.28.0`) in the same file change together. A forgotten `ref` is a delivery failure. The clean-clone proof applies, because the PR touches `internal/` and `dist/*/bin`. `CHANGELOG.md` has a 0.28.0 entry in Portuguese. Both roadmaps reflect it. Verifiable: `grep` of the three values shows `0.28.0` or `v0.28.0`; `git clone . <tmp>`, `go run ./cmd/dh build` there, and equal `sha256sum` of the binaries; `dh validate` is green.
-- R9 Behavior is preserved. Verifiable: `go test ./...` is green; `claude plugin test` is green in `dist/claude-code/dev-harness`; the `dh validate` output for the repository is the same as before, except for the template count.
-- R10 Scope guard. The dashboard routes and JSON output do not change. No new dependency exists. `go.mod` does not change. The other templates do not change. The old PRDs are not rewritten. Verifiable: `git diff go.mod` is empty; `git diff --name-only main...HEAD` lists no other template and no old PRD (`PRD-020` and its review file are history).
+  Verificável: `grep -n "lixo\|limpeza" AGENTS.md` encontra a premissa; `grep -n "pprof" AGENTS.md` encontra o item dos binários; `grep -n "cópia idêntica" AGENTS.md` é vazio.
+- R8 Versão 0.28.0. `defaultVersion` em `internal/build/build.go`, `version` em `.claude-plugin/marketplace.json` e o `ref` da fonte (`v0.28.0`) no mesmo arquivo mudam juntos. Um `ref` esquecido é uma falha de entrega. A prova de clone limpo vale, porque o PR toca `internal/` e `dist/*/bin`. O `CHANGELOG.md` tem uma entrada 0.28.0 em português. Os dois roadmaps a refletem. Verificável: o `grep` dos três valores mostra `0.28.0` ou `v0.28.0`; `git clone . <tmp>`, `go run ./cmd/dh build` ali, e `sha256sum` igual dos binários; `dh validate` verde.
+- R9 O comportamento é preservado. Verificável: `go test ./...` verde; `claude plugin test` verde em `dist/claude-code/dev-harness`; a saída do `dh validate` para o repositório é a mesma de antes, exceto pela contagem de templates.
+- R10 Trava de escopo. As rotas e a saída JSON do dashboard não mudam. Nenhuma dependência nova existe. O `go.mod` não muda. Os outros templates não mudam. Os PRDs antigos não são reescritos. Verificável: `git diff go.mod` é vazio; `git diff --name-only main...HEAD` não lista nenhum outro template nem PRD antigo (`PRD-020` e o seu arquivo de revisão são histórico).
 
 ## 4. Docs
 
-Checked with `grep` on 2026-10-13. Only files that carry an affected claim are listed.
+Conferidos com `grep` em 2026-10-13. Só entram os arquivos que carregam uma afirmação afetada.
 
-- `AGENTS.md` (first bullet; cleanup premise; binaries and pprof bullet)
-- `README.md`, `README.en.md` (line 63, "versões espelhadas" / "mirrored versions", and the version line)
-- `docs/tutoriais/templates.html`, `docs/tutoriais/templates.md`, `docs/en/tutorials/templates.html`, `docs/en/tutorials/templates.md` (the mirror claim at the start; the PRD section)
-- `docs/roadmap.html`, `docs/en/roadmap.html` (lines about 678 and 685; 0.28.0 entry)
-- `docs/dev-harness-mapa.excalidraw` (note about the mirrored templates, line about 37)
+- `AGENTS.md` (primeiro item; premissa de limpeza; item dos binários e do pprof)
+- `README.md`, `README.en.md` (linha 63, `versões espelhadas` / `mirrored versions`, e a linha de versão)
+- `docs/tutoriais/templates.html`, `docs/tutoriais/templates.md`, `docs/en/tutorials/templates.html`, `docs/en/tutorials/templates.md` (a afirmação de espelho no início; a seção do PRD)
+- `docs/roadmap.html`, `docs/en/roadmap.html` (linhas cerca de 678 e 685; entrada 0.28.0)
+- `docs/dev-harness-mapa.excalidraw` (nota sobre os templates espelhados, linha cerca de 37)
 - `CHANGELOG.md` (0.28.0)
-- `.claude-plugin/marketplace.json` (`version` and `ref`)
-- `harness-manifest.json` lists 13 templates after `go run ./cmd/dh build`; do not edit it by hand. `internal/kit/doc_counts.go` gets no count change. Only its two regexps compile on first use (R3).
+- `.claude-plugin/marketplace.json` (`version` e `ref`)
+- `harness-manifest.json` lista 13 templates depois de `go run ./cmd/dh build`; não o edite à mão. `internal/kit/doc_counts.go` não ganha nenhuma mudança de contagem. Só as suas duas regexps compilam no primeiro uso (R3).
 
-`docs/tutorial.html` and `docs/en/tutorial.html` carry no mirror claim. They are not listed.
+`docs/tutorial.html` e `docs/en/tutorial.html` não carregam nenhuma afirmação de espelho. Eles não entram na lista.
 
-## 5. Out of scope
+## 5. Fora de escopo
 
-- A dashboard split, UPX, an own HTTP server, a history rewrite, and any removal of a binary or platform.
-- Download of binaries on demand. All 5 binaries stay committed (ADR-001).
-- A shared read cache for `dh validate`. It is a follow-up candidate.
-- A committed benchmark and a new eval.
-- The local plugin cache. The owner keeps only the latest version there, outside the repository.
-- A change to other templates and a rewrite of old PRDs.
+- Uma divisão do dashboard, UPX, um servidor HTTP próprio, uma reescrita do histórico, e qualquer remoção de um binário ou de uma plataforma.
+- Download de binários sob demanda. Todos os 5 binários continuam commitados (ADR-001).
+- Um cache de leitura compartilhado para o `dh validate`. É um candidato a continuação.
+- Um benchmark commitado e um eval novo.
+- O cache local do plugin. O dono mantém ali só a versão mais recente, fora do repositório.
+- Uma mudança em outros templates e uma reescrita dos PRDs antigos.
 
-## 6. Owner decisions
+## 6. Decisões do dono
 
-- Owner, 2026-10-13: the dashboard stays in the single binary. pprof is for improving and optimising the whole binary, never for removing a part.
-- Owner, 2026-10-13: keep only the latest plugin version in the local cache. This is done outside the repository and is not a rule here.
-- Owner, 2026-10-13: all 5 platform binaries are generated every release and stay committed.
-- Owner, 2026-10-13: a model-and-effort ruler goes into `.agents/coordinator.md`.
-- Owner, 2026-10-13: remove `templates/pt-br/PRD.md` and fix every place that depends on it. The PRD is always English. This replaces the PRD-020 decision to keep the identical copy.
-- Owner premise, 2026-10-13: every change removes the leftovers it makes obsolete. Leftover junk blocks delivery.
-- Coordinator decision, 2026-10-13, under the owner's delegation: the `dh validate` read cache is a follow-up, out of scope.
-- Coordinator decision, 2026-10-13, under the owner's delegation: the content of the R6 ruler, items (a)-(e).
-- Analyst assumptions, not owner decisions:
-  - (a) The lazy-init target is the 34 package-level regexps in the three packages of R3. `internal/doctor` keeps its 1. The 3 regexps inside functions in `validate.go` stay, because they run only in `validate`.
-  - (b) The cache of R4 lives in memory in the dashboard process. It drops entries for paths not seen in the last build.
-  - (c) The version is 0.28.0 because the change adds behavior with no break.
-  - (d) `harness-manifest.json` changes only through `dh build`, not by hand. `internal/kit/doc_counts.go` gets no count change. Only its two regexps compile on first use (R3).
-- Pending decisions: none.
+- Dono, 2026-10-13: o dashboard continua no binário único. O pprof serve para melhorar e otimizar o binário inteiro, nunca para remover uma parte.
+- Dono, 2026-10-13: manter só a versão mais recente do plugin no cache local. Isso é feito fora do repositório e não é uma regra aqui.
+- Dono, 2026-10-13: os binários das 5 plataformas são gerados a cada release e continuam commitados.
+- Dono, 2026-10-13: uma régua de modelo e esforço entra em `.agents/coordinator.md`.
+- Dono, 2026-10-13: remover `templates/pt-br/PRD.md` e corrigir todo lugar que depende dele. O PRD é sempre em inglês. Isto substitui a decisão do PRD-020 de manter a cópia idêntica.
+- Premissa do dono, 2026-10-13: toda mudança remove os restos que ela torna obsoletos. Lixo remanescente bloqueia a entrega.
+- Decisão do Coordenador, 2026-10-13, sob a delegação do dono: o cache de leitura do `dh validate` é uma continuação, fora de escopo.
+- Decisão do Coordenador, 2026-10-13, sob a delegação do dono: o conteúdo da régua da R6, itens (a)-(e).
+- Premissas do analista, não decisões do dono:
+  - (a) O alvo da inicialização preguiçosa são as 34 regexps em nível de pacote nos três pacotes da R3. `internal/doctor` mantém a sua 1. As 3 regexps dentro de funções em `validate.go` ficam, porque rodam só no `validate`.
+  - (b) O cache da R4 vive em memória no processo do dashboard. Ele descarta as entradas dos caminhos que não apareceram no último build.
+  - (c) A versão é 0.28.0 porque a mudança acrescenta comportamento sem quebra.
+  - (d) `harness-manifest.json` muda só por `dh build`, não à mão. `internal/kit/doc_counts.go` não ganha nenhuma mudança de contagem. Só as suas duas regexps compilam no primeiro uso (R3).
+- Decisões pendentes: nenhuma.
 
-## Executed summary
+## Resumo executado
 
-- **Delivered:** the PRD template exists only in `templates/en/` with a check in `dh validate`; package-level regexps compile on first use; the dashboard keeps a parse cache; the Coordinator has a model-and-effort ruler; `AGENTS.md` has the cleanup premise and the binaries rule; version 0.28.0.
-- **Rules:**
-  - R1 Honored: `templates/pt-br/PRD.md` is deleted; `englishOnlyTemplates` in `internal/kit/validate.go`; three Go test cases; mutation check red when the list is empty.
-  - R2 Honored: manifest lists 13 templates; roadmaps say 13 and "7 in en/, 6 in pt-br/"; README, tutorials, excalidraw note and AGENTS.md first bullet corrected; mirror grep shows only history or other templates; `dist/` has no `pt-br/PRD.md`.
-  - R3 Honored: inittrace kit 0.01-0.02 ms/62 allocs, dashboard 0.01 ms/51, harness 0 ms/6; 200-call loop 0.66-0.68 s against 0.75-0.80 s on `main`.
-  - R4 Honored: cache keyed by path, size and mtime after the `Lstat`, regular-file and size guards; five Go tests; `buildState` 50-58 ms to 14-15 ms (about 3.8x), 11.5 MB to 0.67 MB.
-  - R5 Honored: CHANGELOG 0.28.0 carries the before/after table and the `validate` read-cache follow-up; no committed benchmark; no change in `evals/`.
-  - R6 Honored: four lines in `.agents/coordinator.md` "Model selection", no numbers, slugs or paths.
-  - R7 Honored: cleanup premise at `AGENTS.md` line 12, binaries and pprof sentence at line 16, "cópia idêntica" gone.
-  - R8 Honored: `defaultVersion`, marketplace `version` and `ref` are 0.28.0 and v0.28.0; CHANGELOG and both roadmaps; clean-clone proof run at commit time.
-  - R9 Honored: `go test ./... -count=1`, `-race` on dashboard and kit, `claude plugin test` (254 pass) and `dh validate` green.
-  - R10 Honored: `go.mod`, routes and JSON unchanged; no other template touched; no old PRD rewritten.
-- **Tickets:** T-2101 (backend, builder) approved; T-2102 (backend, harness-maintainer) approved. QA matrix, code review by `claude` (approve), final review FEATURE APROVADA.
-- **Docs:** `AGENTS.md`, `README.md`, `README.en.md`, `docs/tutoriais/templates.html` and `.md`, `docs/en/tutorials/templates.html` and `.md`, `docs/roadmap.html`, `docs/en/roadmap.html`, `docs/dev-harness-mapa.excalidraw`, `CHANGELOG.md`, `.claude-plugin/marketplace.json`.
-- **Out of scope:** dashboard split, binary download, platform cuts, UPX, history rewrite, a shared read cache for `dh validate` (follow-up), new evals.
+- **Entregue:** o template de PRD existe só em `templates/en/`, com uma checagem no `dh validate`; as regexps em nível de pacote compilam no primeiro uso; o dashboard mantém um cache de parse; o Coordenador tem uma régua de modelo e esforço; `AGENTS.md` tem a premissa de limpeza e a regra dos binários; versão 0.28.0.
+- **Regras:**
+  - R1 Honrada: `templates/pt-br/PRD.md` apagado; `englishOnlyTemplates` em `internal/kit/validate.go`; três casos de teste em Go; checagem de mutação fica vermelha quando a lista fica vazia.
+  - R2 Honrada: o manifesto lista 13 templates; os roadmaps dizem 13 e "7 em en/, 6 em pt-br/"; README, tutoriais, nota do excalidraw e primeiro item do AGENTS.md corrigidos; o `grep` de espelho só mostra histórico ou outros templates; `dist/` não tem `pt-br/PRD.md`.
+  - R3 Honrada: inittrace kit 0.01-0.02 ms/62 alocações, dashboard 0.01 ms/51, harness 0 ms/6; laço de 200 chamadas 0.66-0.68 s contra 0.75-0.80 s em `main`.
+  - R4 Honrada: cache com chave por caminho, tamanho e mtime depois das travas de `Lstat`, de arquivo regular e de tamanho; cinco testes em Go; `buildState` de 50-58 ms para 14-15 ms (cerca de 3.8x), de 11.5 MB para 0.67 MB.
+  - R5 Honrada: o CHANGELOG 0.28.0 traz a tabela de antes e depois e a continuação do cache de leitura do `validate`; nenhum benchmark commitado; nenhuma mudança em `evals/`.
+  - R6 Honrada: quatro linhas em `.agents/coordinator.md` "Seleção de modelo", sem números, slugs nem caminhos.
+  - R7 Honrada: premissa de limpeza na linha 12 do `AGENTS.md`, frase dos binários e do pprof na linha 16, "cópia idêntica" removida.
+  - R8 Honrada: `defaultVersion`, `version` do marketplace e `ref` são 0.28.0 e v0.28.0; CHANGELOG e os dois roadmaps; prova de clone limpo rodada na hora do commit.
+  - R9 Honrada: `go test ./... -count=1`, `-race` em dashboard e kit, `claude plugin test` (254 passam) e `dh validate` verdes.
+  - R10 Honrada: `go.mod`, rotas e JSON sem mudança; nenhum outro template tocado; nenhum PRD antigo reescrito.
+- **Tickets:** T-2101 (backend, builder) aprovado; T-2102 (backend, harness-maintainer) aprovado. Matriz de QA, revisão de código por `claude` (`approve`), revisão final FEATURE APROVADA.
+- **Docs:** `AGENTS.md`, `README.md`, `README.en.md`, `docs/tutoriais/templates.html` e `.md`, `docs/en/tutorials/templates.html` e `.md`, `docs/roadmap.html`, `docs/en/roadmap.html`, `docs/dev-harness-mapa.excalidraw`, `CHANGELOG.md`, `.claude-plugin/marketplace.json`.
+- **Fora de escopo:** divisão do dashboard, download de binários, cortes de plataforma, UPX, reescrita do histórico, um cache de leitura compartilhado para o `dh validate` (continuação), evals novos.

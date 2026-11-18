@@ -105,7 +105,7 @@ Ids: `motivacao`, `como-rodar`, `planejado-desenvolvido`, `changelog`, `diagrama
 
 ## aprovacao
 
-Uso: página de aprovação de um plano, carimbada em `pdocs`: `docs-guide` compõe o arquivo de dados JSON e um `builder` (faixa `infra`) roda `stamp.sh`. Etapas, trechos propostos e cartões de decisão que o dono aprova ou rejeita e depois cola de volta no chat como um único bloco Markdown. Um `.html` plano, sem escrita em servidor, sem script externo (o carimbo deixa a tag do Mermaid fora deste tipo). O carimbo não tem flag de idioma: a página é pt-BR (ADR-011).
+Uso: página de aprovação de um plano, carimbada em `pdocs`: `docs-guide` compõe o arquivo de dados JSON e um `builder` (lane `infra`) roda `stamp.sh`. Etapas, trechos propostos e cartões de decisão que o dono aprova ou rejeita e depois cola de volta no chat como um único bloco Markdown. Um `.html` plano, sem escrita em servidor, sem script externo (o carimbo deixa a tag do Mermaid fora deste tipo). O carimbo não tem flag de idioma: a página é pt-BR (ADR-011).
 
 1. Etapas
 2. Trechos propostos

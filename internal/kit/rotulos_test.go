@@ -32,6 +32,7 @@ var paresDeRotulo = []rotuloPar{
 	{"## Compreensão", "## Comprehension", []string{".agents/coordinator.md"}, []string{".skills/document-review/SKILL.md", ".agents/document-validator.md"}},
 	{"## Não levantado", "## Not raised", nil, []string{".skills/document-review/SKILL.md", ".agents/document-validator.md"}},
 	{"Regra do guia:", "Guide rule:", []string{".commands/review.md"}, []string{".skills/code-review/SKILL.md", ".agents/reviewer.md"}},
+	{"Checagens:", "Checks:", []string{".commands/plan-loop.md"}, []string{".skills/implementation-planning/SKILL.md"}},
 	{"cobertura incompleta", "coverage incomplete", nil, []string{".skills/code-review/SKILL.md", ".skills/security-review/SKILL.md", ".skills/document-review/SKILL.md", ".agents/reviewer.md", ".agents/document-validator.md"}},
 }
 
@@ -77,8 +78,8 @@ func TestLabelContractWritersDoNotTemplateTheEnglishLabels(t *testing.T) {
 
 func TestDocumentStageBundleHasFourItemsEverywhere(t *testing.T) {
 	for f, want := range map[string]string{
-		".agents/coordinator.md":           "exactly four items",
-		".agents/document-validator.md":    "These four items",
+		".agents/coordinator.md":           "exatamente quatro itens",
+		".agents/document-validator.md":    "Estes quatro itens",
 		".skills/document-review/SKILL.md": "exatamente quatro itens",
 		".skills/external-clis/SKILL.md":   "exatamente quatro itens",
 		"AGENTS.md":                        "quatro itens",
@@ -100,7 +101,7 @@ func TestDocumentStageBundleHasFourItemsEverywhere(t *testing.T) {
 
 // Reference reader of the approval-page rule in .commands/plan.md: the headings the command text says it reads are taken FROM THE COMMAND FILE, so removing one
 // of the two forms from the command makes the matching plan below stop generating the page.
-var decisoesAceitas = regexp.MustCompile("read the `(## [^`]+)` section of `PLAN.md` \\(a plan written before 0\\.43\\.0 has `(## [^`]+)` instead")
+var decisoesAceitas = regexp.MustCompile("leia a seção `(## [^`]+)` do `PLAN.md` \\(um plano escrito antes da 0\\.43\\.0 tem `(## [^`]+)`:")
 
 func titulosDoComando(t *testing.T) []string {
 	t.Helper()

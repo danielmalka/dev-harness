@@ -1,6 +1,6 @@
 id: typescript-api
 name: TypeScript API
-summary: TypeScript or Node services without a rendered user interface (HTTP APIs, workers, CLIs), verified through their tests and contracts.
+summary: Serviços TypeScript ou Node sem interface de usuário renderizada (APIs HTTP, workers, CLIs), verificados por seus testes e contratos.
 extends: base
 stack:
   - typescript
@@ -11,19 +11,19 @@ commands:
   build: null
   run: null
 conventions:
-  - Read package.json scripts and use those names. Do not assume npm over pnpm or yarn; the lock file in the repo names the package manager. A repo-defined script outranks the raw invocation and is the value recorded in .harness/project.yaml.
-  - Typical observed values, recorded only with evidence: test npm test (vitest, jest or node --test); lint npm run lint; typecheck tsc --noEmit; build npm run build; run npm start or npm run dev. Names come from the scripts block, not from this list.
-  - Style source is the lint and format configuration the repo already carries (eslint config, prettier, biome, tsconfig.json), referenced by package.json scripts; it outranks personal preference. No framework is assumed; read dependencies for Express, Fastify, NestJS, Hono or other and follow that framework's idioms only when it appears there.
-  - Follow the folder layout and module system already present (ESM or CommonJS). Do not introduce a new module, package or layer for a one-file change.
-  - Typecheck is a quality gate, not acceptance. Respect the strictness in tsconfig.json when it exists; do not loosen it or add any to silence an error without a stated reason.
-  - When the service takes external input, validate it at the service boundary with the validation approach already in the repo (zod, a framework schema); do not trust request bodies, query strings or environment variables unparsed.
-  - Only when the slice changes a public endpoint, HTTP changes go through the architect contract (skill api-contracts) before implementation; do not invent response shapes.
-  - Tests live where the repo already places them (next to the source or in test/); when the repo has tests, a new behavior ships with a test at the level the repo already uses.
-  - package.json and the lock file stay in the write set of any slice that adds, updates or removes a package; the lock file is committed with the change.
-  - Database work uses the builder role in lane dados and the data-migrations skill; migrations run only against a disposable database during verification.
+  - Leia os scripts do package.json e use esses nomes. Não presuma npm em vez de pnpm ou yarn; o arquivo de lock do repositório indica o gerenciador de pacotes. Um script definido pelo repositório prevalece sobre a invocação direta e é o valor registrado em .harness/project.yaml.
+  - Valores típicos observados, registrados só com evidência: test npm test (vitest, jest ou node --test); lint npm run lint; checagem de tipos tsc --noEmit; build npm run build; run npm start ou npm run dev. Os nomes vêm do bloco scripts, não desta lista.
+  - A fonte de estilo é a configuração de lint e de formatação que o repositório já tem (config do eslint, prettier, biome, tsconfig.json), referenciada pelos scripts do package.json; ela prevalece sobre preferência pessoal. Nenhum framework é presumido; leia as dependências em busca de Express, Fastify, NestJS, Hono ou outro e siga os idiomas desse framework só quando ele aparece ali.
+  - Siga o layout de pastas e o sistema de módulos que já existem (ESM ou CommonJS). Não introduza um novo módulo, pacote ou camada para uma mudança de um arquivo.
+  - A checagem de tipos é um quality gate, não aceite. Respeite o rigor do tsconfig.json quando existir; não o afrouxe nem acrescente `any` para silenciar um erro sem um motivo declarado.
+  - Quando o serviço recebe entrada externa, valide-a na fronteira do serviço com a abordagem de validação que já existe no repositório (zod, um schema do framework); não confie em corpos de requisição, query strings nem variáveis de ambiente sem parsing.
+  - Só quando a fatia muda um endpoint público, as mudanças de HTTP passam pelo contrato do architect (skill api-contracts) antes da implementação; não invente formatos de resposta.
+  - Os testes ficam onde o repositório já os coloca (ao lado da fonte ou em test/); quando o repositório tem testes, um comportamento novo é entregue com um teste no nível que o repositório já usa.
+  - package.json e o arquivo de lock ficam no conjunto de escrita de toda fatia que adiciona, atualiza ou remove um pacote; o arquivo de lock vai no commit junto com a mudança.
+  - Trabalho de banco de dados usa o papel builder na lane dados e a skill data-migrations; as migrações rodam só em um banco descartável durante a verificação.
 limits:
-  - Do not run npm install, pnpm install, yarn or change the Node version or package manager without authorization recorded for the slice.
-  - Do not assume eslint, prettier, biome, vitest, jest, Docker or a Makefile are present; probe package.json and the repo root and record unknown.
-  - Do not edit node_modules/, dist/ or generated files; fixes go in the project sources or configuration.
-  - Do not apply migrations against a non-disposable database.
-  - A project with a rendered user interface belongs to typescript-web, see profiles/README.md (Matching).
+  - Não rode npm install, pnpm install nem yarn, nem mude a versão do Node ou o gerenciador de pacotes, sem autorização registrada para a fatia.
+  - Não suponha que eslint, prettier, biome, vitest, jest, Docker ou um Makefile estejam presentes; sonde o package.json e a raiz do repositório e registre unknown.
+  - Não edite node_modules/, dist/ nem arquivos gerados; as correções vão nas fontes do projeto ou na configuração.
+  - Não aplique migrações em um banco que não seja descartável.
+  - Um projeto com interface de usuário renderizada pertence ao typescript-web, veja profiles/README.md (Correspondência).

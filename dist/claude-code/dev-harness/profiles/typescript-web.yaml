@@ -1,6 +1,6 @@
 id: typescript-web
 name: TypeScript web
-summary: TypeScript applications with a rendered user interface, verified in a browser when one is available.
+summary: Aplicações TypeScript com interface de usuário renderizada, verificadas em um navegador quando houver um disponível.
 extends: base
 stack:
   - typescript
@@ -11,12 +11,12 @@ commands:
   build: null
   run: null
 conventions:
-  - Read package.json scripts and use those names. Do not assume npm over pnpm or yarn.
-  - UI slices include loading, error and empty states that the brief actually requires.
-  - Typecheck is a quality gate, not acceptance. Interaction evidence needs a browser or an explicit not-run.
-  - New public API calls follow the contract already agreed with the backend. Do not invent response shapes.
-  - Assets required to render the change live in the consumer repo or in this kit, never on the author's machine.
+  - Leia os scripts do package.json e use esses nomes. Não presuma npm em vez de pnpm ou yarn.
+  - As fatias de UI incluem os estados de carregamento, de erro e vazio que o resumo de fato exige.
+  - A checagem de tipos é um quality gate, não aceite. A evidência de interação exige um navegador ou um not-run explícito.
+  - Novas chamadas de API pública seguem o contrato já combinado com o backend. Não invente formatos de resposta.
+  - Os ativos necessários para renderizar a mudança ficam no repositório consumidor ou neste kit, nunca na máquina do autor.
 limits:
-  - Do not run npm install, pnpm install or yarn without authorization recorded for the slice.
-  - Do not mark a UI slice verified when the browser was unavailable.
-  - Do not restyle unrelated pages or swap the design system in a behavior slice.
+  - Não rode npm install, pnpm install nem yarn sem autorização registrada para a fatia.
+  - Não marque uma fatia de UI como verificada quando o navegador não estava disponível.
+  - Não reestilize páginas não relacionadas nem troque o design system em uma fatia de comportamento.

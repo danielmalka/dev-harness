@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.44.0 — 2026-11-17
+
+- **Agentes, comandos e perfis em pt-BR (ADR-011, fatia S3 de 5)**: os 13 agentes de `.agents/`, os 20 comandos de `.commands/` e os perfis de `profiles/` (inclusive `profiles/examples/project.yaml`) passam para pt-BR, com o glossário fixo (`docs/glossario.md`, seção 8 nova). Nomes de agente, comandos, flags, arquivos, chaves e valores de enum não mudam. A `description` dos comandos vira um rótulo curto no imperativo.
+  - **Seções que outros arquivos leem**: `Routing`, `Prerequisites` e `Limits` dos comandos viram `Roteamento`, `Pré-requisitos` e `Limites`; o `/dh:auto` lê essas seções e os orçamentos de bytes da sua tabela foram recalculados para o texto em pt-BR (2400, 6000, 3900, 2350, 12350 e 1150). O `/dh:plan-loop` cita `Checagens:` e lê `Checks:` de um plano antigo até a 0.46.0, e o `rotulos_test.go` fixa o par.
+  - **`coordinator`**: o título `## External CLI reviewers` vira `## Revisores de CLI externos`, e o `internal/kit/evals.go` lê o título novo junto com o da skill `external-clis` (a cláusula anti-delegação segue idêntica nos dois). Despachos e respostas dos especialistas são em pt-BR, o "Resumo executado" do PRD também, e o `coordinator` resolve o idioma de commit e de comentário de código no início (`AGENTS.md`, `CLAUDE.md`, `README.md`, depois `conventions.code_language`; inglês se nada definir), grava a origem no `MEMORY.md` e põe o idioma em todo despacho que escreve código ou commit. `builder`, `debugger` e `release-manager` aplicam a regra.
+  - **`document-validator`**: confere as regras de escrita do PRD em pt-BR (ambiguidade bloqueia, estilo puro é Minor); o pacote de contexto tem quatro itens e um quinto item `language` é ignorado.
+  - **`setup`, `document` e `dream`**: sem a chave `language` e sem `templates/<lang>/` nem `projeto-modelo.<lang>.html`.
+  - **Histórico (lote H2)**: PRD-020 a PRD-027 traduzidos (8 arquivos, 26.466 palavras no original), com a linha "Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`." logo depois do título; as revisões `.review.md` ficam para a 0.46.0.
+  - **Fica para as fatias seguintes**: documentos, tutoriais e evals (0.45.0) e o resto do histórico (0.45.0 e 0.46.0).
+- Sem comando, agente ou skill novo. Comandos: 20 + 1. Agentes: 13. Skills: 22. Templates: 8.
+
 ## 0.43.0 — 2026-11-17
 
 - **As 22 skills em pt-BR (ADR-011, fatia S2 de 5)**: prosa, títulos, rótulos de relatório, exemplos e a `description` ("Use quando…") de todas as skills de `.skills/` passam para pt-BR, a partir de um glossário fixo (`docs/glossario.md`). Os slugs das skills **não mudam**, e continuam em inglês, entre crases, só os identificadores: nomes de agente, comandos, flags, arquivos, chaves e os valores de enum que outras ferramentas leem (`approved`, `request changes`, `Critical`, `Major`, `Minor`, `not-run` e afins). A tradução é fiel: nenhuma regra, limite ou proibição mudou.

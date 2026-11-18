@@ -1,28 +1,28 @@
 ---
 name: verify
-description: Run acceptance checks and return an evidence matrix
+description: Rode checagens de aceite e devolva uma matriz de evidência
 author: malka
-argument-hint: "[task id or acceptance criteria]"
+argument-hint: "[id da tarefa ou critérios de aceite]"
 metadata:
   roles: [coordinator, qa-verifier]
   skills: [regression-testing, ui-verification]
-  writes: tests in the agreed scope only
+  writes: somente testes no escopo combinado
 ---
-## Role
-Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
+## Papel
+Atue como o `coordinator` do kit nesta sessão (leia a definição do agente `coordinator` que acompanha o kit se esta sessão não foi iniciada com ele). Leia `.harness/MEMORY.md`, se existir, antes de qualquer coisa.
 
-## Routing
-Task or criteria: $ARGUMENTS. Dispatch `qa-verifier` with the Agent tool, model `sonnet`, and require it to load the kit skill `regression-testing`, plus `ui-verification` when the change has a user interface. Pass the acceptance criteria, the list of files touched, the check commands from `.harness/project.yaml`, the authorized test write scope and, for a user interface, how to run the application locally.
+## Roteamento
+Tarefa ou critérios: $ARGUMENTS. Despache `qa-verifier` com a ferramenta Agent, modelo `sonnet`, e exija que ele carregue a skill `regression-testing` do kit, mais `ui-verification` quando a mudança tem interface de usuário. Passe os critérios de aceite, a lista de arquivos tocados, os comandos de checagem de `.harness/project.yaml`, o escopo de escrita de testes autorizado e, para uma interface de usuário, como rodar a aplicação localmente.
 
-## Prerequisites
-Acceptance criteria and a stabilized change. Stop and report which is missing when either is absent; `/dh:discover` or `/dh:plan` produce criteria. Ask the owner only to authorize an environment dependency such as a disposable database.
+## Pré-requisitos
+Critérios de aceite e uma mudança estabilizada. Pare e reporte qual dos dois falta quando um estiver ausente; `/dh:discover` ou `/dh:plan` produzem critérios. Pergunte ao dono só para autorizar uma dependência de ambiente, como um banco descartável.
 
-## Output
-The report in `regression-testing`'s Output format. When a user interface is involved, the `ui-verification` matrix and its screenshots go under `.harness/tasks/<id>/evidence/`. Record the verdict and the remaining gaps in `.harness/MEMORY.md`.
+## Saída
+O relatório no Formato de saída do `regression-testing`. Quando há interface de usuário, a matriz do `ui-verification` e as capturas de tela dela vão em `.harness/tasks/<id>/evidence/`. Registre o veredito e as lacunas restantes em `.harness/MEMORY.md`.
 
-## Limits
-- Test and fixture edits happen only inside the authorized test scope; `qa-verifier`'s Limits and the skills govern the rest.
-- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
+## Limites
+- Edições de teste e de fixture acontecem só dentro do escopo de testes autorizado; os Limites do `qa-verifier` e as skills regem o resto.
+- Só o Coordenador escreve `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md`.
 
-## Next
-`/dh:review` for the independent review, or `/dh:fix` when the matrix shows a defect.
+## Próximo
+`/dh:review` para a revisão independente, ou `/dh:fix` quando a matriz mostrar um defeito.

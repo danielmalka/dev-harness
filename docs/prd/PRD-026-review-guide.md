@@ -1,211 +1,213 @@
-# PRD-026 · Review guide (REVIEW.md) and PR review mode
+# PRD-026 · Guia de revisão (REVIEW.md) e modo de revisão de PR
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | delivered on 2026-10-21 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-10-21 / 2026-10-21 |
-| Tickets | T-2601, T-2602, T-2603, T-2604 (planned) |
-| Origin | Owner chat, 2026-10-21 (discovery DISC-006; video "How Anthropic Does Code Review (What You Can Copy)", pasquadev, 2026-10-21, https://youtu.be/c6xOFjM2IbE) |
-| Depends on | nothing |
-| Enables | nothing |
+| Status | entregue em 2026-10-21 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-10-21 / 2026-10-21 |
+| Tickets | T-2601, T-2602, T-2603, T-2604 (planejados) |
+| Origem | Conversa com o dono, 2026-10-21 (descoberta DISC-006; vídeo `"How Anthropic Does Code Review (What You Can Copy)"`, pasquadev, 2026-10-21, https://youtu.be/c6xOFjM2IbE) |
+| Depende de | nada |
+| Habilita | nada |
 
-## 1. Problem
+## 1. Problema
 
-The code review of the kit has no project-specific guide. The reviewer judges a diff with generic rules only. Fact: `.skills/code-review/SKILL.md` and `.agents/reviewer.md` name no per-project file that says what to look for.
+A revisão de código do kit não tem guia específico do projeto. O revisor julga um diff só com regras genéricas. Fato: `.skills/code-review/SKILL.md` e `.agents/reviewer.md` não nomeiam nenhum arquivo por projeto que diga o que procurar.
 
-Four gaps follow. Fact: each gap is visible in the current kit text.
+Disso decorrem quatro lacunas. Fato: cada lacuna é visível no texto atual do kit.
 
-- A repeated false finding costs a round each time. Nothing records that a pattern is noise, so the next review reports it again.
-- The reviewer reports one instance of a bug, and the next round finds the next instance. Rounds are spent one case at a time.
-- A re-entry review has no stated scope. The reviewer can re-read the whole change instead of the delta.
-- A pull request cannot be reviewed as a pull request. `/dh:review` takes a scope, a ref, or `feature PRD-<n>`; it has no mode that reads a PR and its declared intent.
+- Um falso achado repetido custa uma rodada a cada vez. Nada registra que um padrão é ruído, então a revisão seguinte o reporta de novo.
+- O revisor reporta uma instância de um bug, e a rodada seguinte encontra a próxima instância. As rodadas se gastam um caso por vez.
+- Uma revisão de reentrada não tem escopo declarado. O revisor pode reler a mudança inteira em vez do delta.
+- Uma pull request não pode ser revisada como pull request. O `/dh:review` aceita um escopo, uma ref ou `feature PRD-<n>`; não tem modo que leia uma PR e a intenção que ela declara.
 
-Also: the merge step of `/dh:auto` (`.commands/auto.md`, step 5 of the git sequence) merges on green CI plus an `approve` verdict. It has no stop for a change to a path the owner calls critical.
+Além disso: o passo de merge do `/dh:auto` (`.commands/auto.md`, passo 5 da sequência de git) faz merge com CI verde mais o veredito `approve`. Ele não tem parada para uma mudança num caminho que o dono chama de crítico.
 
-The video is the source of the ideas. Its numbers and cited papers are unverified. No rule in this PRD depends on them.
+O vídeo é a fonte das ideias. Seus números e os artigos que ele cita não são verificados. Nenhuma regra deste PRD depende deles.
 
-## 2. Solution
+## 2. Solução
 
-After delivery, each project has one review guide, `REVIEW.md`, in English, in the project repository. The path is recorded in `project.yaml` of the harness dir. The reviewer reads the guide and ties each finding to a rule.
+Após a entrega, cada projeto tem um guia de revisão, `REVIEW.md`, em inglês, no repositório do projeto. O caminho é registrado no `project.yaml` do harness dir. O revisor lê o guia e liga cada achado a uma regra.
 
-Flow after delivery:
+Fluxo após a entrega:
 
-1. `/dh:setup` creates `REVIEW.md` from `templates/en/REVIEW.md` when the project has none, and writes its path (relative to the repository root) to `project.yaml`. This holds in mode `repo` and in mode `global`.
-2. `/dh:review` reads the guide. Each finding cites the guide rule it comes from, or says no rule applies. A finding that matches an Ignore entry is reported as ignored-by-rule and does not spend a round.
-3. The reviewer reports the whole class of a bug at once, labels a finding on untouched lines as "pre-existing", and on re-entry reviews only the delta plus the status of each earlier blocking finding.
-4. `/dh:review pr <n>` reviews a GitHub pull request read-only. The PR body and any linked PRD or ticket are the requirement source. The report stays local. A comment on the PR is posted only with explicit owner authorization.
-5. Only Critical and Major findings go to the builder. Minor and nit findings stay in the report.
-6. The Coordinator records what happened to each finding (fixed, intentional, noise) in `MEMORY.md`. When the same pattern is classified noise 3 times, the Coordinator proposes an Ignore line or a lint rule to the owner. It never applies the proposal itself.
-7. When a PR touches a path listed under "Critical paths" in `REVIEW.md`, the flow stops before the merge and asks the owner, even with a green gate and an approved QA verdict.
+1. O `/dh:setup` cria o `REVIEW.md` a partir de `templates/en/REVIEW.md` quando o projeto não tem um, e escreve o caminho dele (relativo à raiz do repositório) no `project.yaml`. Isso vale no modo `repo` e no modo `global`.
+2. O `/dh:review` lê o guia. Cada achado cita a regra do guia de que vem, ou diz que nenhuma regra se aplica. Um achado que casa com uma entrada `Ignore` é reportado como ignorado por regra e não gasta uma rodada.
+3. O revisor reporta a classe inteira de um bug de uma vez, rotula como `pre-existing` um achado em linhas intocadas e, na reentrada, revisa só o delta mais o status de cada achado bloqueante anterior.
+4. O `/dh:review pr <n>` revisa uma pull request do GitHub em modo somente leitura. O corpo da PR e qualquer PRD ou ticket ligado são a fonte de requisitos. O relatório fica local. Um comentário na PR só é postado com autorização explícita do dono.
+5. Só os achados `Critical` e `Major` vão para o builder. Os achados `Minor` e `nit` ficam no relatório.
+6. O Coordenador registra no `MEMORY.md` o que aconteceu com cada achado (corrigido, intencional, ruído). Quando o mesmo padrão é classificado como ruído 3 vezes, o Coordenador propõe ao dono uma linha `Ignore` ou uma regra de lint. Ele nunca aplica a proposta por conta própria.
+7. Quando uma PR toca um caminho listado em `Critical paths` no `REVIEW.md`, o fluxo para antes do merge e pergunta ao dono, mesmo com o gate verde e o veredito de QA aprovado.
 
-This repository is a consumer of the kit. The same batch adds a real `REVIEW.md` at the repository root.
+Este repositório é um consumidor do kit. O mesmo lote acrescenta um `REVIEW.md` real na raiz do repositório.
 
-Release 0.32.0 (author's proposal), one PR.
+Release 0.32.0 (proposta do autor), uma PR.
 
-## 3. Rules
+## 3. Regras
 
-Marks: R1-R14 and R16-R18 carry owner decisions of 2026-10-21 (D1-D6, A1, A2). R5-R9 and the file names are the author's wording of the discovery brief. R23-R25 and the changes to R5, R12, and R13 come from the code and security review of the implementation (2026-10-21); they need no new owner decision. Each rule states how to verify it.
+Marcação: R1-R14 e R16-R18 carregam decisões do dono de 2026-10-21 (D1-D6, A1, A2). R5-R9 e os nomes de arquivo são a redação do autor para o resumo da descoberta. R23-R25 e as mudanças em R5, R12 e R13 vêm da revisão de código e de segurança da implementação (2026-10-21); não precisam de nova decisão do dono. Cada regra diz como verificá-la.
 
-- R1 Template. `templates/en/REVIEW.md` exists. It has these parts: (a) a short "How to use" note; (b) a rules section where each entry has the fields Symptom, Why it matters, and Example with `file:line`; (c) an "Ignore" section where each entry reads "ignore this pattern in this kind of file"; (d) a "Critical paths" section that lists path globs. No `templates/pt-br/REVIEW.md` exists. Verifiable: the file exists with the four parts; `ls templates/pt-br/` shows no `REVIEW.md`.
-- R2 Setup creates the guide. When `/dh:setup` runs and the project has no review guide file, setup creates `REVIEW.md` at the repository root from `templates/en/REVIEW.md` and writes its path to `project.yaml` in the key `review_guide` (author's proposal for the key name). The path is relative to the repository root. The file is always in English, whatever `language` says. Verifiable: the text of `.commands/setup.md` and `.skills/project-onboarding/SKILL.md` states these steps, the key name, and the English rule.
-- R3 Both modes. R2 holds in mode `repo` and in mode `global`. In mode `global`, `REVIEW.md` is the only file setup writes in the repository tree. The existing sentences "nothing is written in the repository tree" (`.commands/setup.md`, `.skills/project-onboarding/SKILL.md`, `docs/tutorial.html`, `docs/en/tutorial.html`) say this exception. Verifiable: `grep -n -i 'repository tree' .commands/setup.md .skills/project-onboarding/SKILL.md docs/tutorial.html docs/en/tutorial.html` shows each hit with the exception stated.
-- R4 Setup never overwrites. When the project has the file but no key, setup records the key for the existing file and leaves the file untouched. When the key points to an existing file, setup changes nothing. A dispatched specialist writes the file, not the Coordinator (the file is new and larger than the small-correction bound of PRD-025). Verifiable: the setup text states the three cases and names the writer; the setup report format lists `REVIEW.md` under Created or Left untouched.
-- R5 Review is read-only and points to setup. When `/dh:review` runs and `project.yaml` has no `review_guide` key, or the file at that path does not exist at the trusted revision (R23), or the path is unsafe (R24), then the report says "no review guide", gives the reason, and points to `/dh:setup`. The review does not create the file. The review still runs with the generic rules, and the report marks the guide axis as not-run with the reason. Verifiable: `.commands/review.md` states this; `.skills/code-review/SKILL.md` has a matching step.
-- R6 Findings cite the guide. When the `reviewer` agent reviews code with a guide present, then it reads the guide at the path from `project.yaml` first. Each finding carries a line `Guide rule: <entry title>` or `Guide rule: none applies`. Verifiable: the `code-review` output format and the `reviewer` agent output format have this line; the Example in `code-review` shows it.
-- R7 Ignore entries. When a finding matches an Ignore entry of the guide, then the report lists it in a separate "Ignored by rule" list with the entry title. It is not graded, not blocking, and does not spend a round. Verifiable: the `code-review` output format has the list; the Coordinator text on blocking findings (`.agents/coordinator.md`, "Proportional review") counts only Critical and Major findings that are not ignored-by-rule.
-- R8 Whole class, pre-existing. When the reviewer finds a bug, then it reports every instance of that class inside the review scope in one finding, with each location listed. A finding on lines the change did not touch is labeled "pre-existing" and is non-blocking, unless the change makes that code reachable or worse; then it keeps its severity and the finding says why. Verifiable: both rules appear in the procedure of `.skills/code-review/SKILL.md`, and the false-positive control step (step 9) agrees with the label.
-- R9 Re-entry scope. When a review runs again on the same change, then the reviewer reads (a) the delta since the last reviewed state and (b) the status of each earlier blocking finding (fixed, not fixed, withdrawn). It reports on those two items only, plus any new Critical or Major finding it finds in the delta. The Coordinator names the last reviewed state in the dispatch. Verifiable: the `code-review` skill has a re-entry section with these two items; `.agents/coordinator.md` names the last reviewed state in the re-entry dispatch.
-- R10 Noise record. The Coordinator records, for each review finding, one outcome in `MEMORY.md`: fixed, intentional, or noise. When the same pattern is classified noise 3 times, then the Coordinator proposes to the owner an Ignore line for `REVIEW.md` or a lint rule. The Coordinator never applies the proposal itself. A dispatched specialist writes the change only after the owner approves. Verifiable: `.agents/coordinator.md` states the record, the threshold 3, the proposal, and the prohibition.
-- R11 Fix dispatch carries only Critical and Major. When the Coordinator sends review findings to a builder, then the dispatch contains only Critical and Major findings. Minor and nit findings stay in the review report. Verifiable: `.agents/coordinator.md` (Procedure item 8 and the review loop text) and every other place that describes the builder fix dispatch (`grep -n -i 'findings' .commands/build.md .commands/fix.md .commands/review.md .agents/builder.md`) say this; none says "all findings".
-- R12 Critical paths stop the merge. When a PR touches a path that matches a glob under "Critical paths" in the project's `REVIEW.md`, then the flow stops before the merge and asks the owner for an explicit ok, even when the gate is green and the QA verdict is approved. The question names the matched paths. The path match is computed by a dispatched `qa-verifier` from the PR file list. When `REVIEW.md` is absent or the section is empty, no stop applies. This rule overrides the owner's global auto-merge instruction for those paths only; for every other path the global instruction is unchanged. A change to the review guide stops the merge in the same way (R23). Verifiable: `.commands/auto.md` (merge step 5 of the git sequence) and the Coordinator completion text state the stop, the owner question, the scope of the override, and the guide-change stop.
-- R13 PR review mode. PR mode starts only when the first argument token is exactly `pr`. When `pr` is followed by one ASCII digit string (`[0-9]+`) and nothing else (for example `pr 44`), the command runs in PR mode. When `pr` is followed by anything else, the command reports the malformed trigger and stops (fails closed). Any other argument (for example `prod`, `preview/x`, `prototype.go`) is the default mode, as before this PRD. In PR mode a dispatched `qa-verifier` reads the PR with `gh` read-only (`gh pr view <n> --json ...`, `gh pr diff <n>`), not the Coordinator. The command takes the PR body and any linked `PRD-<digits>` or `T-<digits>` reference found in it as the requirement source, and dispatches `reviewer` in mode `code` as in the default mode. The report states the commit it read. It does not check out a branch and does not write to the tree. No new command exists. Verifiable: `.commands/review.md` has the mode, the exact-token rule, the fail-closed rule, the default-mode fallthrough for `prod`, `preview/x`, and `prototype.go`, the read-only `gh` calls, and the `qa-verifier` dispatch; the existing modes are unchanged.
-- R14 Posting needs authorization. In `pr <n>` mode the report stays local. The command posts a comment on the GitHub PR only when the owner authorizes that post explicitly in the current conversation. The authorization covers one post. Verifiable: `.commands/review.md` states this and names the post as an external action.
-- R15 Template list in `dh validate`. The slice `englishOnlyTemplates` in `internal/kit/validate.go` (line 35) lists `"REVIEW.md"` next to `"PRD.md"`. The comment above it (line 34) says that the PRD and the review guide are always written in English. A test case in `internal/kit/validate_test.go` covers `REVIEW.md` the same way it covers `PRD.md` (a copy in `templates/pt-br/` is an error; a missing copy in `templates/pt-br/` is not). Verifiable: `go test ./internal/kit/...` passes; `go run ./cmd/dh validate .` passes with `templates/en/REVIEW.md` present and no pt-br copy.
-- R16 This repository is a consumer. The batch adds `REVIEW.md` at the repository root, in English. It has at least 3 real entries for this kit, each with Symptom, Why it matters, and Example with `file:line`: generated `dist/` edited by hand; a count stated in docs that drifts from the real count (agents, commands); a private path in a PRD or doc. It has an Ignore section and a Critical paths section (owner decision D7: the critical globs are exactly `adapters/claude-code/plugin/hooks/**` and `.skills/external-clis/**`). The key `review_guide: REVIEW.md` is written in the `project.yaml` of this project's harness dir, in whichever mode the project resolves to. The Coordinator writes that one line; it is a Coordinator step, not a builder write. Verifiable: the file exists with the parts above; `dh harness-path --json` gives the harness dir, and its `project.yaml` has the key.
-- R17 Out of scope items stay out. This PRD adds none of the items of section 5. The round cap stays 6 (`.agents/coordinator.md`, "Proportional review and paid evaluation"). The merged verdict rule "any blocking finding from any reviewer blocks" is unchanged. Verifiable: `git diff main...HEAD -- .agents/coordinator.md` shows no change to the number 6, no majority-vote text, and no `dh review run`.
-- R18 Counts. The counts stay at 13 agents and 19 commands + 1 mod command. No new agent, skill, or command. Verifiable: `go run ./cmd/dh validate .` passes, and `git diff --name-status main...HEAD -- .agents .skills .commands` lists no added or deleted file.
-- R19 No trace of the guideline file. The guideline synthesis file of the video (a pt-br file in `docs/`) and its `Zone.Identifier` sibling are not in the repository at closing. The owner moves the file to the vault; the Coordinator handles that outside the kit. No file, `dist/` copy, doc, or PRD text cites its path. The video is cited by title, channel, date, and URL only. Verifiable, all with no output: `git ls-files | grep -i 'DIRETRIZES-CODE-REVIE[W]'`; `find . -name '*Zone.Identifier*' -not -path './.git/*'`; `grep -rIl 'DIRETRIZES-CODE-REVIE[W]' . --exclude-dir=.git`; `git status --short` shows neither file.
-- R20 Cleanup. Every stale reference that this change creates is removed (AGENTS.md, "Premissa de limpeza"). Examples: sentences that say setup writes nothing in the repository tree (R3); sentences that say `/dh:review` takes only a scope, a ref, or `feature PRD-<n>` (R13); sentences that say "the PRD is the only English-only template" (`grep -rn -i 'only.*PRD\|PRD.*only' .skills .commands .agents templates docs README.md README.en.md`); setup `writes:` metadata in `.commands/setup.md` that omits `REVIEW.md`; `.commands/review.md` text that lists the allowed arguments without `pr <digits>`. Verifiable: the ticket author runs each grep and lists the hits and the action taken in the ticket report.
-- R21 Release and generated files. Release 0.32.0 in three places: `defaultVersion` in `internal/build/build.go`, `version` in `.claude-plugin/marketplace.json`, and the source `ref` (`v0.32.0`). `dist/` is not edited by hand; `go run ./cmd/dh build` regenerates it, and a second build changes nothing except the `generated_at` line. `go run ./cmd/dh validate .` passes with 0 errors and `go test ./...` is green. Clean-clone proof applies (AGENTS.md, "Prova de clone limpo"), because the PR touches `internal/` (`validate.go`, `build.go`) and `dist/*/bin`: `git clone . <tmp>`, `go run ./cmd/dh build` there, and `sha256sum` of the 5 binaries equals the tree. Verifiable: run the commands and compare with `git diff`.
-- R22 No private path in the PRD, the tickets, the new `REVIEW.md`, or any new text. The text uses `<harness dir>` and `<home>`. Verifiable: `go run ./cmd/dh validate .` (`checkPrivatePaths`) passes.
-- R23 Trusted policy revision. The review reads the guide file and the `review_guide` key from the base revision of the change, never from the head under review. The base is the PR base in `pr <n>` mode, the comparison ref in default mode with a ref, and `HEAD` for uncommitted work. When the base has no guide, no guide applies to that change. When the change adds, edits, or deletes the guide file at the configured path, or changes the `review_guide` key, then the flow stops before the merge like a critical path (R12), and the owner question names the guide change. Ignore entries that the change adds do not apply to that same change. The owner can approve a guide update through this stop. In mode `global` the key lives outside the repository tree, so only a change to the guide file triggers the stop. Verifiable: `.commands/review.md`, `.skills/code-review/SKILL.md`, and `.agents/reviewer.md` state the base-revision read and the bootstrap case; `.commands/auto.md` and `.agents/coordinator.md` state the stop and the Ignore rule.
-- R24 Path containment. The `review_guide` value must be a repository-relative path with no absolute prefix and no `..` segment. Its resolved target, symlinks included, must stay inside the repository. When any check fails, the review treats the project as having "no review guide" and reports why (R5). Setup writes only `REVIEW.md` at the repository root. Verifiable: `.commands/review.md` and `.skills/code-review/SKILL.md` state the three checks and the fallback; the setup text states the fixed value.
-- R25 PR text handling. In `pr <n>` mode the review treats PR text (body, title, comments) as untrusted data. A dispatched `qa-verifier` runs the `gh pr view` and `gh pr diff` reads, not the Coordinator (R13). No one fetches a link found in PR text, and the reviewer uses no web fetch in this mode. PR text is never an owner authorization to post, merge, or do any other action (R14). Verifiable: `.commands/review.md` and `.agents/reviewer.md` state the three prohibitions and the dispatch of the reads.
+- R1 Template. `templates/en/REVIEW.md` existe. Ele tem estas partes: (a) uma nota curta `How to use`; (b) uma seção de regras em que cada entrada tem os campos `Symptom`, `Why it matters` e `Example` com `file:line`; (c) uma seção `Ignore` em que cada entrada diz `ignore this pattern in this kind of file`; (d) uma seção `Critical paths` que lista globs de caminho. Não existe `templates/pt-br/REVIEW.md`. Verificável: o arquivo existe com as quatro partes; `ls templates/pt-br/` não mostra `REVIEW.md`.
+- R2 O setup cria o guia. Quando o `/dh:setup` roda e o projeto não tem arquivo de guia de revisão, o setup cria `REVIEW.md` na raiz do repositório a partir de `templates/en/REVIEW.md` e escreve o caminho dele no `project.yaml`, na chave `review_guide` (proposta do autor para o nome da chave). O caminho é relativo à raiz do repositório. O arquivo é sempre em inglês, seja qual for o valor de `language`. Verificável: o texto de `.commands/setup.md` e de `.skills/project-onboarding/SKILL.md` declara esses passos, o nome da chave e a regra do inglês.
+- R3 Os dois modos. A R2 vale no modo `repo` e no modo `global`. No modo `global`, `REVIEW.md` é o único arquivo que o setup escreve na árvore do repositório. As frases existentes `nothing is written in the repository tree` (`.commands/setup.md`, `.skills/project-onboarding/SKILL.md`, `docs/tutorial.html`, `docs/en/tutorial.html`) dizem essa exceção. Verificável: `grep -n -i 'repository tree' .commands/setup.md .skills/project-onboarding/SKILL.md docs/tutorial.html docs/en/tutorial.html` mostra cada ocorrência com a exceção declarada.
+- R4 O setup nunca sobrescreve. Quando o projeto tem o arquivo mas não tem a chave, o setup registra a chave para o arquivo existente e deixa o arquivo intocado. Quando a chave aponta para um arquivo existente, o setup não muda nada. Um especialista despachado escreve o arquivo, não o Coordenador (o arquivo é novo e maior que o limite de pequena correção do PRD-025). Verificável: o texto do setup declara os três casos e nomeia o escritor; o formato de relatório do setup lista `REVIEW.md` em `Created` ou `Left untouched`.
+- R5 A revisão é somente leitura e aponta para o setup. Quando o `/dh:review` roda e o `project.yaml` não tem a chave `review_guide`, ou o arquivo nesse caminho não existe na revisão confiável (R23), ou o caminho é inseguro (R24), então o relatório diz `no review guide`, dá o motivo e aponta para o `/dh:setup`. A revisão não cria o arquivo. A revisão ainda roda com as regras genéricas, e o relatório marca o eixo do guia como `not-run` com o motivo. Verificável: `.commands/review.md` declara isso; `.skills/code-review/SKILL.md` tem um passo correspondente.
+- R6 Os achados citam o guia. Quando o agente `reviewer` revisa código com um guia presente, então ele lê primeiro o guia no caminho vindo do `project.yaml`. Cada achado traz uma linha `Guide rule: <entry title>` ou `Guide rule: none applies`. Verificável: o formato de saída de `code-review` e o formato de saída do agente `reviewer` têm essa linha; o exemplo de `code-review` a mostra.
+- R7 Entradas `Ignore`. Quando um achado casa com uma entrada `Ignore` do guia, então o relatório o lista numa lista separada `Ignored by rule` com o título da entrada. Ele não recebe severidade, não bloqueia e não gasta uma rodada. Verificável: o formato de saída de `code-review` tem a lista; o texto do Coordenador sobre achados bloqueantes (`.agents/coordinator.md`, `Proportional review`) conta só achados `Critical` e `Major` que não são ignorados por regra.
+- R8 Classe inteira, `pre-existing`. Quando o revisor encontra um bug, então ele reporta num só achado todas as instâncias dessa classe dentro do escopo da revisão, com cada local listado. Um achado em linhas que a mudança não tocou é rotulado `pre-existing` e não bloqueia, a menos que a mudança torne esse código alcançável ou pior; então ele mantém a severidade e o achado diz por quê. Verificável: as duas regras aparecem no procedimento de `.skills/code-review/SKILL.md`, e o passo de controle de falso positivo (passo 9) concorda com o rótulo.
+- R9 Escopo de reentrada. Quando uma revisão roda de novo sobre a mesma mudança, então o revisor lê (a) o delta desde o último estado revisado e (b) o status de cada achado bloqueante anterior (corrigido, não corrigido, retirado). Ele reporta só sobre esses dois itens, mais qualquer achado `Critical` ou `Major` novo que encontre no delta. O Coordenador nomeia o último estado revisado no despacho. Verificável: a skill `code-review` tem uma seção de reentrada com esses dois itens; `.agents/coordinator.md` nomeia o último estado revisado no despacho de reentrada.
+- R10 Registro de ruído. O Coordenador registra, para cada achado de revisão, um resultado no `MEMORY.md`: corrigido, intencional ou ruído. Quando o mesmo padrão é classificado como ruído 3 vezes, então o Coordenador propõe ao dono uma linha `Ignore` para o `REVIEW.md` ou uma regra de lint. O Coordenador nunca aplica a proposta por conta própria. Um especialista despachado escreve a mudança só depois que o dono aprova. Verificável: `.agents/coordinator.md` declara o registro, o limiar 3, a proposta e a proibição.
+- R11 O despacho de correção leva só `Critical` e `Major`. Quando o Coordenador envia achados de revisão a um builder, então o despacho contém só achados `Critical` e `Major`. Os achados `Minor` e `nit` ficam no relatório de revisão. Verificável: `.agents/coordinator.md` (item 8 de `Procedure` e o texto do ciclo de revisão) e todo outro lugar que descreva o despacho de correção ao builder (`grep -n -i 'findings' .commands/build.md .commands/fix.md .commands/review.md .agents/builder.md`) dizem isso; nenhum diz `all findings`.
+- R12 Caminhos críticos param o merge. Quando uma PR toca um caminho que casa com um glob em `Critical paths` no `REVIEW.md` do projeto, então o fluxo para antes do merge e pede ao dono um ok explícito, mesmo com o gate verde e o veredito de QA aprovado. A pergunta nomeia os caminhos casados. A correspondência de caminho é calculada por um `qa-verifier` despachado, a partir da lista de arquivos da PR. Quando o `REVIEW.md` está ausente ou a seção está vazia, nenhuma parada se aplica. Esta regra se sobrepõe à instrução global de auto-merge do dono só para esses caminhos; para todo outro caminho a instrução global não muda. Uma mudança no guia de revisão para o merge do mesmo modo (R23). Verificável: `.commands/auto.md` (passo 5 do merge na sequência de git) e o texto de conclusão do Coordenador declaram a parada, a pergunta ao dono, o escopo da sobreposição e a parada por mudança no guia.
+- R13 Modo de revisão de PR. O modo PR só começa quando o primeiro token do argumento é exatamente `pr`. Quando `pr` é seguido de uma sequência de dígitos ASCII (`[0-9]+`) e nada mais (por exemplo `pr 44`), o comando roda no modo PR. Quando `pr` é seguido de qualquer outra coisa, o comando reporta o gatilho malformado e para (falha fechada). Qualquer outro argumento (por exemplo `prod`, `preview/x`, `prototype.go`) é o modo padrão, como antes deste PRD. No modo PR, um `qa-verifier` despachado lê a PR com `gh` em somente leitura (`gh pr view <n> --json ...`, `gh pr diff <n>`), e não o Coordenador. O comando toma o corpo da PR e qualquer referência `PRD-<digits>` ou `T-<digits>` ligada, encontrada nele, como fonte de requisitos, e despacha o `reviewer` no modo `code` como no modo padrão. O relatório declara o commit que leu. Ele não faz checkout de branch e não escreve na árvore. Não existe comando novo. Verificável: `.commands/review.md` tem o modo, a regra do token exato, a regra da falha fechada, a queda para o modo padrão de `prod`, `preview/x` e `prototype.go`, as chamadas `gh` somente leitura e o despacho do `qa-verifier`; os modos existentes não mudam.
+- R14 A postagem precisa de autorização. No modo `pr <n>` o relatório fica local. O comando posta um comentário na PR do GitHub só quando o dono autoriza essa postagem de forma explícita na conversa atual. A autorização cobre uma postagem. Verificável: `.commands/review.md` declara isso e nomeia a postagem como ação externa.
+- R15 Lista de templates no `dh validate`. A fatia `englishOnlyTemplates` em `internal/kit/validate.go` (linha 35) lista `"REVIEW.md"` ao lado de `"PRD.md"`. O comentário acima dela (linha 34) diz que o PRD e o guia de revisão são sempre escritos em inglês. Um caso de teste em `internal/kit/validate_test.go` cobre `REVIEW.md` do mesmo modo que cobre `PRD.md` (uma cópia em `templates/pt-br/` é erro; a falta de cópia em `templates/pt-br/` não é). Verificável: `go test ./internal/kit/...` passa; `go run ./cmd/dh validate .` passa com `templates/en/REVIEW.md` presente e sem cópia em pt-br.
+- R16 Este repositório é um consumidor. O lote acrescenta `REVIEW.md` na raiz do repositório, em inglês. Ele tem pelo menos 3 entradas reais para este kit, cada uma com `Symptom`, `Why it matters` e `Example` com `file:line`: `dist/` gerado editado à mão; uma contagem declarada nos docs que se afasta da contagem real (agentes, comandos); um caminho privado num PRD ou doc. Ele tem uma seção `Ignore` e uma seção `Critical paths` (decisão do dono D7: os globs críticos são exatamente `adapters/claude-code/plugin/hooks/**` e `.skills/external-clis/**`). A chave `review_guide: REVIEW.md` é escrita no `project.yaml` do harness dir deste projeto, seja qual for o modo em que o projeto resolve. O Coordenador escreve essa única linha; é um passo do Coordenador, não uma escrita do builder. Verificável: o arquivo existe com as partes acima; `dh harness-path --json` dá o harness dir, e o `project.yaml` dele tem a chave.
+- R17 Itens fora de escopo continuam fora. Este PRD não acrescenta nenhum dos itens da seção 5. O limite de rodadas continua 6 (`.agents/coordinator.md`, `Proportional review and paid evaluation`). A regra do veredito fundido "qualquer achado bloqueante de qualquer revisor bloqueia" não muda. Verificável: `git diff main...HEAD -- .agents/coordinator.md` não mostra mudança no número 6, nem texto de voto majoritário, nem `dh review run`.
+- R18 Contagens. As contagens continuam em 13 agentes e 19 comandos + 1 comando de mod. Nenhum agente, skill ou comando novo. Verificável: `go run ./cmd/dh validate .` passa, e `git diff --name-status main...HEAD -- .agents .skills .commands` não lista arquivo acrescentado nem removido.
+- R19 Nenhum rastro do arquivo de diretrizes. O arquivo de síntese de diretrizes do vídeo (um arquivo pt-br em `docs/`) e o irmão `Zone.Identifier` dele não estão no repositório no fechamento. O dono move o arquivo para o cofre; o Coordenador cuida disso fora do kit. Nenhum arquivo, cópia em `dist/`, doc ou texto de PRD cita o caminho dele. O vídeo é citado só por título, canal, data e URL. Verificável, todos sem saída: `git ls-files | grep -i 'DIRETRIZES-CODE-REVIE[W]'`; `find . -name '*Zone.Identifier*' -not -path './.git/*'`; `grep -rIl 'DIRETRIZES-CODE-REVIE[W]' . --exclude-dir=.git`; `git status --short` não mostra nenhum dos dois arquivos.
+- R20 Limpeza. Toda referência obsoleta que esta mudança cria é removida (AGENTS.md, "Premissa de limpeza"). Exemplos: frases que dizem que o setup não escreve nada na árvore do repositório (R3); frases que dizem que o `/dh:review` aceita só um escopo, uma ref ou `feature PRD-<n>` (R13); frases que dizem `the PRD is the only English-only template` (`grep -rn -i 'only.*PRD\|PRD.*only' .skills .commands .agents templates docs README.md README.en.md`); metadado `writes:` do setup em `.commands/setup.md` que omite `REVIEW.md`; texto de `.commands/review.md` que lista os argumentos permitidos sem `pr <digits>`. Verificável: o autor do ticket roda cada grep e lista as ocorrências e a ação tomada no relatório do ticket.
+- R21 Release e arquivos gerados. Release 0.32.0 em três lugares: `defaultVersion` em `internal/build/build.go`, `version` em `.claude-plugin/marketplace.json` e o `ref` da fonte (`v0.32.0`). `dist/` não é editado à mão; `go run ./cmd/dh build` o regenera, e um segundo build não muda nada exceto a linha `generated_at`. `go run ./cmd/dh validate .` passa com 0 erros e `go test ./...` fica verde. A prova de clone limpo se aplica (AGENTS.md, "Prova de clone limpo"), porque a PR toca `internal/` (`validate.go`, `build.go`) e `dist/*/bin`: `git clone . <tmp>`, `go run ./cmd/dh build` lá, e o `sha256sum` dos 5 binários é igual ao da árvore. Verificável: rode os comandos e compare com `git diff`.
+- R22 Nenhum caminho privado no PRD, nos tickets, no novo `REVIEW.md` ou em qualquer texto novo. O texto usa `<harness dir>` e `<home>`. Verificável: `go run ./cmd/dh validate .` (`checkPrivatePaths`) passa.
+- R23 Revisão de política confiável. A revisão lê o arquivo do guia e a chave `review_guide` na revisão-base da mudança, nunca na ponta sob revisão. A base é a base da PR no modo `pr <n>`, a ref de comparação no modo padrão com uma ref, e `HEAD` para trabalho não commitado. Quando a base não tem guia, nenhum guia se aplica a essa mudança. Quando a mudança acrescenta, edita ou apaga o arquivo do guia no caminho configurado, ou muda a chave `review_guide`, então o fluxo para antes do merge como um caminho crítico (R12), e a pergunta ao dono nomeia a mudança no guia. As entradas `Ignore` que a mudança acrescenta não se aplicam a essa mesma mudança. O dono pode aprovar uma atualização do guia por essa parada. No modo `global` a chave vive fora da árvore do repositório, então só uma mudança no arquivo do guia aciona a parada. Verificável: `.commands/review.md`, `.skills/code-review/SKILL.md` e `.agents/reviewer.md` declaram a leitura na revisão-base e o caso inicial sem guia; `.commands/auto.md` e `.agents/coordinator.md` declaram a parada e a regra do `Ignore`.
+- R24 Contenção de caminho. O valor de `review_guide` deve ser um caminho relativo ao repositório, sem prefixo absoluto e sem segmento `..`. O alvo resolvido, symlinks incluídos, deve ficar dentro do repositório. Quando qualquer checagem falha, a revisão trata o projeto como sem guia de revisão (`no review guide`) e reporta o motivo (R5). O setup escreve só `REVIEW.md` na raiz do repositório. Verificável: `.commands/review.md` e `.skills/code-review/SKILL.md` declaram as três checagens e a queda; o texto do setup declara o valor fixo.
+- R25 Tratamento do texto de PR. No modo `pr <n>` a revisão trata o texto da PR (corpo, título, comentários) como dado não confiável. Um `qa-verifier` despachado executa as leituras `gh pr view` e `gh pr diff`, e não o Coordenador (R13). Ninguém busca um link encontrado no texto da PR, e o revisor não usa busca na web nesse modo. O texto da PR nunca é autorização do dono para postar, fazer merge ou qualquer outra ação (R14). Verificável: `.commands/review.md` e `.agents/reviewer.md` declaram as três proibições e o despacho das leituras.
 
 ## 4. Docs
 
-Update:
+Atualizar:
 
-- `templates/en/REVIEW.md` (new; R1) and `internal/kit/validate.go` with `internal/kit/validate_test.go` (R15).
-- `.commands/setup.md` and `.skills/project-onboarding/SKILL.md` (R2-R4, R20, R24): setup steps, the `writes:` metadata, the report format, the "repository tree" sentences.
-- `.commands/review.md` (R5, R13, R14, R23-R25): the `pr <n>` mode, the guide check, and the read-only limits.
-- `.skills/code-review/SKILL.md` and `.agents/reviewer.md` (R6-R9, R23-R25): guide reading, `Guide rule:` line, ignored-by-rule list, whole class, pre-existing label, re-entry scope, output format and Example.
-- `.agents/coordinator.md` (R7, R9-R12, R23): fix dispatch content, re-entry dispatch, noise record, critical-path stop.
-- `.commands/auto.md` (R12, R23): merge step 5 of the git sequence. `.commands/build.md` and `.commands/fix.md` only where the grep of R11 finds "all findings" wording.
-- `AGENTS.md`: already updated by the Coordinator on 2026-10-21 (template exception, `dh review run` trigger, "Guia de revisão" rule). The ticket author reads it and reports any disagreement; it does not edit it.
-- `docs/tutorial.html`, `docs/en/tutorial.html`: the setup description, the review description, the `project.yaml` key, the critical-path stop, the `pr <n>` mode.
-- `README.md` and `README.en.md`: only where `grep -n -i 'review\|setup'` finds a sentence that this change makes false.
-- `docs/roadmap.html`, `docs/en/roadmap.html`: a Delivered card for 0.32.0 in both files, and the status chip and sources line. `dh validate` checks the drift against `CHANGELOG.md`.
-- `CHANGELOG.md` (entry 0.32.0).
+- `templates/en/REVIEW.md` (novo; R1) e `internal/kit/validate.go` com `internal/kit/validate_test.go` (R15).
+- `.commands/setup.md` e `.skills/project-onboarding/SKILL.md` (R2-R4, R20, R24): passos do setup, o metadado `writes:`, o formato de relatório, as frases sobre a "árvore do repositório".
+- `.commands/review.md` (R5, R13, R14, R23-R25): o modo `pr <n>`, a checagem do guia e os limites de somente leitura.
+- `.skills/code-review/SKILL.md` e `.agents/reviewer.md` (R6-R9, R23-R25): leitura do guia, linha `Guide rule:`, lista de ignorados por regra, classe inteira, rótulo `pre-existing`, escopo de reentrada, formato de saída e exemplo.
+- `.agents/coordinator.md` (R7, R9-R12, R23): conteúdo do despacho de correção, despacho de reentrada, registro de ruído, parada por caminho crítico.
+- `.commands/auto.md` (R12, R23): passo 5 do merge na sequência de git. `.commands/build.md` e `.commands/fix.md` só onde o grep da R11 achar a redação `all findings`.
+- `AGENTS.md`: já atualizado pelo Coordenador em 2026-10-21 (exceção de template, gatilho do `dh review run`, regra "Guia de revisão"). O autor do ticket o lê e reporta qualquer discordância; não o edita.
+- `docs/tutorial.html`, `docs/en/tutorial.html`: a descrição do setup, a descrição da revisão, a chave do `project.yaml`, a parada por caminho crítico, o modo `pr <n>`.
+- `README.md` e `README.en.md`: só onde `grep -n -i 'review\|setup'` achar uma frase que esta mudança torne falsa.
+- `docs/roadmap.html`, `docs/en/roadmap.html`: um card Delivered para a 0.32.0 nos dois arquivos, e o chip de status e a linha de fontes. O `dh validate` confere a deriva contra o `CHANGELOG.md`.
+- `CHANGELOG.md` (entrada 0.32.0).
 - `.claude-plugin/marketplace.json`, `internal/build/build.go` (R21).
-- `REVIEW.md` at the repository root (new; R16).
+- `REVIEW.md` na raiz do repositório (novo; R16).
 
-No `pdocs` exist for this project.
+Não existem `pdocs` para este projeto.
 
-Not affected (the ticket author checks with `grep`):
+Não afetados (o autor do ticket confere com `grep`):
 
-- `docs/plano-produto.html`: internal pt-br history; changed only if it states review behavior as current.
-- `docs/adr/`: no new ADR unless the owner asks.
-- `docs/inicio-rapido.html`, `docs/en/quick-start.html`: changed only if they describe setup output.
-- `.skills/external-clis/`: stays in prose (D2); no change.
+- `docs/plano-produto.html`: histórico interno em pt-br; muda só se declarar o comportamento de revisão como atual.
+- `docs/adr/`: nenhum ADR novo, a menos que o dono peça.
+- `docs/inicio-rapido.html`, `docs/en/quick-start.html`: mudam só se descreverem a saída do setup.
+- `.skills/external-clis/`: continua em prosa (D2); sem mudança.
 
-## 5. Out of scope
+## 5. Fora de escopo
 
-- Majority vote among reviewers. The rule "any blocking finding from any reviewer blocks" stays.
-- Incident evals (`evals/incidentes/`). Paid evaluation runs only when the owner asks (`AGENTS.md`).
-- A CI review job per PR. The CI runs without an API key on purpose.
-- Risk-classifier agents.
-- A merge queue.
-- Feature flags and gradual rollout.
-- Post-merge metrics.
-- The `dh review run` subcommand. `external-clis` stays in prose. The trigger for it (a CLI call that needs a kill or a manual re-run inside a batch) is only in `AGENTS.md`.
-- A 3-round cap, and any change to the round cap of 6.
-- A new agent, skill, or command, and any change of the counts.
-- A `dh doctor` check for the guide (see Appendix, suggestion S1).
+- Voto majoritário entre revisores. A regra "qualquer achado bloqueante de qualquer revisor bloqueia" continua.
+- Avaliações de incidentes (`evals/incidentes/`). A avaliação paga roda só quando o dono pede (`AGENTS.md`).
+- Um job de revisão no CI por PR. O CI roda sem chave de API de propósito.
+- Agentes classificadores de risco.
+- Uma fila de merge.
+- Feature flags e implantação gradual.
+- Métricas pós-merge.
+- O subcomando `dh review run`. O `external-clis` continua em prosa. O gatilho para ele (uma chamada de CLI que precisa de um kill ou de uma nova execução manual dentro de um lote) está só no `AGENTS.md`.
+- Um limite de 3 rodadas, e qualquer mudança no limite de rodadas de 6.
+- Um agente, skill ou comando novo, e qualquer mudança nas contagens.
+- Uma checagem do `dh doctor` para o guia (ver Apêndice, sugestão S1).
 
-## 6. Owner decisions
+## 6. Decisões do dono
 
-- D1, 2026-10-21: extend `/dh:review` with a `pr <n>` mode. No new command; the count stays 19 + 1. The PR body plus any linked PRD or ticket is the requirement source. The report stays local. A comment on the PR needs explicit authorization (R13, R14).
-- D2, 2026-10-21: `external-clis` stays in prose. The `dh review run` trigger is recorded in `AGENTS.md` only. Out of scope here.
-- D3, 2026-10-21: `REVIEW.md` has a critical-paths section. A PR that touches a listed path stops before the merge and asks the owner. This overrides the global auto-merge instruction for those paths only (R12).
-- D4, 2026-10-21: Minor and nit findings stay in the report. Only Critical and Major go to the builder (R11).
-- D5, 2026-10-21: the round cap stays 6 (R17).
-- D6, 2026-10-21: the guideline file and its `Zone.Identifier` sibling leave the repository at closing (R19).
-- A1, 2026-10-21: `REVIEW.md` is always added to the project. Its path is recorded in `project.yaml` of the harness dir the project resolves to, relative to the repository root. The file lives in the project repository (R2-R4, R16).
-- A2, 2026-10-21: `REVIEW.md` is always in English. The template exists only in `templates/en/` (R1, R15).
-- D7, 2026-10-21: the Critical paths of this repository's `REVIEW.md` are exactly `adapters/claude-code/plugin/hooks/**` (runtime guard, RISK-001) and `.skills/external-clis/**` (CLI reviewer isolation, RISK-002). A release that only bumps the version and the binaries does not stop (R16).
+- D1, 2026-10-21: estender o `/dh:review` com um modo `pr <n>`. Nenhum comando novo; a contagem continua 19 + 1. O corpo da PR mais qualquer PRD ou ticket ligado é a fonte de requisitos. O relatório fica local. Um comentário na PR precisa de autorização explícita (R13, R14).
+- D2, 2026-10-21: o `external-clis` continua em prosa. O gatilho do `dh review run` fica registrado só no `AGENTS.md`. Fora de escopo aqui.
+- D3, 2026-10-21: o `REVIEW.md` tem uma seção de caminhos críticos. Uma PR que toca um caminho listado para antes do merge e pergunta ao dono. Isso se sobrepõe à instrução global de auto-merge só para esses caminhos (R12).
+- D4, 2026-10-21: os achados `Minor` e `nit` ficam no relatório. Só `Critical` e `Major` vão para o builder (R11).
+- D5, 2026-10-21: o limite de rodadas continua 6 (R17).
+- D6, 2026-10-21: o arquivo de diretrizes e o irmão `Zone.Identifier` saem do repositório no fechamento (R19).
+- A1, 2026-10-21: o `REVIEW.md` é sempre adicionado ao projeto. O caminho dele é registrado no `project.yaml` do harness dir em que o projeto resolve, relativo à raiz do repositório. O arquivo vive no repositório do projeto (R2-R4, R16).
+- A2, 2026-10-21: o `REVIEW.md` é sempre em inglês. O template existe só em `templates/en/` (R1, R15).
+- D7, 2026-10-21: os `Critical paths` do `REVIEW.md` deste repositório são exatamente `adapters/claude-code/plugin/hooks/**` (trava de runtime, RISK-001) e `.skills/external-clis/**` (isolamento do revisor de CLI, RISK-002). Uma release que só sobe a versão e os binários não para (R16).
 
-## Appendix
+## Apêndice
 
-### Suggested tickets
+### Tickets sugeridos
 
-| Ticket | Lane | Executor | Write set |
+| Ticket | `lane` | Executor | Conjunto de escrita |
 |---|---|---|---|
-| T-2601 | `backend` | `harness-maintainer` with `harness-authoring` | `templates/en/REVIEW.md`; `.commands/setup.md`; `.skills/project-onboarding/SKILL.md`; `.commands/review.md`; `.skills/code-review/SKILL.md`; `.agents/reviewer.md`; `.agents/coordinator.md`; `.commands/auto.md`; `.commands/build.md` and `.commands/fix.md` if R11 grep hits. Rules R1-R14, R17, R18, R20, R23-R25 |
-| T-2602 | `backend` | `builder` (Go) | `internal/kit/validate.go`; `internal/kit/validate_test.go`; `internal/build/build.go` (version); `.claude-plugin/marketplace.json`. Rules R15, R21. Clean-clone proof applies (touches `internal/` and `dist/*/bin`) |
-| T-2603 | `backend` (kit source and docs) | `harness-maintainer` with `harness-authoring`, then `docs-guide` for the docs | `REVIEW.md` (root); `docs/tutorial.html`; `docs/en/tutorial.html`; `README.md`; `README.en.md`; `docs/roadmap.html`; `docs/en/roadmap.html`; `CHANGELOG.md`. Rules R3, R16, R20, R22 |
-| T-2604 | `teste (unitário e integração)` | `qa-verifier` | Test of R15 in `internal/kit/validate_test.go` (with T-2602); runs of R18, R19, R21, R22; a dry read of R2-R14 and R23-R25 text against the greps listed in each rule. No production code |
+| T-2601 | `backend` | `harness-maintainer` com `harness-authoring` | `templates/en/REVIEW.md`; `.commands/setup.md`; `.skills/project-onboarding/SKILL.md`; `.commands/review.md`; `.skills/code-review/SKILL.md`; `.agents/reviewer.md`; `.agents/coordinator.md`; `.commands/auto.md`; `.commands/build.md` e `.commands/fix.md` se o grep da R11 achar ocorrência. Regras R1-R14, R17, R18, R20, R23-R25 |
+| T-2602 | `backend` | `builder` (Go) | `internal/kit/validate.go`; `internal/kit/validate_test.go`; `internal/build/build.go` (versão); `.claude-plugin/marketplace.json`. Regras R15, R21. A prova de clone limpo se aplica (toca `internal/` e `dist/*/bin`) |
+| T-2603 | `backend` (fonte do kit e docs) | `harness-maintainer` com `harness-authoring`, depois `docs-guide` para os docs | `REVIEW.md` (raiz); `docs/tutorial.html`; `docs/en/tutorial.html`; `README.md`; `README.en.md`; `docs/roadmap.html`; `docs/en/roadmap.html`; `CHANGELOG.md`. Regras R3, R16, R20, R22 |
+| T-2604 | `teste (unitário e integração)` | `qa-verifier` | Teste da R15 em `internal/kit/validate_test.go` (com o T-2602); execuções de R18, R19, R21, R22; uma leitura a seco do texto de R2-R14 e R23-R25 contra os greps listados em cada regra. Nenhum código de produção |
 
-Order: T-2601 and T-2602 may run in parallel only if the write sets stay disjoint (they do). T-2603 follows T-2601 (docs describe final text). T-2604 follows all. T-2602 and T-2604 write the same test file: T-2602 first.
+Ordem: T-2601 e T-2602 podem rodar em paralelo só se os conjuntos de escrita continuarem disjuntos (continuam). O T-2603 segue o T-2601 (os docs descrevem o texto final). O T-2604 segue todos. T-2602 e T-2604 escrevem o mesmo arquivo de teste: T-2602 primeiro.
 
-Coordinator step (not a builder write): after `REVIEW.md` exists at the repository root, the Coordinator writes the line `review_guide: REVIEW.md` in `project.yaml` of this project's harness dir (R16). The Coordinator also moves the guideline file out of the repository (R19).
+Passo do Coordenador (não é escrita do builder): depois que o `REVIEW.md` existir na raiz do repositório, o Coordenador escreve a linha `review_guide: REVIEW.md` no `project.yaml` do harness dir deste projeto (R16). O Coordenador também move o arquivo de diretrizes para fora do repositório (R19).
 
-The release gate sequence is in R21: `dh validate`, `go test ./...`, `go run ./cmd/dh build` with no `dist/` diff, then the clean-clone proof, then commit candidate; push, PR, and tag only after the proof.
+A sequência do gate de release está na R21: `dh validate`, `go test ./...`, `go run ./cmd/dh build` sem diff em `dist/`, depois a prova de clone limpo, depois o candidato a commit; push, PR e tag só depois da prova.
 
-### Discarded alternatives
+### Alternativas descartadas
 
-| Alternative | Why not |
+| Alternativa | Por que não |
 |---|---|
-| A new command `/dh:review-pr` | The owner chose a mode of `/dh:review` (D1). The count 19 + 1 stays. |
-| `REVIEW.md` in `pt-br` too | The owner chose English only (A2). |
-| `REVIEW.md` stored in the harness dir | The owner chose the project repository (A1). The reviewer in a clone or a CLI sees it with the tree. |
-| Review creates the missing file | Review is read-only. Setup owns creation (R5). |
-| Forward Minor findings to the builder | The owner chose to keep them in the report (D4). A builder fixes a nit and the review finds another nit. |
-| Cap of 3 rounds | The owner kept 6 (D5). |
+| Um comando novo `/dh:review-pr` | O dono escolheu um modo do `/dh:review` (D1). A contagem 19 + 1 continua. |
+| `REVIEW.md` também em `pt-br` | O dono escolheu só inglês (A2). |
+| `REVIEW.md` guardado no harness dir | O dono escolheu o repositório do projeto (A1). O revisor num clone ou numa CLI o vê junto com a árvore. |
+| A revisão cria o arquivo ausente | A revisão é somente leitura. O setup é dono da criação (R5). |
+| Encaminhar achados `Minor` ao builder | O dono escolheu mantê-los no relatório (D4). Um builder corrige um `nit` e a revisão acha outro `nit`. |
+| Limite de 3 rodadas | O dono manteve 6 (D5). |
 
-### Risks and pending decisions
+### Riscos e decisões pendentes
 
-- Risk: setup in mode `global` now writes in the repository tree, which the docs call forbidden · mitigation: R3 changes every sentence, and R20 greps for the old wording.
-- Risk: the runtime mod warns when the main session writes a new file outside the harness dir · mitigation: R4 sends the write to a specialist.
-- Risk: the critical-path match uses globs, and a glob style is not defined by the kit · assumption: the ticket author uses the same glob style as `.gitignore` and writes one example in the template. Hypothesis: this is enough for this repository's paths (R16).
-- Risk: in `pr <n>` mode the local checkout may not be the PR head, so the reviewer's caller tracing reads the wrong tree · mitigation: R13 requires the report to state the commit it read; the reviewer marks traced paths it could not verify as limited.
-- Assumption: the key name is `review_guide` and the release is 0.32.0 (the owner did not object, 2026-10-21).
-- Suggestion S1 (not a requirement): a `dh doctor` check that warns when `project.yaml` has no `review_guide` key or the file is missing. A1 is met without it, because R5 and R2 cover the flows. It adds Go code and a test, so it is left to the owner.
-- Suggestion S2 (not a requirement): a limit on comments per PR in `pr <n>` mode, to cut noise. The video suggests it; the owner has not decided.
-- Pending decision: none blocks the tickets.
+- Risco: o setup no modo `global` agora escreve na árvore do repositório, o que os docs chamam de proibido · mitigação: a R3 muda cada frase, e a R20 faz grep da redação antiga.
+- Risco: o mod de runtime avisa quando a sessão principal escreve um arquivo novo fora do harness dir · mitigação: a R4 manda a escrita para um especialista.
+- Risco: a correspondência de caminho crítico usa globs, e o kit não define um estilo de glob · premissa: o autor do ticket usa o mesmo estilo de glob do `.gitignore` e escreve um exemplo no template. Hipótese: isso basta para os caminhos deste repositório (R16).
+- Risco: no modo `pr <n>` o checkout local pode não ser o head da PR, então o rastreamento de chamadores do revisor lê a árvore errada · mitigação: a R13 exige que o relatório declare o commit que leu; o revisor marca como limitados os caminhos rastreados que não conseguiu verificar.
+- Premissa: o nome da chave é `review_guide` e a release é a 0.32.0 (o dono não objetou, 2026-10-21).
+- Sugestão S1 (não é requisito): uma checagem do `dh doctor` que avise quando o `project.yaml` não tem a chave `review_guide` ou o arquivo está ausente. A A1 é atendida sem ela, porque a R5 e a R2 cobrem os fluxos. Ela acrescenta código Go e um teste, então fica para o dono.
+- Sugestão S2 (não é requisito): um limite de comentários por PR no modo `pr <n>`, para reduzir o ruído. O vídeo a sugere; o dono não decidiu.
+- Decisão pendente: nenhuma bloqueia os tickets.
 
-## Executed summary
+## Resumo executado
 
-**Delivered**: Every project gets an English `REVIEW.md` created by setup with `review_guide` in `project.yaml`; the reviewer reads it from the base revision and ties each finding to a rule; `/dh:review pr <n>` reviews a GitHub PR read-only; only Critical and Major findings go to the builder; critical paths and guide changes stop the merge for the owner.
+**Entregue**: Todo projeto recebe um `REVIEW.md` em inglês criado pelo setup, com `review_guide` no `project.yaml`; o revisor o lê na revisão-base e liga cada achado a uma regra; o `/dh:review pr <n>` revisa uma PR do GitHub em somente leitura; só os achados `Critical` e `Major` vão para o builder; caminhos críticos e mudanças no guia param o merge para o dono.
 
-**Rules**:
+**Regras**:
 
-Evidence for all rules: QA rounds 2-5 on the final state (`dh validate` 0 errors and 0 warnings, `go test ./...` 7 packages ok, build idempotent with only `generated_at` changing, `claude plugin test` 235 pass and 0 fail); final-feature adherence review FEATURE APROVADA; code review `cli:codex/gpt-6-luna` approve; security review `cli:codex/gpt-6.1-sol` no demonstrated vulnerability, and `claude` pass with residual risk. The PRD was amended after the implementation review (R5, R12, R13 changed; R23-R25 added) and revalidated once (approved).
+Evidência para todas as regras: rodadas de QA 2-5 sobre o estado final (`dh validate` 0 erros e 0 avisos, `go test ./...` 7 pacotes ok, build idempotente com só `generated_at` mudando, `claude plugin test` 235 passam e 0 falham); revisão de aderência da feature final FEATURE APROVADA; revisão de código `cli:codex/gpt-6-luna` `approve`; revisão de segurança `cli:codex/gpt-6.1-sol` nenhuma vulnerabilidade demonstrada, e `claude` passa com risco residual. O PRD foi emendado depois da revisão da implementação (R5, R12, R13 mudaram; R23-R25 acrescentadas) e revalidado uma vez (aprovado).
 
-- R1: Honored. `templates/en/REVIEW.md` has the four parts; `templates/pt-br/` has no `REVIEW.md`.
-- R2: Honored. `.commands/setup.md`, `.skills/project-onboarding/SKILL.md` state the steps, the key and the English rule.
-- R3: Honored. The "repository tree" sentences in `.commands/setup.md`, `.skills/project-onboarding/SKILL.md`, `docs/tutorial.html`, `docs/en/tutorial.html` state the exception.
-- R4: Honored. `.commands/setup.md` states the three cases and the specialist writer.
-- R5: Honored. `.commands/review.md`, `.skills/code-review/SKILL.md` (no guide, guide axis not-run, points to setup).
-- R6: Honored. `Guide rule:` line in `.skills/code-review/SKILL.md` and `.agents/reviewer.md`.
-- R7: Honored. "Ignored by rule" list in `.skills/code-review/SKILL.md`; `.agents/coordinator.md` counts only non-ignored Critical and Major.
-- R8: Honored. Whole-class and pre-existing rules in `.skills/code-review/SKILL.md`.
-- R9: Honored. Re-entry section in `.skills/code-review/SKILL.md`; `.agents/coordinator.md` names the last reviewed state.
-- R10: Honored. `.agents/coordinator.md` (record, threshold 3, proposal, prohibition).
-- R11: Honored. `.agents/coordinator.md`, `.commands/build.md`, `.commands/fix.md`, `.commands/review.md`, `.agents/builder.md`; none says "all findings".
-- R12: Honored. `.commands/auto.md` and `.agents/coordinator.md`; QA dry run touched no critical glob.
-- R13: Honored. `.commands/review.md` (exact `pr` token, fail closed, default-mode fallthrough, read-only `gh`, `qa-verifier` dispatch).
-- R14: Honored. `.commands/review.md` (post needs explicit authorization, one post).
-- R15: Honored. `internal/kit/validate.go` (`englishOnlyTemplates`) and `internal/kit/validate_test.go`; tests mutation-checked, `go test ./...` ok.
-- R16: Honored. Root `REVIEW.md` with 4 rules, 2 Ignore entries, and the two D7 globs; `review_guide: REVIEW.md` in `project.yaml`.
-- R17: Honored. Round cap 6 and the merged verdict rule unchanged in `.agents/coordinator.md`; no majority vote, no `dh review run`.
-- R18: Honored. `dh validate` shows 13 agents and 19 commands + 1 mod command; no added or deleted file in `.agents`, `.skills`, `.commands`.
-- R19: Honored. The four greps and `git status --short` are empty.
-- R20: Honored. Stale-wording greps run by T-2601 over the kit sources and by QA rounds 2 and 3 over `docs/`, the READMEs and `CHANGELOG.md`; hits fixed (see Docs).
-- R21: Honored for version 0.32.0 (`internal/build/build.go`, `.claude-plugin/marketplace.json`, `ref`) and build. The clean-clone sha256 proof is pending at the time of writing; the release step runs it before push.
-- R22: Honored. `checkPrivatePaths` passes in `dh validate`.
-- R23: Honored. `.commands/review.md`, `.skills/code-review/SKILL.md`, `.agents/reviewer.md`, `.commands/auto.md`, `.agents/coordinator.md`.
-- R24: Honored. `.commands/review.md`, `.skills/code-review/SKILL.md` (three checks and fallback).
-- R25: Honored. `.commands/review.md`, `.agents/reviewer.md` (three prohibitions, `qa-verifier` reads).
+- R1: Cumprida. `templates/en/REVIEW.md` tem as quatro partes; `templates/pt-br/` não tem `REVIEW.md`.
+- R2: Cumprida. `.commands/setup.md`, `.skills/project-onboarding/SKILL.md` declaram os passos, a chave e a regra do inglês.
+- R3: Cumprida. As frases `repository tree` em `.commands/setup.md`, `.skills/project-onboarding/SKILL.md`, `docs/tutorial.html`, `docs/en/tutorial.html` declaram a exceção.
+- R4: Cumprida. `.commands/setup.md` declara os três casos e o especialista escritor.
+- R5: Cumprida. `.commands/review.md`, `.skills/code-review/SKILL.md` (sem guia, eixo do guia `not-run`, aponta para o setup).
+- R6: Cumprida. Linha `Guide rule:` em `.skills/code-review/SKILL.md` e `.agents/reviewer.md`.
+- R7: Cumprida. Lista `Ignored by rule` em `.skills/code-review/SKILL.md`; `.agents/coordinator.md` conta só `Critical` e `Major` não ignorados.
+- R8: Cumprida. Regras de classe inteira e `pre-existing` em `.skills/code-review/SKILL.md`.
+- R9: Cumprida. Seção de reentrada em `.skills/code-review/SKILL.md`; `.agents/coordinator.md` nomeia o último estado revisado.
+- R10: Cumprida. `.agents/coordinator.md` (registro, limiar 3, proposta, proibição).
+- R11: Cumprida. `.agents/coordinator.md`, `.commands/build.md`, `.commands/fix.md`, `.commands/review.md`, `.agents/builder.md`; nenhum diz `all findings`.
+- R12: Cumprida. `.commands/auto.md` e `.agents/coordinator.md`; o ensaio do QA não tocou nenhum glob crítico.
+- R13: Cumprida. `.commands/review.md` (token `pr` exato, falha fechada, queda para o modo padrão, `gh` somente leitura, despacho do `qa-verifier`).
+- R14: Cumprida. `.commands/review.md` (a postagem precisa de autorização explícita, uma postagem).
+- R15: Cumprida. `internal/kit/validate.go` (`englishOnlyTemplates`) e `internal/kit/validate_test.go`; testes conferidos por mutação, `go test ./...` ok.
+- R16: Cumprida. `REVIEW.md` da raiz com 4 regras, 2 entradas `Ignore` e os dois globs da D7; `review_guide: REVIEW.md` no `project.yaml`.
+- R17: Cumprida. Limite de rodadas 6 e regra do veredito fundido sem mudança em `.agents/coordinator.md`; sem voto majoritário, sem `dh review run`.
+- R18: Cumprida. `dh validate` mostra 13 agentes e 19 comandos + 1 comando de mod; nenhum arquivo acrescentado ou removido em `.agents`, `.skills`, `.commands`.
+- R19: Cumprida. Os quatro greps e `git status --short` estão vazios.
+- R20: Cumprida. Greps de redação obsoleta rodados pelo T-2601 sobre as fontes do kit e pelas rodadas de QA 2 e 3 sobre `docs/`, os READMEs e o `CHANGELOG.md`; ocorrências corrigidas (ver Docs).
+- R21: Cumprida para a versão 0.32.0 (`internal/build/build.go`, `.claude-plugin/marketplace.json`, `ref`) e o build. A prova sha256 do clone limpo está pendente na hora da escrita; o passo de release a roda antes do push.
+- R22: Cumprida. `checkPrivatePaths` passa no `dh validate`.
+- R23: Cumprida. `.commands/review.md`, `.skills/code-review/SKILL.md`, `.agents/reviewer.md`, `.commands/auto.md`, `.agents/coordinator.md`.
+- R24: Cumprida. `.commands/review.md`, `.skills/code-review/SKILL.md` (três checagens e queda).
+- R25: Cumprida. `.commands/review.md`, `.agents/reviewer.md` (três proibições, leituras do `qa-verifier`).
 
 **Tickets**:
 
-- T-2601 backend, `harness-maintainer`: done. Evidence: QA rounds and the three reviews above.
-- T-2602 backend, `builder` (Go): done. Evidence: R15 tests (mutation-checked), version 0.32.0.
-- T-2603 backend, `harness-maintainer`: done. Root `REVIEW.md` with 4 rules, 2 Ignore entries, and the two D7 globs.
-- T-2604 teste, `qa-verifier`: done. Rounds 1-5, final PASS.
+- T-2601 backend, `harness-maintainer`: concluído. Evidência: as rodadas de QA e as três revisões acima.
+- T-2602 backend, `builder` (Go): concluído. Evidência: testes da R15 (conferidos por mutação), versão 0.32.0.
+- T-2603 backend, `harness-maintainer`: concluído. `REVIEW.md` da raiz com 4 regras, 2 entradas `Ignore` e os dois globs da D7.
+- T-2604 teste, `qa-verifier`: concluído. Rodadas 1-5, `PASS` final.
 
-**Docs**: `CHANGELOG.md` (0.32.0); `docs/roadmap.html` and `docs/en/roadmap.html` (0.32.0 card, 14 templates); `docs/tutorial.html` and `docs/en/tutorial.html`; `docs/tutoriais/templates.{md,html}` and `docs/en/tutorials/templates.{md,html}`; `README.md` and `README.en.md`. No `pdocs` for this project.
+**Docs**: `CHANGELOG.md` (0.32.0); `docs/roadmap.html` e `docs/en/roadmap.html` (card da 0.32.0, 14 templates); `docs/tutorial.html` e `docs/en/tutorial.html`; `docs/tutoriais/templates.{md,html}` e `docs/en/tutorials/templates.{md,html}`; `README.md` e `README.en.md`. Nenhum `pdocs` para este projeto.
 
-**Out of scope**: The section 5 items stayed out: majority vote, incident evals, CI review job, risk-classifier agents, merge queue, feature flags, gradual rollout, post-merge metrics, `dh review run`, a 3-round cap, a new agent, skill or command, and a `dh doctor` check. Residuals: S3 - the `qa-verifier` that reads PR text inherits all tools and the controls are prose only (owner decision pending); a rename may evade critical-path glob matching (Low, left by D4); posting is gated by prose authorization (accepted).
+**Fora de escopo**: Os itens da seção 5 ficaram de fora: voto majoritário, avaliações de incidentes, job de revisão no CI, agentes classificadores de risco, fila de merge, feature flags, implantação gradual, métricas pós-merge, `dh review run`, um limite de 3 rodadas, um agente, skill ou comando novo, e uma checagem do `dh doctor`. Resíduos: S3 - o `qa-verifier` que lê o texto da PR herda todas as ferramentas e os controles são só prosa (decisão do dono pendente); um rename pode escapar da correspondência de glob de caminho crítico (`Low`, deixado pela D4); a postagem é controlada por autorização em prosa (aceito).

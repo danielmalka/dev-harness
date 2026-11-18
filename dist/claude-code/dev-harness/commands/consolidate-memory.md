@@ -1,38 +1,38 @@
 ---
 name: consolidate-memory
-description: Archive memory into EPOCHAL.md, then trim it
+description: Arquive a memória em EPOCHAL.md e depois reduza-a
 author: malka
 argument-hint: ""
 metadata:
   roles: [coordinator]
   skills: [context-handoff]
-  writes: .harness/MEMORY.md and .harness/EPOCHAL.md only
+  writes: somente .harness/MEMORY.md e .harness/EPOCHAL.md
 disable-model-invocation: true
 ---
-## Role
-Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
+## Papel
+Atue como o `coordinator` do kit nesta sessão (leia a definição do agente `coordinator` que acompanha o kit se esta sessão não foi iniciada com ele). Leia `.harness/MEMORY.md`, se existir, antes de qualquer outra coisa.
 
-## Routing
-Run this yourself; dispatch no specialist, because these records have a single writer. Follow the "Consolidation on explicit request" section below, with the kit skill `context-handoff` loaded for the surrounding rules.
+## Roteamento
+Rode isto você mesmo; não despache nenhum especialista, porque estes registros têm um único escritor. Siga a seção "Consolidação a pedido explícito" abaixo, com a skill do kit `context-handoff` carregada para as regras ao redor.
 
-## Prerequisites
-No question about other writers: the memory write guard (`context-handoff`, `dh memory hash` and `dh memory write --expect`) refuses the trim when `.harness/MEMORY.md` changed since it was read. `.harness/MEMORY.md` must exist and hold operational content; skip the archival and say so when it does not. If a previous run was interrupted after archival, locate and verify that batch before continuing.
+## Pré-requisitos
+Nenhuma pergunta sobre outros escritores: a trava de escrita da memória (`context-handoff`, `dh memory hash` e `dh memory write --expect`) recusa a poda quando `.harness/MEMORY.md` mudou desde que foi lido. `.harness/MEMORY.md` deve existir e ter conteúdo operacional; pule o arquivamento e diga isso quando não tiver. Se uma execução anterior foi interrompida depois do arquivamento, localize e verifique esse lote antes de continuar.
 
-## Output
-A batch appended to `.harness/EPOCHAL.md`: a clearly delimited, verbatim copy of `.harness/MEMORY.md` with batch id `<YYYY-MM-DD>-<n>` and an ISO 8601 timestamp with timezone offset, original dates and text preserved, any dated comment kept outside the raw block. Read the stored batch back and compare it with the original. Only after that verification, shorten `.harness/MEMORY.md` to the current work, decisions, blockers, needed evidence, next step and brief recent history, and record the batch id and consolidation time. Report the batch and the remaining active state.
+## Saída
+Um lote acrescentado a `.harness/EPOCHAL.md`: uma cópia literal, claramente delimitada, de `.harness/MEMORY.md` com o id do lote `<AAAA-MM-DD>-<n>` e um timestamp ISO 8601 com deslocamento de fuso, datas e texto originais preservados, qualquer comentário datado mantido fora do bloco bruto. Releia o lote armazenado e compare-o com o original. Só depois dessa verificação, reduza `.harness/MEMORY.md` ao trabalho atual, decisões, bloqueios, evidência necessária, próximo passo e um breve histórico recente, e registre o id do lote e a hora da consolidação. Reporte o lote e o estado ativo restante.
 
-## Limits
-- On any failure or mismatch, leave `.harness/MEMORY.md` intact and report the operation as incomplete.
-- Never re-append a batch already confirmed stored, and never remove information that was not preserved.
-- Leave `.harness/RISKS.md` untouched.
-- Do not claim atomicity across the two files, and never consolidate silently just because the memory grew. When `MEMORY.md` is over 40000 bytes, the Coordinator offers this command once per session; the offer is the only automatic step, and consolidation runs only when the owner asks.
-- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`, and `MEMORY.md` only through the memory write guard.
+## Limites
+- Em qualquer falha ou divergência, deixe `.harness/MEMORY.md` intacto e reporte a operação como incompleta.
+- Nunca acrescente de novo um lote já confirmado como armazenado, e nunca remova informação que não foi preservada.
+- Deixe `.harness/RISKS.md` intacto.
+- Não afirme atomicidade entre os dois arquivos, e nunca consolide em silêncio só porque a memória cresceu. Quando `MEMORY.md` passa de 40000 bytes, o Coordenador oferece este comando uma vez por sessão; a oferta é o único passo automático, e a consolidação só roda quando o dono pede.
+- Só o Coordenador escreve `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md`, e `MEMORY.md` só pela trava de escrita da memória.
 
-## Consolidation on explicit request
-Run `consolidate-memory` through `/dh:consolidate-memory` only when the owner asks to archive.
-1. Take `dh memory hash` and read `MEMORY.md`; skip archival when there is no operational content. Pick a stable batch ID with timestamp and timezone and append a delimited verbatim copy of `MEMORY.md` to `EPOCHAL.md` (dated comments outside the raw block).
-2. Read the batch back, compare it with the original and take `dh memory hash` again, equal to the first; on a difference preserve `MEMORY.md` and report. Only then shorten `MEMORY.md` with `dh memory write --expect <the first hash>` (exit 3: `MEMORY.md` intact, the operation reported incomplete with the stored batch id, a new run starts a new batch), keeping current work, decisions, blockers, needed evidence, next step and brief recent history, and record the batch ID and time.
-3. After an interruption verify that batch before continuing; never append a confirmed batch twice or drop unpreserved information. Leave `RISKS.md` untouched, report the batch and remaining state, claim no atomicity across the two files.
+## Consolidação a pedido explícito
+Rode `consolidate-memory` por `/dh:consolidate-memory` só quando o dono pedir para arquivar.
+1. Tome `dh memory hash` e leia `MEMORY.md`; pule o arquivamento quando não houver conteúdo operacional. Escolha um id de lote estável com timestamp e fuso e acrescente a `EPOCHAL.md` uma cópia literal delimitada de `MEMORY.md` (comentários datados fora do bloco bruto).
+2. Releia o lote, compare-o com o original e tome `dh memory hash` de novo, igual ao primeiro; em caso de diferença, preserve `MEMORY.md` e reporte. Só então reduza `MEMORY.md` com `dh memory write --expect <o primeiro hash>` (saída 3: `MEMORY.md` intacto, a operação reportada como incompleta com o id do lote armazenado, uma nova execução começa um novo lote), mantendo o trabalho atual, decisões, bloqueios, evidência necessária, próximo passo e um breve histórico recente, e registre o id do lote e a hora.
+3. Depois de uma interrupção, verifique esse lote antes de continuar; nunca acrescente duas vezes um lote confirmado nem descarte informação não preservada. Deixe `RISKS.md` intacto, reporte o lote e o estado restante, não afirme atomicidade entre os dois arquivos.
 
-## Next
-`/dh:resume` to continue the remaining authorized work from the trimmed memory.
+## Próximo
+`/dh:resume` para continuar o trabalho autorizado restante a partir da memória podada.

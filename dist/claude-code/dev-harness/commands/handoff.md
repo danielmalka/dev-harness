@@ -1,31 +1,31 @@
 ---
 name: handoff
-description: Record transportable state for the next session
+description: Registre o estado transportável para a próxima sessão
 author: malka
-argument-hint: "[optional note for the next session]"
+argument-hint: "[nota opcional para a próxima sessão]"
 metadata:
   roles: [coordinator, docs-guide]
   skills: [context-handoff]
-  writes: .harness/tasks/<id>/ record; MEMORY.md by the coordinator only
+  writes: registro em .harness/tasks/<id>/; MEMORY.md só pelo Coordenador
 ---
-## Role
-Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
+## Papel
+Atue como o `coordinator` do kit nesta sessão (leia a definição do agente `coordinator` incluída no kit se esta sessão não foi iniciada com ele). Leia `.harness/MEMORY.md`, se existir, antes de qualquer outra coisa.
 
-## Routing
-Optional note: $ARGUMENTS. Load the kit skill `context-handoff` yourself and own the record. Dispatch `docs-guide` with the Agent tool, model `haiku`, requiring the same skill, only to draft the handoff document from the material you supply; it returns the text and the proposed memory updates to you.
+## Roteamento
+Nota opcional: $ARGUMENTS. Carregue você mesmo a skill `context-handoff` do kit e seja o responsável pelo registro. Despache `docs-guide` com a ferramenta Agent, modelo `haiku`, exigindo a mesma skill, só para redigir o documento de handoff a partir do material que você fornecer; ele devolve a você o texto e as atualizações de memória propostas.
 
-## Prerequisites
-The objective and the authorized scope of the task; a handoff without an objective transfers activity, not work, so ask the owner and stop. The files touched, the decisions taken and the evidence produced, recorded only where they can be sourced. `.harness/MEMORY.md` must exist; if it is absent, initialize it from the MEMORY template bundled with this kit when setup is authorized, otherwise report the missing state.
+## Pré-requisitos
+O objetivo e o escopo autorizado da tarefa; um handoff sem objetivo transfere atividade, não trabalho, então pergunte ao dono e pare. Os arquivos tocados, as decisões tomadas e a evidência produzida, registrados só onde puderem ser rastreados até a fonte. `.harness/MEMORY.md` deve existir; se faltar, inicialize-o a partir do template MEMORY incluído neste kit quando a configuração estiver autorizada; caso contrário, reporte o estado ausente.
 
-## Output
-The `context-handoff` record: objective and authorization, constraints carried forward verbatim, write set, decisions with reason, source and revisit condition, evidence table with each check passed, failed or not-run, pending and blocked items with owner and completion condition, and the single next authorized step marked already granted or pending. Persist it under `.harness/tasks/<id>/`; you update `.harness/MEMORY.md` with the same state.
+## Saída
+O registro de `context-handoff`: objetivo e autorização, restrições levadas adiante literalmente, conjunto de escrita, decisões com motivo, fonte e condição para rever, tabela de evidência com cada checagem `passed`, `failed` ou `not-run`, itens pendentes e bloqueados com responsável e condição de conclusão, e o único próximo passo autorizado, marcado como já concedido ou pendente. Grave-o em `.harness/tasks/<id>/`; você atualiza `.harness/MEMORY.md` com o mesmo estado.
 
-## Limits
-- No code change: this command records state and writes nothing outside the handoff document and the memory record.
-- Carry a sourced constraint forward verbatim; a recorded constraint with unknown provenance stays unresolved rather than being dropped.
-- Never invent past state, a granted authorization or a check result; unverified items are marked hypothesis.
-- `docs-guide` drafts but never edits the memory files.
-- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`, and `MEMORY.md` only through the memory write guard (`context-handoff`).
+## Limites
+- Nenhuma mudança de código: este comando registra estado e não escreve nada além do documento de handoff e do registro de memória.
+- Leve adiante literalmente uma restrição com fonte; uma restrição registrada de procedência desconhecida continua em aberto em vez de ser descartada.
+- Nunca invente estado passado, autorização concedida ou resultado de checagem; itens não verificados são marcados como hipótese.
+- `docs-guide` redige, mas nunca edita os arquivos de memória.
+- Só o Coordenador escreve `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md`, e `MEMORY.md` só pela trava de escrita da memória (`context-handoff`).
 
-## Next
-`/dh:resume` in the next session, or `/dh:consolidate-memory` when the memory record has grown past what execution needs.
+## Próximo
+`/dh:resume` na próxima sessão, ou `/dh:consolidate-memory` quando o registro de memória tiver crescido além do que a execução precisa.
