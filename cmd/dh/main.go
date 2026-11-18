@@ -263,8 +263,10 @@ func runMemory(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 }
 
 // runFacts is `dh facts check [pasta]` (PRD-035 R27): it resolves the harness dir like `dh harness-path`, checks <harness dir>/FACTS.md against R3 to R6 and that
-// every evidence path exists under the project folder, and writes nothing. Exit codes: 0 the file is fine or absent, 1 a violation, mode none or an I/O error.
-// The tokens `ok` and `absent` on stdout are a contract the kit documents.
+// every evidence path is a file under the project folder, and writes nothing. Exit codes: 0 the file is fine or absent, 1 a violation, mode none or an I/O error.
+// The first stdout line is `ok <n> fatos <m> candidatos` or `absent` (a contract the kit documents). A second line, `sha <curto>`, gives the short sha of HEAD of the
+// project folder, or `sha ausente` when git or a commit is missing; the Coordinator takes the sha for a fact or for a curator dispatch from it, and it is printed
+// when the file is fine, absent or has violations (stdout is then only that line), never in mode none or on a usage or I/O error.
 func runFacts(args []string, stdout, stderr io.Writer) int {
 	const factsUsage = "uso: dh facts check [pasta]"
 	if len(args) == 0 || args[0] != "check" || len(args) > 2 {
@@ -275,9 +277,14 @@ func runFacts(args []string, stdout, stderr io.Writer) int {
 	if !ok {
 		return 1
 	}
+	shaLine := "sha ausente"
+	if sha, found := harness.HeadSHA(repo); found {
+		shaLine = "sha " + sha
+	}
 	content, err := os.ReadFile(filepath.Join(dir, harness.FactsFile))
 	if os.IsNotExist(err) {
 		fmt.Fprintln(stdout, "absent")
+		fmt.Fprintln(stdout, shaLine)
 		return 0
 	}
 	if err != nil {
@@ -294,9 +301,11 @@ func runFacts(args []string, stdout, stderr io.Writer) int {
 			}
 		}
 		printError(stderr, fmt.Sprintf("%s reprovado: %d problema(s)", harness.FactsFile, len(rep.Problems)))
+		fmt.Fprintln(stdout, shaLine)
 		return 1
 	}
 	fmt.Fprintf(stdout, "ok %d fatos %d candidatos\n", rep.Facts, rep.Candidates)
+	fmt.Fprintln(stdout, shaLine)
 	return 0
 }
 

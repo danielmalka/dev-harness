@@ -99,7 +99,7 @@ Cada projeto consumidor ganha um arquivo `<harness dir>/FACTS.md`, ao lado de `R
   2. o arquivo acima de 150 linhas ou de 12 KB;
   3. o pedido do dono.
   - Quando nenhum gatilho acontece, então o Coordenador não deve despachar o curador.
-- R15 O despacho do curador leva o sha do `HEAD`, obtido de um `qa-verifier` (`git rev-parse HEAD`). O curador deve fazer estes passos:
+- R15 O despacho do curador leva o sha do `HEAD`, que `dh facts check` imprime (E17). O curador deve fazer estes passos:
   1. ler cada `caminho:linha` de cada candidato no sha atual;
   2. mudar o candidato para `confirmado` quando a evidência existe e diz o mesmo;
   3. remover o candidato quando a evidência não existe ou diz o contrário;
@@ -264,6 +264,27 @@ A F2 completou o que o PRD não fechava assim. Cada escolha está também na reg
 - E8 O esqueleto tem o cabeçalho `# Fatos do sistema`, a linha `Última curadoria: nenhuma`, as 11 categorias vazias na ordem de R4, `## Candidatos` e `## Mudanças`. Um candidato fica em `## Candidatos` sem categoria; quem o classifica é o curador (F3).
 - E9 O `bootstrap` devolve no máximo 5 convenções como candidatos, como o `repo-scout` (R8); a parte 6 do `REPO-MAP.md` é só a linha `Convenções: ver FACTS.md` (R26).
 - E10 A linha de referência do setup é escrita por um `builder` (`lane` `infra`), com o arquivo de instruções como único conjunto de escrita; "já existe" é uma linha que começa com `Fatos do sistema:`, qualquer que seja o texto dela, e o setup não cria o `FACTS.md` (R22, R23).
+
+### Escolhas da implementação da F3 (registradas em 2026-11-18, origem: a implementação da F3)
+
+A F3 completou o que o PRD não fechava assim. Cada escolha vale na regra que ela completa, e o teste de contrato `internal/kit/facts_curation_contract_test.go` fixa os textos.
+
+- E11 Um candidato que a leitura não basta para confirmar vira `hipótese` e continua em `## Candidatos`; o curador o confere de novo a cada rodada, e ele não conta para o teto de 15 fatos de uma categoria (R15, passo 4).
+- E12 "Do sha mais antigo para o mais novo" (R15, passo 5) é lido como o `Visto:` mais antigo, porque o curador não roda git e não ordena shas; em empate, o menor id. Confirmar ou reconferir um fato atualiza o `sha:` para o sha do despacho e o `Visto:` para `<hoje>, docs-guide, <tarefa>`.
+- E13 Se um teto continua excedido depois de fundir e de encurtar as frases, saem primeiro as hipóteses mais antigas e depois os confirmados de `Visto:` mais antigo, cada um registrado como "removido por teto" (R15, passo 8).
+- E14 O ponto de entrada da curadoria é o Coordenador: nenhum comando novo (a contagem de comandos fica em 20 + 1) e nenhum agente novo. O pedido do dono é uma frase na conversa. Os gatilhos 1 e 2 se medem com `dh facts check` (candidatos e tetos), sem o Coordenador ler o arquivo (R14).
+- E15 O curador não tem shell, então quem roda `dh facts check` é o Coordenador, depois da rodada; se reprovar, as linhas do erro voltam uma vez ao curador, e uma segunda reprovação vai ao dono. Enquanto o curador roda, ele é o único escritor, e o Coordenador não grava candidatos (R15, última linha; R12).
+- E16 O registro em `## Mudanças` tem uma linha da rodada, `<data> · sha <sha> · entraram <n> · saíram <n> · fundidos <n>`, e uma linha por fato que saiu (`F-<n> saiu: <motivo>; evidência: <caminho:linha>`) ou foi fundido (`F-<n> fundido em F-<m>`) (R7, R15, passo 9). Os fatos removidos só por teto podem ir agrupados numa linha só, com os ids e o motivo (`F-<n>, F-<n> removidos por teto: <motivo>`, E20); fusão e remoção por contradição, evidência ausente, repetição das fontes ou segredo continuam uma linha por fato.
+
+### Escolhas da F3 depois da verificação (registradas em 2026-11-18, origem: verificação da F3, 2026-11-18)
+
+O Verificador rodou sessões reais com o mecanismo da F3 e viu três regras escritas que os agentes não seguiram. Cada escolha troca um texto por uma trava; o teste de contrato `internal/kit/facts_curation_contract_test.go` e os testes do mod (`runtime-guard.test.ts`, `panel.engine.test.ts`) fixam as três.
+
+- E17 `dh facts check` imprime o sha curto do `HEAD` na segunda linha de saída (`sha <curto>`), em `ok`, em `absent` e na reprovação (onde é a única linha de stdout, depois do erro em stderr); o Coordenador o usa nos candidatos e no despacho do curador e não roda `git rev-parse` (as 6 sessões o rodaram e quebraram o PRD-025). O sha vem de `git rev-parse --short HEAD` na raiz do repositório. Sem git, fora de um repositório ou sem commit a linha é `sha ausente` (o modo `none`, o uso errado e a falha de leitura não a imprimem), e o Coordenador usa `0000000` e avisa o dono uma vez (R15).
+- E18 O curador roda em `sonnet` ou mais forte. O mod vê o `model` da chamada do agente e o `model` da resposta: num despacho de curador (`docs-guide` com a linha `Arquivos permitidos:` do `FACTS.md`) que não pede `sonnet`, `opus` ou `fable`, o mod reescreve o `model` para `sonnet` e só reconhece o curador quando o modelo que voltou é um desses. Sem o modelo na resposta e na chamada, o agente é tratado como `haiku` (o padrão do `docs-guide`), e a escrita do `FACTS.md` é negada com uma mensagem que diz o modelo e manda redespachar com `sonnet`. O `model:` do frontmatter do `docs-guide` não muda (R13).
+- E19 O curador não tem shell. O mod nega `Bash`, `PowerShell` e `Monitor` ao agente reconhecido como curador, enquanto ele vive, com uma mensagem que manda usar `Read` (e `Glob` ou `Grep`, se estiverem disponíveis; na rodada 2 da verificação a ferramenta `Grep` não existia na sessão, e ler com `Read` a linha da evidência basta para conferir o `caminho:linha`) (3 das 6 rodadas reais usaram `cat`, `grep` e `wc`). As leituras e a escrita do `FACTS.md` seguem livres, e um `docs-guide` sem a linha do `FACTS.md` mantém o `Bash`.
+- E20 O registro em `## Mudanças` aceita uma linha agrupada para a remoção por teto, `F-<n>, F-<n> removidos por teto: <motivo>`, e o `saíram` da linha da rodada conta cada id da lista (E16, R15 passo 9). O `dh facts check` não lê `## Mudanças`, então nada muda no verificador.
+- E21 (origem: rodada 2 da verificação da F3, 2026-11-18, decisão do dono) O Coordenador ainda rodou `git rev-parse --short HEAD` uma vez, no mesmo comando do `dh facts check`, nas duas sessões da rodada 2. Fica aceito como resíduo conhecido: é uma leitura e não faz mal. A regra está no `coordinator` (nunca rodar `git rev-parse`), o sha vem de `dh facts check` (E17), e o mod não impede o Coordenador de chamar `git`; não há trava para isso, e o Verificador não deve reprovar a F3 por essa chamada (R15).
 
 ### Decisões (fechadas em 2026-11-18, dono)
 

@@ -1,25 +1,28 @@
 import { test, expect } from 'claude-code/testing'
-import { guardFile, homeFrom, isCuratorSpawn, noteSpawn, protectedHit, register, warnThenNext } from './runtime-guard.ts'
+import { denyCuratorShell, forceCuratorModel, guardFile, homeFrom, isCuratorSpawn, noteSpawn, protectedHit, register, strongModel, warnThenNext } from './runtime-guard.ts'
 import { warnWrite } from './lib/warn.ts'
 
 // Capture the plugin's handlers with a fake `on`, so agentId / parentAgentId (which the
 // engine's $.tool.call and $.agent.spawn drop) can be set on the event.
 type H = (...a: any[]) => any
 const handlers: Record<string, H[]> = {}
+const matchers: Record<string, (string | undefined)[]> = {} // the `{ tool }` each handler was registered for, undefined when it has none
 ;(register as any)((ev: string, ...rest: any[]) => {
   ;(handlers[ev] ||= []).push(rest[rest.length - 1])
+  ;(matchers[ev] ||= []).push(rest.length > 1 ? rest[0]?.tool : undefined)
 })
 const NEXT = 'passed'
 const next = () => NEXT
 const spawn = (e: any) => handlers['agent.spawn'][0]({}, e, next)
 // A fake $ with env and cwd; `{}` (no env) is the fail-open case: only the suffix pattern holds.
 const fake = (env: Record<string, string> = {}, cwd = '/proj') => ({ env: { get: async (k: string) => env[k] }, session: { cwd: async () => cwd } })
-const file = (tool: string, e: any, $: any = {}) => Promise.all(handlers['tool.call'].map(h => h($, { tool, ...e }, next)))
+// Like the engine, a handler registered for a tool only sees the calls of that tool.
+const file = (tool: string, e: any, $: any = {}) => Promise.all(handlers['tool.call'].filter((_h, i) => matchers['tool.call'][i] === undefined || matchers['tool.call'][i] === tool).map(h => h($, { tool, ...e }, next)))
 const FILES = ['MEMORY.md', 'EPOCHAL.md', 'RISKS.md', 'FACTS.md']
 
-test('registers agent.spawn and Write+Edit tool.call hooks', () => {
+test('registers agent.spawn, Write+Edit and the curator shell-deny tool.call hooks', () => {
   expect(handlers['agent.spawn'].length).toBe(1)
-  expect(handlers['tool.call'].length).toBe(2)
+  expect(matchers['tool.call']).toEqual(['Write', 'Edit', 'Bash', 'PowerShell', 'Monitor'])
 })
 
 // R3
@@ -189,7 +192,7 @@ test('R7 warn: agentId, harness paths (repo and global) and Bash do not warn', a
   for (const p of ['.harness/project.yaml', '.harness/local.yaml', '.harness/tasks/T-1/TASK.md', '.harness/MEMORY.md', '/proj/.harness/RISKS.md', '/h/projects/x/project.yaml', '/h/projects/x/tasks/T-1/TASK.md', '/h/projects/x/MEMORY.md'])
     for (const tool of ['Edit', 'Write']) expect(await W({ tool, file_path: p, ...big }, () => false)).toBe(undefined)
   expect(await W({ tool: 'Bash', file_path: 'src/a.ts', command: 'x', ...big }, () => false)).toBe(undefined)
-  expect(handlers['tool.call'].length).toBe(2) // no Bash hook registered
+  expect(matchers['tool.call'].slice(0, 2)).toEqual(['Write', 'Edit']) // the warn path only hooks Write and Edit; the shell hooks only deny the curator
 })
 test('R7 warn: only this project harness dir is exempt, a foreign .harness warns', async () => {
   const big = { old_string: L(9), new_string: L(9), content: L(9) }
@@ -247,7 +250,7 @@ test('R12 isCuratorSpawn: docs-guide with FACTS.md in the write set, and nothing
 
 for (const tool of ['Write', 'Edit']) {
   test(`R12 ${tool}: the curator writes FACTS.md (repo and global), a plain docs-guide and a builder do not`, async () => {
-    noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }, 'cur-1')
+    noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT, model: 'sonnet' }, 'cur-1')
     noteSpawn({ subagentType: 'dh:docs-guide', prompt: 'Arquivos permitidos: docs/x.md' }, 'plain-1')
     noteSpawn({ subagentType: 'dh:builder', prompt: CURATOR_PROMPT }, 'build-1')
     for (const [path, env] of [['.harness/FACTS.md', {}], ['/proj/.harness/FACTS.md', {}], ['/h/projects/x/FACTS.md', { DH_HOME: '/h' }], ['~/.harness/projects/x/FACTS.md', { HOME: '/u' }]] as const) {
@@ -257,7 +260,7 @@ for (const tool of ['Write', 'Edit']) {
     }
   })
   test(`R12 ${tool}: the curator exception covers FACTS.md only, not the other records`, async () => {
-    noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }, 'cur-2')
+    noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT, model: 'sonnet' }, 'cur-2')
     for (const f of ['MEMORY.md', 'EPOCHAL.md', 'RISKS.md'])
       for (const r of await file(tool, { file_path: `.harness/${f}`, agentId: 'cur-2' })) expect(r.deny).toContain(`.harness/${f}`)
     for (const r of await file(tool, { file_path: '/h/projects/x/MEMORY.md', agentId: 'cur-2' }, fake({ DH_HOME: '/h' }))) expect(r.deny).toContain('/h/projects/x/MEMORY.md')
@@ -265,7 +268,7 @@ for (const tool of ['Write', 'Edit']) {
 }
 
 test('R12 an id reused by a non-curator loses the exception; malformed spawn input is ignored', async () => {
-  noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }, 'cur-3')
+  noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT, model: 'sonnet' }, 'cur-3')
   for (const r of await file('Write', { file_path: '.harness/FACTS.md', agentId: 'cur-3' })) expect(r).toBe(NEXT)
   noteSpawn({ subagentType: 'dh:builder', prompt: 'x' }, 'cur-3')
   for (const r of await file('Write', { file_path: '.harness/FACTS.md', agentId: 'cur-3' })) expect(r.deny).toContain('.harness/FACTS.md')
@@ -274,11 +277,11 @@ test('R12 an id reused by a non-curator loses the exception; malformed spawn inp
 
 test('R12 through the registered spawn handler: the engine answer carries the agent id, sync or promise, and the result is returned unchanged', async () => {
   const spawnAs = (e: any, answer: any) => handlers['agent.spawn'][0]({}, e, () => answer)
-  const ev = { subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }
-  const sync = { agentId: 'cur-4', model: 'm' }
+  const ev = { subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT, model: 'sonnet' }
+  const sync = { agentId: 'cur-4', model: 'claude-sonnet-5-5' }
   expect(spawnAs(ev, sync)).toBe(sync)
   for (const r of await file('Edit', { file_path: '.harness/FACTS.md', agentId: 'cur-4' })) expect(r).toBe(NEXT)
-  const pending = Promise.resolve({ agentId: 'cur-5' })
+  const pending = Promise.resolve({ agentId: 'cur-5', model: 'claude-sonnet-5-5' })
   expect(spawnAs(ev, pending)).toBe(pending)
   await pending
   for (const r of await file('Edit', { file_path: '.harness/FACTS.md', agentId: 'cur-5' })) expect(r).toBe(NEXT)
@@ -298,4 +301,109 @@ test('engine: Write on .harness/FACTS.md with agentId is denied end to end', asy
   expect(r.text ?? r.deny).toContain('.harness/FACTS.md só é escrito pelo Coordinator')
   const m: any = await $.tool.call({ tool: 'Write', file_path: '.harness/FACTS.md', content: 'x' } as any)
   expect(m.deny).toBe(undefined)
+})
+
+// PRD-035 F3 contract with the Coordinator: the dispatch line that .agents/coordinator.md tells the Coordinator to write is the line this mod recognizes. A hooks
+// module may import nothing but its own files and "claude-code", so this test cannot read coordinator.md; the Go test internal/kit/facts_curation_contract_test.go
+// closes the chain: it checks that coordinator.md and THIS file both spell CURATOR_DISPATCH_LINE exactly, and this test checks that the mod accepts it.
+const CURATOR_DISPATCH_LINE = 'Arquivos permitidos: <harness dir>/FACTS.md'
+
+test('R12 F3 the curator dispatch line of coordinator.md is the one the mod recognizes', async () => {
+  const line = CURATOR_DISPATCH_LINE.replace('<harness dir>', '/h/projects/proj')
+  const dispatch = `Objetivo: curar o FACTS.md.\nsha do HEAD: 4fc0ac3\n${line}\nModelo: sonnet`
+  expect(isCuratorSpawn('dh:docs-guide', dispatch)).toBe(true)
+  expect(isCuratorSpawn('dh:docs-guide', CURATOR_DISPATCH_LINE)).toBe(true) // the placeholder form, as written in the agent file
+  // the same line from any other role is not a curator
+  for (const type of ['dh:builder', 'dh:qa-verifier', 'dh:repo-scout', 'dh:reviewer', 'dh:coordinator']) expect(isCuratorSpawn(type, dispatch)).toBe(false)
+  // and the writing really flows: the id the engine answers with may write FACTS.md and nothing else
+  noteSpawn({ subagentType: 'dh:docs-guide', prompt: dispatch, model: 'sonnet' }, 'cur-f3')
+  for (const r of await file('Write', { file_path: '/h/projects/proj/FACTS.md', agentId: 'cur-f3' }, fake({ DH_HOME: '/h' }))) expect(r).toBe(NEXT)
+  for (const r of await file('Write', { file_path: '/h/projects/proj/MEMORY.md', agentId: 'cur-f3' }, fake({ DH_HOME: '/h' }))) expect(r.deny).toContain('/h/projects/proj/MEMORY.md')
+  // without the line the same docs-guide is not a curator
+  expect(isCuratorSpawn('dh:docs-guide', dispatch.replace(line, 'Arquivos permitidos: docs/x.md'))).toBe(false)
+})
+
+// Verification of F3, model: the curation needs sonnet or above. The hook sees the Agent tool's `model` and may rewrite it, and the answer carries the model the
+// agent runs on, so the mod forces `sonnet` on a curator dispatch that does not ask for it and recognizes the curator only when the model that came back is strong.
+test('F3 strongModel: sonnet, opus and fable (alias or full id) are strong; haiku, empty and unknown are not', () => {
+  for (const m of ['sonnet', 'claude-sonnet-5-5', 'Sonnet', 'opus', 'claude-opus-5-5', 'fable', 'claude-fable-5-2']) expect(strongModel(m)).toBe(true)
+  for (const m of ['haiku', 'claude-haiku-5-5', '', 'inherit', 'm', undefined, null, 7, {}]) expect(strongModel(m)).toBe(false)
+})
+
+test('F3 forceCuratorModel: a curator dispatch without a strong model is rewritten to sonnet, everything else passes untouched', () => {
+  const curator = { subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT, description: 'curar', tool_use_id: 't' }
+  expect(forceCuratorModel(curator)).toEqual({ ...curator, model: 'sonnet' }) // no model: the agent's own model (haiku) would run
+  expect(forceCuratorModel({ ...curator, model: 'haiku' })).toEqual({ ...curator, model: 'sonnet' })
+  expect(forceCuratorModel({ ...curator, model: 'claude-haiku-5-5' })).toEqual({ ...curator, model: 'sonnet' })
+  expect(forceCuratorModel({ ...curator, model: 'inherit', parentModel: 'haiku' })).toEqual({ ...curator, model: 'sonnet', parentModel: 'haiku' })
+  for (const model of ['sonnet', 'opus', 'claude-opus-5-5', 'fable']) {
+    const e = { ...curator, model }
+    expect(forceCuratorModel(e)).toBe(e) // asked for a strong model: the same object
+  }
+  const inherit = { ...curator, model: 'inherit', parentModel: 'claude-opus-5-5' }
+  expect(forceCuratorModel(inherit)).toBe(inherit) // inherit under a strong parent is strong
+  // a docs-guide without the line, any other role and malformed input are not touched, and no model is added
+  const plain = { subagentType: 'dh:docs-guide', prompt: 'Arquivos permitidos: docs/x.md', model: 'haiku' }
+  expect(forceCuratorModel(plain)).toBe(plain)
+  const builder = { subagentType: 'dh:builder', prompt: CURATOR_PROMPT }
+  expect(forceCuratorModel(builder)).toBe(builder)
+  for (const bad of [undefined, null, {}, 7, 'x']) expect(forceCuratorModel(bad as any)).toBe(bad)
+})
+
+test('F3 through the registered spawn handler: the engine gets sonnet, and the curator it answers with may write FACTS.md', async () => {
+  let seen: any
+  const ev = { subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT, description: 'curar', tool_use_id: 't' }
+  const answer = handlers['agent.spawn'][0]({}, ev, (x: any) => { seen = x; return { agentId: 'cur-m1', model: 'claude-sonnet-5-5' } })
+  expect(seen.model).toBe('sonnet')
+  expect(answer).toEqual({ agentId: 'cur-m1', model: 'claude-sonnet-5-5' })
+  for (const r of await file('Write', { file_path: '.harness/FACTS.md', agentId: 'cur-m1' })) expect(r).toBe(NEXT)
+  // a plain docs-guide keeps whatever model it asked for
+  let plainSeen: any
+  handlers['agent.spawn'][0]({}, { ...ev, prompt: 'Arquivos permitidos: docs/x.md', model: 'haiku' }, (x: any) => { plainSeen = x; return { agentId: 'plain-m1', model: 'claude-haiku-5-5' } })
+  expect(plainSeen.model).toBe('haiku')
+})
+
+test('F3 a curator-shaped agent that came back on a weak model is not the curator: the write is denied and the message names the model', async () => {
+  // e.g. the engine ignored the rewrite, or a caller did not go through the hook
+  const ev = { subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT, model: 'sonnet' }
+  noteSpawn(ev, 'weak-1', 'claude-haiku-5-5')
+  noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT }, 'weak-2') // no model anywhere
+  for (const [id, shown] of [['weak-1', 'claude-haiku-5-5'], ['weak-2', 'o padrão do agente (haiku)']] as const) {
+    for (const tool of ['Write', 'Edit']) {
+      for (const r of await file(tool, { file_path: '.harness/FACTS.md', agentId: id })) {
+        expect(r.deny).toContain('modelo sonnet ou mais forte')
+        expect(r.deny).toContain(shown)
+        expect(r.deny).toContain('redespacha a curadoria com o modelo sonnet')
+      }
+    }
+  }
+  // and a later spawn of the same id on a strong model clears it
+  noteSpawn(ev, 'weak-1', 'claude-sonnet-5-5')
+  for (const r of await file('Write', { file_path: '.harness/FACTS.md', agentId: 'weak-1' })) expect(r).toBe(NEXT)
+})
+
+// Verification of F3, shell: the recognized curator has no Bash, PowerShell or Monitor for as long as it lives; Read and Grep are not touched; a docs-guide without
+// the line keeps its shell.
+test('F3 denyCuratorShell: Bash, PowerShell and Monitor are denied to the curator with a message that points to Read and Grep', async () => {
+  noteSpawn({ subagentType: 'dh:docs-guide', prompt: CURATOR_PROMPT, model: 'sonnet' }, 'cur-sh1')
+  noteSpawn({ subagentType: 'dh:docs-guide', prompt: 'Arquivos permitidos: docs/x.md', model: 'sonnet' }, 'plain-sh1')
+  noteSpawn({ subagentType: 'dh:builder', prompt: CURATOR_PROMPT, model: 'sonnet' }, 'build-sh1')
+  for (const tool of ['Bash', 'PowerShell', 'Monitor']) {
+    for (const r of await file(tool, { command: 'cat -n src/log.go', agentId: 'cur-sh1' })) {
+      expect(r.deny).toContain('não roda comandos')
+      expect(r.deny).toContain('use Read (e Glob ou Grep, se estiverem disponíveis)')
+      expect(r.deny).toContain('ler com Read a linha do caminho:linha basta')
+    }
+    for (const id of ['plain-sh1', 'build-sh1', 'unknown-sh1']) for (const r of await file(tool, { command: 'cat -n src/log.go', agentId: id })) expect(r).toBe(NEXT)
+    for (const r of await file(tool, { command: 'git status' })) expect(r).toBe(NEXT) // the main session has no agentId
+  }
+  // Read and Grep are not shell tools: no handler intercepts them
+  for (const tool of ['Read', 'Grep', 'Glob', 'Skill']) expect((await file(tool, { file_path: 'src/log.go', agentId: 'cur-sh1' })).length).toBe(0)
+  // the curator still writes FACTS.md
+  for (const r of await file('Write', { file_path: '.harness/FACTS.md', agentId: 'cur-sh1' })) expect(r).toBe(NEXT)
+  expect(denyCuratorShell({ agentId: 'cur-sh1' })?.deny).toContain('use Read (e Glob ou Grep, se estiverem disponíveis)')
+  for (const bad of [undefined, null, {}, 7, { agentId: 7 }]) expect(denyCuratorShell(bad as any)).toBe(undefined)
+  // a reused id loses it
+  noteSpawn({ subagentType: 'dh:builder', prompt: 'x' }, 'cur-sh1')
+  for (const r of await file('Bash', { command: 'ls', agentId: 'cur-sh1' })) expect(r).toBe(NEXT)
 })

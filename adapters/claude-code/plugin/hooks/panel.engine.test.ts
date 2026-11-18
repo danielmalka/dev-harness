@@ -14,6 +14,7 @@ type World = { editFails?: boolean; yaml?: string; tasks?: Record<string, string
 function world(on: any, w: World = {}) {
   const dhRuns: string[] = []
   const listed: string[] = []
+  const spawned: any[] = [] // the spawn events as the engine receives them, after the hooks above have run
   const cwd = w.cwd ?? CWD
   if (w.env) mock.env(on, w.env)
   on('session.cwd', () => ({ value: cwd }) as any)
@@ -48,8 +49,8 @@ function world(on: any, w: World = {}) {
   on('session.start', () => ({ cwd: CWD }) as any)
   if (w.editFails) on('tool.call', { tool: 'Edit' }, () => ({ result: 'no match', isError: true }) as any)
   on('tool.call', () => ({ result: 'ok' }) as any)
-  on('agent.spawn', () => ({ agentId: 'ag1', model: 'm' }) as any)
-  return { dhRuns, listed }
+  on('agent.spawn', (_$: any, e: any) => { spawned.push(e); return { agentId: 'ag1', model: e.model ?? 'm' } as any })
+  return { dhRuns, listed, spawned }
 }
 
 const bash = ($: any, command: string) => $.tool.call({ tool: 'Bash', command } as any) as Promise<any>
@@ -146,7 +147,7 @@ test('7 runtime-guard via composed module: spawn from subagent denied, main-sess
 // any other subagent stay denied.
 test('7b curator: a docs-guide spawned with FACTS.md in the write set writes FACTS.md, not the other records; a plain subagent is denied', async ($, on) => {
   world(on)
-  await $.agent.spawn({ prompt: 'Arquivos permitidos: .harness/FACTS.md', description: 'curadoria', subagentType: 'dh:docs-guide' } as any) // the world answers agentId ag1
+  await $.agent.spawn({ prompt: 'Arquivos permitidos: .harness/FACTS.md', description: 'curadoria', subagentType: 'dh:docs-guide', model: 'sonnet' } as any) // the world answers agentId ag1
   const ok: any = await $.tool.call({ tool: 'Write', file_path: '.harness/FACTS.md', content: 'x', agentId: 'ag1' } as any)
   expect(text(ok)).not.toContain('Coordinator')
   const mem: any = await $.tool.call({ tool: 'Write', file_path: '.harness/MEMORY.md', content: 'x', agentId: 'ag1' } as any)
