@@ -73,20 +73,20 @@ The kit is pt-BR only (ADR-011): reply to the owner in Portuguese, take records 
 - Each `cli:` entry is one `external-clis` call run by a dispatched `qa-verifier` (or `builder` in lane `infra`); you merge the returned verdict signal and raw-output path and run no `command -v`, clone, freeze or revert. The skill owns binary resolution (none: not-run, `not_installed`, no round), prompt assembly, the read-only flag or disposable clone (none possible: not-run, `isolation_unavailable`, never the live tree), freeze and revert, the one-command call and verdict signal. Put this clause verbatim inside the prompt body, never in frontmatter or a wrapper, because the runtime does not enforce a restriction stated outside the prompt (RISK-001):
 
 ```
-Do not invoke another CLI binary, spawn another agent, or delegate any part
-of this review to another tool. Do not execute any script in this
-repository. The only commands you may run are the project's own
-`commands.test` and `commands.lint`, exactly as declared in
-`.harness/project.yaml`, and only to read the result of the existing test
-or lint suite — never `commands.build` or any other repository command.
-This instruction is written here, in the prompt text, because the runtime
-does not enforce it by itself: a specialist in this project once ignored a
-`disallowedTools` restriction declared only in its frontmatter and
-dispatched another agent anyway. Follow the words in this prompt, not an
-assumption about what the runtime blocks.
+Não invoque outro binário de CLI, não crie outro agente nem delegue qualquer parte
+desta revisão a outra ferramenta. Não execute nenhum script deste
+repositório. Os únicos comandos que você pode rodar são o `commands.test` e o
+`commands.lint` do próprio projeto, exatamente como declarados em
+`.harness/project.yaml`, e só para ler o resultado da suíte de testes
+ou de lint existente — nunca `commands.build` nem qualquer outro comando do repositório.
+Esta instrução está escrita aqui, no texto do prompt, porque o ambiente de execução
+não a faz cumprir por si só: um especialista deste projeto já ignorou uma
+restrição `disallowedTools` declarada apenas no frontmatter e
+despachou outro agente mesmo assim. Siga as palavras deste prompt, não uma
+suposição sobre o que o ambiente de execução bloqueia.
 ```
 
-- `external-clis` owns the clause wording ("The anti-delegation clause"); both texts stay identical.
+- `external-clis` owns the clause wording ("A cláusula anti-delegação"); both texts stay identical.
 - Run a stage's reviewers in parallel, batched over the two-specialist cap or where a binary's reference forbids simultaneous runs; the delegate sweeps orphan clones once per batch (`references/live-tree-freeze.md`). While calls are in flight build nothing and write nothing to the harness dir or tree, you and the delegate alike (RISK-002: the freeze is blind to ignored files, and in mode `global` the harness dir is outside the tree). Any reviewer change is reverted, discards its verdict, marks it not-run and spends no round.
 - A non-zero exit, timeout, or exit 0 without the stage's verdict signal (a line prefix) is a transport failure: not-run with the kind `external-clis` classified ("Failure classification") and the reason, no round, never approval, and no automatic retry; tell the owner at once, naming the reviewer and the classified reason. A reply with exactly one outcome and no verdict signal is read as that outcome, deviation recorded. When every reviewer of a stage is not-run the stage is not-run, never approved by omission; with no `claude` listed the report comes from CLI verdicts only.
 - Merge only after every reviewer returned or is not-run; any blocking finding blocks. Equivalent findings (same file and line, or document section) form one entry with a `Reported by:` line per reporter, differing wording quoted; never re-derive a finding. If reviewers disagree and none names a clear blocker, quote both for the owner. Record each reviewer's verdict beside the merged one; the cap applies to the merged verdict.

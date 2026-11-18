@@ -1,8 +1,8 @@
 # mcode (MiniMax Code)
 
-Binary: `mcode`, resolved via `.harness/local.yaml` `binaries.mcode` when `command -v mcode` fails. A login-shell-only `PATH` is common for this binary: `command -v` misses it even when it is installed, so do not treat that miss alone as `not_installed`. Coding agent with hands; reviewer and planner (in a disposable clone).
+Binário: `mcode`, resolvido por `binaries.mcode` em `.harness/local.yaml` quando `command -v mcode` falha. Um `PATH` só de shell de login é comum para este binário: `command -v` não o encontra mesmo quando ele está instalado, então não trate essa falha sozinha como `not_installed`. Agente de código com mãos; revisor e planejador (num clone descartável).
 
-## Invocation
+## Invocação
 
 ```bash
 mcode exec --permission off --cwd "$CLONE" --timeout 15m \
@@ -10,53 +10,53 @@ mcode exec --permission off --cwd "$CLONE" --timeout 15m \
   --input - < "$PROMPT"
 ```
 
-One shell command whose first word is the binary: write the resolved command there as a literal (bare `mcode`, or the literal path taken from `.harness/local.yaml`; a literal path does not match a `Bash(mcode:*)` allow rule, so that form may need the owner's approval or be not-run), with no `timeout`, `&&`, `;` or pipe in front of or after it. `--cwd <path>` is the binary's own working-directory flag ("workspace directory"). The `< "$PROMPT"` redirection is part of the same command. `--permission full` is the write-capable unattended mode, for a builder role only: never pass it from this skill, which covers review stages.
+Um comando de shell cuja primeira palavra é o binário: escreva ali o comando resolvido como literal (`mcode` simples, ou o caminho literal tirado de `.harness/local.yaml`; um caminho literal não casa com uma regra de permissão `Bash(mcode:*)`, então essa forma pode precisar da aprovação do dono ou ser `not-run`), sem `timeout`, `&&`, `;` ou pipe antes ou depois dele. `--cwd <path>` é a flag de diretório de trabalho do próprio binário (`"workspace directory"`). O redirecionamento `< "$PROMPT"` faz parte do mesmo comando. `--permission full` é o modo sem supervisão com capacidade de escrita, só para o papel de `builder`: nunca o passe a partir desta skill, que cobre etapas de revisão.
 
-| Flag | Why |
+| Flag | Por quê |
 |---|---|
-| `exec` | one-shot; bare `mcode` is the TUI |
-| `--permission off` | documented, unmeasured: read-only, unattended (use for a reviewer, in a clone) |
-| `--permission full` | unattended with write access (builder roles only, out of this skill's scope) |
-| `--cwd` | workspace; `--cwd "$CLONE"` on every call |
-| `--model provider/model` | pin the slug |
-| `--input -` | read prompt from stdin (`--input-format text` / `json`) |
-| `--file PATH` | attach a file (repeatable) |
-| `--timeout 15m` | a review call often needs longer than the default |
-| `--max-steps` | cap assistant steps |
+| `exec` | disparo único; `mcode` sozinho é a TUI |
+| `--permission off` | documentada, não medida: somente leitura, sem supervisão (use para um revisor, num clone) |
+| `--permission full` | sem supervisão e com acesso de escrita (só papéis de `builder`, fora do escopo desta skill) |
+| `--cwd` | espaço de trabalho; `--cwd "$CLONE"` em toda chamada |
+| `--model provider/model` | fixa o slug |
+| `--input -` | lê o prompt do stdin (`--input-format text` / `json`) |
+| `--file PATH` | anexa um arquivo (repetível) |
+| `--timeout 15m` | uma chamada de revisão muitas vezes precisa de mais que o padrão |
+| `--max-steps` | limita os passos do assistente |
 | `--output-format` | `text` / `json` / `stream-json` |
-| `--output-schema` | JSON Schema for the final answer |
-| `-o` / `--output-last-message PATH` | final agent message on disk |
+| `--output-schema` | JSON Schema para a resposta final |
+| `-o` / `--output-last-message PATH` | mensagem final do agente em disco |
 
-Do not start the interactive TUI from an orchestrator turn.
+Não inicie a TUI interativa a partir de um turno de orquestrador.
 
-## Prompt input
+## Entrada do prompt
 
-Stdin (`--input -`) or `--file`. `$CLONE` and `$PROMPT` are defined in [clone-isolation.md](clone-isolation.md), Terms.
+Stdin (`--input -`) ou `--file`. `$CLONE` e `$PROMPT` são definidos em [clone-isolation.md](clone-isolation.md), Termos.
 
-## Isolation
+## Isolamento
 
-Read-only flag documented, not yet measured on this kit: `--permission off` disables tool approval entirely rather than auto-approving it, which is the binary's own read-only mode. No probe is recorded confirming it refuses a file-create and a shell-command attempt, so until a dated probe is on record `mcode` runs in a disposable clone ([clone-isolation.md](clone-isolation.md)) for review and planning alike. The flag is used in addition to, never instead of, the comparison every clone call gets ([live-tree-freeze.md](live-tree-freeze.md)).
+Flag somente leitura documentada, ainda não medida neste kit: `--permission off` desliga a aprovação de ferramentas por completo em vez de aprová-las automaticamente, que é o modo somente leitura do próprio binário. Nenhuma sondagem registrada confirma que ele recusa uma tentativa de criar arquivo e de rodar comando de shell, então, até haver uma sondagem datada registrada, `mcode` roda num clone descartável ([clone-isolation.md](clone-isolation.md)) tanto para revisão quanto para planejamento. A flag é usada além da comparação que toda chamada em clone recebe ([live-tree-freeze.md](live-tree-freeze.md)), nunca no lugar dela.
 
-## Model flag
+## Flag de modelo
 
-`--model <provider>/<slug>`, from `models.mcode` in `.harness/local.yaml`, refreshed by hand when the operator measures a new slug for this account.
+`--model <provider>/<slug>`, de `models.mcode` em `.harness/local.yaml`, atualizado à mão quando o operador mede um novo slug para esta conta.
 
 ## Timeout
 
-`--timeout 15m` bounds the time.
+`--timeout 15m` limita o tempo.
 
-## Output capture
+## Captura da saída
 
-Reply on stdout; `-o` / `--output-last-message PATH` writes the final agent message to disk; `--output-format` selects `text`, `json` or `stream-json`.
+Resposta no stdout; `-o` / `--output-last-message PATH` escreve a mensagem final do agente em disco; `--output-format` seleciona `text`, `json` ou `stream-json`.
 
-## Failure signals
+## Sinais de falha
 
-unknown
+desconhecido
 
-## Known gotchas
+## Pegadinhas conhecidas
 
-None recorded in [gotchas.md](gotchas.md).
+Nenhuma registrada em [gotchas.md](gotchas.md).
 
-## Measured on
+## Medido em
 
-2026-10-16 (`mcode exec --help`: `--cwd`). `--permission off`: unknown (not measured).
+2026-10-16 (`mcode exec --help`: `--cwd`). `--permission off`: desconhecido (não medido).

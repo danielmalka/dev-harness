@@ -1,26 +1,26 @@
-# Example schema for .harness/local.yaml — machine-specific data only.
-# Never copy real paths or slugs from this repository's own machine into
-# this file: it is an example, kept portable with placeholders.
+# Esquema de exemplo de .harness/local.yaml — só dados específicos da máquina.
+# Nunca copie caminhos nem slugs reais da máquina deste repositório para
+# este arquivo: ele é um exemplo, mantido portável com marcadores de posição.
 #
-# Resolution order the parent skill follows for each CLI: `command -v
-# <cli-name>` first; if that fails, the path declared under `binaries`
-# below; if neither resolves, the reviewer is not-run.
+# Ordem de resolução que a skill-mãe segue para cada CLI: primeiro `command -v
+# <cli-name>`; se falhar, o caminho declarado em `binaries`
+# abaixo; se nenhum resolver, o revisor é `not-run`.
 
-# Optional top-level line, read by the Coordinator as plain text (no
-# parser): `always` or `on-request`. It overrides `defaults.worktree` of
-# the global config for this project on this machine; an invalid value
-# is reported and skipped.
+# Linha opcional de nível superior, lida pelo Coordenador como texto simples (sem
+# analisador): `always` ou `on-request`. Ela sobrepõe `defaults.worktree` da
+# configuração global para este projeto nesta máquina; um valor inválido
+# é reportado e ignorado.
 worktree: on-request
 
 binaries:
-  # A bare command already on PATH, a path relative to the home
-  # directory (never an expanded absolute path), or a path relative to
-  # the project.
+  # Um comando simples já no PATH, um caminho relativo ao diretório
+  # pessoal (nunca um caminho absoluto expandido), ou um caminho relativo ao
+  # projeto.
   <cli-name>: ~/.<cli-name>/bin/<cli-name>
 
 models:
-  # Slugs measured on this machine for each CLI, in the order preferred
-  # for that CLI's own default use. Never a credential or a token.
+  # Slugs medidos nesta máquina para cada CLI, na ordem preferida
+  # para o uso padrão dessa CLI. Nunca uma credencial nem um token.
   <cli-name>:
     - <slug>
     - <slug>

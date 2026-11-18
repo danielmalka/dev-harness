@@ -1,44 +1,44 @@
-# Gotchas (append-only)
+# Pegadinhas (só acréscimo)
 
-Generalized failure patterns observed invoking these CLIs as reviewers, grouped by the failure kinds of `SKILL.md`, "Failure classification". One entry per miss: what happened, what to do instead. Append a new entry under its kind; never rewrite or reorder an old one. No machine path and no consumer-project name belongs here; see `SKILL.md` metadata for provenance.
+Padrões de falha generalizados, observados ao invocar essas CLIs como revisores, agrupados pelas classes de falha de `SKILL.md`, "Classificação de falhas". Uma entrada por erro: o que aconteceu e o que fazer em vez disso. Acrescente uma entrada nova sob a sua classe; nunca reescreva nem reordene uma antiga. Nenhum caminho de máquina e nenhum nome de projeto consumidor cabe aqui; ver os metadados de `SKILL.md` para a procedência.
 
 ## not_installed
 
-- `command -v <binary>` misses a binary that is installed when its directory is only on a login-shell `PATH`. · Look up `binaries.<binary>` in `.harness/local.yaml` before classifying; a `command -v` miss alone is not `not_installed`.
+- `command -v <binary>` não encontra um binário que está instalado quando o diretório dele fica só no `PATH` de um shell de login. · Consulte `binaries.<binary>` em `.harness/local.yaml` antes de classificar; uma falha de `command -v` sozinha não é `not_installed`.
 
 ## auth_required
 
-- None recorded.
+- Nenhuma registrada.
 
 ## rate_limited
 
-- None recorded.
+- Nenhuma registrada.
 
-## timed_out
+## `timed_out`
 
-- An `agy --print` call wrote its full reply in about 2 minutes, but the process stayed alive past `--print-timeout 15m` and needed SIGKILL (measured 2026-10-16). · A complete reply on disk that carries the stage's verdict signal is the result; stop the process by the pid recorded at the start of the call; see [agy.md](agy.md).
-- A large diff sent with `--prompt-file` at high reasoning effort timed out. · It is a failure, never a lenient pass.
+- Uma chamada `agy --print` escreveu a resposta completa em cerca de 2 minutos, mas o processo continuou vivo além de `--print-timeout 15m` e precisou de SIGKILL (medido em 2026-10-16). · Uma resposta completa em disco que traga o sinal de veredito da etapa é o resultado; pare o processo pelo pid registrado no início da chamada; ver [agy.md](agy.md).
+- Um diff grande enviado com `--prompt-file` em esforço de raciocínio alto estourou o timeout. · É uma falha, nunca uma aprovação complacente.
 
 ## no_signal
 
-- A CLI review call exited 0 after printing only a reasoning preamble, with no verdict block, on a large diff run at high reasoning effort. · Exit 0 with no verdict signal is a failure exactly like a non-zero exit or a timeout; it is never read as an implicit pass.
-- A real reviewer run returned a correct blocking verdict written as `- **Request changes**` and no `Review status:` line (2026-09-22). · State the verdict signal in the prompt as a requirement, verbatim, as the verdict contract in `SKILL.md` says.
-- The same reviewer runs signed their findings with tags that were not the dispatched slug. · Tell the reviewer its exact `Reported by:` string in the prompt.
-- `agy` printed its `--add-dir` help and ignored the packet when `--add-dir PATH` came before the prompt. · Inline the files in the prompt; see [agy.md](agy.md).
-- `codex exec` outside a trusted git repo exited 0 with empty stdout. · Pass `--skip-git-repo-check`; see [codex.md](codex.md).
-- Two concurrent calls to the same CLI binary, from the same account, failed on the second with a database-lock error. · Serialize calls to a binary known to reject concurrent runs into their own batch; see the binary's recipe for which binaries this applies to.
+- Uma chamada de revisão de CLI saiu com 0 depois de imprimir só um preâmbulo de raciocínio, sem bloco de veredito, num diff grande rodado em esforço de raciocínio alto. · Saída 0 sem sinal de veredito é uma falha exatamente como uma saída diferente de zero ou um timeout; nunca é lida como aprovação implícita.
+- Uma execução real de revisor devolveu um veredito bloqueante correto escrito como `- **Request changes**` e nenhuma linha `Status da revisão:` (2026-09-22). · Declare o sinal de veredito no prompt como exigência, literalmente, como diz o contrato de veredito em `SKILL.md`.
+- As mesmas execuções de revisor assinaram os achados com tags que não eram o slug despachado. · Diga ao revisor, no prompt, a string exata de `Reportado por:`.
+- `agy` imprimiu a ajuda de `--add-dir` e ignorou o pacote quando `--add-dir PATH` veio antes do prompt. · Embuta os arquivos no prompt; ver [agy.md](agy.md).
+- `codex exec` fora de um repositório git confiável saiu com 0 e stdout vazio. · Passe `--skip-git-repo-check`; ver [codex.md](codex.md).
+- Duas chamadas simultâneas ao mesmo binário de CLI, da mesma conta, fizeram a segunda falhar com um erro de trava de banco de dados. · Serialize as chamadas a um binário sabidamente intolerante a execuções simultâneas, cada uma em seu próprio lote; ver na receita do binário a quais binários isso se aplica.
 
 ## tree_changed
 
-- A CLI given an explicitly read-only, validation-only brief ran a repository build script on its own and rewrote a versioned output directory (the rebuilt result happened to match the sources, so no damage occurred, but the run was not read-only in practice). · A read-only brief must forbid running repository scripts, not only editing files; check the modification times of any versioned output directory after the call, not just `git status` on tracked files.
-- A `dh build` run by the Coordinator while two CLI reviewers were working made the post-call comparison differ on the manifest and `dist/` (2026-09-22). · Nothing else writes to the tree while a call is in flight; see [live-tree-compare.md](live-tree-compare.md).
+- Uma CLI a quem se deu um resumo explicitamente somente leitura e só de validação rodou por conta própria um script de build do repositório e reescreveu um diretório de saída versionado (o resultado reconstruído por acaso coincidia com as fontes, então não houve dano, mas a execução não foi somente leitura na prática). · Um resumo somente leitura deve proibir rodar scripts do repositório, não só editar arquivos; confira os horários de modificação de qualquer diretório de saída versionado depois da chamada, não só o `git status` dos arquivos rastreados.
+- Um `dh build` rodado pelo Coordenador enquanto dois revisores de CLI trabalhavam fez a comparação posterior à chamada divergir no manifesto e em `dist/` (2026-09-22). · Nada mais escreve na árvore enquanto uma chamada está em andamento; ver [live-tree-compare.md](live-tree-compare.md).
 
 ## isolation_unavailable
 
-- None recorded.
+- Nenhuma registrada.
 
-## No kind (the call ran; the prompt or the scheduling was wrong)
+## Sem classe (a chamada rodou; o prompt ou o agendamento estava errado)
 
-- A CLI running as an implementer under a full-access sandbox flag invoked a second CLI binary on its own, inside the same checkout, delegating part of the work without being asked. · The anti-delegation clause must be copied verbatim into the body of every reviewer prompt, never left only in the dispatch instruction around it (RISK-001); when delegation is suspected, check running processes during the call.
-- `codex exec -s read-only` blocks a Go-toolchain `commands.test` from actually compiling. · Treat that reviewer's pass as reading and reasoning about the code, not as behavioral validation; see [codex.md](codex.md).
-- `pgrep -f` or `pkill -f` with a pattern that contains the delegate's own command or path matched the delegate's own shell (exit 144, endless waits; seen 2026-10-21). · Kill by the pid recorded when the call started, or use a bracket pattern that does not match its own text (`'[o]pencode run'`).
+- Uma CLI rodando como implementadora sob uma flag de sandbox de acesso total invocou por conta própria um segundo binário de CLI, dentro do mesmo checkout, delegando parte do trabalho sem ser solicitada. · A cláusula anti-delegação deve ser copiada literalmente para o corpo de todo prompt de revisor, nunca deixada só na instrução de despacho em volta (RISK-001); quando houver suspeita de delegação, confira os processos em execução durante a chamada.
+- `codex exec -s read-only` impede um `commands.test` da cadeia de ferramentas Go de compilar de fato. · Trate a aprovação desse revisor como leitura e raciocínio sobre o código, não como validação de comportamento; ver [codex.md](codex.md).
+- `pgrep -f` ou `pkill -f` com um padrão que contém o comando ou o caminho do próprio delegado casou com o shell do próprio delegado (saída 144, esperas sem fim; visto em 2026-10-21). · Mate pelo pid registrado quando a chamada começou, ou use um padrão com colchetes que não case com o próprio texto (`'[o]pencode run'`).

@@ -1,60 +1,60 @@
 # grok (Grok Build)
 
-Binary: `grok`, resolved via `.harness/local.yaml` `binaries.grok` when `command -v grok` fails. A login-shell-only `PATH` is common for this binary: `command -v` misses it even when it is installed, so do not treat that miss alone as `not_installed`. Coding agent with hands; also a reviewer and a planner (in a disposable clone).
+Binário: `grok`, resolvido por `binaries.grok` em `.harness/local.yaml` quando `command -v grok` falha. Um `PATH` só de shell de login é comum para este binário: `command -v` não o encontra mesmo quando ele está instalado, então não trate essa falha sozinha como `not_installed`. Agente de código com mãos; também revisor e planejador (num clone descartável).
 
-## Invocation
+## Invocação
 
 ```bash
 grok --always-approve --cwd "$CLONE" --prompt-file "$PROMPT"
-# short prompt:
+# prompt curto:
 grok --always-approve --cwd "$CLONE" -p "$(cat "$PROMPT")"
 ```
 
-One shell command whose first word is the binary: write the resolved command there as a literal (bare `grok`, or the literal path taken from `.harness/local.yaml`; a literal path does not match a `Bash(grok:*)` allow rule, so that form may need the owner's approval or be not-run), with no `timeout`, `&&`, `;` or pipe in front of or after it. `--cwd <CWD>` is the binary's own working-directory flag, so no `cd` is needed. `-p` / `--single` prints to stdout and exits. `--always-approve` auto-approves tools, needed for an unattended call; `--permission-mode bypassPermissions` is the named equivalent.
+Um comando de shell cuja primeira palavra é o binário: escreva ali o comando resolvido como literal (`grok` simples, ou o caminho literal tirado de `.harness/local.yaml`; um caminho literal não casa com uma regra de permissão `Bash(grok:*)`, então essa forma pode precisar da aprovação do dono ou ser `not-run`), sem `timeout`, `&&`, `;` ou pipe antes ou depois dele. `--cwd <CWD>` é a flag de diretório de trabalho do próprio binário, então nenhum `cd` é necessário. `-p` / `--single` imprime no stdout e sai. `--always-approve` aprova ferramentas automaticamente, necessário para uma chamada sem supervisão; `--permission-mode bypassPermissions` é o equivalente nomeado.
 
-| Flag | Why |
+| Flag | Por quê |
 |---|---|
-| `-p` / `--single` | one-shot prompt on argv |
-| `--prompt-file` | one-shot prompt from disk |
-| `-m` / `--model` | pin the slug |
-| `--always-approve` | unattended tools |
-| `--cwd` | workspace; `--cwd "$CLONE"` on every call |
-| `--reasoning-effort` / `--effort` | `none` / `minimal` / `low` / `medium` / `high` / `xhigh` / `max` (only the levels the model advertises) |
-| `--output-format` | `plain` (default) / `json` / `streaming-json` / `streaming-messages-json` |
-| `--json-schema` | constrains JSON output (implies `--output-format json`) |
-| `--max-turns` | cap agentic turns |
-| `--no-subagents` | block spawning a subagent from inside the call |
+| `-p` / `--single` | prompt de disparo único no argv |
+| `--prompt-file` | prompt de disparo único vindo do disco |
+| `-m` / `--model` | fixa o slug |
+| `--always-approve` | ferramentas sem supervisão |
+| `--cwd` | espaço de trabalho; `--cwd "$CLONE"` em toda chamada |
+| `--reasoning-effort` / `--effort` | `none` / `minimal` / `low` / `medium` / `high` / `xhigh` / `max` (só os níveis que o modelo anuncia) |
+| `--output-format` | `plain` (padrão) / `json` / `streaming-json` / `streaming-messages-json` |
+| `--json-schema` | restringe a saída JSON (implica `--output-format json`) |
+| `--max-turns` | limita os turnos agênticos |
+| `--no-subagents` | impede criar um subagente de dentro da chamada |
 
-Do not launch the interactive TUI from an orchestrator turn.
+Não inicie a TUI interativa a partir de um turno de orquestrador.
 
-## Prompt input
+## Entrada do prompt
 
-`--prompt-file` is the contract for anything longer than a line; `-p` takes a short prompt on argv. `$CLONE` and `$PROMPT` are defined in [clone-isolation.md](clone-isolation.md), Terms.
+`--prompt-file` é o contrato para qualquer coisa maior que uma linha; `-p` recebe um prompt curto no argv. `$CLONE` e `$PROMPT` são definidos em [clone-isolation.md](clone-isolation.md), Termos.
 
-## Isolation
+## Isolamento
 
-No read-only flag documented: disposable clone ([clone-isolation.md](clone-isolation.md)), compared as [live-tree-freeze.md](live-tree-freeze.md) says. `--no-subagents` narrows but does not replace the anti-delegation clause: pass both.
+Nenhuma flag somente leitura documentada: clone descartável ([clone-isolation.md](clone-isolation.md)), comparado como [live-tree-freeze.md](live-tree-freeze.md) diz. `--no-subagents` estreita mas não substitui a cláusula anti-delegação: passe as duas.
 
-## Model flag
+## Flag de modelo
 
-`-m` / `--model <slug>`, from `models.grok` in `.harness/local.yaml`.
+`-m` / `--model <slug>`, de `models.grok` em `.harness/local.yaml`.
 
 ## Timeout
 
-No documented wall-clock flag besides `--max-turns`. The Bash tool timeout (set to the reviewer's timeout) or `run_in_background` bounds the time.
+Nenhuma flag de tempo real documentada além de `--max-turns`. O timeout da ferramenta Bash (ajustado ao timeout do revisor) ou `run_in_background` limita o tempo.
 
-## Output capture
+## Captura da saída
 
-Reply on stdout; `--output-format` selects the shape (default `plain`).
+Resposta no stdout; `--output-format` seleciona o formato (padrão `plain`).
 
-## Failure signals
+## Sinais de falha
 
-Large diffs with `--prompt-file` at high effort have been seen to time out or to print only a reasoning preamble with exit 0.
+Já se viu diffs grandes com `--prompt-file` em esforço alto estourarem o timeout ou imprimirem só um preâmbulo de raciocínio com saída 0.
 
-## Known gotchas
+## Pegadinhas conhecidas
 
-See [gotchas.md](gotchas.md), kinds `timed_out` and `no_signal`.
+Ver [gotchas.md](gotchas.md), classes `timed_out` e `no_signal`.
 
-## Measured on
+## Medido em
 
 2026-10-16 (`grok --help`: `--cwd`).
