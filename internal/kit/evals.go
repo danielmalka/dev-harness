@@ -9,7 +9,7 @@ import (
 )
 
 // checkAntiDelegationClause compares the anti-delegation clause repeated in
-// .agents/coordinator.md (heading "## External CLI reviewers", translated in S3) and .skills/external-clis/SKILL.md (heading "## A cláusula anti-delegação"). It stays silent
+// .agents/coordinator.md (heading "## Revisores de CLI externos") and .skills/external-clis/SKILL.md (heading "## A cláusula anti-delegação"). It stays silent
 // when either file, or the fenced block it expects inside it, is absent —
 // that pairing is only enforced once both sides exist to compare.
 func checkAntiDelegationClause(dirs map[string]string, errors *[]string) {
@@ -26,7 +26,7 @@ func checkAntiDelegationClause(dirs map[string]string, errors *[]string) {
 	if err != nil {
 		return
 	}
-	coordinatorBlock, ok := extractFencedBlockAfterHeading(coordinatorText, "## External CLI reviewers")
+	coordinatorBlock, ok := extractFencedBlockAfterHeading(coordinatorText, "## Revisores de CLI externos")
 	if !ok {
 		return
 	}

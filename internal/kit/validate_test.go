@@ -248,7 +248,7 @@ func TestValidateSkipsWorktreesFolder(t *testing.T) {
 }
 
 func TestAntiDelegationClauseParity(t *testing.T) {
-	block := "## External CLI reviewers\n\n```\nrule one\nrule two\n```\n"
+	block := "## Revisores de CLI externos\n\n```\nrule one\nrule two\n```\n"
 	skillBlock := "## A cláusula anti-delegação\n\n```\nrule one\nrule two\n```\n"
 	whitespaceBlock := "## A cláusula anti-delegação\n\n```\n rule one \n  rule two\n```\n"
 	divergentBlock := "## A cláusula anti-delegação\n\n```\nrule one\nrule three\n```\n"
@@ -265,6 +265,7 @@ func TestAntiDelegationClauseParity(t *testing.T) {
 		{name: "whitespace only", coordinator: block, skill: whitespaceBlock, writeSkillFile: true, want: ""},
 		{name: "skill file absent", coordinator: block, writeSkillFile: false, want: ""},
 		// S2: the English heading of the skill is no longer read, so an old-heading skill with a different block stays silent (the pairing needs both headings).
+		{name: "old English heading of the coordinator is not read", coordinator: strings.Replace(block, "## Revisores de CLI externos", "## External CLI reviewers", 1), skill: divergentBlock, writeSkillFile: true, want: ""},
 		{name: "old English heading is not read", coordinator: block, skill: strings.Replace(divergentBlock, "## A cláusula anti-delegação", "## The anti-delegation clause", 1), writeSkillFile: true, want: ""},
 	}
 	for _, test := range tests {
