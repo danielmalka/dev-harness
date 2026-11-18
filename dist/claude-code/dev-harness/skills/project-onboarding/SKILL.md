@@ -83,13 +83,13 @@ Segunda fase opcional de `/dh:setup`, rodada só quando o dono aceita ou passa `
 - Parada: mais de 15 diretórios de nível superior. Não escreva nada e devolva a contagem ao Coordenador, que pede ao dono para nomear o escopo.
 - Idioma: `conventions.code_language` no `project.yaml` quando definido. No máximo 200 linhas.
 - Toda afirmação cita um caminho relativo. Uma afirmação não verificada é marcada `hypothesis`.
-- Partes, em ordem:
+- Partes, em ordem. O título de cada parte é fixo e leva o número desta lista, para não variar de um mapa para outro: o cabeçalho (parte 1) é só o título do arquivo mais a linha de data e sha, sem `##`, e as partes 2 a 6 têm exatamente os títulos `## 2. Estrutura de nível superior`, `## 3. Pontos de entrada e comandos`, `## 4. Arquitetura`, `## 5. Áreas de risco` e `## 6. Convenções`.
   1. Cabeçalho: data e o sha do `HEAD` vindo do despacho.
-  2. Estrutura de nível superior: uma linha por diretório.
-  3. Pontos de entrada e como rodar, testar, lintar e compilar, com a origem de cada comando.
-  4. Arquitetura em no máximo 15 linhas: principais componentes e como se conectam.
-  5. Áreas de risco: caminhos onde uma mudança exige cuidado extra, com o motivo.
-  6. A linha `Convenções: ver FACTS.md`, e nada mais: as convenções que o código mostra não ficam no mapa. O redator as devolve ao Coordenador como candidatos a fato (bloco `## Fatos candidatos` da resposta, no máximo 5, no formato da seção "Fatos candidatos" de `repository-mapping`, cada um com evidência `caminho:linha` que ele leu), e o Coordenador os grava no `FACTS.md` com `dh memory write --file FACTS.md` (PRD-035, R26). O redator nunca escreve o `FACTS.md`.
+  2. `## 2. Estrutura de nível superior`: uma linha por diretório.
+  3. `## 3. Pontos de entrada e comandos`: como rodar, testar, lintar e compilar, com a origem de cada comando.
+  4. `## 4. Arquitetura`, em no máximo 15 linhas: principais componentes e como se conectam.
+  5. `## 5. Áreas de risco`: caminhos onde uma mudança exige cuidado extra, com o motivo.
+  6. `## 6. Convenções`, com a linha `Convenções: ver FACTS.md`, e nada mais: as convenções que o código mostra não ficam no mapa. O redator as devolve ao Coordenador como candidatos a fato (bloco `## Fatos candidatos` da resposta, no máximo 5, no formato da seção "Fatos candidatos" de `repository-mapping`, cada um com evidência `caminho:linha` que ele leu), e o Coordenador os grava no `FACTS.md` com `dh memory write --file FACTS.md` (PRD-035, R26). O redator nunca escreve o `FACTS.md`.
 - Uma atualização (`bootstrap` nos argumentos) sobrescreve o arquivo. Este é o único registro que `/dh:setup` pode sobrescrever, porque o mapa é dado derivado. No modo `repo`, o arquivo é versionado junto com os outros registros internos.
 
 ## Linha de referência do arquivo de fatos
