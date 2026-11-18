@@ -661,7 +661,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-11-18</b></span>
-          <span class="chip">status <b>0.47.0 · vivo</b></span>
+          <span class="chip">status <b>0.48.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -698,6 +698,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.48.0 · Arquivo de fatos do sistema, fatia F2: a escrita dos candidatos (PRD-035)</h3>
+        <p><strong>Status:</strong> concluído (segunda de quatro fatias do PRD-035; a curadoria vem na F3, a leitura na F4, e o recurso só é declarado pronto depois da eval paga da F5).</p>
+        <p><strong>Resumo:</strong> PRD-035 F2. O <code>repo-scout</code> (até 5), o <code>builder</code> e o <code>qa-verifier</code> (até 2 cada) propõem fatos candidatos no bloco <code>## Fatos candidatos</code> da resposta, uma linha por fato no formato exato do PRD (<code>F-000 · frase · Evidência · Visto · sha · Estado</code>), sem escrever o arquivo. O Coordenador é o único que grava, só na seção <code>## Candidatos</code>, pela trava de hash da F1 (<code>dh memory write --file FACTS.md --expect</code>), troca o id e o sha, cria o arquivo com o esqueleto na primeira gravação (nunca na raiz do repositório, nunca no modo <code>none</code>) e confere com <code>dh facts check</code>. O <code>/dh:setup</code> pergunta ao dono se acrescenta ao <code>AGENTS.md</code> (ou ao <code>CLAUDE.md</code>) do projeto a linha <code>Fatos do sistema:</code>, com caminho no modo <code>repo</code> e sem caminho no <code>global</code>, e o <code>bootstrap</code> semeia até 5 candidatos e deixa a parte 6 do <code>REPO-MAP.md</code> só com <code>Convenções: ver FACTS.md</code>. Só texto do kit mudou: nenhum código Go ou TypeScript.</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.48.0; <code>docs/prd/PRD-035-arquivo-de-fatos.md</code> (escolhas E6 a E10); <code>.agents/coordinator.md</code>, <code>.agents/repo-scout.md</code>, <code>.agents/builder.md</code>, <code>.agents/qa-verifier.md</code>, <code>.agents/docs-guide.md</code>; <code>.skills/repository-mapping/SKILL.md</code>, <code>.skills/project-onboarding/SKILL.md</code>; <code>.commands/setup.md</code>; <code>internal/kit/facts_contract_test.go</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> (inclui o teste de contrato dos textos e o exemplo da skill passando pelo <code>dh facts check</code>), testes dos mods, <code>go vet ./...</code>, <code>dh validate .</code> e <code>go run ./cmd/dh build</code> sem diferença em <code>dist/</code>; os binários mudam só pela versão; a sessão real do Claude Code (um scout propondo, o Coordenador gravando) fica para o Verificador; sem eval nova (a eval paga é a F5).</p>
+      </div>
 
       <div class="card">
         <h3>0.47.0 · Arquivo de fatos do sistema, fatia F1: trava, mod e <code>dh facts check</code> (PRD-035)</h3>
@@ -1763,7 +1771,7 @@ profiles/"] --> B["dh build"]
           e o <code>qa-verifier</code> propõem; o Coordenador grava os candidatos com a trava de hash; o <code>docs-guide</code>, com a
           skill nova <code>facts-curation</code>, confere e poda; os especialistas leem as categorias da sua função no despacho.</p>
         <p><strong>Critérios de aceite:</strong> R1 a R37 do PRD-035, inclusive a eval paga da F5 (3 casos, 2 braços, 3 repetições, teto de US$ 80).</p>
-        <p><strong>Status:</strong> em andamento: F1 (trava, mod e <code>dh facts check</code>) entregue na 0.47.0; F2 a F4 nas versões 0.48.0 a 0.50.0; a F5 é a prova, com a eval paga.</p>
+        <p><strong>Status:</strong> em andamento: F1 (trava, mod e <code>dh facts check</code>) entregue na 0.47.0 e F2 (escrita dos candidatos) na 0.48.0; F3 e F4 nas versões 0.49.0 e 0.50.0; a F5 é a prova, com a eval paga.</p>
         <p><strong>Relações:</strong> <code>docs/prd/PRD-035-arquivo-de-fatos.md</code>; PRD-032; PRD-034; ADR-005; ADR-007.</p>
       </div>
 
@@ -1960,7 +1968,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.47.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.48.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
