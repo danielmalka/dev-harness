@@ -151,7 +151,7 @@ func TestCheckRoadmaps(t *testing.T) {
 	}
 }
 
-// ADR-011: the English roadmap is no longer checked. A stale docs/en/roadmap.html (until S4 removes it) raises no error and is not compared with the pt one.
+// ADR-011: the English roadmap is no longer checked. A stale docs/en/roadmap.html (removed in 0.45.0) raises no error and is not compared with the pt one.
 func TestCheckRoadmapsIgnoresTheEnglishMirror(t *testing.T) {
 	var errs []string
 	stale := strings.Replace(rmPage(rmOpts{date: "2020-01-01", cards: []string{"0.1.0 · velho"}}), "data <b>", "date <b>", 1)

@@ -51,7 +51,7 @@ func realDocumentedCount(inv Inventory, canonical string) int {
 
 // checkDocumentedCounts flags prose across docs/**/*.html, docs/**/*.md and README.md that states a kit content count no longer matching the real count Validate just
 // computed from disk (agents, commands, skills, profiles, templates). Recurring failure this repository keeps hitting: such prose silently falls behind reality, and nothing
-// used to catch it. Only pt-BR files are read (ADR-011); the former English mirror, `docs/en/` and `README.en.md`, is ignored until S4 removes it.
+// used to catch it. Only pt-BR files are read (ADR-011); the English mirror, `docs/en/` and `README.en.md`, was removed in 0.45.0 and stays ignored in case it comes back.
 //
 // A line is compared only when it both (a) names at least two of the five nouns and (b) carries one of the current/expected-state anchor words above, in the same physical
 // line. Both conditions are load-bearing for avoiding false positives, which are worse than a miss here:
@@ -103,7 +103,7 @@ func checkDocumentedCounts(root string, inv Inventory, errors *[]string) {
 	}
 }
 
-// docCountFiles lists every docs/**/*.html, docs/**/*.md and README.md under root, in sorted order, without the English mirror (`docs/en/` and `README.en.md`, removed in S4).
+// docCountFiles lists every docs/**/*.html, docs/**/*.md and README.md under root, in sorted order, without the English mirror (`docs/en/` and `README.en.md`, removed in 0.45.0).
 func docCountFiles(root string) []string {
 	var paths []string
 	docsRoot := filepath.Join(root, "docs")
