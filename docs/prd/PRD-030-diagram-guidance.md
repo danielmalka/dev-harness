@@ -1,81 +1,83 @@
-# PRD-030 · Diagram guidance for docs-guide and pinned Mermaid imports
+# PRD-030 · Orientação de diagramas para o docs-guide e importações fixadas do Mermaid
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | delivered on 2026-10-28 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-10-28 / 2026-10-28 |
-| Tickets | to be defined by the planner |
-| Origin | Owner decision 2026-10-28 (option B + pin), task AUTO-3 |
-| Depends on | PRD-029 (version base 0.34.0, delivered) |
-| Delivery | One pull request, version 0.35.0 |
+| Status | entregue em 2026-10-28 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-10-28 / 2026-10-28 |
+| Tickets | a definir pelo planejador |
+| Origem | Decisão do dono em 2026-10-28 (opção B + fixação), tarefa AUTO-3 |
+| Depende de | PRD-029 (base de versão 0.34.0, entregue) |
+| Entrega | Uma pull request, versão 0.35.0 |
 
-## 1. Problem
+## 1. Problema
 
-Three facts, one capability: how the kit guides diagrams in documents.
+Três fatos, uma capacidade: como o kit orienta diagramas em documentos.
 
-- Fact: the roadmap card "Skills de diagrama especializadas (Excalidraw e Mermaid)" (`docs/roadmap.html:1726-1741`, `docs/en/roadmap.html:1726-1741`) is planned and has no PRD.
-- Fact: `.agents/docs-guide.md` says nothing about diagrams. A docs-guide run has no rule on when to draw or in which format.
-- Fact: four hand-written HTML pages import Mermaid with the floating tag `mermaid@11`. The kit rule fixes an exact version (`.skills/doc-template-html/scripts/stamp.sh:89` uses `11.17.2`). The roadmap card text (pt line 1736, en line 1737) still says Mermaid is the only CDN exception. `AGENTS.md` (line 29) says there are two: Mermaid and Google Fonts.
+- Fato: o card do roadmap "Skills de diagrama especializadas (Excalidraw e Mermaid)" (`docs/roadmap.html:1726-1741`, `docs/en/roadmap.html:1726-1741`) está planejado e não tem PRD.
+- Fato: `.agents/docs-guide.md` não diz nada sobre diagramas. Uma execução do `docs-guide` não tem regra sobre quando desenhar nem em qual formato.
+- Fato: quatro páginas HTML escritas à mão importam o Mermaid com a tag flutuante `mermaid@11`. A regra do kit fixa uma versão exata (`.skills/doc-template-html/scripts/stamp.sh:89` usa `11.17.2`). O texto do card do roadmap (linha 1736 do pt, linha 1737 do en) ainda diz que o Mermaid é a única exceção de CDN. O `AGENTS.md` (linha 29) diz que são duas: Mermaid e Google Fonts.
 
-Decision (owner, 2026-10-28): the kit does not import the external `cathrynlavery/diagram-design` skill. Fact: it emits inline SVG, needs Python and Playwright, and has 45 diagram types. This conflicts with the `doc-template-html` rule "Never embed pre-rendered SVG" and with ADR-003 (lean kit). The owner may install it outside the kit.
+Decisão (dono, 2026-10-28): o kit não importa a skill externa `cathrynlavery/diagram-design`. Fato: ela emite SVG embutido, precisa de Python e Playwright, e tem 45 tipos de diagrama. Isso conflita com a regra `Never embed pre-rendered SVG` da `doc-template-html` e com a ADR-003 (kit enxuto). O dono pode instalá-la fora do kit.
 
-## 2. Solution
+## 2. Solução
 
-After delivery, `docs-guide` has one short rule on diagrams. Mermaid is the default format, written in `<pre class="mermaid">`. Excalidraw is allowed only as a separate `.excalidraw` file that the document links. The four pages import one exact Mermaid version. The roadmap shows the card as delivered in 0.35.0. No skill, agent or command is added.
+Depois da entrega, o `docs-guide` tem uma regra curta sobre diagramas. O Mermaid é o formato padrão, escrito em `<pre class="mermaid">`. O Excalidraw só é permitido como um arquivo `.excalidraw` separado que o documento linka. As quatro páginas importam uma única versão exata do Mermaid. O roadmap mostra o card como entregue na 0.35.0. Nenhuma skill, agente ou comando é acrescentado.
 
-## 3. Rules
+## 3. Regras
 
-- R1 `.agents/docs-guide.md` carries one short instruction. It is one sentence added at the end of Procedure step 2 (same list item), so no step is renumbered. It says: use a Mermaid diagram (`<pre class="mermaid">`, as `doc-template-html` defines) where it helps the reader follow a flow or a structure. Use an Excalidraw diagram only as a separate `.excalidraw` file that the document links. Never embed it. No script, no export (owner decision 2026-09-25). No diagram skill is added.
-  - When docs-guide reads the Procedure, then the sentence ends step 2 and the step numbers are unchanged.
-  - When a document needs a flow or structure picture, then the instruction names Mermaid first.
-  - When Excalidraw is used, then the instruction allows a link to a separate file only.
-- R2 The four imports use the exact version `mermaid@11.17.2` with the file name `mermaid.esm.min.mjs`. The files are `docs/roadmap.html:1897`, `docs/en/roadmap.html:1901`, `docs/tutoriais/templates.html:983` and `docs/en/tutorials/templates.html:983`. The version is the same as in `stamp.sh:89`. The URL answers HTTP 200.
-  - When one of the four files is read, then its import names `mermaid@11.17.2/dist/mermaid.esm.min.mjs`.
-  - When the URL is requested, then the answer is HTTP 200.
-  - When the four versions are compared with `stamp.sh:89`, then they are equal.
-  - Accepted limit (decision): these imports have no Subresource Integrity. A static ES `import` cannot carry it. The pin to an exact version is the mitigation.
-- R3 No `mermaid@11/` (floating) reference remains in tracked files, except under `dist/` and the history in `docs/prd/`.
-  - When `grep -rn "mermaid@11/"` runs on the tree without `dist/` and `docs/prd/`, then it returns no line.
-  - When `go run ./cmd/dh build` runs, then `dist/` holds no floating tag that the sources no longer hold.
-  - When a new page imports Mermaid, then it uses the exact version of R2.
-- R4 The roadmap card, in pt and en, is kept in sync by hand (`dh validate` ignores detail cards). Its status is delivered in version 0.35.0. Its description states what was delivered. It names the docs-guide instruction, Excalidraw as a linked separate file, no new skill, and the external `diagram-design` left to the owner. The words "única exceção de CDN" (pt 1736) and "the only allowed CDN exception" (en 1737) are replaced. The new text uses the two-exception wording of `AGENTS.md:29` (Mermaid and Google Fonts).
-  - When the card is read in pt and en, then both show delivered, 0.35.0 and the same facts.
-  - When the card is searched for the old exception words, then none remain.
-  - When the card is read, then it names two CDN exceptions.
-- R5 Version 0.35.0 is set in `internal/build/build.go:20`, in `.claude-plugin/marketplace.json` (version and ref `v0.35.0`) and in `harness-manifest.json`. `CHANGELOG.md` has an entry dated 2026-10-28. `docs/roadmap.html` and `docs/en/roadmap.html` have updated chips and a new Entregue / Delivered version card. The card is built like the 0.34.0 card (lines 703-709). Its Sources range goes up to 0.35.0. `dist/` is regenerated only by `go run ./cmd/dh build`, never by hand.
-  - When the files named in this rule are read, then each version field says 0.35.0 (the marketplace ref says v0.35.0).
-  - When the roadmap is read in pt and en, then the new card exists with the same structure as 0.34.0.
-  - When `dist/` is compared with the build output, then there is no difference.
-- R6 The checks pass. Counts stay at 13 agents, 19 commands plus 1 mod command, and 22 skills.
-  - When `dh validate` runs, then it passes.
-  - When `go test ./...` runs, then it passes.
-  - When `go run ./cmd/dh build` runs after the regeneration, then `dist/` shows no difference and the counts are unchanged.
+- R1 `.agents/docs-guide.md` traz uma instrução curta. É uma frase acrescentada no fim do passo 2 do Procedimento (mesmo item da lista), então nenhum passo é renumerado. Ela diz: use um diagrama Mermaid (`<pre class="mermaid">`, como a `doc-template-html` define) onde ele ajuda o leitor a seguir um fluxo ou uma estrutura. Use um diagrama Excalidraw só como um arquivo `.excalidraw` separado que o documento linka. Nunca o embuta. Sem script, sem exportação (decisão do dono em 2026-09-25). Nenhuma skill de diagrama é acrescentada.
+  - Quando o `docs-guide` lê o Procedimento, então a frase termina o passo 2 e os números dos passos não mudam.
+  - Quando um documento precisa de uma imagem de fluxo ou de estrutura, então a instrução cita o Mermaid primeiro.
+  - Quando o Excalidraw é usado, então a instrução permite só um link para um arquivo separado.
+- R2 As quatro importações usam a versão exata `mermaid@11.17.2` com o nome de arquivo `mermaid.esm.min.mjs`. Os arquivos são `docs/roadmap.html:1897`, `docs/en/roadmap.html:1901`, `docs/tutoriais/templates.html:983` e `docs/en/tutorials/templates.html:983`. A versão é a mesma de `stamp.sh:89`. A URL responde HTTP 200.
+  - Quando um dos quatro arquivos é lido, então sua importação nomeia `mermaid@11.17.2/dist/mermaid.esm.min.mjs`.
+  - Quando a URL é requisitada, então a resposta é HTTP 200.
+  - Quando as quatro versões são comparadas com `stamp.sh:89`, então são iguais.
+  - Limite aceito (decisão): essas importações não têm Subresource Integrity. Um `import` ES estático não pode carregá-lo. A fixação em uma versão exata é a mitigação.
+- R3 Nenhuma referência `mermaid@11/` (flutuante) permanece nos arquivos rastreados, exceto sob `dist/` e no histórico em `docs/prd/`.
+  - Quando `grep -rn "mermaid@11/"` roda na árvore sem `dist/` e `docs/prd/`, então não devolve nenhuma linha.
+  - Quando `go run ./cmd/dh build` roda, então `dist/` não tem nenhuma tag flutuante que as fontes não tenham mais.
+  - Quando uma página nova importa o Mermaid, então ela usa a versão exata de R2.
+- R4 O card do roadmap, em pt e en, é mantido em sincronia à mão (o `dh validate` ignora os cards de detalhe). Seu status é entregue na versão 0.35.0. Sua descrição diz o que foi entregue. Ela cita a instrução do `docs-guide`, o Excalidraw como arquivo separado linkado, nenhuma skill nova e o `diagram-design` externo deixado ao dono. As palavras "única exceção de CDN" (pt 1736) e `the only allowed CDN exception` (en 1737) são substituídas. O texto novo usa a redação de duas exceções de `AGENTS.md:29` (Mermaid e Google Fonts).
+  - Quando o card é lido em pt e en, então os dois mostram entregue, 0.35.0 e os mesmos fatos.
+  - Quando o card é procurado pelas palavras antigas da exceção, então nenhuma permanece.
+  - Quando o card é lido, então ele cita duas exceções de CDN.
+- R5 A versão 0.35.0 é definida em `internal/build/build.go:20`, em `.claude-plugin/marketplace.json` (versão e ref `v0.35.0`) e em `harness-manifest.json`. `CHANGELOG.md` tem uma entrada datada de 2026-10-28. `docs/roadmap.html` e `docs/en/roadmap.html` têm chips atualizados e um novo card de versão `Entregue` / `Delivered`. O card é construído como o card da 0.34.0 (linhas 703-709). Sua faixa de `Sources` vai até a 0.35.0. `dist/` é regenerado só por `go run ./cmd/dh build`, nunca à mão.
+  - Quando os arquivos citados nesta regra são lidos, então cada campo de versão diz 0.35.0 (o ref do marketplace diz v0.35.0).
+  - Quando o roadmap é lido em pt e en, então o card novo existe com a mesma estrutura da 0.34.0.
+  - Quando `dist/` é comparado com a saída do build, então não há diferença.
+- R6 As checagens passam. As contagens ficam em 13 agentes, 19 comandos mais 1 comando de mod e 22 skills.
+  - Quando `dh validate` roda, então passa.
+  - Quando `go test ./...` roda, então passa.
+  - Quando `go run ./cmd/dh build` roda depois da regeneração, então `dist/` não mostra diferença e as contagens não mudam.
 
-Out of scope: any new skill or agent; SVG generation; Excalidraw export or embed; SRI for ESM imports; a change to the history text of ADR-003 or PRD-017; a drift-report offer; any change to `stamp.sh` or `internal/dashboard/pdocs.go`.
+Fora de escopo: qualquer skill ou agente novo; geração de SVG; exportação ou embutimento do Excalidraw; SRI para importações ESM; uma mudança no texto de histórico da ADR-003 ou do PRD-017; uma oferta de relatório de deriva; qualquer mudança em `stamp.sh` ou em `internal/dashboard/pdocs.go`.
 
 ## 4. Docs
 
-- `.agents/docs-guide.md`: the documented flow touched (docs-guide behavior, R1).
-- `docs/roadmap.html` and `docs/en/roadmap.html`: card and version card (R4, R5).
-- `CHANGELOG.md`: entry for 0.35.0 (R5).
-- `docs/tutoriais/templates.html` and `docs/en/tutorials/templates.html`: import pin only (R2).
+- `.agents/docs-guide.md`: o fluxo documentado que foi tocado (comportamento do `docs-guide`, R1).
+- `docs/roadmap.html` e `docs/en/roadmap.html`: card e card de versão (R4, R5).
+- `CHANGELOG.md`: entrada da 0.35.0 (R5).
+- `docs/tutoriais/templates.html` e `docs/en/tutorials/templates.html`: só a fixação da importação (R2).
 
-The `doc-template-html` diagram rule is unchanged. The tutorials and the README need no new text beyond the pinned imports of R2.
+A regra de diagrama da `doc-template-html` não muda. Os tutoriais e o README não precisam de texto novo além das importações fixadas de R2.
 
-## Executed summary
+## Resumo executado
 
-- **Delivered:** The docs-guide now carries one diagram instruction (Mermaid first; Excalidraw only as a separate linked `.excalidraw` file, never embedded), the four hand-written Mermaid imports are pinned to `mermaid@11.17.2`, the roadmap card is delivered and corrected, and the kit is at 0.35.0; no new skill or agent was added.
-- **Rules:**
+- **Entregue:** O `docs-guide` agora traz uma instrução de diagrama (Mermaid primeiro; Excalidraw só como um arquivo `.excalidraw` separado e linkado, nunca embutido), as quatro importações escritas à mão do Mermaid estão fixadas em `mermaid@11.17.2`, o card do roadmap está entregue e corrigido, e o kit está na 0.35.0; nenhuma skill ou agente novo foi acrescentado.
+- **Regras:**
 
-  | Rule | Verdict | Evidence |
+  | Regra | Veredito | Evidência |
   |---|---|---|
-  | R1 | Honored | `.agents/docs-guide.md`: the sentence sits at the end of Procedure step 2, in the same list item; the `## Limits` line still cites Procedure step 5. Checked in `tasks/T-3002/evidence/` (harness dir). |
-  | R2 | Honored | `docs/roadmap.html:1895`, `docs/en/roadmap.html:1898`, `docs/tutoriais/templates.html:983`, `docs/en/tutorials/templates.html:983` import `mermaid@11.17.2/dist/mermaid.esm.min.mjs`, the same version as `.skills/doc-template-html/scripts/stamp.sh:89`. QA observed HTTP 200 for the URL. Accepted limit: a static ES import has no Subresource Integrity; the exact pin is the mitigation. |
-  | R3 | Honored | `git grep 'mermaid@11/'` outside `dist/` and `docs/prd/` has no match (checked again at documentation time). |
-  | R4 | Honored | The roadmap card is delivered in pt and en with the four facts and the two CDN exceptions (Mermaid and Google Fonts). The old exception wording is gone from both roadmaps. |
-  | R5 | Honored | Version 0.35.0 in `internal/build/build.go:20`, `.claude-plugin/marketplace.json` (`version` 0.35.0, `ref` v0.35.0), `harness-manifest.json`, the `CHANGELOG.md` entry dated 2026-10-28, the chips, the Sources range and a new Delivered version card in pt and en. A rebuild in a copy reproduces `dist/` byte for byte except the `generated_at` timestamp line of `harness-manifest.json`, which is expected build output (`tasks/T-3002/evidence/host-checks/repro-diff.txt`, harness dir). |
-  | R6 | Honored | `go test ./...` exit 0 and `dh validate .` exit 0 (errors 0, 22 skills), `tasks/T-3002/evidence/host-checks/` (harness dir). Counts: 13 agents, 19 commands plus 1 mod command, 22 skills. The same `dist/` note as R5 applies. |
-- **Tickets:** T-3001 (backend, harness-maintainer): done. Code review round 1 by `cli:opencode/opencode-go/muse-spark-1.3-contributor`: `approve`, 0 findings. Confirming round 2 by `cli:codex/gpt-6-luna`: `request changes` with one finding F2-1 (Major, "R6 check evidence not observed in the reviewer's read-only sandbox"); the Coordinator classified it as noise and resolved it with host evidence on the same evaluated state. T-3002 (teste, qa-verifier): green, matrix R1 to R6. Evidence: `tasks/T-3001/evidence/review-r1b/`, `tasks/T-3001/evidence/review-r2/`, `tasks/T-3002/evidence/` (harness dir).
+  | R1 | Honrada | `.agents/docs-guide.md`: a frase fica no fim do passo 2 do Procedimento, no mesmo item da lista; a linha `## Limits` ainda cita o passo 5 do Procedimento. Conferido em `tasks/T-3002/evidence/` (harness dir). |
+  | R2 | Honrada | `docs/roadmap.html:1895`, `docs/en/roadmap.html:1898`, `docs/tutoriais/templates.html:983`, `docs/en/tutorials/templates.html:983` importam `mermaid@11.17.2/dist/mermaid.esm.min.mjs`, a mesma versão de `.skills/doc-template-html/scripts/stamp.sh:89`. O QA observou HTTP 200 para a URL. Limite aceito: uma importação ES estática não tem Subresource Integrity; a fixação exata é a mitigação. |
+  | R3 | Honrada | `git grep 'mermaid@11/'` fora de `dist/` e `docs/prd/` não tem nenhuma ocorrência (conferido de novo na hora da documentação). |
+  | R4 | Honrada | O card do roadmap está entregue em pt e en com os quatro fatos e as duas exceções de CDN (Mermaid e Google Fonts). A redação antiga da exceção sumiu dos dois roadmaps. |
+  | R5 | Honrada | Versão 0.35.0 em `internal/build/build.go:20`, `.claude-plugin/marketplace.json` (`version` 0.35.0, `ref` v0.35.0), `harness-manifest.json`, a entrada do `CHANGELOG.md` datada de 2026-10-28, os chips, a faixa de `Sources` e um novo card de versão Entregue em pt e en. Uma reconstrução numa cópia reproduz `dist/` byte a byte, exceto a linha de timestamp `generated_at` do `harness-manifest.json`, que é saída esperada do build (`tasks/T-3002/evidence/host-checks/repro-diff.txt`, harness dir). |
+  | R6 | Honrada | `go test ./...` com saída 0 e `dh validate .` com saída 0 (erros 0, 22 skills), `tasks/T-3002/evidence/host-checks/` (harness dir). Contagens: 13 agentes, 19 comandos mais 1 comando de mod, 22 skills. Vale a mesma nota sobre `dist/` de R5. |
+- **Tickets:** T-3001 (backend, harness-maintainer): `done`. Rodada 1 da revisão de código por `cli:opencode/opencode-go/muse-spark-1.3-contributor`: `approve`, 0 achados. Rodada 2 de confirmação por `cli:codex/gpt-6-luna`: `request changes` com um achado F2-1 (`Major`, `R6 check evidence not observed in the reviewer's read-only sandbox`); o Coordenador o classificou como `noise` e o resolveu com evidência do host no mesmo estado avaliado. T-3002 (teste, qa-verifier): verde, matriz R1 a R6. Evidência: `tasks/T-3001/evidence/review-r1b/`, `tasks/T-3001/evidence/review-r2/`, `tasks/T-3002/evidence/` (harness dir).
 - **Docs:** `.agents/docs-guide.md`, `docs/roadmap.html`, `docs/en/roadmap.html`, `docs/tutoriais/templates.html`, `docs/en/tutorials/templates.html`, `CHANGELOG.md`.
-- **Out of scope:** any new skill or agent; SVG generation; Excalidraw export or embed; SRI for ESM imports; a change to the history text of ADR-003 or PRD-017; a drift-report offer; any change to `stamp.sh` or `internal/dashboard/pdocs.go`. Also: the delivered detail card stays in the roadmap section "Planejado" (noted by QA as a possible Minor, owner decision pending).
+- **Fora de escopo:** qualquer skill ou agente novo; geração de SVG; exportação ou embutimento do Excalidraw; SRI para importações ESM; uma mudança no texto de histórico da ADR-003 ou do PRD-017; uma oferta de relatório de deriva; qualquer mudança em `stamp.sh` ou em `internal/dashboard/pdocs.go`. Também: o card de detalhe entregue continua na seção "Planejado" do roadmap (anotado pelo QA como um possível `Minor`, decisão do dono pendente).
