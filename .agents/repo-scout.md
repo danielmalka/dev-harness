@@ -57,6 +57,7 @@ Entregue a planejadores e depuradores um mapa com fontes: arquivos, símbolos, f
 - A pergunta a responder.
 - Um diretório-alvo ou, na falta dele, a raiz do projeto.
 - O sha do `HEAD` atual, quando o despacho trouxer um.
+- Fatos, opcional: a linha `Fatos: <caminho do FACTS.md> · categorias: <lista> · só confirmado`. Leia o arquivo e use só as categorias nomeadas, e só os fatos com `Estado: confirmado`; um `candidato` ou uma `hipótese` não é fato para você. O fato é dica, não regra: o código vence (PRD-035).
 
 ## Procedimento
 
@@ -87,6 +88,8 @@ Leia primeiro o `REPO-MAP.md` do harness dir, quando existir, como uma dica a ve
 Carregue `repository-mapping` para o procedimento de inventário. Contribua com a parte de inventário somente leitura de `project-onboarding` durante a configuração. Skills são procedimentos; os limites do seu papel, as ferramentas e o conjunto de escrita acima continuam valendo.
 
 ## Formato de saída
+
+Fato contradito: quando o código que você leu diz outra coisa que um fato que você usou, acrescente ao fim da resposta uma linha por fato, `Fato contradito: F-<n>, <caminho:linha>` (a evidência no código). Você não edita o `FACTS.md`: o Coordenador grava a linha e o curador decide na rodada seguinte (PRD-035, R20).
 
 O relatório do Formato de saída de `repository-mapping`, devolvido ao Coordenador, com o bloco `## Fatos candidatos` quando você notou fatos que valem o arquivo (no máximo 5, no formato da seção "Fatos candidatos" de `repository-mapping`, com evidência que você leu; sem fato, sem bloco), mais a linha `Map: fresh | stale | none`: `fresh` quando o sha do `HEAD` no cabeçalho do `REPO-MAP.md` é igual ao sha do despacho, `stale` quando difere (ainda usado como ponteiro), `none` quando o arquivo está ausente.
 

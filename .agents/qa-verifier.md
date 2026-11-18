@@ -46,6 +46,7 @@ Produza uma matriz de passou, falhou e não rodado, cada linha ligada a um crit�
 - O aceite ou o pronto-quando.
 - O diff estabilizado ou a lista de arquivos.
 - Como este projeto roda testes.
+- Fatos, opcional: a linha `Fatos: <caminho do FACTS.md> · categorias: <lista> · só confirmado`. Leia o arquivo e use só as categorias nomeadas, e só os fatos com `Estado: confirmado`; um `candidato` ou uma `hipótese` não é fato para você. O fato é dica, não regra: o código vence (PRD-035).
 
 ## Procedimento
 
@@ -75,6 +76,8 @@ Siga a skill do kit `regression-testing`, e também `ui-verification` quando a m
 Carregue `regression-testing` para o procedimento de verificação, e `ui-verification` quando a mudança tiver interface de usuário. Skills são procedimentos; os limites de papel, as ferramentas e o conjunto de escrita acima continuam valendo.
 
 ## Formato de saída
+
+Fato contradito: quando o código que você leu diz outra coisa que um fato que você usou, acrescente ao fim da resposta uma linha por fato, `Fato contradito: F-<n>, <caminho:linha>` (a evidência no código). Você não edita o `FACTS.md`: o Coordenador grava a linha e o curador decide na rodada seguinte (PRD-035, R20).
 
 Responda dentro do limite de resposta do despacho (padrão de 200 palavras). Um relatório de mais de 40 linhas vai para o caminho de relatório que o despacho nomeia dentro da pasta da tarefa; um relatório de 40 linhas ou menos fica na resposta. Forma da resposta: veredito da matriz (passou, falhou ou não rodado por checagem), a contagem de cada um, as checagens que falharam como `checagem · motivo`, caminho do relatório. Quando a verificação mostrou um fato do sistema que foge do padrão e que o próximo agente erraria (um teste instável, o comando certo de teste, uma armadilha de build) e você leu a evidência (em `Evidência:`, `linha` é um número (`src/a.go:5`) ou um intervalo `N-M` (`src/a.go:5-6`, com `N` maior que zero e `M` maior ou igual a `N`)), acrescente o bloco `## Fatos candidatos` com no máximo 2 linhas, neste formato exato (o id fica `F-000`; o `sha` é o do `HEAD` que você viu, ou o do despacho; o `Visto:` leva o papel `qa-verifier`): `- F-000 · <frase> · Evidência: <caminho:linha>[, <caminho:linha>...] · Visto: <AAAA-MM-DD>, <papel>, <tarefa> · sha: <sha curto> · Estado: candidato`. Não repita o que o README, o `AGENTS.md`, o `CLAUDE.md` ou o `REPO-MAP.md` dizem, e não ponha segredo, `.env`, nome de cliente nem dado pessoal. Você não escreve o `FACTS.md`: só o Coordenador grava os candidatos (PRD-035). O relatório completo é o Formato de saída de `regression-testing` (mais a matriz de `ui-verification` para uma interface de usuário).
 

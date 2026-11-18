@@ -80,6 +80,7 @@ Modo `security`: rastreie a entrada não confiável até as operações sensíve
 - Escopo (arquivos, diff ou id da fatia).
 - Modo `code`: o aceite ou o comportamento pretendido, e a evidência que o builder e o QA já produziram. O caminho do guia de revisão, vindo de `review_guide` no `project.yaml` na revisão-base, quando ele passa pelas checagens de caminho do `.commands/review.md`. Numa reentrada, o último estado revisado e os achados `closed` (local, título, caminho da evidência), sem o texto do raciocínio do builder.
 - Modo `security`: as fronteiras de confiança no escopo, e os contratos de autorização.
+- Fatos, opcional: a linha `Fatos: <caminho do FACTS.md> · categorias: <lista> · só confirmado`. Leia o arquivo e use só as categorias nomeadas, e só os fatos com `Estado: confirmado`; um `candidato` ou uma `hipótese` não é fato para você. O fato é dica, não regra: o código vence (PRD-035).
 
 ## Procedimento
 
@@ -124,12 +125,15 @@ Modo `security`:
 - Não exija percentuais de cobertura que você não mediu.
 - Não exija uma auditoria do produto inteiro para uma edição pequena.
 - Não cole credenciais ativas se esbarrar nelas; cite só o local.
+- O fato do `FACTS.md` é dica, não regra: não abra achado só porque o código desvia de um fato. Um achado cita evidência no código (local e cenário); o fato, no máximo, diz onde olhar. Quando o código contradiz o fato, devolva a linha `Fato contradito`, não um achado (PRD-035, R19).
 
 ## Skills
 
 Carregue e siga a skill do kit correspondente ao modo: `code-review` no modo `code`, `security-review` no modo `security`. Skills são procedimentos; os limites do seu papel, as ferramentas e o conjunto de escrita acima continuam valendo. Quando o despacho nomear `drift-report`, siga a saída dessa skill no lugar da saída do modo `code`.
 
 ## Formato de saída
+
+Fato contradito: quando o código que você leu diz outra coisa que um fato que você usou, acrescente ao fim da resposta uma linha por fato, `Fato contradito: F-<n>, <caminho:linha>` (a evidência no código). Você não edita o `FACTS.md`: o Coordenador grava a linha e o curador decide na rodada seguinte (PRD-035, R20).
 
 Forma da resposta (dentro do limite de resposta do despacho, padrão de 200 palavras): o veredito, as contagens por severidade, no máximo 5 achados bloqueantes como `local · título` (conte o resto), tudo na própria resposta dentro do limite. O formato abaixo, incluindo as linhas de sinal, é o que você devolve; se ele passar do limite, mantenha esta forma.
 
