@@ -28,6 +28,16 @@ func mustContain(t *testing.T, file string, wants ...string) {
 	}
 }
 
+func mustNotContain(t *testing.T, file string, unwanted ...string) {
+	t.Helper()
+	text := lerDoRepo(t, file)
+	for _, s := range unwanted {
+		if strings.Contains(text, s) {
+			t.Errorf("%s must not say %q", file, s)
+		}
+	}
+}
+
 // R8, R9 and the format E1: the candidate line is spelled the same in the skill the scout loads and in the two agents that may propose up to 2.
 func TestCandidateFormatIsIdenticalWhereAgentsWriteIt(t *testing.T) {
 	for _, f := range []string{".skills/repository-mapping/SKILL.md", ".agents/builder.md", ".agents/qa-verifier.md"} {

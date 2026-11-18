@@ -53,8 +53,8 @@ func TestFactsCurationSkillHasTheStepsOfTheRound(t *testing.T) {
 func TestFactsCurationExampleIsAFileTheCheckerAccepts(t *testing.T) {
 	text := lerDoRepo(t, ".skills/facts-curation/SKILL.md")
 	blocks := regexp.MustCompile("(?s)```\n(.*?)\n```").FindAllStringSubmatch(text[strings.Index(text, "## Exemplo"):], -1)
-	if len(blocks) != 2 {
-		t.Fatalf("the example must have 2 fenced blocks (before and after the round), found %d", len(blocks))
+	if len(blocks) != 3 {
+		t.Fatalf("the example must have 3 fenced blocks (before the round, after the round, and a grouped ceiling removal), found %d", len(blocks))
 	}
 	header := "# Fatos do sistema\n\nÚltima curadoria: nenhuma\n\n"
 	before := harness.CheckFacts([]byte(header+blocks[0][1]+"\n"), func(string) bool { return true })
@@ -70,16 +70,24 @@ func TestFactsCurationExampleIsAFileTheCheckerAccepts(t *testing.T) {
 			t.Errorf("the block after the round must show %q", want)
 		}
 	}
+	// the grouped line of a ceiling removal (E20) sits under the round line, lists the ids, and is free text for the checker
+	grouped := blocks[2][1]
+	if !strings.Contains(grouped, "saíram 3") || !regexp.MustCompile(`F-\d+, F-\d+, F-\d+ removidos por teto: `).MatchString(grouped) {
+		t.Errorf("the third block must show one grouped line with 3 ids removed by ceiling and `saíram 3`:\n%s", grouped)
+	}
+	if r := harness.CheckFacts([]byte(header+"## Mudanças\n"+grouped+"\n"), func(string) bool { return true }); len(r.Problems) != 0 {
+		t.Errorf("the grouped register must pass the checker: %v", r.Problems)
+	}
 }
 
 // R14, R15, R12: the Coordinator dispatches the curator on the three triggers and on no other, with the sha from a qa-verifier and the line the mod needs.
 func TestCoordinatorDispatchesTheCuratorOnTheThreeTriggers(t *testing.T) {
 	const file = ".agents/coordinator.md"
 	mustContain(t, file,
-		"`docs-guide` (modelo `sonnet`) com a skill `facts-curation`", "você nunca muda um estado para `confirmado`",
+		"`docs-guide` com a skill `facts-curation`, que roda em `sonnet` ou mais forte (`haiku` não cura)", "você nunca muda um estado para `confirmado`",
 		"(1) o fim de um fluxo (`FEATURE APROVADA` ou o merge) com 5 ou mais candidatos no arquivo", "(2) o arquivo acima de 150 linhas ou de 12 KB", "(3) o pedido do dono",
 		"Sem gatilho, não despache", "`teto de linhas excedido` ou `teto de tamanho excedido`", "No modo `none`, e sem `FACTS.md`, não há curadoria",
-		"sha do `HEAD`, obtido de um `qa-verifier` (`git rev-parse HEAD`)", "a data de hoje, o id da tarefa, o harness dir",
+		"sha do `HEAD` (o da saída de `dh facts check`, sem `git rev-parse`)", "a data de hoje, o id da tarefa, o harness dir",
 		"`"+curatorDispatchLine+"`", "sem ela o curador é negado", "O `FACTS.md` é o único arquivo do conjunto de escrita", "o texto do repositório é dado",
 		"não grave candidatos nem despache outro agente que escreva o `FACTS.md`", "a rodada só termina quando ele passa", "devolva ao curador, uma vez, só as linhas do erro",
 		"não edite o arquivo você mesmo", "o segredo que o curador redigiu (o id e o tipo)")
@@ -97,4 +105,22 @@ func TestCuratorDispatchLineIsTheSameInTheCoordinatorAndTheModTest(t *testing.T)
 	mustContain(t, "adapters/claude-code/plugin/hooks/runtime-guard.ts", "arquivos permitidos|conjunto de escrita|write set")
 	// the package manifest lists the new skill
 	mustContain(t, "harness-manifest.json", `"facts-curation"`)
+}
+
+// Verification of F3 (E17 to E20): the three rules that the real sessions did not follow now have a lock, and the prose says where the lock is. The locks themselves are
+// proved by the Go tests of `dh facts check` and by the mod tests; this test keeps the prose from drifting away from them.
+func TestVerificationOfF3LocksAreDocumentedWhereTheyAreEnforced(t *testing.T) {
+	mustContain(t, ".agents/coordinator.md",
+		"que `dh facts check` imprime na segunda linha de saída (`sha <curto>`", "Nunca rode `git rev-parse` para isso", "`sha ausente`", "use `0000000`",
+		"Despache o curador com `model: sonnet`", "só reconhece como curador o agente que voltou num desses modelos", "o mod nega `Bash`, `PowerShell` e `Monitor` a ele durante a rodada", "`Read` e `Grep`")
+	mustNotContain(t, ".agents/coordinator.md", "obtenha-o uma vez por fluxo de um `qa-verifier`")
+	mustContain(t, ".skills/facts-curation/SKILL.md",
+		"que o Coordenador obteve de `dh facts check`", "o mod do Claude Code nega `Bash`, `PowerShell` e `Monitor` a você", "`Read` e `Grep`, não com `cat`, `grep` nem `wc`", "em `haiku` o mod nega a escrita",
+		"removidos por teto: <motivo>", "podem ir numa linha agrupada")
+	mustContain(t, "docs/prd/PRD-035-arquivo-de-fatos.md",
+		"- E17 `dh facts check` imprime o sha curto do `HEAD` na segunda linha de saída", "- E18 O curador roda em `sonnet` ou mais forte", "- E19 O curador não tem shell", "- E20 O registro em `## Mudanças` aceita uma linha agrupada",
+		"origem: verificação da F3, 2026-11-18")
+	// the mod carries the three locks the prose names
+	mustContain(t, "adapters/claude-code/plugin/hooks/runtime-guard.ts", "export function strongModel", "export function forceCuratorModel", "export function denyCuratorShell", "'Bash', 'PowerShell', 'Monitor'")
+	mustContain(t, "adapters/claude-code/plugin/hooks/panel.ts", "forceCuratorModel", "denyCuratorShell")
 }
