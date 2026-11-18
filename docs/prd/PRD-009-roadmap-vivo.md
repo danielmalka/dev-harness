@@ -42,8 +42,8 @@ aplicam. Os caminhos do dev-harness aparecem só como exemplo entre parênteses.
 
 Títulos históricos: verificado nos dois arquivos (30/09/2026), os 22 cards de release da seção Entregue têm título no
 formato `<versão> · <texto>` (versão `N.N.N`). Há também dois cards de detalhe sem versão em cada língua ("Comando de
-planejamento em loop" e "Validador estendido a story, plano e ADR"; em en, "Loop planning command" e "Validator
-extended to story, plan and ADR"). Não há título de release fora do padrão, então nenhuma lista de exceção é
+planejamento em loop" e "Validador estendido a story, plano e ADR"; em en, `Loop planning command` e
+`Validator extended to story, plan and ADR`). Não há título de release fora do padrão, então nenhuma lista de exceção é
 necessária e nenhum card histórico é reescrito. Um card sem prefixo de versão é tratado como card de detalhe.
 
 ## 3. Regras
@@ -82,15 +82,15 @@ necessária e nenhum card histórico é reescrito. Um card sem prefixo de versã
   em `docs/roadmap.html` nem em `docs/en/roadmap.html`. Verificável: `git diff` restrito às seções Entregue mostra só
   o card novo, se o lote entregar uma versão, e nada mais.
 - R10 A regra de manutenção existe em dois lugares, ambos condicionais e neutros de caminho (ver §2):
-  - Linha nomeada na tabela de prontidão do `.skills/delivery-readiness/SKILL.md`: "Roadmap | Met when the project
-    keeps a roadmap tied to its changelog: it names the new release, its date and version, and passes the project's
-    roadmap check, when it has one (in dev-harness: `docs/roadmap.html`, `docs/en/roadmap.html`, one card per
-    release, `dh validate`). Not applicable when the
-    project keeps no roadmap."
+  - Linha nomeada na tabela de prontidão do `.skills/delivery-readiness/SKILL.md`: "Roadmap | Atendida quando o projeto
+    mantém um roadmap ligado ao seu changelog: ele nomeia o novo release, sua data e versão, e passa na checagem de
+    roadmap do projeto, quando houver uma (no dev-harness: `docs/roadmap.html`, `docs/en/roadmap.html`, um cartão por
+    release, `dh validate`). Não aplicável quando o projeto
+    não mantém roadmap."
   - Frase no despacho de fim de lote do docs-guide em `.agents/coordinator.md`, nas duas ocorrências do texto
-    existente (linhas 72 e 76 hoje), idênticas entre si: "When the project keeps a roadmap, the docs-guide dispatch
-    includes updating it for the release (date, version, the new release recorded) and the project's roadmap check,
-    when it has one, must pass; when the project keeps no roadmap, this does not apply."
+    existente (linhas 72 e 76 hoje), idênticas entre si: "Quando o projeto mantém um roadmap, o despacho do `docs-guide`
+    inclui atualizá-lo para o release (data, versão, o novo release registrado) e a checagem de roadmap do projeto,
+    quando houver uma, deve passar; quando o projeto não mantém roadmap, isto não se aplica."
   - `.agents/release-manager.md` não enumera checklist (o passo 4 só cita "checklist"), então não ganha linha; se o
     ticket achar uma enumeração, a linha condicional entra ali também. Nada é adicionado a `AGENTS.md` além da
     decisão já registrada.

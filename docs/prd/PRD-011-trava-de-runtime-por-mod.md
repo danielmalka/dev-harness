@@ -29,8 +29,8 @@ Logo o runtime pode negar essas duas ações de forma determinística.
 O plugin do kit passa a trazer um mod (TypeScript, roda no motor do Claude Code, sem Node) com duas travas, em todo
 projeto consumidor:
 
-- Subagente que tenta despachar outro agente tem o `agent.spawn` negado, com motivo legível ("only the Coordinator
-  dispatches").
+- Subagente que tenta despachar outro agente tem o `agent.spawn` negado, com motivo legível ("só o Coordinator
+  despacha").
 - Subagente que tenta `Write`/`Edit` em `.harness/MEMORY.md`, `.harness/EPOCHAL.md` ou `.harness/RISKS.md` tem a chamada
   negada, com motivo legível. O laço principal (Coordenador) não é afetado.
 
@@ -62,9 +62,9 @@ Claude Code mantêm só a regra em prosa.
 - R7 Nenhuma mudança em Go. `dh validate` continua verde com os `.ts` presentes. Limite registrado: `iterTextFiles`
   (`internal/kit/validate.go`) só varre `.md .yaml .yml .html .py .sh .json .txt`, então os `.ts` não passam pela checagem
   de caminho privado. Verificável: `git diff --stat` sem `cmd/`, `internal/` nem `go.mod`.
-- R8 Texto vigente diz a verdade. (a) `.agents/coordinator.md`, bullet "You are the sole writer of `.harness/MEMORY.md`..."
+- R8 Texto vigente diz a verdade. (a) `.agents/coordinator.md`, bullet "Você é o único escritor de `.harness/MEMORY.md`..."
   (fora do bloco cercado da cláusula anti-delegação, que não muda nem em `coordinator.md` nem em `external-clis`): ganha a frase
-  "enforced at runtime for subagents by the Claude Code plugin mod (writes through Bash are not blocked)". (b) `AGENTS.md`:
+  "imposto em tempo de execução para subagentes pelo mod do plugin Claude Code (escritas via Bash não são bloqueadas)". (b) `AGENTS.md`:
   o bullet de runtime cita a exceção do mod TypeScript no motor do Claude Code (ADR-005), e a regra de despacho/escrita da
   memória diz que no Claude Code ela é imposta pelo mod e nos demais adaptadores é prosa. (c) `harness-authoring` deixa de
   sugerir `disallowedTools` como trava. Verificável: `grep -n "enforced at runtime" .agents/coordinator.md`;
@@ -140,7 +140,7 @@ Revisão final da feature: integração e aderência a este PRD.
   - R5 Honrada: casos de entrada malformada não negam.
   - R6 Honrada: `claude plugin test dist/claude-code/dev-harness` 62 pass, 0 fail; mutação com 19 falhas.
   - R7 Honrada: nenhum Go de comportamento mudou; a única linha em `internal/` é a constante de versão do lote (0.16.0), com prova de clone limpo.
-  - R8 Honrada: `grep` de "enforced at runtime" em `coordinator.md` e de ADR-005 em `AGENTS.md`; `dh validate .` verde.
+  - R8 Honrada: `grep` de "imposto em tempo de execução" em `coordinator.md` e de ADR-005 em `AGENTS.md`; `dh validate .` verde.
   - R9 Honrada: 2.1.287 carrega e impõe; 2.1.288 carrega o plugin (imposição não demonstrada, o modelo recusou o comando de teste); nenhum runtime falhou ao carregar.
   - R10 Honrada: nada fora de escopo entrou.
 - **Tickets**: T-1101 (backend, harness-maintainer) concluída, revisão de código aprovada sem bloqueante; T-1102 (teste, qa-verifier) concluída, APPROVED.
