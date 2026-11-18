@@ -1,6 +1,5 @@
-# Fixture double: a minimal consumer .harness/project.yaml for a project
-# with an already-approved plan waiting to build. Used as fixture data only.
-language: en
+# Dublê de fixture: um .harness/project.yaml mínimo de consumidor, para um
+# projeto com um plano já aprovado esperando o build. Usado só como dado de fixture.
 profile: none
 commands:
   test:
@@ -8,7 +7,7 @@ commands:
     source: fixture
   lint:
     value: null
-    source: fixture (no lint command declared)
+    source: fixture (nenhum comando de lint declarado)
   build:
     value: null
-    source: fixture (no build command declared)
+    source: fixture (nenhum comando de build declarado)

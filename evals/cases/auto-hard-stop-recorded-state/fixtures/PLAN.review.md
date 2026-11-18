@@ -1,13 +1,13 @@
-# Review: receipts QR code plan — round 1
+# Revisão: plano do QR code nos recibos — rodada 1
 
-Evaluated state: `fixtures/PLAN.md`.
+Estado avaliado: `fixtures/PLAN.md`.
 
-| Reviewer | Verdict |
+| Revisor | Veredito |
 |---|---|
 | `claude` (document-validator) | approved |
 
-## Verdict
+## Veredito
 - approved
 
-## Findings
-- None blocking.
+## Achados
+- Nenhum bloqueante.
