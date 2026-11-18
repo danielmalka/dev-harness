@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.45.0 — 2026-11-17
+
+- **Docs, evals e histórico em pt-BR; fim do espelho em inglês (ADR-011, fatia S4 de 5)**: `docs/en/` (7 arquivos) e `README.en.md` são apagados, junto com os links para eles (`README.md`, `docs/novo-fluxo-prd.md`, `docs/tutoriais/templates.md`) e os avisos "English" do roadmap, do tutorial e do tutorial de templates. Os cards antigos do roadmap e do `CHANGELOG.md` que citam o espelho são história e ficam.
+  - **Documentos traduzidos**: `CONTRIBUTING.md`, `SECURITY.md`, `REVIEW.md`, `THIRD_PARTY_NOTICES.md` e os READMEs de `adapters/claude-code` e `adapters/generic`. O `REVIEW.md` perde "Escreva sempre em inglês" e a menção ao espelho pt-br/en; a `description` do plugin (`dh build`) e do marketplace passa para pt-BR. O painel (`internal/dashboard/web`) já estava em pt-BR e não mudou.
+  - **Evals em pt-BR**: os 5 casos (`prompt.md`, `case.yaml`, fixtures e os critérios dos graders) foram traduzidos. Os padrões regex casam agora a cláusula anti-delegação em pt-BR (`external-clis-risk-001`, graders 01 e 02, gerados a partir da skill) e `Status da revisão:` (`code-reviewer-equivalent-form-miss`). A fixture `auto-hard-stop-recorded-state/fixtures/project.yaml` perde `language: en`. Os nomes dos arquivos dos graders não mudam (as baselines os citam) e `evals/baselines`, `evals/results` e `evals/archive` ficam como estão. As evals são pagas e não rodaram: os graders foram conferidos por leitura e os regex, contra o texto da skill.
+  - **`dh validate`**: a `description` de skill que começa com "Use when" é reprovada; só "Use quando" passa. As citações antigas `templates/<lang>/` ainda passam até a trava da 0.46.0.
+  - **Histórico (lote H3)**: PRD-028 a PRD-034 traduzidos (8 arquivos, 35.866 palavras no original, todos em inglês), com a linha "Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`." logo depois do título; as revisões `.review.md` ficam para a 0.46.0.
+  - **Fica para a fatia seguinte**: as 25 revisões `.review.md` do histórico e a trava contra o inglês no `dh validate` (0.46.0).
+- Sem comando, agente ou skill novo. Comandos: 20 + 1. Agentes: 13. Skills: 22. Templates: 8.
+
 ## 0.44.0 — 2026-11-17
 
 - **Agentes, comandos e perfis em pt-BR (ADR-011, fatia S3 de 5)**: os 13 agentes de `.agents/`, os 20 comandos de `.commands/` e os perfis de `profiles/` (inclusive `profiles/examples/project.yaml`) passam para pt-BR, com o glossário fixo (`docs/glossario.md`, seção 8 nova). Nomes de agente, comandos, flags, arquivos, chaves e valores de enum não mudam. A `description` dos comandos vira um rótulo curto no imperativo.

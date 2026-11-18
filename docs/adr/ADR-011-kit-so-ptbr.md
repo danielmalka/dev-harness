@@ -45,7 +45,7 @@
 - O plugin atualizado por cima perde `templates/en/` e `templates/pt-br/` do `dist`; nenhum registro de projeto aponta para esses caminhos.
 - A extensão VS Code não quebra: os campos de `/api/state` não mudam. O texto dela é outro trabalho, fora deste repositório.
 - Os mods passam a ter uma mensagem só (pt-BR) onde havia pares por idioma; nenhuma decisão de negar, perguntar ou avisar muda, só o texto.
-- Transição: da 0.42.0 à 0.44.0 o `dh validate` aceita `description` de skill que comece com "Use when" **ou** "Use quando", e aceita citações antigas `templates/<lang>/` nas fontes (confere o arquivo em `templates/`). A 0.45.0 aceita só "Use quando", e a 0.46.0 reprova por lista fixa os marcadores do formato antigo.
+- Transição: da 0.42.0 à 0.44.0 o `dh validate` aceitou `description` de skill que comece com "Use when" **ou** "Use quando", e aceita citações antigas `templates/<lang>/` nas fontes (confere o arquivo em `templates/`). Desde a 0.45.0 aceita só "Use quando" (o teste `validate_test` reprova "Use when"), e a 0.46.0 reprova por lista fixa os marcadores do formato antigo, inclusive `templates/<lang>/`.
 
 ## 4. Fatias
 
