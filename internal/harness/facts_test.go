@@ -83,6 +83,17 @@ func TestCheckFactsFieldValues(t *testing.T) {
 	wantProblem(t, "evidence four", factsDoc("## Testes", mk(0, "README.md:1, README.md:2, README.md:3, README.md:4")), "6", "tem 4")
 	wantProblem(t, "evidence without line", factsDoc("## Testes", mk(0, "README.md")), "6", "caminho:linha")
 	wantProblem(t, "evidence line zero", factsDoc("## Testes", mk(0, "README.md:0")), "6", "linha maior que zero")
+	// A range caminho:N-M passes when N >= 1 and M >= N (the single line keeps working); anything else fails.
+	for _, ok := range []string{"README.md:5-6", "README.md:5-5", "README.md:1-200", "README.md:7", "README.md:5-6, cmd/dh/main.go:10-20, internal/harness/memory.go:3"} {
+		if r := check(factsDoc("## Testes", mk(0, ok))); len(r.Problems) != 0 {
+			t.Errorf("evidence %q must pass: %s", ok, messages(r))
+		}
+	}
+	for _, bad := range []string{"README.md:6-5", "README.md:0-3", "README.md:0-0", "README.md:5-", "README.md:-5", "README.md:a-b", "README.md:5-6-7", "README.md:5--6", "README.md:5-b", "README.md:99999999999999999999-99999999999999999999"} {
+		wantProblem(t, "evidence range "+bad, factsDoc("## Testes", mk(0, bad)), "6", "nem caminho:N-M")
+	}
+	wantProblem(t, "range on a missing file", factsDoc("## Testes", mk(0, "cmd/dh/nao-existe.go:5-6")), "6", "não é um arquivo do repositório")
+	wantProblem(t, "range on an absolute path", factsDoc("## Testes", mk(0, "/etc/passwd:5-6")), "6", "relativo ao repositório")
 	wantProblem(t, "evidence absolute", factsDoc("## Testes", mk(0, "/etc/passwd:1")), "6", "relativo ao repositório")
 	wantProblem(t, "evidence dotdot", factsDoc("## Testes", mk(0, "../x/README.md:1")), "6", "relativo ao repositório")
 	wantProblem(t, "evidence backslash", factsDoc("## Testes", mk(0, `cmd\dh\main.go:1`)), "6", "relativo ao repositório")
