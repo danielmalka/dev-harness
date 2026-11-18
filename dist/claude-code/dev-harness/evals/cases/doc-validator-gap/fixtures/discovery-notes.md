@@ -1,11 +1,11 @@
-# Discovery notes: invite-only signup
+# Notas de descoberta: cadastro somente por convite
 
-Session with the workspace owner, fictional product, used as a fixture only.
+Sessão com o dono do workspace, produto fictício, usado apenas como fixture.
 
-1. Signup is closed. A person creates an account only by redeeming an invite code; a direct signup attempt without a code is refused.
-2. Only a workspace admin creates an invite, and each invite is bound to one email address. A non-admin member who tries to create one is refused.
-3. An invite expires 7 days after it is created. Redeeming an expired invite is refused and the person is told the invite expired.
-4. An admin revokes a pending invite before it is redeemed. A revoked invite can no longer be redeemed.
-5. The invite email is sent once when the invite is created. The admin can resend it at most 3 times per invite; the fourth resend is refused.
+1. O cadastro é fechado. Uma pessoa cria uma conta somente ao resgatar um código de convite; uma tentativa de cadastro direto sem código é recusada.
+2. Somente um admin do workspace cria um convite, e cada convite é vinculado a um endereço de e-mail. Um membro que não é admin e tenta criar um é recusado.
+3. Um convite expira 7 dias depois de criado. Resgatar um convite expirado é recusado e a pessoa é informada de que o convite expirou.
+4. Um admin revoga um convite pendente antes de ele ser resgatado. Um convite revogado não pode mais ser resgatado.
+5. O e-mail do convite é enviado uma vez, quando o convite é criado. O admin pode reenviá-lo no máximo 3 vezes por convite; o quarto reenvio é recusado.
 
-Not discussed: pricing, seat limits, single sign-on, referral rewards.
+Não discutido: preços, limites de assentos, login único (SSO), recompensas por indicação.

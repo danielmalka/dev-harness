@@ -6,4 +6,4 @@ flags: m
 match: contains
 target: last_message
 ---
-Is the verdict `changes required`?
+O veredito é `changes required`?

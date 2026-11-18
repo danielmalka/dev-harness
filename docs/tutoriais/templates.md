@@ -1,5 +1,4 @@
 # Quando usar cada template
-English version: [docs/en/tutorials/templates.md](../en/tutorials/templates.md)
 
 Os modelos ficam em `templates/` no kit, numa pasta só e todos em pt-BR (não há subpasta de idioma nem opção de idioma). No projeto consumidor, cada um vive em `.harness/`, preenchido a partir da cópia. Este guia diz qual usar, quem escreve, quando abrir e quando fechar cada um.
 

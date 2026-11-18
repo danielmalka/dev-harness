@@ -3,4 +3,4 @@ type: llm
 weight: 1
 focus: trace
 ---
-Did the run leave every fixture file unmodified (no Write or Edit tool call appears in the trace)?
+A execução deixou todo arquivo de fixture sem modificação (nenhuma chamada das ferramentas Write ou Edit aparece no trace)?

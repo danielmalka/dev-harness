@@ -1,10 +1,10 @@
-# Diff under review
+# Diff em revisão
 
-Fictional change, used as a fixture only. Scope for the `code` review case
+Mudança fictícia, usada apenas como fixture. Escopo do caso de revisão `code`
 `code-reviewer-equivalent-form-miss`.
 
-- Scope: `scripts/ci-gate.js`, `scripts/workspaces.config.js`
-- Comparison: `main..feat/ci-gate-classify`
+- Escopo: `scripts/ci-gate.js`, `scripts/workspaces.config.js`
+- Comparação: `main..feat/ci-gate-classify`
 
 ```diff
 --- /dev/null
@@ -106,10 +106,10 @@ Fictional change, used as a fixture only. Scope for the `code` review case
 +};
 ```
 
-`classify` dispatches each pipeline step to `classifyStep`, `classifyLintStep`,
-or `classifyBuildStep` by keyword match on the command string, and each
-classifier compares the command — after `normalizeCommand` strips a leading
-`cd <dir> &&` prefix — against the bare npm invocation for its step kind. The
-commands actually run per workspace live in `scripts/workspaces.config.js`,
-one `test`/`lint`/`build` entry per workspace, fed into `runGate` via
+`classify` despacha cada passo do pipeline para `classifyStep`, `classifyLintStep`
+ou `classifyBuildStep` por correspondência de palavra-chave na string do comando, e
+cada classificador compara o comando (depois que `normalizeCommand` remove um
+prefixo `cd <dir> &&` inicial) com a invocação npm pura do seu tipo de passo. Os
+comandos de fato rodados por workspace ficam em `scripts/workspaces.config.js`,
+uma entrada `test`/`lint`/`build` por workspace, repassada a `runGate` por
 `collectSteps`.

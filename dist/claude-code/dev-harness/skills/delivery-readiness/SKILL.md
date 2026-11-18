@@ -143,7 +143,7 @@ Matriz de prontidão. Toda linha é respondida.
 | Configuração | Chaves e flags novas nomeadas, com padrão e obrigatória ou opcional |
 | Segredos | Nomeados só por finalidade, nunca com valor, nunca impressos |
 | Documentação | Um leitor de primeira viagem consegue usar e operar a mudança só a partir do texto escrito |
-| Roadmap | Atendida quando o projeto mantém um roadmap ligado ao seu changelog: ele nomeia o novo release, sua data e versão, e passa na checagem de roadmap do projeto, quando houver uma (no dev-harness: `docs/roadmap.html`, `docs/en/roadmap.html`, um cartão por release, `dh validate`). Não aplicável quando o projeto não mantém roadmap. |
+| Roadmap | Atendida quando o projeto mantém um roadmap ligado ao seu changelog: ele nomeia o novo release, sua data e versão, e passa na checagem de roadmap do projeto, quando houver uma (no dev-harness: `docs/roadmap.html`, um cartão por release, `dh validate`). Não aplicável quando o projeto não mantém roadmap. |
 | Implantação | Ordenada, com um observável por passo |
 | Reversão | Uma ação concreta com custo, limites e gatilhos, decidida antes de liberar |
 | Reprodutibilidade | Build e teste rodam a partir de um checkout limpo, sem caminho específico de máquina |

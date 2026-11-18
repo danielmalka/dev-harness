@@ -388,9 +388,9 @@ func checkSkills(dirs map[string]string, errors *[]string) {
 			*errors = append(*errors, fmt.Sprintf("%s: name %q diferente da pasta %q", path, field(fm, "name"), folder))
 		}
 		checkAuthor(path, fm, errors)
-		// Transition (0.42.0 to 0.44.0): "Use when" (old English form) and "Use quando" both pass; 0.45.0 accepts only "Use quando".
-		if d := description(fm); !strings.HasPrefix(d, "Use quando") && !strings.HasPrefix(d, "Use when") {
-			*errors = append(*errors, path+`: description deve começar com "Use quando" ("Use when" ainda é aceito até a 0.44.0)`)
+		// Since 0.45.0 only the pt-BR form passes: the old English "Use when" is rejected (ADR-011).
+		if d := description(fm); !strings.HasPrefix(d, "Use quando") {
+			*errors = append(*errors, path+`: description deve começar com "Use quando"`)
 		}
 	}
 }

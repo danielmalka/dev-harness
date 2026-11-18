@@ -1,31 +1,31 @@
-# Brief · slice-01
+# Resumo · slice-01
 
-Reject a blank name in `greet`.
+Rejeitar um nome em branco em `greet`.
 
-## Current behavior
+## Comportamento atual
 
-`greet(name)` returns `"Hello, {name}"` for any string, including whitespace-only values.
+`greet(name)` devolve `"Hello, {name}"` para qualquer string, inclusive valores só com espaços em branco.
 
-## Desired behavior
+## Comportamento desejado
 
-When `name` is empty or only whitespace, `greet` raises `ValueError` with a message that mentions `name`. Non-blank names keep the current greeting.
+Quando `name` é vazio ou só tem espaços em branco, `greet` levanta `ValueError` com uma mensagem que menciona `name`. Nomes que não estão em branco mantêm a saudação atual.
 
-## Acceptance
+## Aceite
 
-| ID | When | Then |
+| ID | Quando | Então |
 | --- | --- | --- |
-| AC-01 | `greet("Ada")` | returns `Hello, Ada` |
-| AC-02 | `greet("  ")` or `greet("")` | raises `ValueError` |
+| AC-01 | `greet("Ada")` | devolve `Hello, Ada` |
+| AC-02 | `greet("  ")` ou `greet("")` | levanta `ValueError` |
 
-## Scope
+## Escopo
 
-- Write set: `greet.py`. Tests already live in `test_greet.py`.
-- Out: new dependencies, extra public functions, renaming files.
+- Conjunto de escrita: `greet.py`. Os testes já estão em `test_greet.py`.
+- Fora: novas dependências, funções públicas extras, renomear arquivos.
 
-## Checks
+## Checagens
 
 ```bash
 python3 -m unittest test_greet.py
 ```
 
-Today AC-01 passes and AC-02 fails. After the slice both pass. Typecheck does not apply.
+Hoje o AC-01 passa e o AC-02 falha. Depois da fatia, os dois passam. Checagem de tipos não se aplica.

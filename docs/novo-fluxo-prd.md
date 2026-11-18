@@ -1,7 +1,5 @@
 # Novo fluxo de PRD orientado a subagents
 
-English version: [docs/en/new-prd-flow.md](en/new-prd-flow.md)
-
 Proposta consolidada em 2026-09-28. Ainda não substitui `templates/` nem o fluxo atual do kit.
 
 Uma feature pequena é um PRD. O subagent que implementa não lê o PRD inteiro. Lê o ticket, que já carrega a story, o fluxo e a cópia das regras que o afetam.

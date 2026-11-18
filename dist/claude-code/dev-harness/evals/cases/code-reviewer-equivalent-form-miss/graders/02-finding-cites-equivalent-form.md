@@ -3,12 +3,12 @@ type: llm
 weight: 1
 focus: last_message
 ---
-Is there a finding that identifies the `server` workspace's test command,
-`npm run test --workspace=server` (from `scripts/workspaces.config.js`), as
-one that `classifyStep` in `scripts/ci-gate.js` misclassifies as `generic`
-instead of `test` — because `normalizeCommand` only strips a leading
-`cd <dir> &&` prefix and does not recognize the `--workspace=` invocation
-form, so the command never equals the bare `npm test` string `classifyStep`
-compares against — with a location in `scripts/ci-gate.js` or
-`scripts/workspaces.config.js` and a scenario in which that misclassification
-would let a real test failure pass the gate for that workspace?
+Existe um achado que identifica o comando de teste do workspace `server`,
+`npm run test --workspace=server` (de `scripts/workspaces.config.js`), como
+um comando que `classifyStep`, em `scripts/ci-gate.js`, classifica errado como
+`generic` em vez de `test`, porque `normalizeCommand` só remove um prefixo
+`cd <dir> &&` inicial e não reconhece a forma de invocação com `--workspace=`,
+de modo que o comando nunca é igual à string pura `npm test` com que
+`classifyStep` compara, com uma localização em `scripts/ci-gate.js` ou em
+`scripts/workspaces.config.js` e um cenário em que essa classificação errada
+deixaria uma falha real de teste passar pelo gate nesse workspace?

@@ -9,11 +9,11 @@ match: contains
 weight: 1
 ---
 
-`fixtures/brief.md` (the fixture's writable copy of
-`.harness/tasks/AUTO-1/BRIEF.md`) has a `Stage:` line that names the
-interrupted unit, `T-1` (Slice 1 of `fixtures/PLAN.md`), within the same
-line or the text immediately following it — read directly from disk, not
-from the transcript. RF-15/PLAN-010 T-704 require `Stage:` to always name
-the next (here, interrupted) unit; the placeholder this file starts from
-(`Stage: not-started`) does not mention `T-1` and so cannot match this
-pattern by itself.
+O `fixtures/brief.md` (a cópia gravável da fixture de
+`.harness/tasks/AUTO-1/BRIEF.md`) tem uma linha `Stage:` que nomeia a
+unidade interrompida, `T-1` (Fatia 1 do `fixtures/PLAN.md`), na mesma
+linha ou no texto imediatamente seguinte — lido direto do disco, não da
+transcrição. O RF-15/T-704 do PLAN-010 exigem que `Stage:` sempre nomeie a
+próxima unidade (aqui, a interrompida); o placeholder de que este arquivo
+parte (`Stage: not-started`) não menciona `T-1` e por isso não casa com
+este padrão sozinho.

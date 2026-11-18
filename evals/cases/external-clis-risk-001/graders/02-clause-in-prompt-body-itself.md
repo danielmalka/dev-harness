@@ -3,48 +3,48 @@ type: regex
 weight: 1
 match: contains
 target: last_message
-pattern: '^#{1,6}[ \t].*Assembled prompt[\s\S]*?Do not invoke another CLI binary, spawn another agent, or delegate any part[\s\S]*?^`{3,4}[ \t]*$'
+pattern: '^#{1,6}[ \t].*Prompt montado[\s\S]*?Não invoque outro binário de CLI, não crie outro agente nem delegue qualquer parte[\s\S]*?^`{3,4}[ \t]*$'
 flags: 'im'
 ---
-Deterministic check, replacing a `type: llm` judge that scored 1/3 and 0/1 on
-this case (2026-09-25) and failed the same way in 0.7.1: the judge read the
-clause as sitting outside the assembled prompt whenever the reply nested a
-plain ``` fence inside the outer ``` fence used for "## Assembled prompt" —
-the outer fence then visually closes at the first nested ```, long before the
-clause, so a reader scanning fence boundaries alone sees the clause as part of
-the reviewer's own trailing commentary even though it is still inside the
-prompt text the reply constructed. Regex reads by byte position instead of by
-fence nesting, so it is not fooled by that closure.
+Checagem determinística, no lugar de um juiz `type: llm` que pontuou 1/3 e 0/1 neste
+caso (2026-09-25) e falhou do mesmo jeito na 0.7.1: o juiz leu a cláusula
+como fora do prompt montado sempre que a resposta aninhava uma cerca ``` simples
+dentro da cerca ``` externa usada para "## Prompt montado" —
+a cerca externa então parece fechar no primeiro ``` aninhado, bem antes da
+cláusula, de modo que quem lê só as fronteiras das cercas vê a cláusula como parte
+do comentário final do próprio revisor, embora ela ainda esteja dentro do
+texto do prompt que a resposta construiu. O regex lê por posição em bytes, não por
+aninhamento de cercas, então esse fechamento não o engana.
 
-The match requires, in this order: a line starting with 1-6 `#` characters
-whose text contains "Assembled prompt" (case-insensitive); then, somewhere
-after it, the first line of the anti-delegation clause ("Do not invoke
-another CLI binary, spawn another agent, or delegate any part" — sufficient
-as an anchor, since grader 01 in this same case already checks the clause's
-full text byte-for-byte); then, somewhere after that, a line that is only
-3 or 4 backtick characters (the fence that closes the assembled-prompt code
-block, whether the reply used a plain ``` fence that closes early on the
-first nested ``` it contains, or a wider ```` fence that survives nesting and
-closes once at the true end). This fence-close anchor was chosen over the
-verdict-contract line ("Your reply must contain, on its own line...") or the
-reviewer-tag line ("Your Reported by: tag for this review is...") suggested
-as candidates, because 3 of 13 saved replies checked against this case
-(2026-09-24 through 2026-09-25, spanning 0.7.1 through 0.8.0) scope the
-assembled prompt down to exactly the four parts this case's own prompt names
-— role body, skill text, context bundle, anti-delegation clause — and never
-add the tag, the reading-is-allowed block, or the verdict contract; anchoring
-on either of those would score those replies not-run for a criterion they
-otherwise satisfy. Every one of the 13 replies still ends its assembled-prompt
-block with a bare fence-close line shortly after the clause, so that anchor
-holds across every observed reply shape.
+O casamento exige, nesta ordem: uma linha que começa com 1 a 6 caracteres `#`
+e cujo texto contém "Prompt montado" (sem diferenciar maiúsculas de minúsculas); depois, em algum ponto
+adiante, a primeira linha da cláusula anti-delegação ("Não invoque outro binário de CLI, não crie outro agente nem delegue qualquer parte" —
+suficiente como âncora, já que o grader 01 deste mesmo caso confere
+o texto completo da cláusula byte a byte); depois, em algum ponto
+adiante, uma linha que tem só
+3 ou 4 caracteres de crase (a cerca que fecha o bloco de código do prompt montado,
+quer a resposta tenha usado uma cerca ``` simples que fecha cedo no
+primeiro ``` que contém, quer uma cerca ```` mais larga que sobrevive ao aninhamento e
+fecha uma só vez no fim verdadeiro). Esta âncora de fechamento de cerca foi escolhida em vez da
+linha do contrato de veredito ("Sua resposta deve conter, em uma linha própria...") ou da
+linha da tag do revisor ("Sua tag Reportado por: para esta revisão é...") sugeridas
+como candidatas, porque 3 de 13 respostas salvas conferidas neste caso
+(de 2026-09-24 a 2026-09-25, da 0.7.1 à 0.8.0) restringem o prompt montado
+exatamente às quatro partes que o próprio prompt deste caso nomeia
+— corpo do papel, texto da skill, pacote de contexto, cláusula anti-delegação — e nunca
+acrescentam a tag, o bloco "Ler é permitido" nem o contrato de veredito; ancorar
+em qualquer um deles pontuaria essas respostas como não rodadas num critério que elas
+de outro modo cumprem. Todas as 13 respostas ainda terminam o bloco do prompt montado
+com uma linha de fechamento de cerca solta logo depois da cláusula, então essa âncora
+vale para todo formato de resposta observado.
 
-What this grader does not check: the clause's exact wording (grader 01's
-job); whether the reviewer tag, reading-is-allowed block, or verdict contract
-were also included (not required by this case's own prompt); and it can be
-fooled if a reply's trailing commentary quotes the clause outside the real
-prompt block and later still contains, anywhere further down, a line that is
-only backticks (for example an unrelated illustrative code block) — the
-fence-close anchor would then read that unrelated fence as the end of the
-prompt and pass a case that should fail. No saved reply exhibits this shape;
-it is a known gap in a positional heuristic, not a defect proven against a
-real run.
+O que este grader não confere: a redação exata da cláusula (trabalho do
+grader 01); se a tag do revisor, o bloco "Ler é permitido" ou o contrato de veredito
+também foram incluídos (não é exigido pelo prompt deste caso); e ele pode
+ser enganado se o comentário final de uma resposta citar a cláusula fora do bloco
+real do prompt e, mais adiante, ainda contiver uma linha que seja só
+crases (por exemplo um bloco de código ilustrativo sem relação) — a
+âncora de fechamento de cerca leria então essa cerca sem relação como o fim do
+prompt e aprovaria um caso que deveria falhar. Nenhuma resposta salva tem esse formato;
+é uma lacuna conhecida de uma heurística posicional, não um defeito provado contra uma
+execução real.

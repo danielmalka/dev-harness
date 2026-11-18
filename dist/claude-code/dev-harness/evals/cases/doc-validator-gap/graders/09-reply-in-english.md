@@ -3,4 +3,4 @@ type: llm
 weight: 1
 focus: last_message
 ---
-Is the whole reply in English?
+A resposta inteira está em pt-BR (fora identificadores e valores de enum)?

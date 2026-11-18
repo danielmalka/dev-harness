@@ -1,32 +1,32 @@
-# Generic adapter
+# Adapter genérico
 
-How to use this kit with an AI runtime that is not Claude Code. There is no native integration. Do not announce one.
+Como usar este kit com um runtime de IA que não é o Claude Code. Não há integração nativa. Não anuncie uma.
 
-## What transfers
+## O que é transferido
 
-| Asset | How to load it |
+| Ativo | Como carregar |
 | --- | --- |
-| `.agents/coordinator.md` | Main-session system instructions. |
-| Other files in `.agents/` | Specialist prompts. Paste or attach one role per delegated task. Pass the model family as a request; the runtime may ignore it. |
-| `.skills/<id>/SKILL.md` | Procedure to load when that work starts. Follow relative links inside the skill folder. |
-| `.commands/<id>.md` | User-facing recipe. Type the steps; there is no slash-command menu. |
-| `templates/` | Copy into the consumer `.harness/` when setup is authorized. |
-| `profiles/` | Same matching rules as Claude. English YAML. |
+| `.agents/coordinator.md` | Instruções de sistema da sessão principal. |
+| Outros arquivos de `.agents/` | Prompts de especialista. Cole ou anexe um papel por tarefa delegada. Passe a família do modelo como pedido; o runtime pode ignorá-la. |
+| `.skills/<id>/SKILL.md` | Procedimento a carregar quando esse trabalho começar. Siga os links relativos dentro da pasta da skill. |
+| `.commands/<id>.md` | Receita voltada ao usuário. Digite os passos; não há menu de comandos de barra. |
+| `templates/` | Copie para o `.harness/` do consumidor quando a configuração estiver autorizada. |
+| `profiles/` | Mesmas regras de correspondência do Claude. |
 
-## What does not transfer
+## O que não é transferido
 
-- `/dh:*` command names.
-- `--plugin-dir` and `plugin.json`.
-- Claude `model` families as a guarantee of which model will run.
-- The Agent tool. Sequential specialist turns replace parallel dispatch. Keep the Coordinator as the only writer of MEMORY, EPOCHAL and RISKS.
-- Tool allow-lists in frontmatter, unless the other runtime has an equivalent.
+- Os nomes de comando `/dh:*`.
+- `--plugin-dir` e `plugin.json`.
+- As famílias de `model` do Claude como garantia de qual modelo vai rodar.
+- A ferramenta Agent. Turnos sequenciais de especialista substituem o despacho paralelo. Mantenha o Coordenador como o único a escrever em MEMORY, EPOCHAL e RISKS.
+- Listas de permissão de ferramentas no frontmatter, a menos que o outro runtime tenha um equivalente.
 
-## Manual session
+## Sessão manual
 
-1. Open the consumer project.
-2. Load `coordinator.md` as the main instructions.
-3. Run the diagnosis steps in `.skills/project-onboarding/SKILL.md`. Also run `bin/dh doctor` from a built package (no interpreter needed).
-4. For each task, follow the matching command file, then the skill it names, then the specialist agent it names.
-5. Record limits that the runtime cannot enforce (read-only review, no Bash for reviewers) as instructions, and check the written files afterwards.
+1. Abra o projeto consumidor.
+2. Carregue `coordinator.md` como as instruções principais.
+3. Rode os passos de diagnóstico em `.skills/project-onboarding/SKILL.md`. Rode também `bin/dh doctor` a partir de um pacote compilado (não precisa de interpretador).
+4. Para cada tarefa, siga o arquivo de comando correspondente, depois a skill que ele nomeia, depois o agente especialista que ele nomeia.
+5. Registre como instruções os limites que o runtime não consegue impor (revisão somente leitura, sem Bash para revisores) e confira os arquivos escritos depois.
 
-Completion condition: one fixture slice (`evals/fixtures/slice-01`) finished with evidence, with every limitation of the host runtime declared in the handoff. Do not claim feature parity with Claude Code.
+Condição de conclusão: uma fatia de fixture (`evals/fixtures/slice-01`) concluída com evidência, com toda limitação do runtime hospedeiro declarada no handoff. Não afirme paridade de funcionalidades com o Claude Code.

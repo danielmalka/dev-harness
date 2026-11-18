@@ -1,25 +1,25 @@
 # Fixture slice-01
 
-Tiny Python 3 stdlib project used as the first guided delivery. No packages to install.
+Projeto minúsculo em Python 3 com biblioteca padrão, usado como a primeira entrega guiada. Não há pacotes para instalar.
 
-The starting tree is intentionally incomplete: `greet("  ")` and `greet("")` should raise `ValueError` and currently do not. `python3 -m unittest test_greet.py` is red (3 tests, 2 failures) until the authorized slice is implemented. CI checks that it fails exactly this way.
+A árvore inicial é intencionalmente incompleta: `greet("  ")` e `greet("")` deveriam levantar `ValueError` e hoje não levantam. `python3 -m unittest test_greet.py` fica vermelho (3 testes, 2 falhas) até a fatia autorizada ser implementada. O CI confere que ele falha exatamente assim.
 
-## Layout
+## Estrutura
 
-| File | Role |
+| Arquivo | Papel |
 | --- | --- |
-| `BRIEF.md` | Authorized request and acceptance. |
-| `greet.py` | Code under test. |
-| `test_greet.py` | Acceptance tests. Happy path passes. The blank-name and empty-name cases fail. |
-| `expected/greet.py` | Known-good result. Do not copy it into place during the exercise. |
-| `expected/unittest.txt` | Expected unittest output after the slice. |
+| `BRIEF.md` | Pedido autorizado e aceite. |
+| `greet.py` | Código sob teste. |
+| `test_greet.py` | Testes de aceite. O caminho feliz passa. Os casos de nome em branco e de nome vazio falham. |
+| `expected/greet.py` | Resultado conhecido como correto. Não o copie para o lugar durante o exercício. |
+| `expected/unittest.txt` | Saída esperada do unittest depois da fatia. |
 
-## Completion
+## Conclusão
 
-1. Load the kit against this directory (`docs/inicio-rapido.html`).
-2. `/dh:setup` then `/dh:plan` using `BRIEF.md`.
-3. `/dh:build` the single slice, then `/dh:verify` and `/dh:review`.
-4. `python3 -m unittest test_greet.py` matches `expected/unittest.txt`.
+1. Carregue o kit contra este diretório (`docs/inicio-rapido.html`).
+2. `/dh:setup` e depois `/dh:plan` usando `BRIEF.md`.
+3. `/dh:build` da fatia única, depois `/dh:verify` e `/dh:review`.
+4. `python3 -m unittest test_greet.py` bate com `expected/unittest.txt`.
 5. `/dh:handoff`.
 
-Python 3 is required only by this fixture. The kit itself ships the `dh` binary and needs no interpreter; the fixture stays in Python so a clean machine does not need Node, Go or a browser.
+Python 3 é necessário só para esta fixture. O kit em si traz o binário `dh` e não precisa de interpretador; a fixture fica em Python para que uma máquina limpa não precise de Node, Go nem de navegador.

@@ -1,123 +1,125 @@
-# PRD-032 · Lean Coordinator context and repository bootstrap
+# PRD-032 · Contexto enxuto do Coordenador e bootstrap do repositório
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | delivered on 2026-10-31 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-10-30 / 2026-10-31 |
-| Tickets | to be defined by the planner |
-| Origin | Owner request 2026-10-30, source `tasks/PRD-032/SOURCE.md` in the harness dir |
-| Depends on | PRD-031 (lean builder flow), merged in `main` at 0.36.0 (merge commit 40538a49). This PRD builds on that state. |
-| Delivery | One pull request |
+| Status | entregue em 2026-10-31 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-10-30 / 2026-10-31 |
+| Tickets | a definir pelo planejador |
+| Origem | Pedido do dono em 2026-10-30, fonte `tasks/PRD-032/SOURCE.md` no harness dir |
+| Depende de | PRD-031 (fluxo enxuto do builder), mesclado em `main` na 0.36.0 (commit de merge 40538a49). Este PRD parte desse estado. |
+| Entrega | Um pull request |
 
-## 1. Problem
+## 1. Problema
 
-In a long task, the Coordinator (the main session) fills its context. The owner loses quality late in the run. The owner wants the Coordinator to do less work itself, and wants a bootstrap command for a repository.
+Em uma tarefa longa, o Coordenador (a sessão principal) enche o seu contexto. O dono perde qualidade no fim da execução. O dono quer que o Coordenador faça menos trabalho por conta própria e quer um comando de bootstrap para um repositório.
 
-Most facts below come from `wc` and file reads on 2026-10-30, on the PRD-031 branch. PRD-031 is now merged (0.36.0). The merged `.agents/coordinator.md` has 174 lines and 31842 bytes. R15 re-measures the sizes.
+A maioria dos fatos abaixo vem de `wc` e de leituras de arquivo em 2026-10-30, na branch do PRD-031. O PRD-031 agora está mesclado (0.36.0). O `.agents/coordinator.md` mesclado tem 174 linhas e 31842 bytes. A R15 mede os tamanhos de novo.
 
-- Fact: the harness `MEMORY.md` of this project has 176 lines and 185182 bytes. One line has 73512 characters. Every command reads this file first. It is the largest item the Coordinator loads, about 5.7 times the size of `.agents/coordinator.md`.
-- Fact: `.agents/coordinator.md` had 174 lines and 32663 bytes on that branch. It has 31842 bytes at 0.36.0. The sections "Worktree", "Consolidation on explicit request", "External CLI planners", and "Drift report" total about 6100 bytes. Each section serves one or two commands. The Coordinator loads all of them in every session.
-- Fact: `/dh:auto` tells the Coordinator to follow each chained command text "inline". The chained files are `discover.md`, `plan.md`, `build.md`, `secure.md`, `review.md`, and `release.md`. They total about 36600 bytes and stay in the main context for the whole run.
-- Fact: `.agents/coordinator.md`, Procedure item 6, requires a "reply format" and a "budget" in each dispatch. No rule gives a number. Only `document-validator` has a numeric limit (at most 5 sentences per paraphrase).
-- Fact: a specialist report returns whole to the Coordinator chat. A code review report returns to the Coordinator and the Coordinator writes the result into `MEMORY.md`.
-- Fact: the Elephant-Goldfish Model (EGM, `google/elephant-goldfish-model`) keeps long context in one session (the elephant) and sends fresh read-only subagents (goldfish) to review. Reports go to files. A synthesizer merges findings before the elephant reads them. EGM states no measure of context saved (research in `tasks/UND-009/egm-research.md`).
-- Fact: PRD-029 already took the closed review bundle, the comprehension paraphrase, and the drift report from EGM. It left out the six-lens brainstorm, the README bootstrap ("peanuts" and "hay"), and hooks.
-- Fact: nothing persists a repository map. `/dh:setup` records the stack and the test, lint, and build commands in `project.yaml`. `/dh:understand` maps one slice. The skill `repository-mapping` forbids a full-repository tour. `/dh:doctor` checks the environment only.
-- Hypothesis: `MEMORY.md` growth is the largest cost in a long run, larger than any rule text. The hypothesis is wrong if a measured session shows that the report text in the chat is larger than the `MEMORY.md` read. Parts A and B each address one of the two.
+- Fato: o `MEMORY.md` do harness deste projeto tem 176 linhas e 185182 bytes. Uma linha tem 73512 caracteres. Todo comando lê este arquivo primeiro. É o maior item que o Coordenador carrega, cerca de 5,7 vezes o tamanho de `.agents/coordinator.md`.
+- Fato: o `.agents/coordinator.md` tinha 174 linhas e 32663 bytes naquela branch. Tem 31842 bytes na 0.36.0. As seções "Worktree", "Consolidação a pedido explícito", "Planejadores de CLI externos" e "Relatório de deriva" somam cerca de 6100 bytes. Cada seção serve a um ou dois comandos. O Coordenador carrega todas em toda sessão.
+- Fato: o `/dh:auto` manda o Coordenador seguir o texto de cada comando encadeado "no próprio texto". Os arquivos encadeados são `discover.md`, `plan.md`, `build.md`, `secure.md`, `review.md` e `release.md`. Somam cerca de 36600 bytes e ficam no contexto principal durante toda a execução.
+- Fato: o `.agents/coordinator.md`, item 6 do Procedimento, exige um "formato da resposta" e um "orçamento" em cada despacho. Nenhuma regra dá um número. Só o `document-validator` tem um limite numérico (no máximo 5 frases por paráfrase).
+- Fato: o relatório de um especialista volta inteiro para o chat do Coordenador. O relatório de uma revisão de código volta para o Coordenador e o Coordenador escreve o resultado no `MEMORY.md`.
+- Fato: o Elephant-Goldfish Model (EGM, `google/elephant-goldfish-model`) mantém o contexto longo em uma sessão (o elefante) e envia subagentes novos, somente leitura (peixes-dourados), para revisar. Os relatórios vão para arquivos. Um sintetizador junta os achados antes de o elefante lê-los. O EGM não declara nenhuma medida de contexto poupado (pesquisa em `tasks/UND-009/egm-research.md`).
+- Fato: o PRD-029 já tirou do EGM o pacote de revisão fechado, a paráfrase de compreensão e o relatório de deriva. Deixou de fora o brainstorm de seis lentes, o bootstrap do README ("amendoins" e "feno") e os hooks.
+- Fato: nada persiste um mapa do repositório. O `/dh:setup` registra a stack e os comandos de teste, lint e build em `project.yaml`. O `/dh:understand` mapeia uma fatia. A skill `repository-mapping` proíbe um passeio pelo repositório inteiro. O `/dh:doctor` só checa o ambiente.
+- Hipótese: o crescimento do `MEMORY.md` é o maior custo em uma execução longa, maior que qualquer texto de regra. A hipótese está errada se uma sessão medida mostrar que o texto de relatório no chat é maior que a leitura do `MEMORY.md`. As partes A e B tratam cada uma um dos dois.
 
-## 2. Solution
+## 2. Solução
 
-After delivery:
+Depois da entrega:
 
-- A specialist report above a size limit goes to a file in the task folder. The Coordinator gets the verdict, the path, and a short summary within a numeric cap.
-- When a stage has more than one reviewer, one specialist merges the verdicts into one file. The Coordinator reads the merged file.
-- `/dh:auto` reads only the named sections of each chained command, at the stage that needs them.
-- Sections that serve one or two commands move out of `coordinator.md` into those commands.
-- `MEMORY.md` has a size budget for each entry and for the file. The Coordinator offers consolidation when the file is over budget. Consolidation stays owner-triggered.
-- `/dh:setup` can write a repository map. Later sessions and `repo-scout` reuse it.
+- Um relatório de especialista acima de um limite de tamanho vai para um arquivo na pasta da tarefa. O Coordenador recebe o veredito, o caminho e um resumo curto dentro de um limite numérico.
+- Quando uma etapa tem mais de um revisor, um especialista junta os vereditos em um arquivo. O Coordenador lê o arquivo mesclado.
+- O `/dh:auto` lê só as seções nomeadas de cada comando encadeado, na etapa que precisa delas.
+- As seções que servem a um ou dois comandos saem do `coordinator.md` e vão para esses comandos.
+- O `MEMORY.md` tem um orçamento de tamanho para cada entrada e para o arquivo. O Coordenador oferece a consolidação quando o arquivo passa do orçamento. A consolidação continua disparada pelo dono.
+- O `/dh:setup` pode escrever um mapa do repositório. Sessões posteriores e o `repo-scout` o reutilizam.
 
-Part A is R1 to R4 (specialist replies). Part B is R5 to R8 (what the Coordinator loads). Part C is R9 to R12 (repository bootstrap). Part D is R13 to R17 (limits, proof, and PRD-031 carry-over fixes).
+A parte A é R1 a R4 (respostas dos especialistas). A parte B é R5 a R8 (o que o Coordenador carrega). A parte C é R9 a R12 (bootstrap do repositório). A parte D é R13 a R17 (limites, prova e correções herdadas do PRD-031).
 
-## 3. Rules
+## 3. Regras
 
-### Part A · Artifact-first replies
+### Parte A · Respostas com artefato primeiro
 
-- R1 Reply cap and report file. The dispatch contract (`.agents/coordinator.md`, Procedure, the item that lists the dispatch fields) gives a numeric reply cap. The default cap is 200 words. It limits every reply. One more rule governs where a report lives: a report of more than 40 lines goes to `<task folder>/reports/<role>-<n>.md`, and a report of 40 lines or fewer stays in the reply. The reply always stays within the cap, so a short report may also be shorter than 40 lines. The Coordinator may set a different cap in the dispatch and states the reason. Each role has its own reply shape:
-  - `reviewer`: verdict, counts by severity, at most 5 blocking findings as `location · title` (the rest only counted). It has no Write tool, so it always returns inline within the cap, like `repo-scout`.
-  - `qa-verifier`: matrix verdict (pass, fail, or not-run per check), counts of each, failed checks as `check · reason`, report path.
-  - `builder`: slice status, files changed, `Red:` and check results, report path. It has no severity counts.
-  - `docs-guide`: files written with paths, and what each holds. It has no verdict.
-  - `debugger`: diagnosis status (confirmed, hypothesis, or inconclusive), the cause in one sentence, report path.
-  - `repo-scout`: it has no Write tool, so it always returns inline within the cap, as a path list with one line for each path (see R2).
-  Verifiable: `coordinator.md` contains the phrase `reply cap` and the numbers `200` and `40`. `builder.md`, `reviewer.md`, `qa-verifier.md`, `docs-guide.md`, `debugger.md`, and `repo-scout.md` each state their own reply shape in the Output format. `document-validator` keeps its own limit.
-- R2 Who writes the report file. These writers keep their current write sets and add only the report path named in the dispatch:
-  - `builder`, `qa-verifier`, `docs-guide`, and `debugger` write their own report file.
-  - `reviewer` stays fully read-only. It has no Write tool and writes no report file (D1). It returns its reply inline (R1).
-  - `repo-scout` has no Write tool. It returns inline within the cap and lists paths, not file bodies (R1). For a map longer than the cap, the Coordinator dispatches `docs-guide` (R10).
-  - A CLI reviewer never writes. The `qa-verifier` or `builder` (lane `infra`) that runs the call writes the report file, as PRD-025 sets for the call itself.
-  Verifiable: the `tools` of `reviewer.md` have no Write. The statement "review is read-only" remains true without exception.
-- R3 Coordinator read discipline. The Coordinator reads a report file only to judge a blocking finding, to settle a dispute, or to make a decision that the reply cannot support. It does not read a report in full when the verdict is approved and no blocking finding exists. The "In-flight doubt" section and the `plan-loop.md` Procedure items that judge wave reports follow this rule. `MEMORY.md` records the report path and the verdict, not the report text. Verifiable: `coordinator.md` contains this rule once, and no section contradicts it. A search for "read the report" in `.agents/` and `.commands/` shows only places that name a condition.
-- R4 Synthesizer. A review stage can have more than one reviewer entry in the dispatch. Then a `docs-guide` run (model `sonnet`) merges the reviewer outputs (the CLI report files written by the delegate and the inline reply of a `claude` reviewer, passed in the dispatch as quoted data) into one file `<task folder>/reports/<stage>-merged-<round>.md`. The Coordinator reads this file, not the raw reports. The merge rules:
-  - Input is the reviewer outputs named in the dispatch (files, or an inline reply quoted as data), never the chat.
-  - Findings with the same location and title become one finding. The merge lists each reviewer that raised it.
-  - The merge never removes a blocking finding.
-  - The merge never lowers a severity.
-  - Each reviewer verdict stays verbatim in the file.
-  - The merge adds no finding and no judgment. The Coordinator judges.
-  With one reviewer entry, no synthesizer runs. The document stage keeps `<document>.review.md` as the merged file, so it needs no second merge. Verifiable: `coordinator.md` ("External CLI reviewers", merge step) names `docs-guide` as the merger for the `code` and `security` stages. `docs-guide.md` lists the merge task and its rules.
+- R1 Limite de resposta e arquivo de relatório. O contrato de despacho (`.agents/coordinator.md`, Procedimento, o item que lista os campos do despacho) dá um limite de resposta numérico. O limite padrão é 200 palavras. Ele limita toda resposta. Mais uma regra governa onde o relatório fica: um relatório de mais de 40 linhas vai para `<task folder>/reports/<role>-<n>.md`, e um relatório de 40 linhas ou menos fica na resposta. A resposta sempre fica dentro do limite, então um relatório curto também pode ter menos de 40 linhas. O Coordenador pode fixar outro limite no despacho e declara o motivo. Cada papel tem o seu formato de resposta:
+  - `reviewer`: veredito, contagens por severidade, no máximo 5 achados bloqueantes como `location · title` (o resto só contado). Não tem a ferramenta Write, então sempre devolve no próprio texto dentro do limite, como o `repo-scout`.
+  - `qa-verifier`: veredito da matriz (pass, fail ou not-run por checagem), contagem de cada um, checagens que falharam como `check · reason`, caminho do relatório.
+  - `builder`: status da fatia, arquivos alterados, `Red:` e resultados das checagens, caminho do relatório. Não tem contagem por severidade.
+  - `docs-guide`: arquivos escritos com os caminhos, e o que cada um contém. Não tem veredito.
+  - `debugger`: status do diagnóstico (confirmed, hypothesis ou inconclusive), a causa em uma frase, caminho do relatório.
+  - `repo-scout`: não tem a ferramenta Write, então sempre devolve no próprio texto dentro do limite, como uma lista de caminhos com uma linha para cada caminho (veja a R2).
+  Verificável: o `coordinator.md` contém a expressão `limite de resposta` e os números `200` e `40`. `builder.md`, `reviewer.md`, `qa-verifier.md`, `docs-guide.md`, `debugger.md` e `repo-scout.md` declaram cada um o seu formato de resposta no Formato de saída. O `document-validator` mantém o seu próprio limite.
+- R2 Quem escreve o arquivo de relatório. Estes escritores mantêm os seus conjuntos de escrita atuais e acrescentam só o caminho de relatório nomeado no despacho:
+  - `builder`, `qa-verifier`, `docs-guide` e `debugger` escrevem o próprio arquivo de relatório.
+  - O `reviewer` continua totalmente somente leitura. Não tem a ferramenta Write e não escreve arquivo de relatório (D1). Devolve a resposta no próprio texto (R1).
+  - O `repo-scout` não tem a ferramenta Write. Devolve no próprio texto dentro do limite e lista caminhos, não corpos de arquivo (R1). Para um mapa maior que o limite, o Coordenador despacha o `docs-guide` (R10).
+  - Um revisor de CLI nunca escreve. O `qa-verifier` ou o `builder` (`lane` `infra`) que roda a chamada escreve o arquivo de relatório, como o PRD-025 define para a própria chamada.
+  Verificável: as `tools` de `reviewer.md` não têm Write. A afirmação "a revisão é somente leitura" continua verdadeira sem exceção.
+- R3 Disciplina de leitura do Coordenador. O Coordenador lê um arquivo de relatório só para julgar um achado bloqueante, para resolver uma disputa ou para tomar uma decisão que a resposta não sustenta. Não lê um relatório inteiro quando o veredito é `approved` e não existe achado bloqueante. A seção "Dúvida no meio do build" e os itens do Procedimento de `plan-loop.md` que julgam relatórios de onda seguem esta regra. O `MEMORY.md` registra o caminho do relatório e o veredito, não o texto do relatório. Verificável: o `coordinator.md` contém esta regra uma vez e nenhuma seção a contradiz. Uma busca por "leia o relatório" em `.agents/` e `.commands/` mostra só lugares que nomeiam uma condição.
+- R4 Sintetizador. Uma etapa de revisão pode ter mais de uma entrada de revisor no despacho. Então uma execução do `docs-guide` (modelo `sonnet`) junta as saídas dos revisores (os arquivos de relatório da CLI escritos pelo delegado e a resposta no próprio texto de um revisor `claude`, passada no despacho como dado citado) em um arquivo `<task folder>/reports/<stage>-merged-<round>.md`. O Coordenador lê este arquivo, não os relatórios brutos. As regras da junção:
+  - A entrada são as saídas dos revisores nomeadas no despacho (arquivos, ou uma resposta no próprio texto citada como dado), nunca o chat.
+  - Achados com o mesmo local e o mesmo título viram um achado. A junção lista cada revisor que o levantou.
+  - A junção nunca remove um achado bloqueante.
+  - A junção nunca reduz uma severidade.
+  - O veredito de cada revisor continua literal no arquivo.
+  - A junção não acrescenta achado nem julgamento. O Coordenador julga.
+  Com uma entrada de revisor, nenhum sintetizador roda. A etapa de documento mantém `<document>.review.md` como o arquivo mesclado, então não precisa de uma segunda junção. Verificável: o `coordinator.md` ("Revisores de CLI externos", passo de junção) nomeia o `docs-guide` como o responsável pela junção nas etapas `code` e `security`. O `docs-guide.md` lista a tarefa de junção e as suas regras.
 
-### Part B · What the Coordinator loads
+### Parte B · O que o Coordenador carrega
 
-- R5 `/dh:auto` stops inlining chained commands. At the start of each chained stage, the Coordinator reads only three sections of the chained command file: `Routing`, `Prerequisites`, and `Limits`. It skips `Output` and every section that the stage does not use. `auto.md` carries a table with one row for each chained stage (`discover`, `plan`, `build`, `secure`, `review`, `release`). Each row gives the file, the sections to read, and a byte budget. The Coordinator reads the stage sections once per run. A fresh session that resumes the run (`/dh:resume`) reads them again. The table rule replaces the sentence "Follow each chained command's own Routing and Prerequisites text inline". The chained gates, caps, and authorization checks do not change. Verifiable: `auto.md` contains the stage table with six rows. `auto.md` no longer says that the Coordinator reads `release.md` "inline in this same session" in full.
-- R6 Move single-command sections out of `coordinator.md`. Each of these sections moves to the command that uses it, with the text unchanged except for references:
-  - "Worktree" moves to `.commands/build.md`. `auto.md` points to that section.
-  - "Consolidation on explicit request" moves to `.commands/consolidate-memory.md`.
-  - "External CLI planners" moves to `.commands/plan-loop.md`.
-  - "Drift report" moves to `.commands/review.md`.
-  `coordinator.md` keeps one line for each moved section that names the command. The sections "Language", "Model selection", "External CLI reviewers" (it holds the anti-delegation clause), and "Proportional review and paid evaluation" stay. Target: `coordinator.md` is smaller by at least 5500 bytes than its size at 0.36.0 (31842 bytes). Measure with `wc -c`. Verifiable: `wc -c .agents/coordinator.md` is at most 26342. `go run ./cmd/dh validate` passes, including `checkAntiDelegationClause`. A search finds no reference to a moved section by its old place.
-- R7 `MEMORY.md` budget. The Coordinator keeps each `MEMORY.md` entry (one bullet, or one paragraph under a heading) at or below 1200 characters. It keeps the whole file at or below 40000 bytes. Detail beyond an entry goes to a file in the task folder. The entry keeps the path and one sentence. Existing entries stay as they are: the disk is the truth, and the Coordinator does not rewrite old records to meet the budget. The rule applies to every new or changed entry. Verifiable: `.agents/coordinator.md` ("Memory ownership") and `templates/en/MEMORY.md` and `templates/pt-br/MEMORY.md` state both numbers.
-- R8 Consolidation offer. When a read or `/dh:doctor` shows `MEMORY.md` over the file budget (R7), the Coordinator tells the owner once in that session and offers `/dh:consolidate-memory`. It never runs consolidation without the owner's request. `/dh:doctor` prints the byte size of `MEMORY.md` in the harness dir and a warning above 40000 bytes. Verifiable: a test of the `doctor` check, in `internal/`, for a file below, at, and above the budget. `consolidate-memory.md` states that the offer is the only automatic step.
+- R5 O `/dh:auto` deixa de embutir os comandos encadeados. No início de cada etapa encadeada, o Coordenador lê só três seções do arquivo do comando encadeado: `Roteamento`, `Pré-requisitos` e `Limites`. Pula `Saída` e toda seção que a etapa não usa. O `auto.md` traz uma tabela com uma linha para cada etapa encadeada (`discover`, `plan`, `build`, `secure`, `review`, `release`). Cada linha dá o arquivo, as seções a ler e um orçamento em bytes. O Coordenador lê as seções da etapa uma vez por execução. Uma sessão nova que retoma a execução (`/dh:resume`) lê de novo. A regra da tabela substitui a frase "Siga, no próprio texto, o Roteamento e os Pré-requisitos de cada comando encadeado". Os gates, os limites e as checagens de autorização encadeados não mudam. Verificável: o `auto.md` contém a tabela de etapas com seis linhas. O `auto.md` não diz mais que o Coordenador lê o `release.md` inteiro "no próprio texto, nesta mesma sessão".
+- R6 Mover seções de um só comando para fora do `coordinator.md`. Cada uma destas seções vai para o comando que a usa, com o texto inalterado, exceto pelas referências:
+  - "Worktree" vai para `.commands/build.md`. O `auto.md` aponta para essa seção.
+  - "Consolidação a pedido explícito" vai para `.commands/consolidate-memory.md`.
+  - "Planejadores de CLI externos" vai para `.commands/plan-loop.md`.
+  - "Relatório de deriva" vai para `.commands/review.md`.
+  O `coordinator.md` mantém uma linha para cada seção movida que nomeia o comando. As seções "Idioma", "Seleção de modelo", "Revisores de CLI externos" (ela guarda a cláusula anti-delegação) e "Revisão proporcional e avaliação paga" ficam. Meta: o `coordinator.md` fica menor em pelo menos 5500 bytes que o seu tamanho na 0.36.0 (31842 bytes). Meça com `wc -c`. Verificável: `wc -c .agents/coordinator.md` dá no máximo 26342. `go run ./cmd/dh validate` passa, inclusive `checkAntiDelegationClause`. Uma busca não acha referência a uma seção movida pelo lugar antigo.
+- R7 Orçamento do `MEMORY.md`. O Coordenador mantém cada entrada do `MEMORY.md` (um marcador, ou um parágrafo sob um título) em no máximo 1200 caracteres. Mantém o arquivo inteiro em no máximo 40000 bytes. O detalhe além de uma entrada vai para um arquivo na pasta da tarefa. A entrada guarda o caminho e uma frase. As entradas existentes ficam como estão: o disco é a verdade e o Coordenador não reescreve registros antigos para caber no orçamento. A regra vale para toda entrada nova ou alterada. Verificável: `.agents/coordinator.md` ("Posse da memória") e `templates/en/MEMORY.md` e `templates/pt-br/MEMORY.md` declaram os dois números.
+- R8 Oferta de consolidação. Quando uma leitura ou o `/dh:doctor` mostra o `MEMORY.md` acima do orçamento do arquivo (R7), o Coordenador avisa o dono uma vez naquela sessão e oferece o `/dh:consolidate-memory`. Nunca roda a consolidação sem o pedido do dono. O `/dh:doctor` imprime o tamanho em bytes do `MEMORY.md` no harness dir e um aviso acima de 40000 bytes. Verificável: um teste da checagem do `doctor`, em `internal/`, para um arquivo abaixo, no limite e acima do orçamento. O `consolidate-memory.md` declara que a oferta é o único passo automático.
 
-### Part C · Repository bootstrap
+### Parte C · Bootstrap do repositório
 
-- R9 Mechanism. The bootstrap extends `/dh:setup` as an opt-in second phase. It is not a new command. After the profile, `/dh:setup` offers to write the repository map. The owner accepts or declines. A re-run with the note `bootstrap` in the arguments refreshes the map without redoing the profile. The command counts stay at 19 + 1. Verifiable: `setup.md` contains the offer, the `bootstrap` argument, and the map path. The command count in `go run ./cmd/dh validate` is unchanged.
-- R10 Map file and writer. The map is `<harness dir>/REPO-MAP.md`, a markdown file in the `language` of `project.yaml`. It has no template and no `project.yaml` key. The skill `project-onboarding` gets a section "Repository bootstrap" that defines the format and the procedure. A `docs-guide` run (model `sonnet`) with the skills `repository-mapping` and `project-onboarding` reads the repository and writes the file. Its reply follows R1. The map has at most 200 lines and these parts:
-  1. Header: date and the `HEAD` sha. The Coordinator gets the sha from a `qa-verifier` run (`git rev-parse HEAD`) and passes it in the dispatch. The writer copies it and does not run git.
-  2. Top-level layout: one line per directory.
-  3. Entry points and how to run, test, lint, and build, with the source of each command.
-  4. Architecture in at most 15 lines: the main components and how they connect.
-  5. Risk areas: paths where a change needs extra care, with the reason.
-  6. Conventions the code shows, each with one example path.
-  Every claim cites a relative path. A claim the writer did not verify is marked `hypothesis`. When the repository has more than 15 top-level directories, the writer stops and the Coordinator asks the owner to name the scope (the EGM safety gate, adapted). The writer reads the repository and does not run project code or scripts. Verifiable: a run on a fixture produces a map of at most 200 lines with all six parts and a header sha.
-- R11 Reuse. `repo-scout` reads `REPO-MAP.md` first when it exists and treats it as a hint. The Coordinator adds the map path to `sources` in dispatches to `repo-scout`, `implementation-planner`, and `builder`. The Coordinator does not read the map itself. `builder` and `implementation-planner` treat the map as a hint and verify it against the tree, as `repo-scout` does. `repository-mapping` gains one line: use the map as a pointer and verify any claim before it supports a plan. Verifiable: `repo-scout.md`, `builder.md`, `implementation-planner.md`, and `repository-mapping` each contain `REPO-MAP.md`. `coordinator.md` does not tell the Coordinator to read it.
-- R12 Staleness and refresh. The Coordinator passes the current `HEAD` sha (from `qa-verifier`) in each `repo-scout` dispatch. When the header sha differs from it, `repo-scout` reports the map as stale and still uses it as a pointer. The refresh is owner-triggered (R9). `/dh:setup` may overwrite `REPO-MAP.md`, the only exception to its rule "never overwrite an existing record", because the file is derived data. In `repo` mode, `.harness/REPO-MAP.md` is versioned like other internal records. Verifiable: `setup.md` Limits names the exception for this one file. The `repo-scout` report has a line `Map: fresh | stale | none`.
+- R9 Mecanismo. O bootstrap estende o `/dh:setup` como uma segunda fase opcional. Não é um comando novo. Depois do perfil, o `/dh:setup` oferece escrever o mapa do repositório. O dono aceita ou recusa. Uma nova execução com a nota `bootstrap` nos argumentos atualiza o mapa sem refazer o perfil. As contagens de comandos continuam em 19 + 1. Verificável: o `setup.md` contém a oferta, o argumento `bootstrap` e o caminho do mapa. A contagem de comandos em `go run ./cmd/dh validate` não muda.
+- R10 Arquivo do mapa e escritor. O mapa é `<harness dir>/REPO-MAP.md`, um arquivo markdown no `language` do `project.yaml`. Não tem template nem chave em `project.yaml`. A skill `project-onboarding` ganha uma seção "Bootstrap do repositório" que define o formato e o procedimento. Uma execução do `docs-guide` (modelo `sonnet`) com as skills `repository-mapping` e `project-onboarding` lê o repositório e escreve o arquivo. A resposta dele segue a R1. O mapa tem no máximo 200 linhas e estas partes:
+  1. Cabeçalho: data e o sha do `HEAD`. O Coordenador obtém o sha de uma execução do `qa-verifier` (`git rev-parse HEAD`) e o passa no despacho. O escritor o copia e não roda o git.
+  2. Estrutura de nível superior: uma linha por diretório.
+  3. Pontos de entrada e como rodar, testar, fazer lint e fazer build, com a fonte de cada comando.
+  4. Arquitetura em no máximo 15 linhas: os componentes principais e como se ligam.
+  5. Áreas de risco: caminhos em que uma mudança exige cuidado extra, com o motivo.
+  6. Convenções que o código mostra, cada uma com um caminho de exemplo.
+  Toda afirmação cita um caminho relativo. Uma afirmação que o escritor não verificou é marcada como `hypothesis`. Quando o repositório tem mais de 15 diretórios de nível superior, o escritor para e o Coordenador pede ao dono que nomeie o escopo (o gate de segurança do EGM, adaptado). O escritor lê o repositório e não roda código nem scripts do projeto. Verificável: uma execução em uma fixture produz um mapa de no máximo 200 linhas com as seis partes e um sha no cabeçalho.
+- R11 Reutilização. O `repo-scout` lê o `REPO-MAP.md` primeiro quando ele existe e o trata como uma dica. O Coordenador acrescenta o caminho do mapa em `sources` nos despachos para o `repo-scout`, o `implementation-planner` e o `builder`. O Coordenador não lê o mapa por conta própria. O `builder` e o `implementation-planner` tratam o mapa como uma dica e o verificam contra a árvore, como o `repo-scout` faz. A `repository-mapping` ganha uma linha: use o mapa como ponteiro e verifique qualquer afirmação antes de ela sustentar um plano. Verificável: `repo-scout.md`, `builder.md`, `implementation-planner.md` e `repository-mapping` contêm cada um `REPO-MAP.md`. O `coordinator.md` não manda o Coordenador lê-lo.
+- R12 Defasagem e atualização. O Coordenador passa o sha atual do `HEAD` (do `qa-verifier`) em cada despacho do `repo-scout`. Quando o sha do cabeçalho difere dele, o `repo-scout` reporta o mapa como desatualizado e ainda o usa como ponteiro. A atualização é disparada pelo dono (R9). O `/dh:setup` pode sobrescrever o `REPO-MAP.md`, a única exceção à sua regra "nunca sobrescreva um registro existente", porque o arquivo é dado derivado. No modo `repo`, o `.harness/REPO-MAP.md` é versionado como os outros registros internos. Verificável: os Limites do `setup.md` nomeiam a exceção para este único arquivo. O relatório do `repo-scout` tem uma linha `Map: fresh | stale | none`.
 
-### Part D · Limits and proof
+### Parte D · Limites e prova
 
-- R13 No new agent, skill, command, template, or `project.yaml` key. The counts stay: 13 agents, 22 skills, 19 + 1 commands. The template count stays. `go run ./cmd/dh validate` passes the documented-counts check.
-- R14 These safeguards stay in force:
-  - Not-run honesty: a check that did not run is `not-run`, never `passed`.
-  - Memory ownership: only the Coordinator writes `MEMORY.md`, `EPOCHAL.md`, and `RISKS.md`. A report file in the task folder is not one of them.
-  - Independent review: a builder claim is not review, and a reviewer changes no repository file.
-  - The review bundle excludes the Coordinator conversation (the context package rule in `AGENTS.md`).
-  - The anti-delegation clause, verbatim in `coordinator.md` and `external-clis`.
-  - Authorization: plan approval does not authorize commit, push, publish, or deploy.
-  - A CLI reviewer run changes nothing in the tree. A change in the tree discards the verdict.
-  Verifiable: `go run ./cmd/dh validate` passes. The builder lists each safeguard with the file that holds it in the pull request description.
-- R15 Measurement. The first ticket records a baseline, and the last ticket records the result, in the Executed summary of this PRD. The records give: `wc -c` of `.agents/coordinator.md`; the bytes the Coordinator reads from the six chained commands in `/dh:auto` (before: the six files in full; after: the table sections only); and the size of the `MEMORY.md` template. No paid eval and no token-count tool is part of this PRD, and the Executed summary says that the figures are bytes, not tokens. Verifiable: the Executed summary has the baseline and result lines.
-- R16 Cleanup premise. The same pull request updates every document that states a behavior this PRD changes (section 4) and regenerates `dist/` with `go run ./cmd/dh build`. A search for each moved section name finds no stale reference outside `docs/prd/`, `docs/adr/`, `CHANGELOG.md` history, and `evals/baselines/`. Because R8 changes `internal/`, the clean-clone proof in `AGENTS.md` applies before any push. Verifiable: `go run ./cmd/dh validate`, `go test ./...`, and a clean `git diff` of `dist/` after `go run ./cmd/dh build`.
-- R17 PRD-031 carry-over fixes. Four defects from the PRD-031 delivery are fixed in this pull request:
-  - `.skills/code-review/SKILL.md` asks again, in the review procedure, whether a plausible regression would fail a test. Verifiable: the file contains that question once.
-  - `.skills/incremental-implementation/SKILL.md` restores the three safeguards of the official-page rule: skip the fetch when only one option is viable; send a conflict with local convention to the open-decision gate; put the URL in the report, not in a code comment. Verifiable: the file contains each safeguard once.
-  - `docs/prd/PRD-031-rule-inventory.md` states the total as 55830 bytes. Verifiable: `grep -n "55830\|55,830" docs/prd/PRD-031-rule-inventory.md` shows the figure and no other total.
-  - `.skills/regression-testing/SKILL.md` step 13 gives one sentence for each heuristic. Verifiable: step 13 has three sentences, one for each heuristic of PRD-031 R3.
+- R13 Nenhum agente, skill, comando, template nem chave de `project.yaml` novos. As contagens continuam: 13 agentes, 22 skills, 19 + 1 comandos. A contagem de templates continua. `go run ./cmd/dh validate` passa na checagem das contagens documentadas.
+- R14 Estas salvaguardas continuam em vigor:
+  - Honestidade do not-run: uma checagem que não rodou é `not-run`, nunca `passed`.
+  - Posse da memória: só o Coordenador escreve `MEMORY.md`, `EPOCHAL.md` e `RISKS.md`. Um arquivo de relatório na pasta da tarefa não é um deles.
+  - Revisão independente: uma afirmação do builder não é revisão, e um revisor não altera nenhum arquivo do repositório.
+  - O pacote de revisão exclui a conversa do Coordenador (a regra do pacote de contexto no `AGENTS.md`).
+  - A cláusula anti-delegação, literal no `coordinator.md` e na `external-clis`.
+  - Autorização: a aprovação do plano não autoriza commit, push, publicação nem deploy.
+  - Uma execução de revisor de CLI não altera nada na árvore. Uma mudança na árvore descarta o veredito.
+  Verificável: `go run ./cmd/dh validate` passa. O builder lista cada salvaguarda com o arquivo que a guarda na descrição do pull request.
+- R15 Medição. O primeiro ticket registra uma linha de base, e o último ticket registra o resultado, no Resumo executado deste PRD. Os registros dão: `wc -c` de `.agents/coordinator.md`; os bytes que o Coordenador lê dos seis comandos encadeados no `/dh:auto` (antes: os seis arquivos inteiros; depois: só as seções da tabela); e o tamanho do template de `MEMORY.md`. Nenhuma avaliação paga e nenhuma ferramenta de contagem de tokens faz parte deste PRD, e o Resumo executado diz que os números são bytes, não tokens. Verificável: o Resumo executado tem as linhas da linha de base e do resultado.
+- R16 Premissa de limpeza. O mesmo pull request atualiza todo documento que declara um comportamento que este PRD muda (seção 4) e regenera o `dist/` com `go run ./cmd/dh build`. Uma busca por cada nome de seção movida não acha referência velha fora de `docs/prd/`, `docs/adr/`, do histórico do `CHANGELOG.md` e de `evals/baselines/`. Como a R8 muda o `internal/`, a prova de clone limpo do `AGENTS.md` vale antes de qualquer push. Verificável: `go run ./cmd/dh validate`, `go test ./...` e um `git diff` limpo de `dist/` depois de `go run ./cmd/dh build`.
+- R17 Correções herdadas do PRD-031. Quatro defeitos da entrega do PRD-031 são corrigidos neste pull request:
+  - `.skills/code-review/SKILL.md` volta a perguntar, no procedimento de revisão, se uma regressão plausível faria um teste falhar. Verificável: o arquivo contém essa pergunta uma vez.
+  - `.skills/incremental-implementation/SKILL.md` restaura as três salvaguardas da regra da página oficial: pular a busca quando só uma opção é viável; enviar um conflito com a convenção local ao gate de decisão em aberto; pôr a URL no relatório, não em um comentário de código. Verificável: o arquivo contém cada salvaguarda uma vez.
+  - `docs/prd/PRD-031-rule-inventory.md` declara o total como 55830 bytes. Verificável: `grep -n "55830\|55,830" docs/prd/PRD-031-rule-inventory.md` mostra o número e nenhum outro total.
+  - `.skills/regression-testing/SKILL.md` passo 13 dá uma frase para cada heurística. Verificável: o passo 13 tem três frases, uma para cada heurística da R3 do PRD-031.
 
 ## 4. Docs
 
-The builder confirms each document with a search and edits it in the same pull request. Pairs update together (pt-br and `docs/en/`).
+O builder confirma cada documento com uma busca e o edita no mesmo pull request. Os pares atualizam juntos (pt-br e `docs/en/`).
 
-- `AGENTS.md` (bullets "Escopo do Coordenador", "Agentes", "Verificação padrão", and "Pasta global do harness")
+- `AGENTS.md` (marcadores "Escopo do Coordenador", "Agentes", "Verificação padrão" e "Pasta global do harness")
 - `.agents/coordinator.md`
 - `.agents/builder.md`
 - `.agents/reviewer.md`
@@ -142,129 +144,129 @@ The builder confirms each document with a search and edits it in the same pull r
 - `docs/prd/PRD-031-rule-inventory.md` (R17)
 - `templates/en/MEMORY.md`
 - `templates/pt-br/MEMORY.md`
-- `internal/` (the `doctor` size check and its test)
+- `internal/` (a checagem de tamanho do `doctor` e o seu teste)
 - `docs/tutorial.html`
 - `docs/en/tutorial.html`
 - `docs/novo-fluxo-prd.md`
 - `docs/en/new-prd-flow.md`
 - `docs/roadmap.html`
 - `docs/en/roadmap.html`
-- `CHANGELOG.md` (new entry, version bump, counts line)
-- `docs/adr/ADR-010-lean-coordinator-context.md` (new: records the artifact-first rule, the section moves, and the bootstrap choice)
+- `CHANGELOG.md` (entrada nova, aumento de versão, linha das contagens)
+- `docs/adr/ADR-010-lean-coordinator-context.md` (novo: registra a regra do artefato primeiro, as mudanças de seção e a escolha do bootstrap)
 
-The builder also searches `adapters/`, `hooks/`, and `internal/` for code that reads the moved `coordinator.md` sections or the `MEMORY.md` layout. A match is in scope.
+O builder também busca em `adapters/`, `hooks/` e `internal/` código que leia as seções movidas do `coordinator.md` ou o layout do `MEMORY.md`. Uma ocorrência está no escopo.
 
-## Appendix
+## Apêndice
 
-### Discarded alternatives
+### Alternativas descartadas
 
-| Alternative | Why not |
+| Alternativa | Por que não |
 |---|---|
-| New `/dh:bootstrap` command | The fixed count 19 + 1 changes in `AGENTS.md`, ADR-003, `internal/kit/doc_counts.go`, roadmap and tutorial (pt and en), `marketplace.json`, and `REVIEW.md`. `/dh:setup` already owns first-time project knowledge. |
-| Bootstrap through `/dh:understand` | The command maps one slice. A whole-repository mode blurs it and contradicts `repository-mapping`. |
-| README tree ("peanuts" and "hay") | It adds files to the consumer repository. A single map in the harness dir has the same use with no repository change. |
-| Stage-runner subagent for each `/dh:auto` stage | A subagent cannot start subagents, so a runner could not dispatch builders and reviewers. |
-| Edit `MEMORY.md` automatically at the budget | Consolidation stays owner-triggered (`AGENTS.md`). The disk is the truth for records. |
-| EGM six-lens brainstorm, EGM hooks | Excluded in PRD-029. They add context, not remove it. |
-| A cheaper model for the Coordinator | Out of the owner's request. Model choice is not the cause of context growth. |
-| Paid evals of context saved | Only on the owner's request (`AGENTS.md`). The measure is bytes (R15). |
+| Novo comando `/dh:bootstrap` | A contagem fixa 19 + 1 muda no `AGENTS.md`, no ADR-003, em `internal/kit/doc_counts.go`, no roadmap e no tutorial (pt e en), no `marketplace.json` e no `REVIEW.md`. O `/dh:setup` já é dono do conhecimento do projeto na primeira vez. |
+| Bootstrap pelo `/dh:understand` | O comando mapeia uma fatia. Um modo de repositório inteiro o confunde e contradiz a `repository-mapping`. |
+| Árvore no README ("amendoins" e "feno") | Acrescenta arquivos ao repositório do consumidor. Um único mapa no harness dir tem o mesmo uso sem mudança no repositório. |
+| Subagente executor de etapa para cada etapa do `/dh:auto` | Um subagente não pode iniciar subagentes, então um executor não poderia despachar builders e revisores. |
+| Editar o `MEMORY.md` automaticamente no orçamento | A consolidação continua disparada pelo dono (`AGENTS.md`). O disco é a verdade para os registros. |
+| Brainstorm de seis lentes do EGM, hooks do EGM | Excluídos no PRD-029. Acrescentam contexto, não tiram. |
+| Um modelo mais barato para o Coordenador | Fora do pedido do dono. A escolha do modelo não é a causa do crescimento do contexto. |
+| Avaliações pagas do contexto poupado | Só a pedido do dono (`AGENTS.md`). A medida é em bytes (R15). |
 
-### Risks and pending decisions
+### Riscos e decisões pendentes
 
-- Risk: the byte measure is a proxy for tokens. The real saving shows only in long runs. Mitigation: R15 states the figures as bytes. The owner judges by use.
-- Risk: R6 saves about 5500 bytes, small beside the `MEMORY.md` read (185182 bytes in this project). Mitigation: R7 and R8 target the larger item. The existing `MEMORY.md` is not rewritten by this PRD. The owner can run `/dh:consolidate-memory`.
-- Risk: the Coordinator trusts the reply and skips the file (R3). A summary can hide a blocking finding. Mitigation: the reply must list up to 5 blocking findings, and R4 forbids dropping or lowering one.
-- Risk: a `reviewer` reply with no report file can lose detail. Mitigation: the reply keeps the verdict, the counts, and up to 5 blocking findings (R1). The Coordinator can ask for a narrower re-review.
-- Risk: sections moved out of `coordinator.md` (R6) can be skipped when a command is run by hand without the Coordinator reading it. Mitigation: each command already reads its own text. The one-line pointer stays in `coordinator.md`.
-- Risk: a stale map misleads planning (R12). Mitigation: it is a hint, the sha header marks staleness, and claims are verified.
-- Risk: sections can change before the build starts. Mitigation: this PRD cites section names, not lines, and R6 measures from the 0.36.0 size.
-- Suggestion (not a rule): after each `/dh:auto` stage, the status line could say that the run can continue in a fresh session with `/dh:resume`. The `Stage:` line already supports it. The Coordinator cannot measure its own context, so the PRD does not make this a rule.
+- Risco: a medida em bytes é um substituto dos tokens. A economia real só aparece em execuções longas. Mitigação: a R15 declara os números como bytes. O dono julga pelo uso.
+- Risco: a R6 poupa cerca de 5500 bytes, pouco ao lado da leitura do `MEMORY.md` (185182 bytes neste projeto). Mitigação: a R7 e a R8 miram o item maior. O `MEMORY.md` existente não é reescrito por este PRD. O dono pode rodar `/dh:consolidate-memory`.
+- Risco: o Coordenador confia na resposta e pula o arquivo (R3). Um resumo pode esconder um achado bloqueante. Mitigação: a resposta deve listar até 5 achados bloqueantes, e a R4 proíbe descartar ou reduzir um.
+- Risco: uma resposta de `reviewer` sem arquivo de relatório pode perder detalhe. Mitigação: a resposta guarda o veredito, as contagens e até 5 achados bloqueantes (R1). O Coordenador pode pedir uma nova revisão mais estreita.
+- Risco: seções movidas para fora do `coordinator.md` (R6) podem ser puladas quando um comando é rodado à mão sem o Coordenador lê-lo. Mitigação: cada comando já lê o próprio texto. O ponteiro de uma linha continua no `coordinator.md`.
+- Risco: um mapa desatualizado engana o planejamento (R12). Mitigação: é uma dica, o cabeçalho com o sha marca a defasagem e as afirmações são verificadas.
+- Risco: as seções podem mudar antes de o build começar. Mitigação: este PRD cita nomes de seção, não linhas, e a R6 mede a partir do tamanho da 0.36.0.
+- Sugestão (não é regra): depois de cada etapa do `/dh:auto`, a linha de status poderia dizer que a execução pode continuar em uma sessão nova com `/dh:resume`. A linha `Stage:` já permite isso. O Coordenador não consegue medir o próprio contexto, então o PRD não faz disso uma regra.
 
-### Decisions (closed 2026-10-31, owner: follow recommendations)
+### Decisões (fechadas em 2026-10-31, dono: seguir as recomendações)
 
-Each item is decided 2026-10-31 (owner: follow recommendations).
+Cada item foi decidido em 2026-10-31 (dono: seguir as recomendações).
 
-- D1 `reviewer` gets no Write tool and stays read-only. It returns its report inline (R1, R2). Decided 2026-10-31. Reason: a limit written only in prose was a confirmed exposure. A runtime-guard rule that allows one narrow reviewer write is a future candidate, out of scope here.
-- D2 `docs-guide`, model `sonnet`, runs the synthesizer (R4). Decided.
-- D3 `/dh:auto` reads the named sections through a stage table (R5). Resuming in a fresh session stays an owner choice and a suggestion. Decided.
-- D4 Thresholds: reply cap 200 words, report to file above 40 lines, entry at most 1200 characters, file at most 40000 bytes, move at least 5500 bytes (R1, R6, R7). Decided.
-- D5 `dh doctor` prints the `MEMORY.md` size and warns above budget (R8). Decided.
-- D6 The bootstrap extends `/dh:setup`. The counts stay 19 + 1 (R9). Owner note 2026-10-31: a separate bootstrap command may be needed in the future; out of scope here. Decided.
-- D7 The map is `<harness dir>/REPO-MAP.md`, written by `docs-guide`, with no template and no key (R10). Decided.
-- D8 Minor version bump from 0.36.0 to 0.37.0. Decided.
+- D1 O `reviewer` não ganha a ferramenta Write e continua somente leitura. Devolve o relatório no próprio texto (R1, R2). Decidido em 2026-10-31. Motivo: um limite escrito só em prosa era uma exposição confirmada. Uma regra de trava de runtime que permita uma escrita estreita do revisor é um candidato futuro, fora de escopo aqui.
+- D2 O `docs-guide`, modelo `sonnet`, roda o sintetizador (R4). Decidido.
+- D3 O `/dh:auto` lê as seções nomeadas por uma tabela de etapas (R5). Retomar em uma sessão nova continua sendo escolha do dono e uma sugestão. Decidido.
+- D4 Limiares: limite de resposta de 200 palavras, relatório em arquivo acima de 40 linhas, entrada com no máximo 1200 caracteres, arquivo com no máximo 40000 bytes, mover pelo menos 5500 bytes (R1, R6, R7). Decidido.
+- D5 O `dh doctor` imprime o tamanho do `MEMORY.md` e avisa acima do orçamento (R8). Decidido.
+- D6 O bootstrap estende o `/dh:setup`. As contagens continuam 19 + 1 (R9). Nota do dono em 2026-10-31: um comando de bootstrap separado pode ser preciso no futuro; fora de escopo aqui. Decidido.
+- D7 O mapa é `<harness dir>/REPO-MAP.md`, escrito pelo `docs-guide`, sem template e sem chave (R10). Decidido.
+- D8 Aumento de versão menor, de 0.36.0 para 0.37.0. Decidido.
 
-Amendment 2026-10-31: D1 reverted after a security review (medium finding: untrusted PR text could reach `project.yaml` or `REVIEW.md` through a `reviewer` write). R1, R2, and the related Risk follow D1. R11 now says that `builder` and `implementation-planner` verify the map.
+Emenda de 2026-10-31: a D1 foi revertida depois de uma revisão de segurança (achado médio: texto não confiável de um PR poderia chegar a `project.yaml` ou `REVIEW.md` por uma escrita do `reviewer`). A R1, a R2 e o Risco relacionado seguem a D1. A R11 agora diz que o `builder` e o `implementation-planner` verificam o mapa.
 
-### Out of scope
+### Fora de escopo
 
-- EGM hooks, the six-lens brainstorm, and the README tree.
-- A model change for the Coordinator.
-- Paid evals and any token-counting tool.
-- Automatic `MEMORY.md` consolidation or rewrite of existing records.
-- Changes to review rules, finding states, or round caps (PRD-031 owns them).
+- Hooks do EGM, o brainstorm de seis lentes e a árvore no README.
+- Uma mudança de modelo para o Coordenador.
+- Avaliações pagas e qualquer ferramenta de contagem de tokens.
+- Consolidação automática do `MEMORY.md` ou reescrita dos registros existentes.
+- Mudanças nas regras de revisão, nos estados de achado ou nos limites de rodada (o PRD-031 é o dono delas).
 
-## Executed summary
+## Resumo executado
 
-Figures are bytes, not tokens. Measured on 0.36.0 before any PRD-032 edit (`wc -c`; a section runs from its `## <name>` header up to the next `## `).
+Os números são bytes, não tokens. Medidos na 0.36.0 antes de qualquer edição do PRD-032 (`wc -c`; uma seção vai do seu cabeçalho `## <name>` até o próximo `## `).
 
-- Baseline coordinator.md: 31842 bytes (`.agents/coordinator.md`).
-- Baseline auto before: 36583 bytes, the six chained commands in full (discover 3339, plan 7427, build 4734, secure 3205, review 16061, release 1817). Sections `## Routing` / `## Prerequisites` / `## Limits` in bytes: discover 1463 / 266 / 415; plan 4546 / 530 / 416; build 2266 / 393 / 914; secure 757 / 469 / 884; review 8442 / 1037 / 1784; release 494 / 275 / 227.
-- Baseline MEMORY template: `templates/en/MEMORY.md` 2579 bytes; `templates/pt-br/MEMORY.md` 2762 bytes.
+- Linha de base do coordinator.md: 31842 bytes (`.agents/coordinator.md`).
+- Linha de base do auto antes: 36583 bytes, os seis comandos encadeados inteiros (discover 3339, plan 7427, build 4734, secure 3205, review 16061, release 1817). Seções `## Routing` / `## Prerequisites` / `## Limits` em bytes: discover 1463 / 266 / 415; plan 4546 / 530 / 416; build 2266 / 393 / 914; secure 757 / 469 / 884; review 8442 / 1037 / 1784; release 494 / 275 / 227.
+- Linha de base do template de MEMORY: `templates/en/MEMORY.md` 2579 bytes; `templates/pt-br/MEMORY.md` 2762 bytes.
 
-Result (T-3217, commit a159079, same method and files as the baseline; `wc -c`):
+Resultado (T-3217, commit a159079, mesmo método e mesmos arquivos da linha de base; `wc -c`):
 
-- Result coordinator.md: 26338 bytes, 5504 below the baseline, within the R6 limit of 26342.
-- Result auto after: 25524 bytes, the `Routing` / `Prerequisites` / `Limits` sections of the six chained commands (discover 2142, plan 5482, build 3553, secure 2110, review 11241, release 996), against 36583 before. The `auto.md` table budgets (2150, 5500, 3600, 2150, 11300, 1000) cover these sizes.
-- Result MEMORY template: `templates/en/MEMORY.md` 2849 bytes; `templates/pt-br/MEMORY.md` 3050 bytes (they grew because they now state the R7 budget).
+- Resultado do coordinator.md: 26338 bytes, 5504 abaixo da linha de base, dentro do limite da R6 de 26342.
+- Resultado do auto depois: 25524 bytes, as seções `Routing` / `Prerequisites` / `Limits` dos seis comandos encadeados (discover 2142, plan 5482, build 3553, secure 2110, review 11241, release 996), contra 36583 antes. Os orçamentos da tabela do `auto.md` (2150, 5500, 3600, 2150, 11300, 1000) cobrem esses tamanhos.
+- Resultado do template de MEMORY: `templates/en/MEMORY.md` 2849 bytes; `templates/pt-br/MEMORY.md` 3050 bytes (cresceram porque agora declaram o orçamento da R7).
 
-**Delivered:** The Coordinator now loads less (moved sections, an `auto.md` stage table, and a `MEMORY.md` budget with a doctor warning), roles reply within a 200-word cap with long reports in files, and `/dh:setup` offers an opt-in `REPO-MAP.md` bootstrap that planning and build roles use as a hint, in one pull request at 0.37.0 with no new agent, skill, command, template, or key.
+**Entregue:** O Coordenador agora carrega menos (seções movidas, uma tabela de etapas no `auto.md` e um orçamento do `MEMORY.md` com aviso do doctor), os papéis respondem dentro de um limite de 200 palavras com relatórios longos em arquivos, e o `/dh:setup` oferece um bootstrap opcional do `REPO-MAP.md` que os papéis de planejamento e build usam como dica, em um pull request na 0.37.0, sem agente, skill, comando, template nem chave novos.
 
-**Rules:**
+**Regras:**
 
-- R1 Honored. QA matrix `tasks/PRD-032/reports/qa-verifier-2.md` (pass); reply shapes in the six role files.
-- R2 Honored. `reviewer.md` has no Write tool (D1 reverted by the 2026-10-31 amendment); QA matrix `qa-verifier-2.md`; security review `evidence/review-r2/`.
-- R3 Honored. `qa-verifier-2.md` (rule once in `coordinator.md`, other mentions name a condition).
-- R4 Honored. `qa-verifier-2.md` (`coordinator.md` names `docs-guide` as merger; `docs-guide.md` lists the rules).
-- R5 Honored. `.commands/auto.md` stage table with six rows; sizes above; `qa-verifier-2.md`. The R5 byte budgets were not re-measured in that report; they were re-measured here.
-- R6 Honored. 26338 bytes (limit 26342); `go run ./cmd/dh validate` passes with the anti-delegation clause hash unchanged (`qa-verifier-2.md`, `qa-verifier-3.md`).
-- R7 Honored. Both numbers in `coordinator.md` and both MEMORY templates (`qa-verifier-2.md`).
-- R8 Honored. `printHarnessFor` in `internal/doctor/harness.go` with a test below, at, and above the budget; `go test ./...` passes (`qa-verifier-3.md`). The `/dh:doctor` command text was not run (limitation in `qa-verifier-2.md`).
-- R9 Honored. `qa-verifier-2.md`; command count stays 19 + 1.
-- R10 Honored. The fixture map (30 lines, six parts, header sha equal to `git rev-parse HEAD`) was checked in `reports/qa-verifier-1.md` on an earlier state. It was not repeated on the final state. Observation in that report: the writer ran `git ls-files` beyond the sha.
-- R11 Honored. `qa-verifier-2.md`.
-- R12 Honored. `qa-verifier-2.md`.
-- R13 Honored. Counts 13 agents, 22 skills, 19 + 1 commands, 14 templates; validate passes (`qa-verifier-2.md`, `qa-verifier-3.md`).
-- R14 Honored in the tree: the safeguards are intact (validate passes, anti-delegation clause sha256 equal in `coordinator.md` and `external-clis`, critical paths untouched: `qa-verifier-3.md`). Pending: the list of safeguards with their files in the pull request body is not written yet; this is not claimed as done.
-- R15 Honored. Baseline and result lines above; the figures are bytes, not tokens.
-- R16 Honored. `dist/` rebuilt; clean-clone proof PASS in `qa-verifier-3.md` (7 binaries with the same sha256, validate 0 errors, `go test ./...` ok, only `generated_at` differs).
-- R17 Honored. `qa-verifier-2.md`.
+- R1 Honrada. Matriz de QA `tasks/PRD-032/reports/qa-verifier-2.md` (pass); formatos de resposta nos seis arquivos de papel.
+- R2 Honrada. O `reviewer.md` não tem a ferramenta Write (D1 revertida pela emenda de 2026-10-31); matriz de QA `qa-verifier-2.md`; revisão de segurança `evidence/review-r2/`.
+- R3 Honrada. `qa-verifier-2.md` (regra uma vez no `coordinator.md`, as outras menções nomeiam uma condição).
+- R4 Honrada. `qa-verifier-2.md` (o `coordinator.md` nomeia o `docs-guide` como responsável pela junção; o `docs-guide.md` lista as regras).
+- R5 Honrada. Tabela de etapas de `.commands/auto.md` com seis linhas; tamanhos acima; `qa-verifier-2.md`. Os orçamentos em bytes da R5 não foram medidos de novo nesse relatório; foram medidos de novo aqui.
+- R6 Honrada. 26338 bytes (limite 26342); `go run ./cmd/dh validate` passa com o hash da cláusula anti-delegação inalterado (`qa-verifier-2.md`, `qa-verifier-3.md`).
+- R7 Honrada. Os dois números no `coordinator.md` e nos dois templates de MEMORY (`qa-verifier-2.md`).
+- R8 Honrada. `printHarnessFor` em `internal/doctor/harness.go` com um teste abaixo, no limite e acima do orçamento; `go test ./...` passa (`qa-verifier-3.md`). O texto do comando `/dh:doctor` não foi rodado (limitação em `qa-verifier-2.md`).
+- R9 Honrada. `qa-verifier-2.md`; a contagem de comandos continua 19 + 1.
+- R10 Honrada. O mapa da fixture (30 linhas, seis partes, sha do cabeçalho igual a `git rev-parse HEAD`) foi conferido em `reports/qa-verifier-1.md` em um estado anterior. Não foi repetido no estado final. Observação nesse relatório: o escritor rodou `git ls-files` além do sha.
+- R11 Honrada. `qa-verifier-2.md`.
+- R12 Honrada. `qa-verifier-2.md`.
+- R13 Honrada. Contagens 13 agentes, 22 skills, 19 + 1 comandos, 14 templates; validate passa (`qa-verifier-2.md`, `qa-verifier-3.md`).
+- R14 Honrada na árvore: as salvaguardas estão intactas (validate passa, sha256 da cláusula anti-delegação igual no `coordinator.md` e na `external-clis`, caminhos críticos intocados: `qa-verifier-3.md`). Pendente: a lista de salvaguardas com os seus arquivos no corpo do pull request ainda não foi escrita; isto não é dado como feito.
+- R15 Honrada. Linhas da linha de base e do resultado acima; os números são bytes, não tokens.
+- R16 Honrada. `dist/` reconstruído; prova de clone limpo PASS em `qa-verifier-3.md` (7 binários com o mesmo sha256, validate 0 erros, `go test ./...` ok, só `generated_at` difere).
+- R17 Honrada. `qa-verifier-2.md`.
 
 **Tickets:**
 
-| Id | Lane | Verdict | Evidence |
+| Id | Lane | Veredito | Evidência |
 |---|---|---|---|
-| T-3201 | backend | done | baseline above |
+| T-3201 | backend | done | linha de base acima |
 | T-3202 | backend | done | `qa-verifier-2.md` (R17); `evidence/review-r3/` |
-| T-3203 | backend | done | `go test ./...` in `qa-verifier-3.md`; `evidence/review-r3/` |
+| T-3203 | backend | done | `go test ./...` em `qa-verifier-3.md`; `evidence/review-r3/` |
 | T-3204 | backend | done | coordinator.md 26338 bytes; `evidence/review-r3/` |
 | T-3205 | backend | done | `qa-verifier-2.md` (R1, R2, R4); `evidence/review-r3/` |
-| T-3206 | backend | done | security `evidence/review-r2/`: `cli:codex/gpt-6.1-sol` found no vulnerability; the `claude` reviewer approved after F1-1 and F1-2 were fixed; 2 Low findings, non-blocking |
-| T-3207 | backend | done | `qa-verifier-2.md` (R1 to R4); `evidence/review-r4/` (codex approve) |
-| T-3208 | backend | done | `qa-verifier-2.md` (R9 to R12); `evidence/review-r4/` |
+| T-3206 | backend | done | segurança `evidence/review-r2/`: `cli:codex/gpt-6.1-sol` não achou vulnerabilidade; o revisor `claude` deu `approved` depois que F1-1 e F1-2 foram corrigidos; 2 achados Low, não bloqueantes |
+| T-3207 | backend | done | `qa-verifier-2.md` (R1 a R4); `evidence/review-r4/` (codex approve) |
+| T-3208 | backend | done | `qa-verifier-2.md` (R9 a R12); `evidence/review-r4/` |
 | T-3209 | backend | done | `qa-verifier-2.md` (R7, R8); `evidence/review-r4/` |
-| T-3210 | backend | done | coordinator.md closes at 26338 bytes; `evidence/review-r4/` |
-| T-3211 | backend | done | `auto.md` table; `qa-verifier-2.md` |
-| T-3212 | test | pass (13 pass; R10, R14, R15, R16 pending then, closed above) | `reports/qa-verifier-2.md` |
+| T-3210 | backend | done | coordinator.md fecha em 26338 bytes; `evidence/review-r4/` |
+| T-3211 | backend | done | tabela do `auto.md`; `qa-verifier-2.md` |
+| T-3212 | test | pass (13 pass; R10, R14, R15, R16 pendentes na época, fechadas acima) | `reports/qa-verifier-2.md` |
 | T-3213 | backend | done | `AGENTS.md`, `docs/adr/ADR-010-lean-coordinator-context.md`; `evidence/review-r5/` (opencode approve) |
-| T-3214 | backend | done | docs and `CHANGELOG.md` 0.37.0; `evidence/review-r5/` |
-| T-3215 | infra | done | version and `dist/` rebuild; `evidence/review-r5/` |
+| T-3214 | backend | done | docs e `CHANGELOG.md` 0.37.0; `evidence/review-r5/` |
+| T-3215 | infra | done | versão e reconstrução do `dist/`; `evidence/review-r5/` |
 | T-3216 | test | PASS | `reports/qa-verifier-3.md` |
-| T-3217 | backend | done | this section |
+| T-3217 | backend | done | esta seção |
 
-Reviews of the batch: `evidence/review-r3/` (opencode approve), `evidence/review-r4/` (codex approve), `evidence/review-r5/` (opencode approve, docs and version). Final feature review: `evidence/review-r6/` (codex; finding F6-1 settled as intentional per the PLAN line 72) and `evidence/review-r7/` (opencode approve).
+Revisões do lote: `evidence/review-r3/` (opencode approve), `evidence/review-r4/` (codex approve), `evidence/review-r5/` (opencode approve, docs e versão). Revisão final da funcionalidade: `evidence/review-r6/` (codex; achado F6-1 resolvido como intencional pela linha 72 do PLAN) e `evidence/review-r7/` (opencode approve).
 
-Document revalidation after the 2026-10-31 amendment (D1 reverted): `evidence/doc-r4/` (agy, changes required). The Coordinator fixed points P8 to P10 without a further round. Recorded for the owner.
+Revalidação do documento depois da emenda de 2026-10-31 (D1 revertida): `evidence/doc-r4/` (agy, changes required). O Coordenador corrigiu os pontos P8 a P10 sem outra rodada. Registrado para o dono.
 
-**Docs:** `AGENTS.md` (current rules), `docs/adr/ADR-010-lean-coordinator-context.md`, the tutorials and the PRD flow, both roadmaps, `CHANGELOG.md` 0.37.0, the `dist/` rebuild, and this PRD (baseline, result, Executed summary, Status). Source: PLAN.md ownership table, T-3213 to T-3215.
+**Docs:** `AGENTS.md` (regras atuais), `docs/adr/ADR-010-lean-coordinator-context.md`, os tutoriais e o fluxo de PRD, os dois roadmaps, `CHANGELOG.md` 0.37.0, a reconstrução do `dist/` e este PRD (linha de base, resultado, Resumo executado, Status). Fonte: tabela de posse do PLAN.md, T-3213 a T-3215.
 
-**Out of scope:** unchanged from the section above: EGM hooks and the six-lens brainstorm, a Coordinator model change, paid evals and token counting, automatic `MEMORY.md` consolidation, and review-rule changes. A separate bootstrap command and a runtime-guard rule for a narrow reviewer write remain future candidates.
+**Fora de escopo:** inalterado em relação à seção acima: hooks do EGM e o brainstorm de seis lentes, uma mudança de modelo do Coordenador, avaliações pagas e contagem de tokens, consolidação automática do `MEMORY.md` e mudanças nas regras de revisão. Um comando de bootstrap separado e uma regra de trava de runtime para uma escrita estreita do revisor continuam candidatos futuros.

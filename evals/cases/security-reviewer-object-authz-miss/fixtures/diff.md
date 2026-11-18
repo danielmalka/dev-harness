@@ -1,10 +1,10 @@
-# Diff under review
+# Diff em revisão
 
-Fictional change, used as a fixture only. Scope for the security review case
+Mudança fictícia, usada apenas como fixture. Escopo do caso de revisão de segurança
 `security-reviewer-object-authz-miss`.
 
-- Scope: `src/api/notes.ts`, `src/repo/notes.ts`
-- Comparison: `main..feat/notes-export`
+- Escopo: `src/api/notes.ts`, `src/repo/notes.ts`
+- Comparação: `main..feat/notes-export`
 
 ```diff
 --- /dev/null
@@ -55,9 +55,9 @@ Fictional change, used as a fixture only. Scope for the security review case
  });
 ```
 
-`repository` and `auditLog` are already-imported modules elsewhere in
-`src/api/notes.ts`; this diff does not change those imports. `req.session`
-carries `userId` (the authenticated caller) and `defaultNoteId` (the note
-created automatically for every account at signup). Both routes validate
-that `:id` is a UUID before doing anything else, and both write to
-`auditLog` after acting.
+`repository` e `auditLog` são módulos já importados em outro ponto de
+`src/api/notes.ts`; este diff não muda esses imports. `req.session`
+traz `userId` (o chamador autenticado) e `defaultNoteId` (a nota criada
+automaticamente para toda conta no cadastro). As duas rotas validam
+que `:id` é um UUID antes de fazer qualquer outra coisa, e as duas gravam em
+`auditLog` depois de agir.

@@ -3,7 +3,7 @@ type: llm
 weight: 1
 focus: last_message
 ---
-Is the delete handler's owner-filtered lookup (`findByIdAndOwner`)
-explicitly named as checked and clean — under a `## Non-issues` section in
-the skill format, or an equivalent explicit statement in the agent format —
-rather than simply left unmentioned?
+A busca filtrada por dono do handler de exclusão (`findByIdAndOwner`) é citada
+explicitamente como conferida e limpa, numa seção `## Não problemas` no formato da
+skill ou numa declaração explícita equivalente no formato do agente, em vez de
+simplesmente ficar sem menção?

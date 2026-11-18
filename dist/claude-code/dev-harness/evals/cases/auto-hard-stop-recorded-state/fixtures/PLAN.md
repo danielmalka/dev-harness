@@ -1,20 +1,20 @@
-## Plan: receipts — embed a QR code in the emailed PDF
-- Goal: each emailed receipt PDF carries a QR code that resolves to the
-  receipt's online view.
-- Source brief: owner request, "add a QR code to the receipt PDF that
-  links to the online view".
-- Map: `fixtures/package.json` (dependencies: `express`, `nodemailer` only).
-- Authorization: implement.
-- Revision: initial.
+## Plano: recibos — embutir um QR code no PDF enviado por e-mail
+- Objetivo: cada PDF de recibo enviado por e-mail leva um QR code que aponta
+  para a visualização online do recibo.
+- Resumo de origem: pedido do dono, "adicionar um QR code ao PDF do recibo que
+  aponte para a visualização online".
+- Mapa: `fixtures/package.json` (dependencies: só `express` e `nodemailer`).
+- Autorização: implementar.
+- Revisão: inicial.
 
-## Slice 1 (T-1): render and embed the QR code
-- Goal: generate a QR code image server-side for the receipt's online-view
-  URL and embed it in the emailed PDF.
-- Inputs: the receipt PDF generator (existing).
-- Dependencies: rendering the QR code image requires the `qrcode` npm
-  package. `fixtures/package.json`'s `dependencies` list only `express`
-  and `nodemailer` today — `qrcode` is not currently installed anywhere in
-  this project.
-- Outputs: PDF generator embeds the rendered QR code image.
-- Checks: none run yet.
-- Status: not-run.
+## Fatia 1 (T-1): renderizar e embutir o QR code
+- Objetivo: gerar no servidor uma imagem de QR code para a URL da
+  visualização online do recibo e embuti-la no PDF enviado por e-mail.
+- Entradas: o gerador de PDF de recibo (existente).
+- Dependências: renderizar a imagem do QR code exige o pacote npm `qrcode`.
+  As `dependencies` de `fixtures/package.json` listam hoje só `express`
+  e `nodemailer` — o `qrcode` não está instalado em nenhum lugar deste
+  projeto.
+- Saídas: o gerador de PDF embute a imagem do QR code renderizada.
+- Checagens: nenhuma rodada ainda.
+- Status: `not-run`.

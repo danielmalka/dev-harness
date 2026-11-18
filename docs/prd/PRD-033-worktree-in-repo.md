@@ -1,87 +1,89 @@
-# PRD-033 · Kit worktrees in `<checkout>/.worktrees/`
+# PRD-033 · Worktrees do kit em `<checkout>/.worktrees/`
 
-| Field | Value |
+> Traduzido em 2026-11-17; o original em inglês está no commit `aa1e80a`.
+
+| Campo | Valor |
 |---|---|
-| Status | approved on 2026-11-16 |
-| Owner | Daniel Malka |
-| Created / updated | 2026-11-16 / 2026-11-16 |
-| Tickets | to be defined by the planner |
-| Origin | Owner decision 2026-11-16, finding A2 of the repository dossier, card 212 |
-| Depends on | PRD-028 and ADR-008 (decision D1 is amended here); version base 0.39.2 |
-| Delivery | One pull request, version 0.40.0 |
+| Status | aprovado em 2026-11-16 |
+| Responsável | Daniel Malka |
+| Criado / atualizado | 2026-11-16 / 2026-11-16 |
+| Tickets | a definir pelo planejador |
+| Origem | Decisão do dono em 2026-11-16, achado A2 do dossiê do repositório, card 212 |
+| Depende de | PRD-028 e ADR-008 (a decisão D1 é emendada aqui); versão base 0.39.2 |
+| Entrega | Um pull request, versão 0.40.0 |
 
-## 1. Problem
+## 1. Problema
 
-Facts:
+Fatos:
 
-- The kit creates a development worktree in a folder next to the checkout, `<parent>/<checkout folder>.worktrees/<task-id>` (`.commands/build.md`, section "Worktree", Create and Record; `docs/adr/ADR-008-worktree-de-desenvolvimento.md`, D1; `README.md`, `README.en.md`, both tutorials).
-- The owner fixed another rule for the agents that work on the repositories: `<repo>/.worktrees/<task>`. PR #58 already puts `.worktrees/` in the `.gitignore` of this repository. The kit contradicts its owner's own rule.
-- A sibling folder is outside the session directory. The tutorials note that nobody measured whether Claude Code asks for write permission there.
-- A worktree inside the checkout breaks `dh validate`. Reproduced on `main` at 0.39.2: `go run ./cmd/dh validate .` in a checkout that has a worktree in `.worktrees/` fails with "private path" and "unresolved link" errors on the copy of the repository. The walker `iterTextFiles` (`internal/kit/validate.go`) does not skip `.worktrees`.
-- The resolver (`internal/harness/worktree.go`) reads the gitfile and does not depend on where the worktree folder is. The real-git test `TestR18_R19_R26_R61_RealGitWorktree` (`cmd/dh/worktree_cmd_test.go`) only builds the old sibling path.
+- O kit cria um worktree de desenvolvimento em uma pasta ao lado do checkout, `<parent>/<checkout folder>.worktrees/<task-id>` (`.commands/build.md`, seção "Worktree", Criar e Registrar; `docs/adr/ADR-008-worktree-de-desenvolvimento.md`, D1; `README.md`, `README.en.md`, os dois tutoriais).
+- O dono fixou outra regra para os agentes que trabalham nos repositórios: `<repo>/.worktrees/<task>`. O PR #58 já põe `.worktrees/` no `.gitignore` deste repositório. O kit contradiz a regra do próprio dono.
+- Uma pasta vizinha fica fora do diretório da sessão. Os tutoriais anotam que ninguém mediu se o Claude Code pede permissão de escrita ali.
+- Um worktree dentro do checkout quebra o `dh validate`. Reproduzido em `main` na 0.39.2: `go run ./cmd/dh validate .` em um checkout que tem um worktree em `.worktrees/` falha com os erros "private path" e "unresolved link" na cópia do repositório. O percorredor `iterTextFiles` (`internal/kit/validate.go`) não pula `.worktrees`.
+- O resolvedor (`internal/harness/worktree.go`) lê o gitfile e não depende de onde fica a pasta do worktree. O teste com git real `TestR18_R19_R26_R61_RealGitWorktree` (`cmd/dh/worktree_cmd_test.go`) só monta o caminho vizinho antigo.
 
-## 2. Solution
+## 2. Solução
 
-After delivery, the kit creates the worktree of a task or of an `/dh:auto` run in `<checkout>/.worktrees/<task-id>`. The folder is git-ignored. `/dh:setup` adds the line `.worktrees/` to the project `.gitignore`, and `/dh:build` stops before it creates a worktree if the folder is not ignored. `dh validate` skips the folder. Worktrees that exist in the old sibling folder keep working: nothing is moved. The ADR-008 decision D1 is amended, and the docs say one thing.
+Depois da entrega, o kit cria o worktree de uma tarefa ou de uma execução de `/dh:auto` em `<checkout>/.worktrees/<task-id>`. A pasta é ignorada pelo git. O `/dh:setup` acrescenta a linha `.worktrees/` ao `.gitignore` do projeto, e o `/dh:build` para antes de criar um worktree se a pasta não for ignorada. O `dh validate` pula a pasta. Os worktrees que já existem na pasta vizinha antiga continuam funcionando: nada é movido. A decisão D1 do ADR-008 é emendada, e os docs dizem uma coisa só.
 
-## 3. Rules
+## 3. Regras
 
-- R1 `.commands/build.md` (Create, Record, Cleanup), `.commands/resume.md` and `.commands/auto.md` use `.worktrees/<task-id>` under the main checkout as the path, and the same relative form in the task record (`TASK.md`, `BRIEF.md`) and in `MEMORY.md`.
-  - When `/dh:build` creates a worktree for task `T-9`, then the path is `<main checkout>/.worktrees/T-9`, never under `<home>` and never a sibling folder.
-  - When a record is written, then its relative path is `.worktrees/T-9`.
-  - When `/dh:auto` creates the worktree of a run, then its folder is `.worktrees/AUTO-<n>`.
-- R2 `/dh:build` checks the ignore before it creates a worktree, and never edits `.gitignore` itself.
-  - When `git -C "<main checkout>" check-ignore -q -- ".worktrees/<task-id>"` fails, then `/dh:build` stops before `git worktree add`, tells the owner to run `/dh:setup` or to add the line `.worktrees/` to the project `.gitignore`, and changes no file.
-  - When the check passes, then the creation goes on as before (id check, `git worktree add`, `dh harness-path` check).
-- R3 `/dh:setup` adds the line `.worktrees/` to the root `.gitignore` of a git repository when `git check-ignore -q .worktrees/x` fails. A specialist (`builder`, lane `infra`) writes it, the check runs again, and the report lists it under Created or Left untouched. This is the only `.gitignore` edit that setup makes, and the Limits line of `setup.md` says so. A folder that is not a git repository needs nothing.
-  - When the line is missing in a git repository, then setup appends exactly `.worktrees/` and no other line.
-  - When the folder is already ignored, then setup changes nothing and reports Left untouched.
-  - When the project is not a git repository, then setup writes no `.gitignore`.
-- R4 Records made before 0.40.0 still work. `/dh:resume` and the cleanup checks of `build.md` accept the old relative path `../<checkout folder name>.worktrees/<task-id>` for that existing worktree. Every new worktree uses the new path. Nothing is moved, converted or removed.
-  - When a record holds the old path and `git worktree list --porcelain` lists it with the recorded branch, then `/dh:resume` reuses it.
-  - When a record holds any other path than the new one or the old one, then `/dh:resume` reports it and stops, as before.
-- R5 `dh validate` skips the folder `.worktrees` when it reads the repository (`iterTextFiles`).
-  - When a worktree copy of the repository sits in `<root>/.worktrees/T-1` and holds a private path and a broken link, then `Validate` reports neither.
-  - When the same test runs on `main` at 0.39.2, then it fails (reproduction before the fix).
-- R6 The resolver does not change. The real-git test builds the worktree at `<main>/.worktrees/T-X`, in the modes `repo` and `global`, and keeps every assertion of today.
-  - When `go test ./cmd/dh/ -run RealGitWorktree -v` runs with `git` in the PATH, then both subtests pass and neither is skipped.
-- R7 The docs say one thing. `AGENTS.md` has one new line with the rule. `docs/adr/ADR-008-worktree-de-desenvolvimento.md` D1 and its consequences are amended with the date and this PRD; the comparison table stays as the record. `README.md`, `README.en.md`, `docs/tutorial.html` and `docs/en/tutorial.html` name the new folder and the ignore, and say that setup also writes the `.worktrees/` line in mode `global`. The permission note is replaced by the compatibility note. `.skills/external-clis/references/clone-isolation.md` says that `.worktrees/` must be ignored and states the residual: a call whose project is the main checkout lists the worktrees in the `--ignored` status, so a write by the builder during the call discards the verdict (a false alarm, not a miss).
-  - When the live docs and commands are searched for the old sibling folder, then the only matches are the compatibility sentences (R4) and the amendment text.
-  - When PRD-028 is read, then a note at its top says that R63 is replaced by this PRD. The history in `CHANGELOG.md` and in the old roadmap cards keeps its words.
-- R8 Version 0.40.0 is set in `internal/build/build.go`, in `.claude-plugin/marketplace.json` (version and ref `v0.40.0`) and in `harness-manifest.json`. `CHANGELOG.md` has an entry dated 2026-11-16. `docs/roadmap.html` and `docs/en/roadmap.html` have updated chips, the Sources range, and a new delivered version card. `dist/` is rebuilt, binaries included. The counts stay at 13 agents, 19 commands plus 1 mod command, and 22 skills.
-  - When the files named in this rule are read, then each version field says 0.40.0.
-  - When `go run ./cmd/dh build` runs, then `dist/` shows no difference except the `generated_at` line of the manifests.
-  - When `go test ./...`, `go run ./cmd/dh validate .` and the clean-clone proof of `AGENTS.md` run, then all pass. This PRD touches `internal/` and `cmd/`, so the proof is required.
+- R1 `.commands/build.md` (Criar, Registrar, Limpeza), `.commands/resume.md` e `.commands/auto.md` usam `.worktrees/<task-id>` sob o checkout principal como caminho, e a mesma forma relativa no registro da tarefa (`TASK.md`, `BRIEF.md`) e em `MEMORY.md`.
+  - Quando `/dh:build` cria um worktree para a tarefa `T-9`, então o caminho é `<main checkout>/.worktrees/T-9`, nunca sob `<home>` e nunca uma pasta vizinha.
+  - Quando um registro é escrito, então o caminho relativo dele é `.worktrees/T-9`.
+  - Quando `/dh:auto` cria o worktree de uma execução, então a pasta dele é `.worktrees/AUTO-<n>`.
+- R2 `/dh:build` checa o ignore antes de criar um worktree e nunca edita o `.gitignore` por conta própria.
+  - Quando `git -C "<main checkout>" check-ignore -q -- ".worktrees/<task-id>"` falha, então `/dh:build` para antes de `git worktree add`, diz ao dono para rodar `/dh:setup` ou para acrescentar a linha `.worktrees/` ao `.gitignore` do projeto, e não altera nenhum arquivo.
+  - Quando a checagem passa, então a criação segue como antes (checagem do id, `git worktree add`, checagem de `dh harness-path`).
+- R3 `/dh:setup` acrescenta a linha `.worktrees/` ao `.gitignore` da raiz de um repositório git quando `git check-ignore -q .worktrees/x` falha. Um especialista (`builder`, `lane` `infra`) a escreve, a checagem roda de novo, e o relatório a lista em Criado ou Deixado intacto. Esta é a única edição de `.gitignore` que o setup faz, e a linha Limites de `setup.md` diz isso. Uma pasta que não é repositório git não precisa de nada.
+  - Quando a linha falta em um repositório git, então o setup acrescenta exatamente `.worktrees/` e nenhuma outra linha.
+  - Quando a pasta já é ignorada, então o setup não altera nada e reporta Deixado intacto.
+  - Quando o projeto não é um repositório git, então o setup não escreve nenhum `.gitignore`.
+- R4 Os registros feitos antes da 0.40.0 continuam funcionando. `/dh:resume` e as checagens de limpeza de `build.md` aceitam o caminho relativo antigo `../<checkout folder name>.worktrees/<task-id>` para esse worktree existente. Todo worktree novo usa o caminho novo. Nada é movido, convertido ou removido.
+  - Quando um registro guarda o caminho antigo e `git worktree list --porcelain` o lista com o branch registrado, então `/dh:resume` o reutiliza.
+  - Quando um registro guarda qualquer outro caminho que não o novo nem o antigo, então `/dh:resume` o reporta e para, como antes.
+- R5 `dh validate` pula a pasta `.worktrees` quando lê o repositório (`iterTextFiles`).
+  - Quando uma cópia de worktree do repositório fica em `<root>/.worktrees/T-1` e guarda um caminho privado e um link quebrado, então `Validate` não reporta nenhum dos dois.
+  - Quando o mesmo teste roda em `main` na 0.39.2, então ele falha (reprodução antes da correção).
+- R6 O resolvedor não muda. O teste com git real monta o worktree em `<main>/.worktrees/T-X`, nos modos `repo` e `global`, e mantém todas as asserções de hoje.
+  - Quando `go test ./cmd/dh/ -run RealGitWorktree -v` roda com `git` no PATH, então os dois subtestes passam e nenhum é pulado.
+- R7 Os docs dizem uma coisa só. `AGENTS.md` ganha uma linha nova com a regra. `docs/adr/ADR-008-worktree-de-desenvolvimento.md` D1 e suas consequências são emendadas com a data e este PRD; a tabela de comparação fica como registro. `README.md`, `README.en.md`, `docs/tutorial.html` e `docs/en/tutorial.html` nomeiam a pasta nova e o ignore, e dizem que o setup também escreve a linha `.worktrees/` no modo `global`. A nota de permissão é substituída pela nota de compatibilidade. `.skills/external-clis/references/clone-isolation.md` diz que `.worktrees/` precisa ser ignorada e declara o resíduo: uma chamada cujo projeto é o checkout principal lista os worktrees no status `--ignored`, então uma escrita do `builder` durante a chamada descarta o veredito (um alarme falso, não uma falha em detectar).
+  - Quando os docs vivos e os comandos são pesquisados atrás da pasta vizinha antiga, então os únicos resultados são as frases de compatibilidade (R4) e o texto da emenda.
+  - Quando o PRD-028 é lido, então uma nota no topo dele diz que a R63 é substituída por este PRD. O histórico em `CHANGELOG.md` e nos cards antigos do roadmap mantém as palavras dele.
+- R8 A versão 0.40.0 é definida em `internal/build/build.go`, em `.claude-plugin/marketplace.json` (versão e ref `v0.40.0`) e em `harness-manifest.json`. `CHANGELOG.md` tem uma entrada datada de 2026-11-16. `docs/roadmap.html` e `docs/en/roadmap.html` têm chips atualizados, a faixa de fontes e um card novo de versão entregue. `dist/` é reconstruído, binários incluídos. As contagens continuam em 13 agentes, 19 comandos mais 1 comando de mod e 22 skills.
+  - Quando os arquivos nomeados nesta regra são lidos, então cada campo de versão diz 0.40.0.
+  - Quando `go run ./cmd/dh build` roda, então `dist/` não mostra diferença, exceto a linha `generated_at` dos manifestos.
+  - Quando `go test ./...`, `go run ./cmd/dh validate .` e a prova de clone limpo do `AGENTS.md` rodam, então todos passam. Este PRD toca `internal/` e `cmd/`, então a prova é obrigatória.
 
-Out of scope: moving or deleting worktrees that exist; an automatic `.gitignore` edit by `/dh:build`; `.git/info/exclude`; `worktree` in the `gh` guard list; the `EnterWorktree` tool; the sandbox clone of the CLI reviewers; any new command, agent or skill.
+Fora de escopo: mover ou apagar worktrees que existem; uma edição automática de `.gitignore` pelo `/dh:build`; `.git/info/exclude`; `worktree` na lista da trava do `gh`; a ferramenta `EnterWorktree`; o clone de sandbox dos revisores de CLI; qualquer comando, agente ou skill novo.
 
 ## 4. Docs
 
-- `.commands/build.md`, `.commands/resume.md`, `.commands/auto.md`, `.commands/setup.md`: the flows touched (R1 to R4).
-- `docs/adr/ADR-008-worktree-de-desenvolvimento.md`, `docs/prd/PRD-028-worktree-and-approval-page.md` (note), `AGENTS.md` (R7).
+- `.commands/build.md`, `.commands/resume.md`, `.commands/auto.md`, `.commands/setup.md`: os fluxos tocados (R1 a R4).
+- `docs/adr/ADR-008-worktree-de-desenvolvimento.md`, `docs/prd/PRD-028-worktree-and-approval-page.md` (nota), `AGENTS.md` (R7).
 - `README.md`, `README.en.md`, `docs/tutorial.html`, `docs/en/tutorial.html`, `.skills/external-clis/references/clone-isolation.md` (R7).
 - `CHANGELOG.md`, `docs/roadmap.html`, `docs/en/roadmap.html` (R8).
 
-## Appendix
+## Apêndice
 
-### Discarded alternatives
+### Alternativas descartadas
 
-| Alternative | Why not |
+| Alternativa | Por que não |
 |---|---|
-| Keep the sibling folder | The owner fixed `<repo>/.worktrees/<task>` for the agents, and the sibling folder needs a write permission outside the session directory. |
-| `.git/info/exclude` instead of `.gitignore` | The owner asked for `.gitignore`, and a versioned line also protects the other clones and agents of the project. |
-| `/dh:build` edits `.gitignore` itself | `.gitignore` belongs to the project. Setup is the one place that may write the line, and the Coordinator writes only its own records. |
-| Move the existing sibling worktrees | A worktree holds the work of the owner. The resolver and git do not care where the folder is, so nothing needs to move (R4). |
-| A new ADR | The decision amends D1 of ADR-008 and keeps every other part. The amendment is dated in the ADR. |
+| Manter a pasta vizinha | O dono fixou `<repo>/.worktrees/<task>` para os agentes, e a pasta vizinha exige uma permissão de escrita fora do diretório da sessão. |
+| `.git/info/exclude` em vez de `.gitignore` | O dono pediu `.gitignore`, e uma linha versionada também protege os outros clones e agentes do projeto. |
+| `/dh:build` edita o `.gitignore` por conta própria | O `.gitignore` pertence ao projeto. O setup é o único lugar que pode escrever a linha, e o Coordenador escreve só os próprios registros. |
+| Mover os worktrees vizinhos existentes | Um worktree guarda o trabalho do dono. O resolvedor e o git não se importam com onde a pasta fica, então nada precisa mudar de lugar (R4). |
+| Um ADR novo | A decisão emenda a D1 do ADR-008 e mantém todas as outras partes. A emenda é datada no ADR. |
 
-### Risks and pending decisions
+### Riscos e decisões pendentes
 
-- Risk: a project that never ran `/dh:setup` after 0.40.0 has no ignore line. Mitigation: R2 stops `/dh:build` before it creates the worktree and names both fixes.
-- Risk: a review call whose project is the main checkout sees the writes of the builder in `.worktrees/`. Mitigation: the false alarm is safe (it discards the verdict). The residual is written in `clone-isolation.md`, and the review points at the worktree path.
-- Risk: `setup` and the tutorial said that mode `global` writes only `REVIEW.md` in the tree. Mitigation: R7 changes both sentences.
+- Risco: um projeto que nunca rodou `/dh:setup` depois da 0.40.0 não tem a linha de ignore. Mitigação: a R2 faz o `/dh:build` parar antes de criar o worktree e nomeia as duas correções.
+- Risco: uma chamada de revisão cujo projeto é o checkout principal vê as escritas do `builder` em `.worktrees/`. Mitigação: o alarme falso é seguro (descarta o veredito). O resíduo está escrito em `clone-isolation.md`, e a revisão aponta para o caminho do worktree.
+- Risco: o `setup` e o tutorial diziam que o modo `global` escreve só `REVIEW.md` na árvore. Mitigação: a R7 muda as duas frases.
 
-### Decisions (closed 2026-11-16, owner)
+### Decisões (fechadas em 2026-11-16, dono)
 
-- D1 The worktree folder is `<checkout>/.worktrees/<task-id>` (dossier A2, card 212).
-- D2 `/dh:setup` guarantees the `.worktrees/` line in the `.gitignore` of the consumer project (card 212).
-- D3 Minor version bump from 0.39.2 to 0.40.0: a command changes behavior and `/dh:setup` writes a new file line.
+- D1 A pasta do worktree é `<checkout>/.worktrees/<task-id>` (dossiê A2, card 212).
+- D2 `/dh:setup` garante a linha `.worktrees/` no `.gitignore` do projeto consumidor (card 212).
+- D3 Aumento de versão menor, de 0.39.2 para 0.40.0: um comando muda de comportamento e o `/dh:setup` escreve uma linha nova de arquivo.
