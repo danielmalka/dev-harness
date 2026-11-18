@@ -141,8 +141,9 @@ func TestReviewerDoesNotOpenAFindingOnlyBecauseOfAFact(t *testing.T) {
 }
 
 // E27: the Coordinator still opened FACTS.md to build the dispatch line in the real session; the known residue is recorded, with no lock, in the PRD and in the CHANGELOG.
+// D12 later dispensed the paid eval that would have measured its cost, and the PRD says so next to the residue.
 func TestFactsReadingResidueIsRecordedWithoutALock(t *testing.T) {
-	mustContain(t, "docs/prd/PRD-035-arquivo-de-fatos.md", "- E27 (origem: verificação da F4, 2026-11-18, decisão do dono)", "o Coordenador pode ainda ler o `FACTS.md` ao montar a linha", "R17 continua valendo como regra", "o Verificador não reprova a F4 por essa leitura", "A eval paga da F5 mede o efeito no custo")
+	mustContain(t, "docs/prd/PRD-035-arquivo-de-fatos.md", "- E27 (origem: verificação da F4, 2026-11-18, decisão do dono)", "o Coordenador pode ainda ler o `FACTS.md` ao montar a linha", "R17 continua valendo como regra", "o Verificador não reprova a F4 por essa leitura", "A eval paga da F5 mediria o efeito no custo (R31 a R37), mas foi dispensada (D12)")
 	mustContain(t, "CHANGELOG.md", "E27, origem: verificação da F4, 2026-11-18")
 }
 
