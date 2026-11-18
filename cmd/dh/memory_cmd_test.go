@@ -119,7 +119,11 @@ func TestMemoryHelperProcess(t *testing.T) {
 	for i := 0; i < 400 && func() bool { _, err := os.Stat(os.Getenv("DH_MEMORY_GO")); return err != nil }(); i++ {
 		time.Sleep(25 * time.Millisecond)
 	}
-	code := run([]string{"memory", "write", "--expect", os.Getenv("DH_MEMORY_EXPECT"), "--from", os.Getenv("DH_MEMORY_FROM"), os.Getenv("DH_MEMORY_REPO")}, strings.NewReader(""), os.Stdout, os.Stderr)
+	args := []string{"memory", "write", "--expect", os.Getenv("DH_MEMORY_EXPECT"), "--from", os.Getenv("DH_MEMORY_FROM"), os.Getenv("DH_MEMORY_REPO")}
+	if file := os.Getenv("DH_MEMORY_FILE"); file != "" {
+		args = append([]string{"memory", "write", "--file", file}, args[2:]...)
+	}
+	code := run(args, strings.NewReader(""), os.Stdout, os.Stderr)
 	os.Exit(code)
 }
 
