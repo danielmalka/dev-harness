@@ -1,176 +1,177 @@
 ---
 name: safe-refactoring
-description: Use when code structure must improve while contracted behavior stays identical, including duplication, tangled conditionals, oversized units, poor boundaries, and legacy code with thin coverage. Also use when deciding whether a cleanup is worth its risk, or when an earlier cleanup changed behavior by accident. Do not use when the goal is new behavior, when a defect must be corrected, or when a public contract is meant to change.
+description: Use quando a estrutura do código precisar melhorar enquanto o comportamento contratado permanece idêntico, incluindo duplicação, condicionais emaranhadas, unidades grandes demais, fronteiras ruins e código legado com pouca cobertura. Use também quando for preciso decidir se uma limpeza vale o seu risco, ou quando uma limpeza anterior mudou o comportamento por acidente. Não use quando o objetivo for um comportamento novo, quando um defeito precisar ser corrigido, nem quando um contrato público for feito para mudar.
 author: malka
 metadata:
   provenance: adapted
   sources: ["tech-debt prioritization", "code-simplifier review agent", " refactoring-specialist"]
 ---
 
-# Safe Refactoring
+# Refatoração segura
 
-## Overview
+## Visão geral
 
-This procedure changes structure while keeping contracted behavior identical, and proves it with the same inputs producing the same observable outputs before and after. Every step is small enough to revert alone, and checks run between steps rather than at the end. The core principle is that preserved behavior is the acceptance criterion: a cleanup that improves the code and changes one observable result has failed, no matter how much better the code reads.
+Este procedimento muda a estrutura mantendo idêntico o comportamento contratado, e prova isso com as mesmas entradas produzindo as mesmas saídas observáveis antes e depois. Cada passo é pequeno o bastante para ser revertido sozinho, e as checagens rodam entre os passos, não no fim. O princípio central é que o comportamento preservado é o critério de aceite: uma limpeza que melhora o código e muda um único resultado observável falhou, por mais que o código fique melhor de ler.
 
-## When to use
+## Quando usar
 
-- A named structural problem is slowing work or causing defects: duplication, deep nesting, an oversized unit, a leaking boundary.
-- Legacy code must be made changeable before a feature can land safely.
-- A planned change is blocked by structure and the structural step should be separate and reviewable.
+- Um problema estrutural nomeado está atrasando o trabalho ou causando defeitos: duplicação, aninhamento profundo, uma unidade grande demais, uma fronteira que vaza.
+- Um código legado precisa ficar alterável antes que uma funcionalidade possa entrar com segurança.
+- Uma mudança planejada está bloqueada pela estrutura e o passo estrutural deve ser separado e revisável.
 
-## When not to use
+## Quando não usar
 
-- The task adds or alters behavior. Use incremental-implementation.
-- Something is broken and the cause is unknown. Use systematic-debugging.
-- The public contract is supposed to change. Use api-contracts, then plan the migration.
-- The only motivation is taste, with no observed cost. A refactor with no named problem is churn.
+- A tarefa adiciona ou altera comportamento. Use `incremental-implementation`.
+- Algo está quebrado e a causa é desconhecida. Use `systematic-debugging`.
+- O contrato público deve mudar. Use `api-contracts` e depois planeje a migração.
+- A única motivação é gosto, sem custo observado. Um refactor sem problema nomeado é agitação sem ganho.
 
-## Inputs
+## Entradas
 
-| Input | If missing |
+| Entrada | Se faltar |
 | --- | --- |
-| Authorization and write set, including any characterization tests | Reuse recorded authorization for this scope. If it does not cover needed edits, continue read-only assessment and report the missing boundary to the Coordinator; the need for coverage does not authorize test or configuration edits. |
-| The named problem and the evidence of its cost | Do not start. Ask the Coordinator for the problem statement. Without one there is no way to say the work succeeded. |
-| The behavior boundary: what is contracted versus incidental | Derive it from callers, tests, and published contracts, then state your reading as a decision before touching code. |
-| Existing checks and their current results | Run them and record the baseline. A suite already failing is a baseline fact, not a reason to skip it. |
-| Coverage at the boundary you will move | Use existing tests or recorded examples first. If preservation needs new characterization tests, add them only within the authorized test scope (step 5); otherwise report the gap before changing the structure. |
-| Representative inputs and their current outputs | Capture them yourself from the current code and keep them as the comparison set. |
+| Autorização e conjunto de escrita, incluindo quaisquer testes de caracterização | Reutilize a autorização registrada para este escopo. Se ela não cobrir as edições necessárias, continue a avaliação somente leitura e reporte ao Coordenador a fronteira que falta; a necessidade de cobertura não autoriza edições de teste nem de configuração. |
+| O problema nomeado e a evidência do seu custo | Não comece. Peça ao Coordenador o enunciado do problema. Sem ele não há como dizer que o trabalho deu certo. |
+| A fronteira de comportamento: o que é contratado e o que é incidental | Derive-a dos chamadores, dos testes e dos contratos publicados e depois declare sua leitura como uma decisão antes de tocar no código. |
+| Checagens existentes e seus resultados atuais | Rode-as e registre a linha de base. Uma suíte que já falha é um fato da linha de base, não motivo para pulá-la. |
+| Cobertura na fronteira que você vai mover | Use primeiro os testes existentes ou os exemplos registrados. Se a preservação exigir novos testes de caracterização, adicione-os só dentro do escopo de teste autorizado (passo 5); caso contrário, reporte a lacuna antes de mudar a estrutura. |
+| Entradas representativas e suas saídas atuais | Capture-as você mesmo a partir do código atual e guarde-as como o conjunto de comparação. |
+| Idioma de commit e de comentário de código | O do despacho; sem ele, o que o projeto define; vale a primeira fonte que disser algo, nesta ordem: `AGENTS.md`, `CLAUDE.md`, `README.md` e, por fim, `conventions.code_language` do `project.yaml` (`en` ou `pt-br`); sem definição, inglês (ADR-011). Os comentários novos e as mensagens de commit autorizadas saem nesse idioma; o comportamento não muda. |
 
-## Procedure
+## Procedimento
 
-1. **State the problem and the target reduction.** Name the structure that hurts, the evidence that it hurts, and the measure you expect to move: duplicated blocks removed, branches in a function, call sites of a leaked internal, size of a unit. Vague goals produce unverifiable work.
-2. **Draw the behavior boundary.** Write down what is contracted and therefore frozen: public signatures, transport shapes, persisted formats, error codes, observable side effects, ordering that callers rely on, and any performance figure that was promised. Everything else is incidental and may change. When a fact sits on the line, treat it as contracted.
-3. **Find the callers and the invariants.** Search the repository for every use of the code you will move, including dynamic and configuration-driven uses. Record each one with a relative path. An invariant nobody wrote down is still an invariant; state it explicitly before it becomes a regression.
-4. **Establish the baseline.** Run the existing checks and record command plus result. Capture the observable output of the representative inputs. If you claim a performance property will be preserved, measure it now, in the same way you will measure later.
-5. **Add characterization tests where needed and authorized.** Use existing coverage and recorded examples when sufficient for the risk. If new tests are necessary, check the authorized test scope before writing them; if absent, report the gap rather than expanding the write set. A characterization test asserts what the code does today, including behavior that looks wrong. Do not correct anything while writing it. Report apparent defects to the Coordinator as separate items.
-6. **Plan small reversible steps.** One transformation per step: extract a unit, inline a unit, rename, introduce a parameter object, replace a conditional chain, move a boundary. Each step must be revertible on its own and must leave the tree working.
-7. **Execute one step, then check.** Run the pertinent checks after every step. Never chain two transformations before a check; when something breaks, you need to know which move broke it.
-8. **Compare after against baseline.** Same inputs, same observable outputs, same check results. Any difference is a defect in the refactor. Revert the step and report it. A contract change is a separate task with its own authorization and migration, never a line item inside a cleanup.
-9. **Verify the reduction.** Measure the problem again with the measure from step 1 and report the before and after figure. A refactor that moved code without reducing the named problem should be reverted, not defended.
-10. **Hold the scope.** No new feature, no contract change, no unrelated fix, no dependency added. Improvements you notice go into the report as candidates.
-11. **Report and hand over.** Deliver preservation evidence, the reduction, the remaining risks, and how to revert. A required failed or not-run preservation check leaves the work partial or blocked, even when before and after statuses match. Passing builder checks make the stable state ready for independent QA and review, not self-approved. Facts and incidents go to the Coordinator, the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`.
+1. **Declare o problema e a redução-alvo.** Nomeie a estrutura que dói, a evidência de que dói e a medida que você espera mover: blocos duplicados removidos, ramificações numa função, pontos de chamada de um interno que vazou, tamanho de uma unidade. Metas vagas produzem trabalho não verificável.
+2. **Trace a fronteira de comportamento.** Escreva o que é contratado e, portanto, congelado: assinaturas públicas, formatos de transporte, formatos persistidos, códigos de erro, efeitos colaterais observáveis, ordenação de que os chamadores dependem e qualquer número de desempenho que foi prometido. Todo o resto é incidental e pode mudar. Quando um fato estiver na linha divisória, trate-o como contratado.
+3. **Encontre os chamadores e as invariantes.** Busque no repositório todo uso do código que você vai mover, inclusive usos dinâmicos e dirigidos por configuração. Registre cada um com um caminho relativo. Uma invariante que ninguém anotou continua sendo uma invariante; declare-a explicitamente antes que vire uma regressão.
+4. **Estabeleça a linha de base.** Rode as checagens existentes e registre comando mais resultado. Capture a saída observável das entradas representativas. Se você afirma que uma propriedade de desempenho será preservada, meça agora, do mesmo jeito que vai medir depois.
+5. **Adicione testes de caracterização onde for necessário e autorizado.** Use a cobertura existente e os exemplos registrados quando bastarem para o risco. Se novos testes forem necessários, confira o escopo de teste autorizado antes de escrevê-los; se ele não existir, reporte a lacuna em vez de ampliar o conjunto de escrita. Um teste de caracterização afirma o que o código faz hoje, inclusive o comportamento que parece errado. Não corrija nada enquanto o escreve. Reporte os defeitos aparentes ao Coordenador como itens separados.
+6. **Planeje passos pequenos e reversíveis.** Uma transformação por passo: extrair uma unidade, embutir uma unidade, renomear, introduzir um objeto de parâmetros, substituir uma cadeia de condicionais, mover uma fronteira. Cada passo deve ser reversível sozinho e deixar a árvore funcionando.
+7. **Execute um passo e depois cheque.** Rode as checagens pertinentes depois de cada passo. Nunca encadeie duas transformações antes de uma checagem; quando algo quebra, você precisa saber qual movimento quebrou.
+8. **Compare o depois com a linha de base.** Mesmas entradas, mesmas saídas observáveis, mesmos resultados de checagem. Qualquer diferença é um defeito do refactor. Reverta o passo e reporte. Uma mudança de contrato é uma tarefa separada, com autorização e migração próprias, nunca um item dentro de uma limpeza.
+9. **Verifique a redução.** Meça o problema de novo com a medida do passo 1 e reporte o número de antes e de depois. Um refactor que moveu código sem reduzir o problema nomeado deve ser revertido, não defendido.
+10. **Mantenha o escopo.** Nenhuma funcionalidade nova, nenhuma mudança de contrato, nenhuma correção não relacionada, nenhuma dependência adicionada. As melhorias que você notar vão para o relatório como candidatas.
+11. **Reporte e entregue.** Entregue a evidência de preservação, a redução, os riscos restantes e como reverter. Uma checagem de preservação obrigatória `failed` ou `not-run` deixa o trabalho `partial` ou `blocked`, mesmo quando os status de antes e depois coincidem. As checagens do builder passando deixam o estado estável pronto para a QA e a revisão independentes, não autoaprovado. Fatos e incidentes vão ao Coordenador, o único a escrever `.harness/MEMORY.md`, `.harness/EPOCHAL.md` e `.harness/RISKS.md`.
 
-## Output format
+## Formato de saída
 
 ```
 ## Status
-<ready for independent QA/review / partial / blocked> - name every required check that is failed or not-run; any of them keeps the status partial or blocked
+<ready for independent QA/review / partial / blocked> - nomeie toda checagem obrigatória `failed` ou `not-run`; qualquer uma delas mantém o status `partial` ou `blocked`
 
-## Problem
-<the structural problem and the evidence of its cost>
+## Problema
+<o problema estrutural e a evidência do seu custo>
 
-## Behavior boundary
-- Contracted (frozen): <items, with relative paths>
-- Incidental (free to change): <items>
+## Fronteira de comportamento
+- Contratado (congelado): <itens, com caminhos relativos>
+- Incidental (livre para mudar): <itens>
 
-## Baseline
-| Check or input | Before | After |
+## Linha de base
+| Checagem ou entrada | Antes | Depois |
 | --- | --- | --- |
-| <command or input case> | <result or output> | <result or output> |
+| <comando ou caso de entrada> | <resultado ou saída> | <resultado ou saída> |
 
-## Steps applied
-1. <transformation> - <files> - checks after: <result>
+## Passos aplicados
+1. <transformação> - <arquivos> - checagens depois: <resultado>
 
-## Reduction achieved
-- <measure>: <before> -> <after>
+## Redução obtida
+- <medida>: <antes> -> <depois>
 
-## Characterization tests added
-- <test name> - <behavior it pins, including anything that looks wrong>
+## Testes de caracterização adicionados
+- <nome do teste> - <comportamento que fixa, inclusive qualquer coisa que pareça errada>
 
-## Behavior preserved
-- <evidence that the contracted list is unchanged>
+## Comportamento preservado
+- <evidência de que a lista contratada não mudou>
 
-## Remaining risks
-- <risk> - <why it remains> - <what would detect it>
+## Riscos residuais
+- <risco> - <por que permanece> - <o que o detectaria>
 
-## Revert path
-- <how to undo, step by step or by commit range>
+## Caminho de reversão
+- <como desfazer, passo a passo ou por intervalo de commits>
 
-## Reported, not fixed
-- <defect or improvement noticed, left for a separate task>
+## Reportado, não corrigido
+- <defeito ou melhoria notada, deixada para uma tarefa separada>
 ```
 
-## Quick reference
+## Referência rápida
 
-| Change | Allowed inside a refactor |
+| Mudança | Permitida dentro de um refactor |
 | --- | --- |
-| Rename an internal symbol, split or merge internal units | Yes |
-| Replace a conditional chain with dispatch, extract a value object | Yes |
-| Move code between files or layers, adjust imports | Yes, if no consumer path changes |
-| Change a public signature, route, payload, or error code | No, that is a contract change |
-| Change a persisted format or migration behavior | No, that is a data task |
-| Fix a defect noticed along the way | No, report it |
-| Add a feature flag, option, or extension point | No, no consumer exists |
-| Change log wording that a consumer parses | No, it is contracted in practice |
+| Renomear um símbolo interno, dividir ou fundir unidades internas | Sim |
+| Substituir uma cadeia de condicionais por despacho, extrair um objeto de valor | Sim |
+| Mover código entre arquivos ou camadas, ajustar imports | Sim, se nenhum caminho de consumidor mudar |
+| Mudar uma assinatura pública, rota, payload ou código de erro | Não, isso é uma mudança de contrato |
+| Mudar um formato persistido ou o comportamento de uma migração | Não, isso é uma tarefa de dados |
+| Corrigir um defeito notado pelo caminho | Não, reporte |
+| Adicionar uma feature flag, opção ou ponto de extensão | Não, não existe consumidor |
+| Mudar a redação de um log que um consumidor interpreta | Não, na prática ela é contratada |
 
-Order the work by cost, not by irritation: priority rises with how much the structure slows current work and with the risk it carries, and falls with the effort of the change. The first candidates are the ones that block a planned feature, carry a history of defects, and can be moved in small steps.
+Ordene o trabalho por custo, não por irritação: a prioridade sobe com o quanto a estrutura atrasa o trabalho atual e com o risco que ela carrega, e desce com o esforço da mudança. Os primeiros candidatos são os que bloqueiam uma funcionalidade planejada, carregam um histórico de defeitos e podem ser movidos em passos pequenos.
 
-Step size rule: if you cannot describe the step in one sentence and revert it with one action, it is two steps.
+Regra do tamanho do passo: se você não consegue descrever o passo numa frase e revertê-lo com uma ação, são dois passos.
 
-## Common mistakes
+## Erros comuns
 
-| Mistake | Why it hurts | Do instead |
+| Erro | Por que prejudica | Faça em vez disso |
 | --- | --- | --- |
-| Refactoring with no baseline | Nothing can prove behavior survived | Record checks and outputs before touching code |
-| Fixing a defect during the cleanup | The diff now mixes behavior change with structure, and review cannot separate them | Report it, schedule it |
-| Writing characterization tests that assert the desired behavior | They fail immediately and tempt a silent behavior change | Assert what the code does today |
-| Several transformations between checks | The breakage cannot be attributed and the revert is large | One step, one check |
-| Adjusting the expected value to match the new output | The only evidence of preservation is destroyed | Treat the difference as a defect |
-| Changing a public signature because it is cleaner | Consumers break under the banner of cleanup | Contract change, separate task, migration |
-| Extracting to remove visual repetition | A wrong abstraction is costlier than the duplication it replaced | Extract when it is the same concept with the same reason to change |
-| Declaring success without measuring the problem again | Movement gets reported as improvement | Report the before and after figure |
-| Refactoring the whole area because you are already there | The change stops being reviewable and revertible | Hold the named problem |
+| Refatorar sem linha de base | Nada pode provar que o comportamento sobreviveu | Registre checagens e saídas antes de tocar no código |
+| Corrigir um defeito durante a limpeza | O diff passa a misturar mudança de comportamento com estrutura, e a revisão não consegue separá-las | Reporte, agende |
+| Escrever testes de caracterização que afirmam o comportamento desejado | Falham de imediato e tentam uma mudança de comportamento silenciosa | Afirme o que o código faz hoje |
+| Várias transformações entre as checagens | A quebra não pode ser atribuída e a reversão é grande | Um passo, uma checagem |
+| Ajustar o valor esperado para casar com a saída nova | A única evidência de preservação é destruída | Trate a diferença como defeito |
+| Mudar uma assinatura pública porque fica mais limpo | Os consumidores quebram sob a bandeira da limpeza | Mudança de contrato, tarefa separada, migração |
+| Extrair para eliminar uma repetição visual | Uma abstração errada custa mais que a duplicação que substituiu | Extraia quando for o mesmo conceito com o mesmo motivo para mudar |
+| Declarar sucesso sem medir o problema de novo | Movimento é reportado como melhoria | Reporte o número de antes e de depois |
+| Refatorar a área inteira porque você já está lá | A mudança deixa de ser revisável e reversível | Mantenha-se no problema nomeado |
 
-## Example
+## Exemplo
 
-Input: "checkout total is computed in three places, they already disagreed once".
+Entrada: "o total do checkout é calculado em três lugares, e eles já divergiram uma vez".
 
 ```
-## Behavior boundary
-- Contracted: checkout response totals, rounding to 2 decimals,
-  discount-before-tax order (src/checkout/api.ts:40, tests at :118)
-- Incidental: internal helper names, file layout
+## Fronteira de comportamento
+- Contratado: totais da resposta do checkout, arredondamento em 2 casas decimais,
+  ordem desconto antes do imposto (src/checkout/api.ts:40, testes em :118)
+- Incidental: nomes dos helpers internos, organização dos arquivos
 
-## Baseline
-| Check or input | Before | After |
+## Linha de base
+| Checagem ou entrada | Antes | Depois |
 | --- | --- | --- |
 | npm test -- src/checkout | 18 passed | 18 passed |
-| cart [10.00, 5.55] coupon SAVE10 | 14.00 | 14.00 |
-| cart [0.01] no coupon | 0.01 | 0.01 |
+| carrinho [10.00, 5.55] cupom SAVE10 | 14.00 | 14.00 |
+| carrinho [0.01] sem cupom | 0.01 | 0.01 |
 
-## Steps applied
-1. Characterize the three totals with 6 literal cases - checks: passed
-2. Extract computeTotal into src/checkout/total.ts - checks: passed
-3. Point all three call sites at it - checks: passed
+## Passos aplicados
+1. Caracterizar os três totais com 6 casos literais - checagens: `passed`
+2. Extrair computeTotal para src/checkout/total.ts - checagens: `passed`
+3. Apontar os três pontos de chamada para ela - checagens: `passed`
 
-## Reduction achieved
-- Total computation sites: 3 -> 1
+## Redução obtida
+- Pontos de cálculo do total: 3 -> 1
 
-## Characterization tests added
-- checkout totals, 6 literal cases, pins the admin rounding order as it is today
+## Testes de caracterização adicionados
+- totais do checkout, 6 casos literais, fixa a ordem de arredondamento do admin como ela é hoje
 
-## Behavior preserved
-- The three representative carts return the same totals before and after, and
-  the 18 existing checkout tests pass unchanged
+## Comportamento preservado
+- Os três carrinhos representativos retornam os mesmos totais antes e depois, e
+  os 18 testes de checkout existentes passam sem alteração
 
-## Remaining risks
-- No coverage of multi-currency carts; a rounding change there would go unnoticed
+## Riscos residuais
+- Sem cobertura de carrinhos multimoeda; uma mudança de arredondamento ali passaria despercebida
 
-## Revert path
-- Revert steps 3, 2, 1 in that order; each is a single commit
+## Caminho de reversão
+- Reverter os passos 3, 2, 1 nessa ordem; cada um é um único commit
 
-## Reported, not fixed
-- The admin path rounds before the discount, producing a one cent difference.
-  Pinned by a characterization test as current behavior. Needs a decision.
+## Reportado, não corrigido
+- O caminho do admin arredonda antes do desconto, produzindo uma diferença de um centavo.
+  Fixada por um teste de caracterização como comportamento atual. Precisa de uma decisão.
 ```
 
-The one cent divergence is frozen by a test and escalated, not corrected inside the refactor.
+A divergência de um centavo é congelada por um teste e escalada, não corrigida dentro do refactor.
 
-## Related
+## Relacionado
 
-Roles: builder, qa-verifier, reviewer, coordinator. Commands: `/dh:refactor`. Skills: regression-testing, incremental-implementation, systematic-debugging, architecture-decisions, api-contracts.
+Papéis: `builder`, `qa-verifier`, `reviewer`, `coordinator`. Comandos: `/dh:refactor`. Skills: `regression-testing`, `incremental-implementation`, `systematic-debugging`, `architecture-decisions`, `api-contracts`.
 
-## Proof case
+## Caso de prova
 
-An authorized fixture refactor with a named structural problem preserves the same representative inputs and observable outputs, shown side by side, while the stated measure drops by a reported figure. A behavior that looks wrong is pinned by an authorized characterization test and reported rather than corrected, and no public signature changes. Missing test write scope produces a reported gap without edits; an unavailable required preservation check leaves the result partial or blocked.
+Um refactor autorizado de fixture, com um problema estrutural nomeado, preserva as mesmas entradas representativas e saídas observáveis, mostradas lado a lado, enquanto a medida declarada cai por um número reportado. Um comportamento que parece errado é fixado por um teste de caracterização autorizado e reportado em vez de corrigido, e nenhuma assinatura pública muda. A falta de conjunto de escrita de teste produz uma lacuna reportada sem edições; uma checagem de preservação obrigatória indisponível deixa o resultado parcial ou bloqueado.
