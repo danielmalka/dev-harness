@@ -661,7 +661,7 @@ footer.doc-foot {
         <p class="lead">Estado do kit por release, o que está planejado com PRD ou decisão fixada e o que ainda é ideia de discovery.</p>
         <div class="chips">
            <span class="chip">data <b>2026-11-18</b></span>
-          <span class="chip">status <b>0.49.0 · vivo</b></span>
+          <span class="chip">status <b>0.50.0 · vivo</b></span>
           <span class="chip">path <b>docs/roadmap.html</b></span>
         </div>
       </header>
@@ -698,6 +698,14 @@ profiles/"] --> B["dh build"]
       <p>Tarefas realizadas por release, da fonte <code>CHANGELOG.md</code>. "Testado?" só afirma execução quando um
         arquivo prova (step de CI, conteúdo em <code>evals/baselines/</code>); caso contrário fica registrado como não
         testado.</p>
+
+      <div class="card">
+        <h3>0.50.0 · Arquivo de fatos do sistema, fatia F4: a leitura pelos especialistas (PRD-035)</h3>
+        <p><strong>Status:</strong> concluído (quarta de quatro fatias do PRD-035; a prova, com um ciclo real e a eval paga, é a F5, e o recurso só é declarado pronto depois dela).</p>
+        <p><strong>Resumo:</strong> PRD-035 F4. Com o <code>FACTS.md</code> presente, o Coordenador põe em <code>sources</code> do despacho de cada papel uma linha <code>Fatos: &lt;harness dir&gt;/FACTS.md · categorias: &lt;lista&gt; · só confirmado</code>, com as categorias da tabela de R17 (o <code>repo-scout</code> e o <code>reviewer</code> em modo <code>code</code> leem todas; o <code>builder</code> por <code>lane</code>; o <code>qa-verifier</code>, o <code>architect</code>, o <code>implementation-planner</code> e o <code>debugger</code> as suas), sem ler o arquivo. Quem lê usa só fatos <code>confirmado</code>, como dica, e o código vence. O <code>reviewer</code> não abre achado só porque o código desvia de um fato. Quando o código contradiz um fato, o leitor devolve <code>Fato contradito: F-&lt;n&gt;, &lt;caminho:linha&gt;</code>; o Coordenador grava a linha em <code>## Mudanças</code> e o curador decide na rodada seguinte. O <code>FACTS.md</code> fica fora do pacote da etapa de documento. README, tutorial e <code>AGENTS.md</code> descrevem o arquivo, a escrita, a curadoria e a leitura. Nenhum código Go ou TypeScript de produção, comando, agente ou skill novo.</p>
+        <p><strong>Relações:</strong> <code>CHANGELOG.md</code> 0.50.0; <code>docs/prd/PRD-035-arquivo-de-fatos.md</code> (escolhas E22 a E26); <code>.agents/coordinator.md</code>, <code>.agents/reviewer.md</code> e os outros seis leitores; <code>.skills/facts-curation/SKILL.md</code>; <code>internal/kit/facts_reading_contract_test.go</code>.</p>
+        <p><strong>Testado?</strong> <code>go test ./...</code> (a tabela do <code>coordinator</code> igual à do PRD, a linha do despacho, o item de entrada e a linha de saída nos 7 papéis, a regra do <code>reviewer</code> e a linha de contradição passando pelo <code>dh facts check</code>), testes dos mods (294 passam), <code>go vet ./...</code>, <code>dh validate .</code>, <code>dh build</code> sem diferença, clone limpo e <code>gitleaks</code>. Que os agentes sigam a regra "só confirmado" é prosa: a prova é a sessão real do Verificador.</p>
+      </div>
 
       <div class="card">
         <h3>0.49.0 · Arquivo de fatos do sistema, fatia F3: a curadoria (PRD-035)</h3>
@@ -1779,7 +1787,7 @@ profiles/"] --> B["dh build"]
           e o <code>qa-verifier</code> propõem; o Coordenador grava os candidatos com a trava de hash; o <code>docs-guide</code>, com a
           skill nova <code>facts-curation</code>, confere e poda; os especialistas leem as categorias da sua função no despacho.</p>
         <p><strong>Critérios de aceite:</strong> R1 a R37 do PRD-035, inclusive a eval paga da F5 (3 casos, 2 braços, 3 repetições, teto de US$ 80).</p>
-        <p><strong>Status:</strong> em andamento: F1 (trava, mod e <code>dh facts check</code>) entregue na 0.47.0 e F2 (escrita dos candidatos) na 0.48.0 e F3 (curadoria) na 0.49.0; F4 na versão 0.50.0; a F5 é a prova, com a eval paga.</p>
+        <p><strong>Status:</strong> em andamento: F1 (trava, mod e <code>dh facts check</code>) entregue na 0.47.0 e F2 (escrita dos candidatos) na 0.48.0 e F3 (curadoria) na 0.49.0 e F4 (leitura pelos especialistas) na 0.50.0; falta a F5, a prova, com a eval paga: o card só vai para Entregue com o veredito (R31, E26).</p>
         <p><strong>Relações:</strong> <code>docs/prd/PRD-035-arquivo-de-fatos.md</code>; PRD-032; PRD-034; ADR-005; ADR-007.</p>
       </div>
 
@@ -1976,7 +1984,7 @@ OTEL e Agent SDK — não planejar"]
 
       <h2 id="fontes"><span class="n">06</span>Fontes</h2>
       <ul>
-        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.49.0, base da seção Entregue.</li>
+        <li><code>CHANGELOG.md</code> — releases 0.1.0 a 0.50.0, base da seção Entregue.</li>
         <li><code>evals/baselines/2026-09-24-0.5.5-before.md</code> e <code>-after.md</code> — medição antes/depois
           do lote 0.6.0 (IMP-001/PLAN-005).</li>
         <li><code>evals/baselines/2026-09-24-{code-reviewer,security-reviewer,document-validator}-reviewer-before.md</code>
