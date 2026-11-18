@@ -1,32 +1,32 @@
 ---
 name: refactor
-description: Change structure while proving behavior is preserved
+description: Mude a estrutura provando que o comportamento foi preservado
 author: malka
-argument-hint: "[target and motivation]"
+argument-hint: "[alvo e motivação]"
 metadata:
   roles: [coordinator, builder, qa-verifier, reviewer]
   skills: [safe-refactoring, regression-testing, code-review]
-  writes: authorized write set only
+  writes: somente o conjunto de escrita autorizado
 ---
-## Role
-Act as the kit `coordinator` in this session (read the bundled `coordinator` agent definition if this session was not started with it). Read `.harness/MEMORY.md` if present before anything else.
+## Papel
+Atue como o `coordinator` do kit nesta sessão (leia a definição do agente `coordinator` que acompanha o kit se esta sessão não foi iniciada com ele). Leia `.harness/MEMORY.md`, se existir, antes de qualquer outra coisa.
 
-## Routing
-Target and motivation: $ARGUMENTS. In sequence: dispatch `builder` in mode `refactor` with the Agent tool, model `sonnet`, requiring the kit skill `safe-refactoring`, with the lane of the code being restructured, with the write set and the behavior boundary. Freeze the result, then dispatch `qa-verifier` (model `sonnet`, skill `regression-testing`) to compare against the recorded baseline. Then dispatch `reviewer` in mode `code` (model `sonnet`, skill `code-review`) on that stable state. At most two specialists run concurrently and only on independent work.
+## Roteamento
+Alvo e motivação: $ARGUMENTS. Em sequência: despache `builder` no modo `refactor` com a ferramenta Agent, modelo `sonnet`, exigindo a skill do kit `safe-refactoring`, com a `lane` do código que está sendo reestruturado, com o conjunto de escrita e a fronteira de comportamento. Congele o resultado, depois despache `qa-verifier` (modelo `sonnet`, skill `regression-testing`) para comparar com a linha de base registrada. Em seguida despache `reviewer` no modo `code` (modelo `sonnet`, skill `code-review`) sobre esse estado estável. No máximo dois especialistas rodam ao mesmo tempo, e só em trabalho independente.
 
-## Prerequisites
-The named structural problem and the evidence of its cost; without one there is no way to say the work succeeded, so ask the owner and stop. Existing checks and their current results, captured as the baseline before anything moves, including a suite already failing. Coverage at the boundary being moved: if preservation needs characterization tests, they are added only inside the authorized test scope, otherwise report the gap before changing structure.
+## Pré-requisitos
+O problema estrutural nomeado e a evidência do custo dele; sem um, não há como dizer que o trabalho teve sucesso, então pergunte ao dono e pare. As checagens existentes e os resultados atuais delas, capturados como linha de base antes de qualquer coisa se mover, incluindo uma suíte que já falha. Cobertura na fronteira que está sendo movida: se a preservação precisa de testes de caracterização, eles são acrescentados só dentro do escopo de testes autorizado; caso contrário, reporte a lacuna antes de mudar a estrutura.
 
-## Output
-The `safe-refactoring` report: status, problem, behavior boundary split into contracted and incidental, the baseline table of before against after, steps applied with the checks after each, reduction achieved, characterization tests added, evidence that contracted behavior is unchanged, remaining risks and the revert path per step. Record the boundary decision, the baseline evidence and the revert path in `.harness/MEMORY.md`.
+## Saída
+O relatório de `safe-refactoring`: status, problema, fronteira de comportamento dividida em contratado e incidental, a tabela da linha de base de antes contra depois, passos aplicados com as checagens após cada um, redução alcançada, testes de caracterização acrescentados, evidência de que o comportamento contratado não mudou, riscos restantes e o caminho de reversão por passo. Registre a decisão de fronteira, a evidência da linha de base e o caminho de reversão em `.harness/MEMORY.md`.
 
-## Limits
-- No contract change and no new feature; this command only moves structure, and a request for new behavior goes to `/dh:plan`.
-- Any observable difference between before and after is a defect, not an improvement, however much better the code reads.
-- Each step must be small enough to revert on its own, with checks between steps rather than only at the end.
-- A required failed or not-run check leaves the work partial or blocked, never verified.
-- Never commit, push, publish or deploy from this command.
-- Only the Coordinator writes `.harness/MEMORY.md`, `EPOCHAL.md` and `RISKS.md`.
+## Limites
+- Nenhuma mudança de contrato e nenhuma feature nova; este comando só move estrutura, e um pedido de comportamento novo vai para `/dh:plan`.
+- Qualquer diferença observável entre antes e depois é um defeito, não uma melhoria, por melhor que o código fique de ler.
+- Cada passo deve ser pequeno o bastante para ser revertido sozinho, com checagens entre os passos e não só no fim.
+- Uma checagem exigida que falhou ou não rodou deixa o trabalho parcial ou bloqueado, nunca verificado.
+- Nunca faça commit, push, publicação nem deploy a partir deste comando.
+- Só o Coordenador escreve `.harness/MEMORY.md`, `EPOCHAL.md` e `RISKS.md`.
 
-## Next
-`/dh:verify` for a wider acceptance matrix, or `/dh:build` to resume the feature work the refactor unblocked.
+## Próximo
+`/dh:verify` para uma matriz de aceite mais ampla, ou `/dh:build` para retomar o trabalho de feature que o refactor destravou.
