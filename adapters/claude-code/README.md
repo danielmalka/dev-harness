@@ -1,53 +1,53 @@
-# Claude Code adapter
+# Adapter do Claude Code
 
-Maps canonical kit sources to the Claude Code plugin layout. The mapping is a copy plus a generated manifest. It does not rewrite prompt bodies.
+Mapeia as fontes canônicas do kit para o layout de plugin do Claude Code. O mapeamento é uma cópia mais um manifesto gerado. Ele não reescreve corpos de prompt.
 
-Load path documented for v1:
+Caminho de carga documentado para a v1:
 
 ```bash
 claude --plugin-dir "/absolute/path/to/clone/dist/claude-code/dev-harness" --agent coordinator
 ```
 
-When the plugin is loaded by name, qualify the agent as `dh:coordinator` if the runtime requires it. Commands appear as `/dh:<name>`.
+Quando o plugin é carregado por nome, qualifique o agente como `dh:coordinator` se o runtime exigir. Os comandos aparecem como `/dh:<name>`.
 
-Do not present `.agents/`, `.commands/` or `.skills/` as directories Claude discovers by itself.
+Não apresente `.agents/`, `.commands/` ou `.skills/` como diretórios que o Claude descobre sozinho.
 
-## Source to package
+## Fonte para pacote
 
-| Canonical source | Package path | Runtime discovery |
+| Fonte canônica | Caminho no pacote | Descoberta em runtime |
 | --- | --- | --- |
-| `.agents/<id>.md` | `agents/<id>.md` | Subagent. Frontmatter `name`, `description`, `model`, `tools`, `color`. |
-| `.commands/<id>.md` | `commands/<id>.md` | Slash command `/dh:<id>`. Frontmatter `description`, optional `argument-hint`. |
-| `.skills/<id>/` | `skills/<id>/` | Skill. `SKILL.md` `name` must equal the folder name. |
-| `templates/` | `templates/` | Not auto-discovered. Referenced by agents, skills and setup. |
-| `profiles/` | `profiles/` | Not auto-discovered. Referenced by project-onboarding. |
-| `cmd/dh`, `internal/` (Go) | `bin/<os>_<arch>/dh` plus `bin/dh` wrapper | Mechanical diagnosis, validation, build and session snapshots. `/dh:doctor` runs `bin/dh doctor` from the plugin directory. |
-| `adapters/claude-code/plugin/settings.json` | `settings.json` | `subagentStatusLine` calling `bin/dh snapshot subagents`. |
-| `adapters/claude-code/plugin/hooks/hooks.json` | `hooks/hooks.json` | Declares only the `./panel.ts` mod, with no command hooks. The mod writes the session snapshot from engine events (session, prompt, tool, agent and turn events); `dh snapshot event` is not called by the plugin. On Team accounts the engine bypasses plugin `classic.*` hooks, so the mod does not use them. |
-| generated | `.claude-plugin/plugin.json` | Plugin identity. `name` is `dh`, `license` is `MIT`. |
-| generated | `harness-manifest.json` | Inventory derived from sources at build time. |
-| generated | `GENERATED.txt` | Marker that this tree is not a source. |
+| `.agents/<id>.md` | `agents/<id>.md` | Subagente. Frontmatter `name`, `description`, `model`, `tools`, `color`. |
+| `.commands/<id>.md` | `commands/<id>.md` | Comando de barra `/dh:<id>`. Frontmatter `description`, `argument-hint` opcional. |
+| `.skills/<id>/` | `skills/<id>/` | Skill. O `name` do `SKILL.md` deve ser igual ao nome da pasta. |
+| `templates/` | `templates/` | Não é descoberto automaticamente. Referenciado por agentes, skills e pela configuração. |
+| `profiles/` | `profiles/` | Não é descoberto automaticamente. Referenciado pela `project-onboarding`. |
+| `cmd/dh`, `internal/` (Go) | `bin/<os>_<arch>/dh` mais o invólucro `bin/dh` | Diagnóstico mecânico, validação, build e instantâneos de sessão. `/dh:doctor` roda `bin/dh doctor` a partir do diretório do plugin. |
+| `adapters/claude-code/plugin/settings.json` | `settings.json` | `subagentStatusLine` chamando `bin/dh snapshot subagents`. |
+| `adapters/claude-code/plugin/hooks/hooks.json` | `hooks/hooks.json` | Declara só o mod `./panel.ts`, sem hooks de comando. O mod grava o instantâneo da sessão a partir dos eventos do engine (eventos de sessão, prompt, ferramenta, agente e turno); o plugin não chama `dh snapshot event`. Em contas Team, o engine contorna os hooks `classic.*` do plugin, por isso o mod não os usa. |
+| gerado | `.claude-plugin/plugin.json` | Identidade do plugin. `name` é `dh`, `license` é `MIT`. |
+| gerado | `harness-manifest.json` | Inventário derivado das fontes na hora do build. |
+| gerado | `GENERATED.txt` | Marcador de que esta árvore não é uma fonte. |
 
-Build: from the kit root, `go run ./cmd/dh build` (Go 1.22+ with the toolchain pinned in `go.mod`; cross-compiles five targets). It validates sources, stages a complete package, then replaces `dist/claude-code/dev-harness`. Edit sources and rebuild. Never patch files under `dist/`.
+Build: a partir da raiz do kit, `go run ./cmd/dh build` (Go 1.22+ com a toolchain fixada em `go.mod`; compila para cinco alvos). Ele valida as fontes, monta um pacote completo e então substitui `dist/claude-code/dev-harness`. Edite as fontes e refaça o build. Nunca altere arquivos em `dist/`.
 
-## Frontmatter mapping
+## Mapeamento do frontmatter
 
-| Field | Agents | Commands | Skills |
+| Campo | Agentes | Comandos | Skills |
 | --- | --- | --- | --- |
-| `name` | Required, equals filename stem | Not used; filename is the command id | Required, equals folder name |
-| `description` | Triggering text Claude uses to pick the agent | Menu subtitle | Triggering text for skill load |
-| `model` | Required family: `haiku`, `sonnet` or `opus`. Coordinator still passes the model on each Agent call. | n/a | n/a |
-| `tools` | Allow-list. Read-only roles omit Write, Edit and Bash. | n/a | n/a |
-| `color` | Optional UI hint | n/a | n/a |
-| `argument-hint` | n/a | Optional | n/a |
-| `author` | Recorded, not a runtime switch | n/a | Recorded |
-| `metadata.provenance` | n/a | n/a | `authorial` or `adapted` |
+| `name` | Obrigatório, igual ao nome do arquivo sem extensão | Não é usado; o nome do arquivo é o id do comando | Obrigatório, igual ao nome da pasta |
+| `description` | Texto de acionamento que o Claude usa para escolher o agente | Subtítulo do menu | Texto de acionamento para carregar a skill |
+| `model` | Família obrigatória: `haiku`, `sonnet` ou `opus`. O Coordenador ainda passa o modelo em cada chamada do Agent. | n/a | n/a |
+| `tools` | Lista de permissão. Papéis somente leitura omitem Write, Edit e Bash. | n/a | n/a |
+| `color` | Dica opcional de UI | n/a | n/a |
+| `argument-hint` | n/a | Opcional | n/a |
+| `author` | Registrado, não é uma chave de runtime | n/a | Registrado |
+| `metadata.provenance` | n/a | n/a | `authorial` ou `adapted` |
 
-Natural-language "read only" is not a sandbox. Read-only roles omit write tools in frontmatter. Shell can still write; those roles do not receive Bash.
+"Somente leitura" em linguagem natural não é um sandbox. Papéis somente leitura omitem ferramentas de escrita no frontmatter. O shell ainda pode escrever; esses papéis não recebem Bash.
 
-## What this adapter does not do
+## O que este adapter não faz
 
-- Pin a Claude Code minimum version. That value stays `unverified` until Fase 4.
-- Install the plugin globally or through a marketplace.
-- Translate prompts for another product.
-- Enforce filesystem locks on `.harness/` files.
+- Fixar uma versão mínima do Claude Code. Esse valor continua `unverified` até a Fase 4.
+- Instalar o plugin globalmente ou por um marketplace.
+- Traduzir prompts para outro produto.
+- Impor travas de sistema de arquivos nos arquivos de `.harness/`.
