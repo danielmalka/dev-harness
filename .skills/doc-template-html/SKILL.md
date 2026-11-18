@@ -130,7 +130,7 @@ Um `.html` autônomo no caminho combinado. No chat: esse caminho relativo à rai
 
 ## Relacionado
 
-Papéis: `docs-guide` (autor), `coordinator` ou `builder` na faixa `infra` (roda o script do carimbo quando é preciso um shell). Comando: `/dh:document`. Skills: `context-handoff`, `delivery-readiness`.
+Papéis: `docs-guide` (autor), `coordinator` ou `builder` na lane `infra` (roda o script do carimbo quando é preciso um shell). Comando: `/dh:document`. Skills: `context-handoff`, `delivery-readiness`.
 
 ## Caso de prova
 
