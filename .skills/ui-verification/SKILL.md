@@ -1,184 +1,184 @@
 ---
 name: ui-verification
-description: Use when a user-facing flow has been built or changed and someone must confirm it actually works when exercised, covering keyboard operation, two viewport widths, loading, error and empty states, and accessibility basics. Also use when a change was declared done on the strength of a typecheck or a passing unit test alone. Do not use for code with no rendered surface, for pure visual art direction, or as a substitute for diagnosing a failure that already has a reproduction.
+description: Use quando um fluxo voltado ao usuário foi construído ou alterado e alguém precisa confirmar que ele de fato funciona quando exercitado, cobrindo operação por teclado, duas larguras de viewport, estados de carregamento, de erro e vazio, e noções básicas de acessibilidade. Use também quando uma mudança foi declarada concluída apenas com base em uma checagem de tipos ou em um teste unitário que passou. Não use quando o código não tem superfície renderizada, para direção de arte visual pura, nem como substituto do diagnóstico de uma falha que já tem reprodução.
 author: malka
 metadata:
   provenance: adapted
   sources: ["accessibility-review WCAG AA pass", "interface-design review criteria", "browser automation practice", " frontend-developer"]
 ---
 
-# UI Verification
+# Verificação de UI
 
-## Overview
+## Visão geral
 
-Exercise the flow the way a person would, then report every criterion as passed, failed, or not-run. A type check, a build, and a green unit test prove that the code compiles and that the units behave; none of them proves that a human can complete the flow. When a browser is available, the verification produces observed evidence. When one is not, the interaction criteria are recorded as not-run and visual verification is declared pending. A criterion is never marked passed because it probably works.
+Exercite o fluxo como uma pessoa o faria e depois reporte cada critério como `passed`, `failed` ou `not-run`. Uma checagem de tipos, um build e um teste unitário verde provam que o código compila e que as unidades se comportam; nenhum deles prova que um humano consegue completar o fluxo. Quando há um navegador disponível, a verificação produz evidência observada. Quando não há, os critérios de interação são registrados como `not-run` e a verificação visual é declarada `pending`. Um critério nunca é marcado `passed` porque provavelmente funciona.
 
-## When to use
+## Quando usar
 
-- A screen, component, form, or navigation path was added or changed.
-- Acceptance criteria describe something a user does, not something a function returns.
-- A change was reported as complete with only a compiler or linter as evidence.
-- Loading, error, or empty behavior was added and nobody has seen it render.
-- Before handoff or release of anything with a rendered surface.
+- Uma tela, um componente, um formulário ou um caminho de navegação foi acrescentado ou alterado.
+- Os critérios de aceite descrevem algo que o usuário faz, não algo que uma função devolve.
+- Uma mudança foi reportada como completa tendo só um compilador ou um linter como evidência.
+- Um comportamento de carregamento, de erro ou de vazio foi acrescentado e ninguém o viu renderizar.
+- Antes do handoff ou do release de qualquer coisa com superfície renderizada.
 
-## When not to use
+## Quando não usar
 
-- The change has no user-facing surface. Use regression-testing instead.
-- The question is which visual direction to take. That is a design decision, not a verification.
-- A defect is already reproducible and the job is to find its cause. That is systematic-debugging.
-- The flow is still being built. Verify a stabilized state.
+- A mudança não tem superfície voltada ao usuário. Use `regression-testing`.
+- A pergunta é qual direção visual seguir. Isso é uma decisão de design, não uma verificação.
+- Um defeito já é reproduzível e o trabalho é achar a causa dele. Isso é `systematic-debugging`.
+- O fluxo ainda está sendo construído. Verifique um estado estabilizado.
 
-## Inputs
+## Entradas
 
-| Input | If missing |
+| Entrada | Se faltar |
 | --- | --- |
-| The acceptance criteria, as user-visible behavior | Derive a criteria list from the change and return it to the Coordinator for confirmation before running; do not verify against criteria you invented and confirmed to yourself. |
-| How to run the application locally: command, port, entry route | Ask. Record every interaction criterion as not-run until it is answered. |
-| Seed or fixture data that produces the loading, error, and empty states | Verify the states you can reach and record the others as not-run with the reason. |
-| A browser, headless or not | Run the static checks, record the interaction criteria as not-run, and declare visual verification pending. Never install a browser, driver, or package to obtain one, and never download a runtime at verification time. |
-| Required visual assets: fonts, icons, images, tokens | Do not fetch them at verification time. A missing asset is a failed criterion, because the project must ship it. |
+| Os critérios de aceite, como comportamento visível ao usuário | Derive uma lista de critérios da mudança e devolva-a ao Coordenador para confirmação antes de rodar; não verifique contra critérios que você inventou e confirmou para si mesmo. |
+| Como rodar a aplicação localmente: comando, porta, rota de entrada | Pergunte. Registre todo critério de interação como `not-run` até que seja respondido. |
+| Dados de seed ou de fixture que produzem os estados de carregamento, de erro e vazio | Verifique os estados que você consegue alcançar e registre os demais como `not-run` com o motivo. |
+| Um navegador, headless ou não | Rode as checagens estáticas, registre os critérios de interação como `not-run` e declare a verificação visual `pending`. Nunca instale um navegador, um driver ou um pacote para obtê-lo, e nunca baixe um runtime na hora da verificação. |
+| Ativos visuais exigidos: fontes, ícones, imagens, tokens | Não os busque na hora da verificação. Um ativo ausente é um critério `failed`, porque o projeto deve entregá-lo. |
 
-## Procedure
+## Procedimento
 
-1. **Turn the criteria into a checklist.** One row per user-visible behavior, phrased as an observable outcome. Add the standing rows from Quick reference that apply to the changed surface and identify the required checks from acceptance and task context. Do not invent loading or failure states for a surface that has none. This checklist is the output skeleton; every applicable row will end as passed, failed, or not-run.
+1. **Transforme os critérios numa checklist.** Uma linha por comportamento visível ao usuário, redigida como um resultado observável. Acrescente as linhas fixas da Referência rápida que se aplicam à superfície alterada e identifique as checagens exigidas pelo aceite e pelo contexto da tarefa. Não invente estados de carregamento ou de falha para uma superfície que não os tem. Esta checklist é o esqueleto da saída; toda linha aplicável vai terminar como `passed`, `failed` ou `not-run`.
 
-2. **Establish what evidence is possible.** Determine whether the application runs locally and whether a browser is available. Headless is fine and is the default in an environment with no display. Record the answer now, because it decides which rows can ever reach passed. Never install a browser, driver, or package to obtain one, and never download a runtime at verification time. No browser means the interaction rows are not-run.
+2. **Estabeleça que evidência é possível.** Determine se a aplicação roda localmente e se há um navegador disponível. Headless serve e é o padrão num ambiente sem display. Registre a resposta agora, porque ela decide quais linhas podem chegar a `passed`. Nunca instale um navegador, um driver ou um pacote para obtê-lo, e nunca baixe um runtime na hora da verificação. Sem navegador, as linhas de interação ficam `not-run`.
 
-3. **Run the project's own checks first.** Build, type check, lint, unit and component tests, using the commands from the project profile. Record each as a command plus a result. These rows are evidence of compilation and unit behavior, and of nothing else. Do not let a green result close an interaction row.
+3. **Rode primeiro as checagens do próprio projeto.** Build, checagem de tipos, lint, testes unitários e de componente, com os comandos do perfil do projeto. Registre cada uma como um comando mais um resultado. Essas linhas são evidência de compilação e de comportamento unitário, e de nada mais. Não deixe um resultado verde fechar uma linha de interação.
 
-4. **Reach the flow.** Start the application, navigate to the entry point, and confirm the surface renders. If it does not render, stop and report a failure here; every downstream row is not-run, not failed.
+4. **Alcance o fluxo.** Inicie a aplicação, navegue até o ponto de entrada e confirme que a superfície renderiza. Se não renderizar, pare e reporte uma falha aqui; toda linha seguinte fica `not-run`, não `failed`.
 
-5. **Exercise the happy path with the pointer.** Complete the flow end to end with the input a real user would give. Record what you did and what appeared at each step.
+5. **Exercite o caminho feliz com o ponteiro.** Complete o fluxo de ponta a ponta com a entrada que um usuário real daria. Registre o que você fez e o que apareceu em cada passo.
 
-6. **Exercise the same path with the keyboard only.** Reach every interactive element by tab, activate it with the expected key, and confirm the focus indicator is visible at each stop. Check that focus order follows the visual order, that nothing is reachable but invisible, and that a dialog traps focus while open and returns it to the trigger on close. A control that the pointer can use and the keyboard cannot is a failed row, not a note.
+6. **Exercite o mesmo caminho só com o teclado.** Alcance todo elemento interativo com tab, ative-o com a tecla esperada e confirme que o indicador de foco é visível em cada parada. Confira que a ordem do foco segue a ordem visual, que nada é alcançável mas invisível, e que um diálogo prende o foco enquanto está aberto e o devolve ao gatilho ao fechar. Um controle que o ponteiro usa e o teclado não é uma linha `failed`, não uma nota.
 
-7. **Exercise the applicable states.** Drive the surface into its loading, error, and empty states using authorized fixtures or browser response controls, without editing production source. Confirm each applicable state is distinguishable, says something useful, and offers a way forward. An error state that renders a blank region is a failure. A required state that cannot be reached remains not-run with the reason.
+7. **Exercite os estados aplicáveis.** Leve a superfície aos estados de carregamento, de erro e vazio usando fixtures autorizadas ou controles de resposta do navegador, sem editar o código-fonte de produção. Confirme que cada estado aplicável é distinguível, diz algo útil e oferece um caminho adiante. Um estado de erro que renderiza uma região em branco é uma falha. Um estado exigido que não pode ser alcançado continua `not-run`, com o motivo.
 
-8. **Check two viewport widths.** One narrow, around a phone, and one wide, around a desktop. Confirm no horizontal page scroll at the narrow width, that content is not clipped or overlapped, that interactive targets remain comfortably tappable, and that the flow stays completable at both. Record the two widths you used.
+8. **Confira duas larguras de viewport.** Uma estreita, em torno de um celular, e uma larga, em torno de um desktop. Confirme que não há rolagem horizontal da página na largura estreita, que o conteúdo não é cortado nem sobreposto, que os alvos interativos continuam confortáveis de tocar e que o fluxo continua completável nas duas. Registre as duas larguras que você usou.
 
-9. **Run the accessibility basics.** Every input has a programmatic label, not just adjacent text. Images that carry meaning have alternative text and decorative ones do not announce. Structure uses real semantics: headings in order, lists as lists, buttons as buttons, links as links, landmarks present. Interactive elements expose a name, a role, and a current value. Text contrast meets at least 4.5 to 1, large text and interface components at least 3 to 1; compute the ratio from the resolved foreground and background colors (computed style, not the token name), and if you cannot resolve both colors the row is not-run with that reason, never estimated by eye. Errors are identified in text, not by color alone.
+9. **Rode o básico de acessibilidade.** Todo input tem um rótulo programático, não só um texto ao lado. Imagens que carregam significado têm texto alternativo e as decorativas não são anunciadas. A estrutura usa semântica real: títulos em ordem, listas como listas, botões como botões, links como links, landmarks presentes. Elementos interativos expõem nome, papel e valor atual. O contraste do texto atinge pelo menos 4.5 para 1, e o de texto grande e de componentes de interface pelo menos 3 para 1; calcule a razão a partir das cores resolvidas de primeiro plano e de fundo (estilo computado, não o nome do token) e, se você não conseguir resolver as duas cores, a linha fica `not-run` com esse motivo, nunca estimada a olho. Os erros são identificados em texto, não só por cor.
 
-10. **Collect the evidence.** Capture a screenshot per state that changed, at both widths where layout matters, saved under `.harness/tasks/<task-id>/evidence/`, referenced by relative path. Read the browser console and record errors and warnings; an uncaught error during the flow is a failed row even when the screen looks correct.
+10. **Colete a evidência.** Capture uma captura de tela por estado que mudou, nas duas larguras onde o layout importa, salva em `.harness/tasks/<task-id>/evidence/`, referenciada por caminho relativo. Leia o console do navegador e registre erros e avisos; um erro não capturado durante o fluxo é uma linha `failed` mesmo quando a tela parece correta.
 
-11. **Confirm the assets belong to the project.** Any font, icon, image, or style the surface depends on must be present in the repository or in a declared dependency. A surface that only looks right because an external resource happened to load is not verified.
+11. **Confirme que os ativos pertencem ao projeto.** Toda fonte, ícone, imagem ou estilo de que a superfície depende deve estar presente no repositório ou numa dependência declarada. Uma superfície que só parece certa porque um recurso externo por acaso carregou não está verificada.
 
-12. **Fill the matrix honestly.** Passed means observed. Failed means observed to be wrong. Not-run means it was not exercised, and it always carries a reason. Accept only when every required check passed on the current stable state. A required failed row means rejected; a required not-run row means incomplete, never accepted. Visual verification is complete only when all required visual and interaction checks were exercised, even if some failed; otherwise it is pending. Browser availability alone establishes neither completion nor acceptance. Accepted here means the UI criteria were observed to hold on this state; it is not delivery approval. Marking the work verified and closing the task belongs to the Coordinator.
+12. **Preencha a matriz com honestidade.** `passed` significa observado. `failed` significa observado como errado. `not-run` significa que não foi exercitado, e sempre traz um motivo. Aceite só quando toda checagem exigida estiver `passed` no estado estável atual. Uma linha exigida `failed` significa `rejected`; uma linha exigida `not-run` significa `incomplete`, nunca `accepted`. A verificação visual só está `complete` quando todas as checagens visuais e de interação exigidas foram exercitadas, mesmo que algumas tenham falhado; senão, está `pending`. A disponibilidade de um navegador, sozinha, não estabelece nem a conclusão nem o aceite. `accepted` aqui significa que se observou que os critérios de UI valem neste estado; não é aprovação de entrega. Marcar o trabalho como verificado e fechar a tarefa cabe ao Coordenador.
 
-13. **Hand back the result.** This procedure verifies; it does not fix. Report failures to the author or the Coordinator with enough detail to reproduce. Only the Coordinator writes `.harness/MEMORY.md`, `.harness/EPOCHAL.md`, and `.harness/RISKS.md`; report facts, evidence paths, and incidents for the Coordinator to record.
+13. **Devolva o resultado.** Este procedimento verifica; não corrige. Reporte as falhas ao autor ou ao Coordenador com detalhe suficiente para reproduzir. Só o Coordenador escreve `.harness/MEMORY.md`, `.harness/EPOCHAL.md` e `.harness/RISKS.md`; reporte fatos, caminhos de evidência e incidentes para o Coordenador registrar.
 
-## Output format
+## Formato de saída
 
 ```
-## UI verification
-- Surface: <route or component>
-- Environment: <how it was run> | browser: headless | headed | none
-- Viewports: <narrow px> and <wide px>
+## Verificação de UI
+- Superfície: <rota ou componente>
+- Ambiente: <como foi rodada> | navegador: headless | headed | nenhum
+- Viewports: <px estreito> e <px largo>
 
-## Matrix
-| # | Criterion | Method | Result | Evidence |
-|---|-----------|--------|--------|----------|
-| 1 | <user-visible behavior> | pointer | passed | <relative/path/shot.png> |
-| 2 | <behavior> | keyboard | failed | <relative/path/shot.png> |
-| 3 | <behavior> | viewport 390 | not-run | no browser available |
+## Matriz
+| # | Critério | Método | Resultado | Evidência |
+|---|----------|--------|-----------|-----------|
+| 1 | <comportamento visível ao usuário> | ponteiro | passed | <caminho/relativo/captura.png> |
+| 2 | <comportamento> | teclado | failed | <caminho/relativo/captura.png> |
+| 3 | <comportamento> | viewport 390 | not-run | sem navegador disponível |
 
-## Failures
-- [<criterion>] <what happened> vs <what was expected>
-  - Steps: <how to reproduce>
-  - Evidence: <relative path or console excerpt>
+## Falhas
+- [<critério>] <o que aconteceu> vs <o que era esperado>
+  - Passos: <como reproduzir>
+  - Evidência: <caminho relativo ou trecho do console>
 
 ## Console
-- Errors: <count> - <first error text>
-- Warnings: <count>
+- Erros: <contagem> - <texto do primeiro erro>
+- Avisos: <contagem>
 
-## Checks
-- <command> - passed | failed | not-run
+## Checagens
+- <comando> - passed | failed | not-run
 
-## Summary
-- Passed: <n> | Failed: <n> | Not-run: <n>
-- Visual verification: complete | pending (<reason>)
-- Verdict: accepted | rejected | incomplete
+## Resumo
+- Passaram: <n> | Falharam: <n> | Não rodados: <n>
+- Verificação visual: complete | pending (<motivo>)
+- Veredito: accepted | rejected | incomplete
 ```
 
-## Quick reference
+## Referência rápida
 
-| Standing row | What proves it | Never accept instead |
+| Linha fixa | O que prova | Nunca aceite no lugar |
 | --- | --- | --- |
-| Flow completes with a pointer | The end state observed after real input | A passing unit test of the submit handler |
-| Flow completes with the keyboard alone | Every control reached by tab and activated | An ARIA attribute present in the source |
-| Focus is always visible | Observed indicator at each stop | A focus style defined in the stylesheet |
-| Loading state renders | The state seen while the request is pending | The spinner component existing |
-| Error state renders and explains | The state seen after a forced failure | A catch block in the code |
-| Empty state renders and offers a next step | The state seen with no data | An empty array check |
-| No horizontal scroll at narrow width | Observed at the stated width | A responsive utility class |
-| Content usable at wide width | Observed at the stated width | A max-width rule |
-| Inputs have programmatic labels | Name announced or label association observed | Visible placeholder text |
-| Meaningful images have alternative text | Attribute present and accurate | A filename that describes the image |
-| Text contrast at least 4.5 to 1 | Ratio computed from the resolved foreground and background colors | A palette said to be accessible, or a ratio estimated by eye |
-| No uncaught console errors during the flow | Console read after the run | A clean screenshot |
-| Required assets ship with the project | Asset located in the repository or a dependency | A resource that loaded from somewhere |
+| O fluxo se completa com o ponteiro | O estado final observado depois de uma entrada real | Um teste unitário aprovado do handler de envio |
+| O fluxo se completa só com o teclado | Todo controle alcançado por tab e ativado | Um atributo ARIA presente no código-fonte |
+| O foco é sempre visível | Indicador observado em cada parada | Um estilo de foco definido na folha de estilos |
+| O estado de carregamento renderiza | O estado visto enquanto a requisição está pendente | O componente de spinner existir |
+| O estado de erro renderiza e explica | O estado visto depois de uma falha forçada | Um bloco catch no código |
+| O estado vazio renderiza e oferece um próximo passo | O estado visto sem dados | Uma checagem de array vazio |
+| Sem rolagem horizontal na largura estreita | Observado na largura declarada | Uma classe utilitária responsiva |
+| Conteúdo utilizável na largura larga | Observado na largura declarada | Uma regra de max-width |
+| Os inputs têm rótulos programáticos | Nome anunciado ou associação de rótulo observada | Texto de placeholder visível |
+| Imagens com significado têm texto alternativo | Atributo presente e preciso | Um nome de arquivo que descreve a imagem |
+| Contraste do texto de pelo menos 4.5 para 1 | Razão calculada a partir das cores resolvidas de primeiro plano e de fundo | Uma paleta dita acessível, ou uma razão estimada a olho |
+| Nenhum erro não capturado no console durante o fluxo | Console lido depois da execução | Uma captura de tela limpa |
+| Os ativos exigidos são entregues com o projeto | Ativo localizado no repositório ou numa dependência | Um recurso que carregou de algum lugar |
 
-| Evidence available | What may reach passed | What the summary must say |
+| Evidência disponível | O que pode chegar a `passed` | O que o resumo deve dizer |
 | --- | --- | --- |
-| Browser, headed or headless | Only rows exercised and observed to hold | Complete only after all required visual and interaction rows were exercised; otherwise pending with the missing checks named |
-| Application runs, no browser | Build and unit rows only | Visual verification pending, no browser |
-| Application does not run | Static rows only | Verification incomplete, flow unreachable |
+| Navegador, headed ou headless | Só as linhas exercitadas e observadas como válidas | `complete` só depois que todas as linhas visuais e de interação exigidas foram exercitadas; senão, `pending` com as checagens faltantes nomeadas |
+| A aplicação roda, sem navegador | Só as linhas de build e unitárias | Verificação visual `pending`, sem navegador |
+| A aplicação não roda | Só as linhas estáticas | Verificação `incomplete`, fluxo inalcançável |
 
-## Common mistakes
+## Erros comuns
 
-| Mistake | Why it hurts | Do instead |
+| Erro | Por que prejudica | Em vez disso |
 | --- | --- | --- |
-| Reporting a pass because the type check succeeded | Compilation says nothing about whether a person can finish the flow | Keep interaction rows open until they are exercised |
-| Skipping the keyboard pass because the pointer path worked | Ships a surface that a keyboard user cannot operate at all | Repeat the whole flow with the keyboard alone |
-| Verifying only the happy path | Applicable loading, error, and empty states can remain broken | Exercise each required state using authorized fixtures or browser controls |
-| Checking one viewport width | Layout defects appear exactly at the width nobody opened | Record two widths and state the numbers |
-| Treating a missing browser as a pass | Converts an unknown into a false claim of done | Mark the rows not-run and declare visual verification pending |
-| Fetching a missing asset during verification | Hides a defect that will reappear for every real user | Report the missing asset as a failed row |
-| Ignoring console output because the screen looked right | Silent errors become the defect reported by users next week | Read the console and record what it says |
-| Fixing the defect you found | The verification loses its independence and the matrix stops reflecting the change under test | Report the failure to the author |
-| Writing "accessibility OK" with no rows | An unverifiable claim that hides every real barrier | List each accessibility row with its own result |
+| Reportar `passed` porque a checagem de tipos teve sucesso | A compilação não diz nada sobre se uma pessoa consegue terminar o fluxo | Mantenha as linhas de interação abertas até serem exercitadas |
+| Pular a passagem pelo teclado porque o caminho do ponteiro funcionou | Entrega uma superfície que um usuário de teclado não consegue operar de jeito nenhum | Repita o fluxo inteiro só com o teclado |
+| Verificar só o caminho feliz | Os estados aplicáveis de carregamento, de erro e vazio podem continuar quebrados | Exercite cada estado exigido com fixtures autorizadas ou controles do navegador |
+| Conferir uma só largura de viewport | Defeitos de layout aparecem justamente na largura que ninguém abriu | Registre duas larguras e declare os números |
+| Tratar um navegador ausente como `passed` | Converte um desconhecido numa afirmação falsa de concluído | Marque as linhas `not-run` e declare a verificação visual `pending` |
+| Buscar um ativo ausente durante a verificação | Esconde um defeito que vai reaparecer para todo usuário real | Reporte o ativo ausente como uma linha `failed` |
+| Ignorar a saída do console porque a tela parecia certa | Erros silenciosos viram o defeito reportado pelos usuários na semana seguinte | Leia o console e registre o que ele diz |
+| Corrigir o defeito que você achou | A verificação perde a independência e a matriz deixa de refletir a mudança sob teste | Reporte a falha ao autor |
+| Escrever "acessibilidade OK" sem linhas | Uma afirmação inverificável que esconde toda barreira real | Liste cada linha de acessibilidade com o próprio resultado |
 
-## Example
+## Exemplo
 
-Input: an invite form with the criteria "an invalid address shows an inline error" and "the list shows an empty state before the first invite".
+Entrada: um formulário de convite com os critérios "um endereço inválido mostra um erro inline" e "a lista mostra um estado vazio antes do primeiro convite".
 
 ```
-## UI verification
-- Surface: /settings/invites
-- Environment: npm run dev | browser: headless
-- Viewports: 390 and 1440
+## Verificação de UI
+- Superfície: /settings/invites
+- Ambiente: npm run dev | navegador: headless
+- Viewports: 390 e 1440
 
-## Matrix
-| # | Criterion                                   | Method         | Result  | Evidence                                            |
-|---|---------------------------------------------|----------------|---------|-----------------------------------------------------|
-| 1 | Invalid address shows an inline error       | keyboard       | passed  | .harness/tasks/T-88/evidence/invite-error-390.png   |
-| 2 | Error is announced, not color only          | semantics      | failed  | error text rendered as a span                       |
-| 3 | Empty list shows a next step                | pointer        | passed  | .harness/tasks/T-88/evidence/invite-empty.png       |
-| 4 | No horizontal scroll at 390 px              | viewport 390   | passed  | .harness/tasks/T-88/evidence/invite-390.png         |
-| 5 | Form usable without clipping at 1440 px     | viewport 1440  | passed  | .harness/tasks/T-88/evidence/invite-1440.png        |
-| 6 | No uncaught console errors during the flow  | console        | failed  | console excerpt below                               |
+## Matriz
+| # | Critério                                        | Método         | Resultado | Evidência                                           |
+|---|-------------------------------------------------|----------------|-----------|-----------------------------------------------------|
+| 1 | Endereço inválido mostra um erro inline         | teclado        | passed    | .harness/tasks/T-88/evidence/invite-error-390.png   |
+| 2 | O erro é anunciado, não só por cor              | semântica      | failed    | texto do erro renderizado como um span              |
+| 3 | Lista vazia mostra um próximo passo             | ponteiro       | passed    | .harness/tasks/T-88/evidence/invite-empty.png       |
+| 4 | Sem rolagem horizontal em 390 px                | viewport 390   | passed    | .harness/tasks/T-88/evidence/invite-390.png         |
+| 5 | Formulário utilizável sem cortes em 1440 px     | viewport 1440  | passed    | .harness/tasks/T-88/evidence/invite-1440.png        |
+| 6 | Nenhum erro não capturado no console no fluxo   | console        | failed    | trecho do console abaixo                            |
 
-## Failures
-- [Error is announced, not color only] The message renders in a plain span with no association to the input.
-  - Steps: focus the address field, enter "a@", tab out.
-  - Evidence: .harness/tasks/T-88/evidence/invite-error-390.png
-- [No uncaught console errors during the flow] An unhandled rejection fires on submit while the screen still looks correct.
-  - Steps: submit a valid address with the network panel open.
-  - Evidence: console excerpt below
+## Falhas
+- [O erro é anunciado, não só por cor] A mensagem renderiza num span simples, sem associação com o input.
+  - Passos: focar o campo de endereço, digitar "a@", sair com tab.
+  - Evidência: .harness/tasks/T-88/evidence/invite-error-390.png
+- [Nenhum erro não capturado no console no fluxo] Uma rejeição não tratada dispara no envio enquanto a tela ainda parece correta.
+  - Passos: enviar um endereço válido com o painel de rede aberto.
+  - Evidência: trecho do console abaixo
 
 ## Console
-- Errors: 1 - Uncaught (in promise) TypeError: cannot read properties of undefined (reading 'id')
-- Warnings: 2
+- Erros: 1 - `Uncaught (in promise) TypeError: cannot read properties of undefined (reading 'id')`
+- Avisos: 2
 
-## Summary
-- Passed: 4 | Failed: 2 | Not-run: 0
-- Visual verification: complete
-- Verdict: rejected
+## Resumo
+- Passaram: 4 | Falharam: 2 | Não rodados: 0
+- Verificação visual: complete
+- Veredito: rejected
 ```
 
-## Related
+## Relacionado
 
-Roles: builder, qa-verifier, coordinator, docs-guide. Command: `/dh:verify`, and the verification step inside `/dh:build`. Skills: regression-testing for turning a failed row into an automated check, code-review for the diff behind the surface, api-contracts when the failure is in the data the surface receives, delivery-readiness for what a release needs before the decision.
+Papéis: `builder`, `qa-verifier`, `coordinator`, `docs-guide`. Comando: `/dh:verify`, e o passo de verificação dentro de `/dh:build`. Skills: `regression-testing` para transformar uma linha `failed` numa checagem automatizada, `code-review` para o diff por trás da superfície, `api-contracts` quando a falha está nos dados que a superfície recebe, `delivery-readiness` para o que um release precisa antes da decisão.
 
-## Proof case
+## Caso de prova
 
-Given a fixture flow with one keyboard trap and one unlabelled input, the verification reports both as failed rows with reproduction steps and evidence, and passes the criteria that genuinely hold. Run again in an environment with no browser, the same procedure reports the interaction rows as not-run with the reason and declares visual verification pending, never an overall pass. A browser-enabled run with an unreachable required state also stays incomplete and pending. A surface without loading or error states does not acquire invented criteria or source edits merely to exercise them.
+Dado um fluxo de fixture com uma armadilha de teclado e um input sem rótulo, a verificação reporta os dois como linhas `failed` com passos de reprodução e evidência, e aprova os critérios que de fato valem. Rodado de novo num ambiente sem navegador, o mesmo procedimento reporta as linhas de interação como `not-run` com o motivo e declara a verificação visual `pending`, nunca uma aprovação geral. Uma execução com navegador e um estado exigido inalcançável também continua `incomplete` e `pending`. Uma superfície sem estados de carregamento ou de erro não ganha critérios inventados nem edições de código-fonte só para exercitá-los.
