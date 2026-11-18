@@ -1,182 +1,183 @@
 ---
 name: harness-authoring
-description: Use when an agent, skill, command or tutorial of this kit must be created or changed, when a trigger fires too widely or too narrowly, when an asset's instructions are ambiguous or contradict another asset, or when a provenance, version or compatibility note is needed for kit content. Do not use for changes to a consumer project's own code, for a one-off preference about tone, or to hand-edit the generated package instead of the sources.
+description: Use quando um agente, skill, comando ou tutorial deste kit precisar ser criado ou alterado, quando um gatilho disparar de forma ampla ou estreita demais, quando as instruções de um ativo forem ambíguas ou contradisserem as de outro ativo, ou quando o conteúdo do kit exigir uma nota de procedência, versão ou compatibilidade. Não use para mudanças no código do próprio projeto consumidor, para uma preferência pontual de tom, nem para editar à mão o pacote gerado em vez das fontes.
 author: malka
 metadata:
   provenance: adapted
   sources: ["skill-development", "writing-for-agents", "agent-development", "command-development", "writing-skills", " skill-creator role", "dev-harness harness-maintainer agent"]
 ---
 
-# Harness Authoring
+# Autoria do harness
 
-## Overview
+## Visão geral
 
-This procedure produces or changes one asset of this kit: an agent, a skill, a command or a tutorial. It fixes the contract each asset type owes, keeps triggering text separate from procedure text, and pushes heavy material behind a pointer so the loaded file stays legible. A new asset needs an authorized use case and testable expectations. A repair needs a reproduced failure or a concrete contract contradiction; an isolated preferred answer is not evidence of improvement.
+Este procedimento produz ou muda um ativo deste kit: um agente, uma skill, um comando ou um tutorial. Ele fixa o contrato que cada tipo de ativo deve, mantém o texto de disparo separado do texto de procedimento e empurra o material pesado para trás de um ponteiro, para que o arquivo carregado continue legível. Um ativo novo precisa de um caso de uso autorizado e de expectativas testáveis. Um reparo precisa de uma falha reproduzida ou de uma contradição concreta de contrato; uma resposta preferida isolada não é evidência de melhora.
 
-## When to use
+## Quando usar
 
-- A new agent, skill, command or tutorial is needed and its contract must be written correctly the first time.
-- A trigger fires on work it should not touch, or fails to fire on work it owns.
-- Two assets give conflicting instructions, or one asset silently duplicates another.
-- An asset's description summarizes its workflow, so consumers act on the description and skip the body.
-- The loaded file has grown past what it needs and reference material must move behind a pointer.
-- Provenance, license or version information for kit content is missing or wrong.
+- Um agente, skill, comando ou tutorial novo é necessário e o contrato dele precisa ser escrito certo de primeira.
+- Um gatilho dispara em trabalho em que não deveria tocar, ou deixa de disparar em trabalho que é dele.
+- Dois ativos dão instruções conflitantes, ou um ativo duplica outro em silêncio.
+- A descrição de um ativo resume o fluxo de trabalho dele, e os consumidores agem pela descrição e pulam o corpo.
+- O arquivo carregado cresceu além do que precisa e o material de referência deve passar para trás de um ponteiro.
+- Faltam ou estão erradas as informações de procedência, licença ou versão do conteúdo do kit.
 
-## When not to use
+## Quando não usar
 
-- The change belongs to a consumer project's application code or its instructions file.
-- The only evidence is a single reply someone liked better. Collect a reproducible case first.
-- The request is to evaluate whether a change helped. That is harness-evaluation.
-- The intent is to patch the generated package under `dist/`. Change the sources.
+- A mudança pertence ao código de aplicação de um projeto consumidor ou ao arquivo de instruções dele.
+- A única evidência é uma resposta isolada de que alguém gostou mais. Colete antes um caso reproduzível.
+- O pedido é avaliar se uma mudança ajudou. Isso é `harness-evaluation`.
+- A intenção é remendar o pacote gerado em `dist/`. Mude as fontes.
 
-## Inputs
+## Entradas
 
-| Input | If missing |
+| Entrada | Se faltar |
 | --- | --- |
-| A concrete use case and expected behavior; for repairs, observed failure or conflicting instructions | Derive a case from the authorized request. For a new asset, current behavior may be absent. For a static contradiction, cite both instructions and the affected scenario; do not claim a model reproduction you did not run. |
-| The asset that owns the behavior | Trace it: which trigger fired, which file was loaded, which instruction produced the output. Name the owner before editing anything. |
-| Kit version or the identity of the harness checkout | Record the checkout state you worked from, and mark the version as unknown rather than guessing. |
-| Existing baseline results for the asset | Capture the before state. If model runs are unavailable, distinguish static correction from unmeasured behavioral improvement and report that limit. |
-| Provenance of any borrowed material: origin and license | Do not incorporate it. Naming a source does not make its content available. Write the procedure yourself or leave the gap recorded. |
+| Um caso de uso concreto e o comportamento esperado; para reparos, a falha observada ou as instruções conflitantes | Derive um caso do pedido autorizado. Para um ativo novo, o comportamento atual pode não existir. Para uma contradição estática, cite as duas instruções e o cenário afetado; não afirme uma reprodução em modelo que você não rodou. |
+| O ativo que é dono do comportamento | Rastreie-o: qual gatilho disparou, qual arquivo foi carregado, qual instrução produziu a saída. Nomeie o dono antes de editar qualquer coisa. |
+| A versão do kit ou a identidade do checkout do harness | Registre o estado do checkout de que você partiu e marque a versão como desconhecida em vez de adivinhá-la. |
+| Resultados de linha de base existentes para o ativo | Capture o estado anterior. Se rodadas em modelo não estiverem disponíveis, distinga a correção estática da melhora comportamental não medida e reporte esse limite. |
+| Procedência de qualquer material emprestado: origem e licença | Não o incorpore. Nomear uma fonte não torna o conteúdo dela disponível. Escreva o procedimento você mesmo ou deixe a lacuna registrada. |
+| Idioma dos fontes do kit | O kit é só pt-BR (ADR-011): prosa, títulos, `description`, exemplos e mensagens saem em pt-BR; fica em inglês só o identificador (chaves, comandos, nomes de agente e de arquivo, slugs de skill, código), entre crases quando citado no texto. Comentários de código e mensagens de commit do kit seguem o que o repositório define (`AGENTS.md`, `CONTRIBUTING.md`: inglês). |
 
-## Procedure
+## Procedimento
 
-1. **Establish the case in the harness checkout.** Work on sources. For a repair, reproduce the failure or cite the contradictory contract and a concrete scenario. For a new asset, record the authorized behavior currently missing. Preserve the before state and distinguish observed runs from static analysis.
-2. **Locate the owning asset.** Follow the path the runtime took: which description matched, which body loaded, which instruction the output followed. A failure in routing belongs to a description; a failure in method belongs to a body; a failure in scope belongs to a limit.
-3. **Choose the asset type by what the change must do.** An agent is a responsible party with its own context and limits. A skill is the reusable procedure. A command is the user's entry point and carries routing, parameters and contract only, with the method living in the skill. If the fix needs a new type, say so explicitly rather than stretching an existing one.
-4. **Write and store the test cases before editing anything.** At least one positive and one negative case under `evals/cases/`, so harness-evaluation can capture the baseline on the unchanged asset. Running and grading them is harness-evaluation.
-5. **Write or repair the contract for that type.** Use the contract tables in Quick reference. Every field is either filled or explicitly marked not applicable with a reason.
-6. **Write the description as triggering conditions only.** Third person, starting with the conditions that should load the asset, plus the contraindications. Never summarize the procedure in the description: a description that describes the workflow becomes a shortcut the consumer follows instead of reading the body. Keep it under 500 characters.
-7. **Match the form of the guidance to the form of the failure.** Use the failure-to-form table. A rule skipped under pressure needs an explicit counter and a rationalization table. Output of the wrong shape needs a positive recipe stating what the output is, not a list of prohibitions. A missing element needs a required slot in the template. Behavior that depends on a condition needs a conditional keyed to something observable.
-8. **Prefer the positive target over the prohibition.** Naming the forbidden behavior makes it more available, not less. Keep a prohibition only as a hard guardrail that cannot be phrased positively, and pair it with the target behavior.
-9. **Apply progressive disclosure.** The loaded file holds what every path through it needs. Material only some paths reach, and any block of reference over roughly 100 lines, moves to `references/<topic>.md` inside the skill's own folder and is reached by a folder-relative link, which resolves both in the source tree (`.skills/`) and in the generated package (`skills/`). Keep each meaning in one place; the same rule in two files is a maintenance defect and inflates its apparent importance.
-10. **Keep the change minimal and the identifiers stable.** Change the smallest thing that fixes the reproduced case. Do not restyle neighboring assets in the same pass. Renaming an identifier is a breaking change and needs its own reason.
-11. **Record provenance in the frontmatter.** Preserve `author: malka`. Mark the asset authorial when the procedure is your own or adapted when it synthesizes outside material into something different. Record identifiable origins and verify applicable licenses before incorporating protected text. This kit's policy forbids verbatim copied skills even when licensed; attribution alone does not make a copy an adaptation.
-12. **State compatibility and propose a version.** Name what breaks for a consumer already using the kit: a renamed identifier, a changed output shape, a narrowed trigger, a removed reference. Propose the version and mark it as a proposal.
-13. **Regenerate the package from the sources.** Never independently edit prompts under `dist/`. From the kit root run `go run ./cmd/dh build` (or `bin/dh build` from a built package). It validates sources, stages a complete package, then replaces `dist/claude-code/dev-harness`. If source and generated content disagree, source wins and the build must be re-run.
-14. **Report, do not record.** Case, change, evidence and compatibility go back to the Coordinator, who is the only writer of `.harness/MEMORY.md`, `.harness/EPOCHAL.md` and `.harness/RISKS.md`.
-15. **Write each procedure step as one imperative sentence plus at most one sentence of reason.** Put cross-references at the end of the step or section, not inside a sentence.
+1. **Estabeleça o caso no checkout do harness.** Trabalhe nas fontes. Para um reparo, reproduza a falha ou cite o contrato contraditório e um cenário concreto. Para um ativo novo, registre o comportamento autorizado que hoje falta. Preserve o estado anterior e distinga rodadas observadas de análise estática.
+2. **Localize o ativo dono.** Siga o caminho que o runtime percorreu: qual descrição casou, qual corpo foi carregado, qual instrução a saída seguiu. Uma falha de roteamento pertence a uma descrição; uma falha de método pertence a um corpo; uma falha de escopo pertence a um limite.
+3. **Escolha o tipo de ativo pelo que a mudança precisa fazer.** Um agente é uma parte responsável com contexto e limites próprios. Uma skill é o procedimento reutilizável. Um comando é o ponto de entrada do usuário e carrega só roteamento, parâmetros e contrato, com o método morando na skill. Se a correção precisa de um tipo novo, diga isso explicitamente em vez de esticar um existente.
+4. **Escreva e guarde os casos de teste antes de editar qualquer coisa.** Ao menos um caso positivo e um negativo em `evals/cases/`, para que a `harness-evaluation` capture a linha de base no ativo inalterado. Rodá-los e avaliá-los é a `harness-evaluation`.
+5. **Escreva ou repare o contrato desse tipo.** Use as tabelas de contrato na Referência rápida. Todo campo ou está preenchido ou está marcado explicitamente como não aplicável, com o motivo.
+6. **Escreva a descrição só com condições de disparo.** Terceira pessoa, começando pelas condições que devem carregar o ativo, mais as contraindicações. Nunca resuma o procedimento na descrição: uma descrição que descreve o fluxo de trabalho vira um atalho que o consumidor segue em vez de ler o corpo. Mantenha-a abaixo de 500 caracteres.
+7. **Ajuste a forma da orientação à forma da falha.** Use a tabela de falha para forma. Uma regra pulada sob pressão precisa de uma contra-regra explícita e de uma tabela de racionalizações. Saída com a forma errada precisa de uma receita positiva que diga o que a saída é, não de uma lista de proibições. Um elemento ausente precisa de um campo obrigatório no template. Um comportamento que depende de uma condição precisa de um condicional atrelado a algo observável.
+8. **Prefira o alvo positivo à proibição.** Nomear o comportamento proibido o torna mais disponível, não menos. Mantenha uma proibição só como proteção rígida que não pode ser formulada de forma positiva, e a combine com o comportamento-alvo.
+9. **Aplique divulgação progressiva.** O arquivo carregado contém o que todo caminho por ele precisa. O material que só alguns caminhos alcançam, e qualquer bloco de referência com mais de cerca de 100 linhas, vai para `references/<topic>.md` dentro da pasta da própria skill e é alcançado por um link relativo à pasta, que resolve tanto na árvore de fontes (`.skills/`) quanto no pacote gerado (`skills/`). Mantenha cada significado em um lugar só; a mesma regra em dois arquivos é um defeito de manutenção e infla a importância aparente dela.
+10. **Mantenha a mudança mínima e os identificadores estáveis.** Mude a menor coisa que corrige o caso reproduzido. Não reformate ativos vizinhos na mesma passada. Renomear um identificador é uma mudança incompatível e precisa de motivo próprio.
+11. **Registre a procedência no frontmatter.** Preserve `author: malka`. Marque o ativo como `authorial` quando o procedimento é seu, ou como `adapted` quando ele sintetiza material externo em algo diferente. Registre as origens identificáveis e verifique as licenças aplicáveis antes de incorporar texto protegido. A política deste kit proíbe skills copiadas literalmente mesmo quando licenciadas; atribuição sozinha não faz de uma cópia uma adaptação.
+12. **Declare a compatibilidade e proponha uma versão.** Nomeie o que quebra para um consumidor que já usa o kit: um identificador renomeado, uma forma de saída alterada, um gatilho estreitado, uma referência removida. Proponha a versão e marque-a como proposta.
+13. **Regenere o pacote a partir das fontes.** Nunca edite prompts em `dist/` de forma independente. A partir da raiz do kit, rode `go run ./cmd/dh build` (ou `bin/dh build` a partir de um pacote construído). Ele valida as fontes, monta um pacote completo e então substitui `dist/claude-code/dev-harness`. Se fonte e conteúdo gerado discordarem, a fonte vence e o build deve ser rodado de novo.
+14. **Reporte, não registre.** Caso, mudança, evidência e compatibilidade voltam ao Coordenador, que é o único que escreve `.harness/MEMORY.md`, `.harness/EPOCHAL.md` e `.harness/RISKS.md`.
+15. **Escreva cada passo do procedimento como uma frase imperativa mais, no máximo, uma frase de motivo.** Ponha as referências cruzadas no fim do passo ou da seção, não dentro de uma frase.
 
-## Output format
+## Formato de saída
 
 ```
-# Asset change: <asset id>
+# Mudança de ativo: <id do ativo>
 
-## Case
+## Caso
 - Prompt:
-- Expected:
-- Observed:
-- Reproduced: yes / no (<reason>)
+- Esperado:
+- Observado:
+- Reproduzido: sim / não (<motivo>)
 
-## Owning asset
-- File: <relative path> | type: agent / skill / command / tutorial
-- Why this asset owns the behavior:
+## Ativo dono
+- Arquivo: <caminho relativo> | tipo: agente / skill / comando / tutorial
+- Por que este ativo é dono do comportamento:
 
-## Change
-- What changed (smallest edit):
-- What deliberately did not change:
+## Mudança
+- O que mudou (menor edição):
+- O que deliberadamente não mudou:
 
-## Contract check
-| Field | State |
+## Checagem do contrato
+| Campo | Estado |
 | --- | --- |
-| <field from the contract table> | filled / not applicable (<reason>) |
+| <campo da tabela de contrato> | preenchido / não aplicável (<motivo>) |
 
-## Test cases
-- Positive: <relative path under evals/cases/> | must now <behavior>
-- Negative: <relative path under evals/cases/> | must still <behavior>
+## Casos de teste
+- Positivo: <caminho relativo em evals/cases/> | agora deve <comportamento>
+- Negativo: <caminho relativo em evals/cases/> | ainda deve <comportamento>
 
-## Provenance
-- Class: authorial / adapted
-- Origin:
-- License verified: yes / no / not applicable
+## Procedência
+- Classe: authorial / adapted
+- Origem:
+- Licença verificada: sim / não / não aplicável
 
-## Compatibility
-- Breaks for existing consumers:
-- Identifiers renamed:
+## Compatibilidade
+- Quebra para consumidores existentes:
+- Identificadores renomeados:
 
-## Version proposal
-- <value> (proposal, needs confirmation)
+## Proposta de versão
+- <valor> (proposta, precisa de confirmação)
 
-## Evidence
-- <relative path> - <what it establishes>
+## Evidência
+- <caminho relativo> - <o que estabelece>
 ```
 
-## Quick reference
+## Referência rápida
 
-Contract per asset type. Every field is filled or marked not applicable with a reason.
+Contrato por tipo de ativo. Todo campo é preenchido ou marcado como não aplicável, com o motivo.
 
-| Asset | Required contract |
+| Ativo | Contrato exigido |
 | --- | --- |
-| Agent | Mission; positive triggers; negative triggers; minimum inputs and missing-input behavior; procedure; tool policy (omit `tools` to inherit everything; allowlist only for read-only roles; no `disallowedTools` as a lock — the runtime did not enforce it (RISK-001, 2026-09-21); the lock is the plugin runtime-guard mod (ADR-005), and the prompt body of every specialist still states that only the Coordinator dispatches, for runtimes without the mod); limits; output format; context handoff; stop condition; evaluable examples; explicit default model (never inherit), with scoped Coordinator override and effective model recorded or unverified |
-| Skill | Frontmatter with name matching the folder, triggering description, author, provenance; overview with the core principle; when to use; when not to use; inputs; numbered verifiable procedure; output format; quick reference; common mistakes; when the reproduced case is that the agent knows the rule and skips it under pressure, a three-column rationalization table (what you will be tempted to think, why it is wrong, what to do) in addition to common mistakes; one worked example; related roles, commands and sibling skills; proof case |
-| Command | Routing to the owning role and skill; parameters; expected output contract; missing-prerequisite behavior; next action. The method stays in the skill |
-| Tutorial | Prerequisites; the exercise; the completion condition; what the reader must be able to do unaided at the end |
+| Agente | Missão; gatilhos positivos; gatilhos negativos; entradas mínimas e comportamento diante de entrada ausente; procedimento; política de ferramentas (omita `tools` para herdar tudo; lista de permissão só para papéis somente leitura; nada de `disallowedTools` como trava — o runtime não a aplicou (RISK-001, 2026-09-21); a trava é o mod runtime-guard do plugin (ADR-005), e o corpo do prompt de todo especialista ainda declara que só o Coordenador despacha, para os runtimes sem o mod); limites; formato de saída; handoff de contexto; condição de parada; exemplos avaliáveis; modelo padrão explícito (nunca herdar), com sobrescrita delimitada pelo Coordenador e o modelo efetivo registrado ou `unverified` |
+| Skill | Frontmatter com name igual à pasta, descrição de disparo, author, procedência; visão geral com o princípio central; quando usar; quando não usar; entradas; procedimento numerado e verificável; formato de saída; referência rápida; erros comuns; quando o caso reproduzido é que o agente conhece a regra e a pula sob pressão, uma tabela de racionalizações de três colunas (o que você vai ficar tentado a pensar, por que está errado, o que fazer) além dos erros comuns; um exemplo desenvolvido; agentes, comandos e skills irmãs relacionados; caso de prova |
+| Comando | Roteamento para o papel e a skill donos; parâmetros; contrato da saída esperada; comportamento diante de pré-requisito ausente; próxima ação. O método fica na skill |
+| Tutorial | Pré-requisitos; o exercício; a condição de conclusão; o que o leitor deve ser capaz de fazer sem ajuda no fim |
 
-Match the form of the guidance to the form of the failure.
+Ajuste a forma da orientação à forma da falha.
 
-| Baseline failure | Right form | Wrong form |
+| Falha na linha de base | Forma certa | Forma errada |
 | --- | --- | --- |
-| Knows the rule, skips it under pressure | Explicit counter plus a rationalization table | Soft wording like prefer or consider |
-| Complies but the output has the wrong shape | Positive recipe naming the parts of the output in order | A list of prohibitions |
-| Omits a required element from something already produced | A required slot in the template | A prose reminder near the template |
-| Behavior should depend on a condition | Conditional keyed to an observable predicate | Unconditional rule with exemption clauses |
-| Fires on work it does not own | Sharpen the contraindications in the description | Add caveats in the body, which loads too late |
+| Conhece a regra, pula sob pressão | Contra-regra explícita mais uma tabela de racionalizações | Redação suave como prefira ou considere |
+| Cumpre, mas a saída tem a forma errada | Receita positiva nomeando as partes da saída em ordem | Uma lista de proibições |
+| Omite um elemento obrigatório de algo já produzido | Um campo obrigatório no template | Um lembrete em prosa perto do template |
+| O comportamento deve depender de uma condição | Condicional atrelado a um predicado observável | Regra incondicional com cláusulas de exceção |
+| Dispara em trabalho que não é dele | Afiar as contraindicações na descrição | Acrescentar ressalvas no corpo, que carrega tarde demais |
 
-Where material lives.
+Onde o material mora.
 
-| Material | Location |
+| Material | Local |
 | --- | --- |
-| Triggering conditions | Frontmatter description only |
-| Procedure every path needs | The loaded file |
-| Reference only some paths reach, or over roughly 100 lines | `references/<topic>.md` inside the skill's own folder, linked folder-relatively |
-| Something a script can verify mechanically | A script, not prose |
-| A fact the environment already states | Leave it in the environment; a restatement goes stale |
+| Condições de disparo | Só a descrição do frontmatter |
+| Procedimento de que todo caminho precisa | O arquivo carregado |
+| Referência que só alguns caminhos alcançam, ou com mais de cerca de 100 linhas | `references/<topic>.md` dentro da pasta da própria skill, com link relativo à pasta |
+| Algo que um script pode verificar de forma mecânica | Um script, não prosa |
+| Um fato que o ambiente já declara | Deixe-o no ambiente; uma repetição fica velha |
 
-## Common mistakes
+## Erros comuns
 
-| Mistake | Why it hurts | Do instead |
+| Erro | Por que prejudica | Em vez disso |
 | --- | --- | --- |
-| Editing an asset because one reply read better | Kit rules get rewritten by taste and drift away from the cases they were built for | Require a reproduced case with prompt, expected and observed |
-| Description that summarizes the workflow | Consumers follow the summary and never read the body, so the body becomes decoration | Triggering conditions and contraindications only |
-| Hand-editing the generated package | The next build silently reverts the fix and the sources never learn about it | Change the sources and rebuild |
-| Fixing routing by adding text to the body | The body loads only after the routing decision was already made | Fix the description, which is what the decision reads |
-| Big rewrite when a clause was wrong | The change cannot be attributed to the case, so nobody can tell what fixed what | Smallest edit that fixes the reproduced case |
-| Renaming identifiers while fixing behavior | Two changes land together and every consumer reference breaks for an unrelated reason | Keep identifiers stable unless the rename is the fix |
-| Copying text from another source because it is good | Unverified license and unresolved references travel with it | Authorial or adapted, with origin and license recorded |
-| Naming an external tool the kit does not ship | The asset breaks on any machine that lacks it | Phrase it as available-or-fallback, and name the fallback |
-| The same rule written in two assets | They drift, and the contradiction surfaces mid-task | One source of truth, referenced by relative path |
-| Absolute paths from the author's machine | The kit stops being portable the moment it moves | Paths relative to the kit root or the consumer project |
-| Only a positive test case | A widened trigger passes it and starts capturing work it does not own | Always pair it with a negative case |
+| Editar um ativo porque uma resposta ficou melhor | As regras do kit são reescritas por gosto e se afastam dos casos para os quais foram feitas | Exija um caso reproduzido com prompt, esperado e observado |
+| Descrição que resume o fluxo de trabalho | Os consumidores seguem o resumo e nunca leem o corpo, que vira decoração | Só condições de disparo e contraindicações |
+| Editar à mão o pacote gerado | O próximo build reverte a correção em silêncio e as fontes nunca ficam sabendo | Mude as fontes e reconstrua |
+| Corrigir o roteamento acrescentando texto ao corpo | O corpo só carrega depois de a decisão de roteamento já ter sido tomada | Corrija a descrição, que é o que a decisão lê |
+| Grande reescrita quando uma cláusula estava errada | A mudança não pode ser atribuída ao caso, então ninguém sabe o que corrigiu o quê | A menor edição que corrige o caso reproduzido |
+| Renomear identificadores enquanto corrige comportamento | Duas mudanças chegam juntas e toda referência de consumidor quebra por um motivo não relacionado | Mantenha os identificadores estáveis, salvo se a renomeação constituir a correção |
+| Copiar texto de outra fonte porque é bom | Licença não verificada e referências não resolvidas viajam com ele | Authorial ou adapted, com origem e licença registradas |
+| Nomear uma ferramenta externa que o kit não distribui | O ativo quebra em qualquer máquina que não a tenha | Formule como disponível-ou-alternativa e nomeie a alternativa |
+| A mesma regra escrita em dois ativos | Eles divergem, e a contradição aparece no meio da tarefa | Uma fonte única de verdade, referenciada por caminho relativo |
+| Caminhos absolutos da máquina do autor | O kit deixa de ser portátil no momento em que se move | Caminhos relativos à raiz do kit ou ao projeto consumidor |
+| Só um caso de teste positivo | Um gatilho ampliado passa por ele e começa a capturar trabalho que não é dele | Sempre o combine com um caso negativo |
 
-## Example
+## Exemplo
 
-Input: the mapping role explores the whole tree for a question about one known file.
+Entrada: o papel de mapeamento explora a árvore inteira para uma pergunta sobre um arquivo conhecido.
 
 ```
-Case
-  Prompt:   "What does src/auth/token.ts export?"
-  Expected: read that file, answer, stop.
-  Observed: full-tree map, 40 files read.
+Caso
+  Prompt:   "O que src/auth/token.ts exporta?"
+  Esperado: ler esse arquivo, responder, parar.
+  Observado: mapa da árvore inteira, 40 arquivos lidos.
 
-Owning asset: .agents/repo-scout.md, description field.
-  The body already says "smallest sufficient map". The description
-  matched before the body was ever loaded, so the body could not help.
+Ativo dono: .agents/repo-scout.md, campo description.
+  O corpo já diz "menor mapa suficiente". A descrição
+  casou antes de o corpo ser carregado, então o corpo não podia ajudar.
 
-Change (one line, description only):
-  add "Do not use when the user names a single known file and the
-  question is answerable from it."
+Mudança (uma linha, só a descrição):
+  acrescentar "Não use quando o usuário nomear um único arquivo conhecido e a
+  pergunta puder ser respondida a partir dele."
 
-Test cases
-  Positive: broad question with no file named -> the role still loads.
-  Negative: the prompt above -> the role does not load; the file is read directly.
+Casos de teste
+  Positivo: pergunta ampla sem arquivo nomeado -> o papel ainda carrega.
+  Negativo: o prompt acima -> o papel não carrega; o arquivo é lido diretamente.
 
-Compatibility: no identifier changed, trigger narrowed. Proposal: patch version.
+Compatibilidade: nenhum identificador mudou, gatilho estreitado. Proposta: versão patch.
 ```
 
-## Related
+## Relacionado
 
-Roles: harness-maintainer, coordinator, qa-verifier. Command: `/dh:improve`. Skills: harness-evaluation, context-handoff, delivery-readiness. Templates: the `templates/` folder bundled with the kit (`templates/<lang>/MEMORY.md`).
+Papéis: `harness-maintainer`, `coordinator`, `qa-verifier`. Comando: `/dh:improve`. Skills: `harness-evaluation`, `context-handoff`, `delivery-readiness`. Templates: a pasta `templates/` que acompanha o kit (`templates/MEMORY.md`).
 
-## Proof case
+## Caso de prova
 
-Given a reproduced routing failure, the flow names the owning asset and the field responsible, makes a single minimal edit in the harness checkout, and leaves the generated package untouched until it is rebuilt from the sources. The asset ends with a description that states only triggering conditions, a complete contract for its type, a positive and a negative test case stored for replay, a provenance class with its origin, and a stated compatibility impact with a proposed version. A request to change an asset based on one isolated preferred reply is refused with the reason, and no rule is edited. A reproduced case of knowing the rule and skipping it under pressure leaves the skill with the three-column rationalization table as well as common mistakes. New eval cases are not added unless the owner asks; the proof case inside the skill is the static stand-in.
+Dada uma falha de roteamento reproduzida, o fluxo nomeia o ativo dono e o campo responsável, faz uma única edição mínima no checkout do harness e deixa o pacote gerado intocado até que ele seja reconstruído a partir das fontes. O ativo termina com uma descrição que declara só condições de disparo, um contrato completo para o tipo dele, um caso de teste positivo e um negativo guardados para repetição, uma classe de procedência com a origem, e um impacto de compatibilidade declarado com uma versão proposta. Um pedido para mudar um ativo com base em uma única resposta preferida e isolada é recusado com o motivo, e nenhuma regra é editada. Um caso reproduzido de conhecer a regra e pulá-la sob pressão deixa a skill com a tabela de racionalizações de três colunas além dos erros comuns. Novos casos de avaliação não são acrescentados a menos que o dono peça; o caso de prova dentro da skill é o substituto estático.
